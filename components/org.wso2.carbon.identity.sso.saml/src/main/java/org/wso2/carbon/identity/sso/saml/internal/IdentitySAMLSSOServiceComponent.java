@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -135,7 +134,6 @@ public class IdentitySAMLSSOServiceComponent {
 
             FileBasedConfigManager.getInstance().addServiceProviders();
 
-            Util.initSSOConfigParams();
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
             }
