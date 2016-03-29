@@ -1043,7 +1043,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-    protected String splitAppendedTenantDomain(String issuer) throws UserStoreException, IdentityException {
+    private String splitAppendedTenantDomain(String issuer) {
 
         if (issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
             issuer = issuer.substring(0, issuer.lastIndexOf(UserCoreConstants.TENANT_DOMAIN_COMBINER));
