@@ -25,6 +25,7 @@ import org.apache.xerces.util.SecurityManager;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
+import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.EncryptedAssertion;
@@ -114,6 +115,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -718,19 +720,14 @@ public class SAMLSSOUtil {
 
     public static String createID() {
 
-        byte[] bytes = new byte[20]; // 160 bits
-        random.nextBytes(bytes);
-
-        char[] chars = new char[40];
-
-        for (int i = 0; i < bytes.length; i++) {
-            int left = (bytes[i] >> 4) & 0x0f;
-            int right = bytes[i] & 0x0f;
-            chars[i * 2] = charMapping[left];
-            chars[i * 2 + 1] = charMapping[right];
+        try {
+            SecureRandomIdentifierGenerator generator = new SecureRandomIdentifierGenerator();
+            return generator.generateIdentifier();
+        } catch (NoSuchAlgorithmException e) {
+            log.warn("Error while building Secure Random ID");
         }
+        return null;
 
-        return String.valueOf(chars);
     }
 
     /**
