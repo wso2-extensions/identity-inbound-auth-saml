@@ -51,7 +51,6 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.ServletException;
@@ -644,8 +643,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
                 String destination = reqValidationDTO.getAssertionConsumerURL();
 
-                if (SAMLSSOUtil.validateACS(sessionDTO.getTenantDomain(), splitAppendedTenantDomain(sessionDTO.getIssuer())
-                        , reqValidationDTO.getAssertionConsumerURL())) {
+                if (SAMLSSOUtil.validateACS(sessionDTO.getTenantDomain(), SAMLSSOUtil.splitAppendedTenantDomain(
+                        sessionDTO.getIssuer()), reqValidationDTO.getAssertionConsumerURL())) {
                     List<String> statusCodes = new ArrayList<String>();
                     statusCodes.add(SAMLSSOConstants.StatusCodes.NO_PASSIVE);
                     statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
@@ -1041,14 +1040,5 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             requestWrapper.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.UNKNOWN);
             doGet(requestWrapper, response);
         }
-    }
-
-    private String splitAppendedTenantDomain(String issuer) {
-
-        if (issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
-            issuer = issuer.substring(0, issuer.lastIndexOf(UserCoreConstants.TENANT_DOMAIN_COMBINER));
-        }
-
-        return issuer;
     }
 }
