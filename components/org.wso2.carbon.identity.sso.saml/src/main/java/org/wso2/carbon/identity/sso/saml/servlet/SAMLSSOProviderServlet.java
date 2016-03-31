@@ -643,8 +643,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
                 String destination = reqValidationDTO.getAssertionConsumerURL();
 
-                if (SAMLSSOUtil.validateACS(sessionDTO.getTenantDomain(), sessionDTO.getIssuer(), reqValidationDTO
-                        .getAssertionConsumerURL())) {
+                if (SAMLSSOUtil.validateACS(sessionDTO.getTenantDomain(), SAMLSSOUtil.splitAppendedTenantDomain(
+                        sessionDTO.getIssuer()), reqValidationDTO.getAssertionConsumerURL())) {
                     List<String> statusCodes = new ArrayList<String>();
                     statusCodes.add(SAMLSSOConstants.StatusCodes.NO_PASSIVE);
                     statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
