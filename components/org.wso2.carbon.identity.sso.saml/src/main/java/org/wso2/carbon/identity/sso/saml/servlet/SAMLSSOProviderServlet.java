@@ -989,7 +989,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (object != null) {
             AuthenticatorFlowStatus status = (AuthenticatorFlowStatus) object;
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
-                response.sendRedirect(responseWrapper.getRedirectURL());
+                if (responseWrapper.isRedirect()) {
+                    response.sendRedirect(responseWrapper.getRedirectURL());
+                } else {
+                    if (responseWrapper.getContent().length > 0) {
+                        responseWrapper.write();
+                    }
+                }
             } else {
                 doGet(request, response);
             }
@@ -1031,7 +1037,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 if (responseWrapper.isRedirect()) {
                     response.sendRedirect(responseWrapper.getRedirectURL());
                 } else {
-                    return;
+                    if (responseWrapper.getContent().length > 0) {
+                        responseWrapper.write();
+                    }
                 }
             } else {
                 doGet(requestWrapper, response);
