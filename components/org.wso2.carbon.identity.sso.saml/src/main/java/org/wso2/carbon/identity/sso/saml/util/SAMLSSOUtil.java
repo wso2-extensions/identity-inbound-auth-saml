@@ -1286,10 +1286,10 @@ public class SAMLSSOUtil {
         DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
         try {
             deflaterOutputStream.write(response.getBytes(StandardCharsets.UTF_8));
-            return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
         } finally {
             deflaterOutputStream.close();
         }
+        return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
     }
 
     public static String getNotificationEndpoint(){
