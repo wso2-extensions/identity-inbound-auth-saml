@@ -21,11 +21,12 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-extension-parent</artifactId>
-        <version>5.0.9-SNAPSHOT</version>
+        <version>5.1.1-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
+    <version>5.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -39,6 +40,20 @@
         <connection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</connection>
         <tag>HEAD</tag>
     </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.provider</artifactId>
+                <version>5.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <repositories>
         <repository>
@@ -116,6 +131,7 @@
 
     <modules>
         <module>components/org.wso2.carbon.identity.sso.saml</module>
+        <module>components/org.wso2.carbon.identity.sso.samlnew</module>
         <module>components/org.wso2.carbon.identity.sso.saml.common</module>
         <module>components/org.wso2.carbon.identity.sso.saml.ui</module>
         <module>components/org.wso2.carbon.identity.sso.saml.stub</module>
