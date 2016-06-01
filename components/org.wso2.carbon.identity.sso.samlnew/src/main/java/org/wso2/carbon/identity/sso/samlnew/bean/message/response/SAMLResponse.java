@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -17,6 +17,20 @@
  */
 package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
+import org.opensaml.saml2.core.Response;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
+
 public class SAMLResponse extends IdentityResponse {
+
+    protected SAMLResponse(IdentityResponseBuilder builder){
+        super(builder);
+    }
+
+    public static class SAMLResponseBuilder extends IdentityResponseBuilder{
+        public SAMLResponseBuilder(IdentityMessageContext context){
+            super(context);
+        }
+    }
+
 }
