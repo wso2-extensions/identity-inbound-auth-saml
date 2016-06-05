@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.sso.samlnew.bean.message.request;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.samlnew.exception.SAML2ClientException;
@@ -40,6 +40,10 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
         return false;
     }
 
+    @Override
+    public int getPriority() {
+        return 1;
+    }
     public SAMLIdentityRequest.SAMLIdentityRequestBuilder create(HttpServletRequest request,
                                                          HttpServletResponse response) throws SAML2ClientException {
 

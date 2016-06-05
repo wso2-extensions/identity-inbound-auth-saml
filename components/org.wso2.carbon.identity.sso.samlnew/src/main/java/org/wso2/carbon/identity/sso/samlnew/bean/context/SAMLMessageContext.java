@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.sso.samlnew.bean.context;
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
 
 import java.io.Serializable;
@@ -33,6 +34,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     private String destination;
     private List<String> statusCodeList;
     private String inResponseToID;
+    private AuthenticatedUser authzUser;
 
     public SAMLMessageContext(SAMLIdentityRequest request, Map<T1, T2> parameters) {
         super(request, parameters);

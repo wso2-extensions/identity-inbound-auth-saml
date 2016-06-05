@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.sso.samlnew.processor;
 
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.AuthnRequest;
@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -50,6 +51,7 @@ import java.util.HashMap;
 
 public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestProcessor.class);
+    private String relyingParty;
 
     @Override
     public String getName() {
@@ -57,22 +59,22 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
     }
 
     public int getPriority() {
-        return 0;
+        return -1;
     }
 
     @Override
     public String getCallbackPath(IdentityMessageContext context) {
-        return null;
+        return IdentityUtil.getServerURL("identity",false,false);
     }
 
     @Override
     public String getRelyingPartyId() {
-        return null;
+        return this.relyingParty;
     }
 
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
-        if (identityRequest.getParameter(SAMLSSOConstants.SAML_REQUEST) != null) {
+        if (((SAMLIdentityRequest) identityRequest).getSamlRequest() != null) {
             return true;
         }
         return false;
@@ -90,16 +92,14 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
         } catch (IdentityException e) {
             throw new FrameworkException("ExceptionThrown");
         }
-        FrameworkLoginResponse.FrameworkLoginResponseBuilder builder = (FrameworkLoginResponse
-                .FrameworkLoginResponseBuilder) buildResponseForFrameworkLogin(messageContext);
+        FrameworkLoginResponse.FrameworkLoginResponseBuilder builder = buildResponseForFrameworkLogin(messageContext);
         return builder;
     }
 
 
     protected boolean validateSPInitSSORequest(SAMLMessageContext messageContext) throws IdentityException {
         SAMLIdentityRequest identityRequest = messageContext.getRequest();
-        XMLObject request = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(identityRequest.getParameter(SAMLSSOConstants
-                .SAML_REQUEST)));
+        XMLObject request = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(identityRequest.getSamlRequest()));
         if (request instanceof AuthnRequest) {
             messageContext.setIdpInitSSO(false);
             return validateAuthnRequest((AuthnRequest) request, messageContext);
@@ -136,7 +136,11 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
         try {
             Issuer issuer = authnReq.getIssuer();
             Subject subject = authnReq.getSubject();
-
+            this.relyingParty = issuer.getValue();
+            boolean isLoginRequired = messageContext.getRequest().isLoginRequired();
+            messageContext.addParameter(InboundConstants.ForceAuth, isLoginRequired);
+            boolean isPromptNone = messageContext.getRequest().isPromptNone();
+            messageContext.addParameter(InboundConstants.PassiveAuth, isPromptNone);
             //@TODO Decide whether we want this
 
             // Validate the version
@@ -195,6 +199,7 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
                 //validationResponse.setLoginPageURL(spDO.getLoginPageURL());
                 spAcsUrl = spDO.getAssertionConsumerUrl();
             }
+
             // Check for a Spoofing attack
             String acsUrl = authnReq.getAssertionConsumerServiceURL();
             if (StringUtils.isNotBlank(spAcsUrl) && StringUtils.isNotBlank(acsUrl) && !acsUrl.equals(spAcsUrl)) {

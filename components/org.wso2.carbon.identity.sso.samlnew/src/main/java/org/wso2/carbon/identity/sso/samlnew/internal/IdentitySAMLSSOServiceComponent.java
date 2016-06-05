@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequestFactory;
 import org.wso2.carbon.identity.sso.samlnew.processor.SPInitSSOAuthnRequestProcessor;
+import org.wso2.carbon.identity.sso.samlnew.processor.SSOLoginProcessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -104,6 +105,7 @@ public class IdentitySAMLSSOServiceComponent {
                 SAMLIdentityRequestFactory(), null);
         ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SPInitSSOAuthnRequestProcessor
                 (), null);
+        ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SSOLoginProcessor(), null);
 //        String redirectHtmlPath = null;
 //        FileInputStream fis = null;
 //        try {
