@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
     @Override
     public String getName() {
-        return "SAMLInboundRequestFactory";
+        return "SAMLIdentityRequestFactory";
     }
 
     @Override

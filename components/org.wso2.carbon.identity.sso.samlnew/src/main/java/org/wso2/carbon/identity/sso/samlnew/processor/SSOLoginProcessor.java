@@ -19,17 +19,17 @@ package org.wso2.carbon.identity.sso.samlnew.processor;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLLoginResponse;
-
-import java.util.HashMap;
+import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 public class SSOLoginProcessor extends IdentityProcessor {
     @Override
@@ -49,8 +49,8 @@ public class SSOLoginProcessor extends IdentityProcessor {
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
         IdentityMessageContext context = getContextIfAvailable(identityRequest);
-        if(context != null) {
-            if(context.getRequest() instanceof SAMLIdentityRequest){
+        if (context != null) {
+            if (context.getRequest() instanceof SAMLIdentityRequest) {
                 return true;
             }
         }
@@ -58,51 +58,23 @@ public class SSOLoginProcessor extends IdentityProcessor {
     }
 
     @Override
-    public SAMLLoginResponse.SAMLLoginResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+    public SAMLLoginResponse.SAMLLoginResponseBuilder process(IdentityRequest identityRequest) throws
+            FrameworkException {
 
-        SAMLMessageContext messageContext = (SAMLMessageContext)getContextIfAvailable(identityRequest);
+        SAMLMessageContext messageContext = (SAMLMessageContext) getContextIfAvailable(identityRequest);
+        AuthenticationResult authnResult = processResponseFromFrameworkLogin(messageContext, identityRequest);
+        SAMLSSOUtil.setIsSaaSApplication(authnResult.isSaaSApp());
+        try {
+            SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
+        } catch (UserStoreException e) {
 
-//        if(messageContext.getAuthzUser() == null) { // authentication response
-//
-//            messageContext.addParameter(OAuth2.OAUTH2_RESOURCE_OWNER_AUTHN_REQUEST, identityRequest);
-//            AuthenticationResult authnResult = processResponseFromFrameworkLogin(messageContext);
-//
-//            AuthenticatedUser authenticatedUser = null;
-//            if(authnResult.isAuthenticated()) {
-//                authenticatedUser = authnResult.getSubject();
-//                messageContext.setAuthzUser(authenticatedUser);
-//
-//            } else {
-//                throw OAuth2AuthnException.error("Resource owner authentication failed");
-//            }
-//
-//            if (!OAuth2ServerConfig.getInstance().isSkipConsentPage()) {
-//
-//                String spName = ((ServiceProvider) messageContext.getParameter(OAuth2.OAUTH2_SERVICE_PROVIDER)).getApplicationName();
-//
-//                if (!OAuth2ConsentStore.getInstance().hasUserApprovedAppAlways(authenticatedUser, spName)) {
-//                    return initiateResourceOwnerConsent(messageContext);
-//                } else {
-//                    messageContext.addParameter(OAuth2.CONSENT, "ApproveAlways");
-//                }
-//            } else {
-//                messageContext.addParameter(OAuth2.CONSENT, "SkipOAuth2Consent");
-//            }
-//
-//        }
-//
-//        // if this line is reached that means this is a consent response or consent is skipped due config or approve
-//        // always. We set the inbound request to message context only if it has gone through consent process
-//        // if consent consent was skipped due to configuration or approve always,
-//        // authenticated request and authorized request are the same
-//        if(!StringUtils.equals("ApproveAlways", (String)messageContext.getParameter(OAuth2.CONSENT)) &&
-//                !StringUtils.equals("SkipOAuth2Consent", (String)messageContext.getParameter(OAuth2.CONSENT))) {
-//            messageContext.addParameter(OAuth2.OAUTH2_RESOURCE_OWNER_AUTHZ_REQUEST, identityRequest);
-//            processConsent(messageContext);
-//        }
-//        return buildAuthzResponse(messageContext);
-        return null;
+        } catch (IdentityException e) {
+        }
+        SAMLLoginResponse.SAMLLoginResponseBuilder builder = new SAMLLoginResponse.SAMLLoginResponseBuilder
+                (messageContext);
+        return builder;
     }
+
 
     @Override
     public String getRelyingPartyId() {

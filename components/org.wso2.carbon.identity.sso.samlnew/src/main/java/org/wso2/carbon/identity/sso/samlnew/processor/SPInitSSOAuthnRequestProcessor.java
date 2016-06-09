@@ -59,7 +59,7 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
     }
 
     public int getPriority() {
-        return -1;
+        return 1;
     }
 
     @Override
@@ -74,7 +74,8 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
 
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
-        if (((SAMLIdentityRequest) identityRequest).getSamlRequest() != null) {
+        if (identityRequest instanceof SAMLIdentityRequest && ((SAMLIdentityRequest) identityRequest).getSamlRequest
+                () != null) {
             return true;
         }
         return false;
@@ -102,7 +103,8 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
         XMLObject request = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(identityRequest.getSamlRequest()));
         if (request instanceof AuthnRequest) {
             messageContext.setIdpInitSSO(false);
-            return validateAuthnRequest((AuthnRequest) request, messageContext);
+            messageContext.setAuthnRequest((AuthnRequest)request);
+            return validateAuthnRequest(messageContext);
         }
         return false;
 //        else if (request instanceof LogoutRequest) {
@@ -131,9 +133,9 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
         return issuer;
     }
 
-    private boolean validateAuthnRequest(AuthnRequest authnReq, SAMLMessageContext
-            messageContext) throws IdentityException {
+    private boolean validateAuthnRequest(SAMLMessageContext messageContext) throws IdentityException {
         try {
+            AuthnRequest authnReq = messageContext.getAuthnRequest();
             Issuer issuer = authnReq.getIssuer();
             Subject subject = authnReq.getSubject();
             this.relyingParty = issuer.getValue();
@@ -238,7 +240,7 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
                 //validationResponse.setAttributeConsumingServiceIndex(index);
             }
             if (log.isDebugEnabled()) {
-                log.debug("Authentication Request Validation is successful..");
+                log.debug("Authentication Request Validation is successful.");
             }
             return true;
         } catch (Exception e) {

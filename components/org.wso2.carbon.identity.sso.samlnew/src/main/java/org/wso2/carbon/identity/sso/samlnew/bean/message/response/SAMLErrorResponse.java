@@ -15,48 +15,35 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
-
-import org.joda.time.DateTime;
-import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
-import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
-import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 import java.util.List;
 
-public class SAMLErrorResponse extends SAMLResponse{
+public class SAMLErrorResponse extends SAMLResponse {
 
-    public SAMLErrorResponse(IdentityResponseBuilder responsebuilder){
+    public SAMLErrorResponse(IdentityResponseBuilder responsebuilder) {
         super(responsebuilder);
     }
 
-    public static class SAMLErrorResponseBuilder extends SAMLResponseBuilder{
+    public static class SAMLErrorResponseBuilder extends SAMLResponseBuilder {
 
-        private Response response;
 
-        //Do the bootstrap first
-        static {
-            SAMLSSOUtil.doBootstrap();
-        }
-
-        public SAMLErrorResponseBuilder(IdentityMessageContext context){
+        public SAMLErrorResponseBuilder(IdentityMessageContext context) {
             super(context);
-            ResponseBuilder responseBuilder = new ResponseBuilder();
-            this.response = responseBuilder.buildObject();
         }
 
-        public SAMLErrorResponse build(){
+        public SAMLErrorResponse build() {
             try {
                 buildResponse();
             } catch (IdentityException e) {
@@ -71,34 +58,36 @@ public class SAMLErrorResponse extends SAMLResponse{
          * @return
          */
         public Response buildResponse() throws IdentityException {
-            String inResponseToID = ((SAMLMessageContext)this.context).getInResponseToID();
-            List<String> statusCodes = ((SAMLMessageContext)this.context).getStatusCodeList();
-            String statusMsg = ((SAMLMessageContext)this.context).getMessage();
-            String destination = ((SAMLMessageContext)this.context).getDestination();
+            String inResponseToID = ((SAMLMessageContext) this.context).getInResponseToID();
+            List<String> statusCodes = ((SAMLMessageContext) this.context).getStatusCodeList();
+            String statusMsg = ((SAMLMessageContext) this.context).getMessage();
+            String destination = ((SAMLMessageContext) this.context).getDestination();
 
             if (statusCodes == null || statusCodes.isEmpty()) {
                 throw IdentityException.error("No Status Values");
             }
-            response.setIssuer(SAMLSSOUtil.getIssuer());
-            Status status = new StatusBuilder().buildObject();
-            StatusCode statusCode = null;
-            for (String statCode : statusCodes) {
-                statusCode = buildStatusCode(statCode, statusCode);
-            }
-            status.setStatusCode(statusCode);
-            buildStatusMsg(status, statusMsg);
-            response.setStatus(status);
-            response.setVersion(SAMLVersion.VERSION_20);
-            response.setID(SAMLSSOUtil.createID());
-            if (inResponseToID != null) {
-                response.setInResponseTo(inResponseToID);
-            }
-            if (destination != null) {
-                response.setDestination(destination);
-            }
-            response.setIssueInstant(new DateTime());
-            return response;
+//            this.response.setIssuer(SAMLSSOUtil.getIssuer());
+//            Status status = new StatusBuilder().buildObject();
+//            StatusCode statusCode = null;
+//            for (String statCode : statusCodes) {
+//                statusCode = buildStatusCode(statCode, statusCode);
+//            }
+//            status.setStatusCode(statusCode);
+//            buildStatusMsg(status, statusMsg);
+//            this.response.setStatus(status);
+//            this.response.setVersion(SAMLVersion.VERSION_20);
+//            response.setID(SAMLSSOUtil.createID());
+//            if (inResponseToID != null) {
+//                response.setInResponseTo(inResponseToID);
+//            }
+//            if (destination != null) {
+//                response.setDestination(destination);
+//            }
+//            response.setIssueInstant(new DateTime());
+//            return response;
+            return null;
         }
+
         /**
          * Build the StatusCode for Status of Response
          *
@@ -106,8 +95,8 @@ public class SAMLErrorResponse extends SAMLResponse{
          * @param childStatusCode
          * @return
          */
-        private StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) throws IdentityException {
-
+        private StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) throws
+                IdentityException {
             if (parentStatusCode == null) {
                 throw IdentityException.error("Invalid SAML Response Status Code");
             }
@@ -123,6 +112,7 @@ public class SAMLErrorResponse extends SAMLResponse{
                 return statusCode;
             }
         }
+
         /**
          * Set the StatusMessage for Status of Response
          *

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.samlnew.bean.context;
 
+import org.opensaml.saml2.core.AuthnRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
@@ -30,11 +31,25 @@ import java.util.Map;
 public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends IdentityMessageContext {
 
     private boolean idpInitSSO;
+
+    //error related properties
     private String message;
-    private String destination;
+    private String destination; //needed in validation also
     private List<String> statusCodeList;
     private String inResponseToID;
     private AuthenticatedUser authzUser;
+
+    /**
+     * The unmarshelled SAML Request
+     */
+    private AuthnRequest authnRequest;
+    private String relayState;
+    /**
+     * Should be set in validateAuthnRequest
+     */
+    private boolean isValid;
+
+
 
     public SAMLMessageContext(SAMLIdentityRequest request, Map<T1, T2> parameters) {
         super(request, parameters);
@@ -84,4 +99,30 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     public void setIdpInitSSO(boolean idpInitSSO) {
         this.idpInitSSO = idpInitSSO;
     }
+
+    public AuthenticatedUser getAuthzUser() {
+        return authzUser;
+    }
+
+    public void setAuthzUser(AuthenticatedUser authzUser) {
+        this.authzUser = authzUser;
+    }
+
+    public AuthnRequest getAuthnRequest() {
+        return authnRequest;
+    }
+
+    public void setAuthnRequest(AuthnRequest authnRequest) {
+        this.authnRequest = authnRequest;
+    }
+
+    public String getRelayState() {
+        return relayState;
+    }
+
+    public void setRelayState(String relayState) {
+        this.relayState = relayState;
+    }
+
+
 }

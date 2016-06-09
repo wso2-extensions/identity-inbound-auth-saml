@@ -15,21 +15,51 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 public class SAMLResponse extends IdentityResponse {
 
-    protected SAMLResponse(IdentityResponseBuilder builder){
+    private Response response;
+
+    protected SAMLResponse(IdentityResponseBuilder builder) {
         super(builder);
+        this.response = ((SAMLResponseBuilder) builder).response;
     }
 
-    public static class SAMLResponseBuilder extends IdentityResponseBuilder{
-        public SAMLResponseBuilder(IdentityMessageContext context){
+    public Response getResponse() {
+        return this.response;
+    }
+
+    public static class SAMLResponseBuilder extends IdentityResponseBuilder {
+
+        private Response response;
+
+        //Do the bootstrap first
+        static {
+            SAMLSSOUtil.doBootstrap();
+        }
+
+        public SAMLResponseBuilder(IdentityMessageContext context) {
             super(context);
+            ResponseBuilder responseBuilder = new ResponseBuilder();
+            this.response = responseBuilder.buildObject();
+        }
+
+        protected Response buildResponse() throws IdentityException {
+            return this.response;
+        }
+
+        public SAMLResponseBuilder setResponse(Response response) {
+            this.response = response;
+            return this;
         }
     }
 

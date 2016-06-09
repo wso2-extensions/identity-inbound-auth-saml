@@ -63,8 +63,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
         private String samlRequest;
         private String signature;
         private String sigAlg;
-        private boolean isLoginRequired = false;
-        private boolean isPromptNone = false;
 
         public SAMLIdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
@@ -90,16 +88,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
 
         public SAMLIdentityRequestBuilder setSigAlg(String sigAlg) {
             this.sigAlg = sigAlg;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setLoginRequired(boolean isLoginRequired) {
-            this.isLoginRequired = isLoginRequired;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setPromptNote(boolean isPromptNone) {
-            this.isPromptNone = isPromptNone;
             return this;
         }
     }

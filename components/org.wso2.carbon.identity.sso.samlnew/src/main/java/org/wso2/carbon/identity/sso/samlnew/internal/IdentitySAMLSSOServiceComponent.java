@@ -20,16 +20,20 @@ package org.wso2.carbon.identity.sso.samlnew.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponseFactory;
+import org.apache.http.HttpResponseInterceptor;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequestFactory;
+import org.wso2.carbon.identity.sso.samlnew.bean.message.response.HttpSAMLResponseFactory;
 import org.wso2.carbon.identity.sso.samlnew.processor.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.samlnew.processor.SSOLoginProcessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -74,14 +78,11 @@ public class IdentitySAMLSSOServiceComponent {
 
     private static long defaultSingleLogoutRetryInterval = 60000;
 
-    private static String ssoRedirectPage = null;
-
-    public static String getSsoRedirectHtml() {
-        return ssoRedirectPage;
-    }
-
     private SPInitSSOAuthnRequestProcessor authnRequestProcessor;
     private SAMLIdentityRequestFactory samlRequestFactory;
+    private static String ssoRedirectPage = null;
+
+
 
     protected void activate(ComponentContext ctxt) {
         SAMLSSOUtil.setBundleContext(ctxt.getBundleContext());
@@ -103,26 +104,28 @@ public class IdentitySAMLSSOServiceComponent {
                 SSOServiceProviderConfigManager.getInstance(), null);
         ctxt.getBundleContext().registerService(HttpIdentityRequestFactory.class.getName(), new
                 SAMLIdentityRequestFactory(), null);
+        ctxt.getBundleContext().registerService(HttpIdentityResponseFactory.class.getName(), new
+                HttpSAMLResponseFactory(), null);
         ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SPInitSSOAuthnRequestProcessor
                 (), null);
         ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SSOLoginProcessor(), null);
-//        String redirectHtmlPath = null;
-//        FileInputStream fis = null;
-//        try {
-//            IdentityUtil.populateProperties();
-//            SAMLSSOUtil.setSingleLogoutRetryCount(Integer.parseInt(
-//                    IdentityUtil.getProperty(IdentityConstants.ServerConfig.SINGLE_LOGOUT_RETRY_COUNT)));
-//            SAMLSSOUtil.setSingleLogoutRetryInterval(Long.parseLong(IdentityUtil.getProperty(
-//                    IdentityConstants.ServerConfig.SINGLE_LOGOUT_RETRY_INTERVAL)));
-//
+        String redirectHtmlPath = null;
+        FileInputStream fis = null;
+        try {
+            IdentityUtil.populateProperties();
+            SAMLSSOUtil.setSingleLogoutRetryCount(Integer.parseInt(
+                    IdentityUtil.getProperty(IdentityConstants.ServerConfig.SINGLE_LOGOUT_RETRY_COUNT)));
+            SAMLSSOUtil.setSingleLogoutRetryInterval(Long.parseLong(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SINGLE_LOGOUT_RETRY_INTERVAL)));
+
 //            SAMLSSOUtil.setResponseBuilder(IdentityUtil.getProperty("SSOService.SAMLSSOResponseBuilder"));
 //            SAMLSSOUtil.setIdPInitSSOAuthnRequestValidator(IdentityUtil.getProperty("SSOService.IdPInitSSOAuthnRequestValidator"));
 //            SAMLSSOUtil.setSPInitSSOAuthnRequestProcessor(IdentityUtil.getProperty("SSOService.SPInitSSOAuthnRequestProcessor"));
 //            SAMLSSOUtil.setSPInitLogoutRequestProcessor(IdentityUtil.getProperty("SSOService.SPInitSSOAuthnRequestProcessor"));
 //            SAMLSSOUtil.setIdPInitLogoutRequestProcessor(IdentityUtil.getProperty("SSOService.IdPInitLogoutRequestProcessor"));
 //            SAMLSSOUtil.setIdPInitSSOAuthnRequestProcessor(IdentityUtil.getProperty("SSOService.IdPInitSSOAuthnRequestProcessor"));
-//
-//            if (log.isDebugEnabled()) {
+
+            if (log.isDebugEnabled()) {
 //                log.debug("IdPInitSSOAuthnRequestValidator is set to " +
 //                        IdentityUtil.getProperty("SSOService.IdPInitSSOAuthnRequestValidator"));
 //                log.debug("SPInitSSOAuthnRequestValidator is set to " +
@@ -135,29 +138,29 @@ public class IdentitySAMLSSOServiceComponent {
 //                        IdentityUtil.getProperty("SSOService.IdPInitLogoutRequestProcessor"));
 //                log.debug("IdPInitSSOAuthnRequestProcessor is set to " +
 //                        IdentityUtil.getProperty("SSOService.IdPInitSSOAuthnRequestProcessor"));
-//                log.debug("Single logout retry count is set to " + SAMLSSOUtil.getSingleLogoutRetryCount());
-//                log.debug("Single logout retry interval is set to " +
-//                        SAMLSSOUtil.getSingleLogoutRetryInterval() + " in seconds.");
-//            }
-//
-//            redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
-//                    + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
-//            fis = new FileInputStream(new File(redirectHtmlPath));
-//            ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
-//            if (log.isDebugEnabled()) {
-//                log.debug("samlsso_response.html " + ssoRedirectPage);
-//            }
+                log.debug("Single logout retry count is set to " + SAMLSSOUtil.getSingleLogoutRetryCount());
+                log.debug("Single logout retry interval is set to " +
+                        SAMLSSOUtil.getSingleLogoutRetryInterval() + " in seconds.");
+            }
+
+            redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
+                    + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
+            fis = new FileInputStream(new File(redirectHtmlPath));
+            ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
+            if (log.isDebugEnabled()) {
+                log.debug("samlsso_response.html " + ssoRedirectPage);
+            }
 //
 //            //FileBasedConfigManager.getInstance().addServiceProviders();
 //
 //            if (log.isDebugEnabled()) {
 //                log.debug("Identity SAML SSO bundle is activated");
 //            }
-//        } catch (FileNotFoundException e) {
-//            if (log.isDebugEnabled()) {
-//                log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath);
-//            }
-//        } catch (Throwable e) {
+        } catch (FileNotFoundException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath);
+            }
+        } //catch (Throwable e) {
 //            SAMLSSOUtil.setSingleLogoutRetryCount(defaultSingleLogoutRetryCount);
 //            SAMLSSOUtil.setSingleLogoutRetryInterval(defaultSingleLogoutRetryInterval);
 //            if (log.isDebugEnabled()) {
@@ -169,6 +172,9 @@ public class IdentitySAMLSSOServiceComponent {
 //            IdentityIOStreamUtils.closeInputStream(fis);
 //        }
 
+    }
+    public static String getSsoRedirectHtml() {
+        return ssoRedirectPage;
     }
 
     protected void addSAMLRequestFactory(SAMLIdentityRequestFactory requestFactory){

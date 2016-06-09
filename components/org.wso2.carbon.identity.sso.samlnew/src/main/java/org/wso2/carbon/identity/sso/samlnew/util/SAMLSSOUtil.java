@@ -88,6 +88,11 @@ import java.util.zip.InflaterInputStream;
 
 public class SAMLSSOUtil {
 
+    private static final ThreadLocal<Boolean> isSaaSApplication = new ThreadLocal<>();
+    private static final ThreadLocal<String> userTenantDomainThreadLocal = new ThreadLocal<>();
+    private static int singleLogoutRetryCount = 5;
+    private static long singleLogoutRetryInterval = 60000;
+
     private static RealmService realmService;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
     private static BundleContext bundleContext;
@@ -100,6 +105,53 @@ public class SAMLSSOUtil {
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean isBootStrapped = false;
+
+    public static boolean isSaaSApplication() {
+
+        if (isSaaSApplication == null) {
+            // this is the default behavior.
+            return true;
+        }
+
+        Boolean value = isSaaSApplication.get();
+
+        if (value != null) {
+            return value;
+        }
+
+        return false;
+    }
+
+    public static void setIsSaaSApplication(boolean isSaaSApp) {
+        isSaaSApplication.set(isSaaSApp);
+    }
+
+    public static void removeSaaSApplicationThreaLocal() {
+        isSaaSApplication.remove();
+    }
+
+    public static String getUserTenantDomain() {
+
+        if (userTenantDomainThreadLocal == null) {
+            // this is the default behavior.
+            return null;
+        }
+
+        return userTenantDomainThreadLocal.get();
+    }
+
+    public static void setUserTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
+
+        tenantDomain = validateTenantDomain(tenantDomain);
+        if (tenantDomain != null) {
+            userTenantDomainThreadLocal.set(tenantDomain);
+        }
+    }
+
+    public static void removeUserTenantDomainThreaLocal() {
+        userTenantDomainThreadLocal.remove();
+    }
+
 
     /**
      * Constructing the AuthnRequest Object from a String
@@ -513,5 +565,30 @@ public class SAMLSSOUtil {
         }
         return null;
 
+    }
+
+    public static int getSingleLogoutRetryCount() {
+        return singleLogoutRetryCount;
+    }
+
+    public static void setSingleLogoutRetryCount(int singleLogoutRetryCount) {
+        SAMLSSOUtil.singleLogoutRetryCount = singleLogoutRetryCount;
+    }
+
+    public static long getSingleLogoutRetryInterval() {
+        return singleLogoutRetryInterval;
+    }
+
+    public static void setSingleLogoutRetryInterval(long singleLogoutRetryInterval) {
+        SAMLSSOUtil.singleLogoutRetryInterval = singleLogoutRetryInterval;
+    }
+
+    public static int getSAMLResponseValidityPeriod() {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD))) {
+            return Integer.parseInt(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD).trim());
+        } else {
+            return 5;
+        }
     }
 }
