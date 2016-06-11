@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
@@ -31,12 +32,14 @@ import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
+import org.opensaml.xml.encryption.EncryptionConstants;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
+import org.wso2.carbon.identity.sso.samlnew.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 public class SAMLLoginResponse extends SAMLResponse {
@@ -115,6 +118,7 @@ public class SAMLLoginResponse extends SAMLResponse {
         @Override
         protected Response buildResponse() throws IdentityException {
             SAMLMessageContext messageContext = (SAMLMessageContext)this.context;
+            SAMLSSOServiceProviderDO serviceProviderDO = messageContext.getSamlssoServiceProviderDO();
             AuthnRequest request = messageContext.getAuthnRequest();
             if (log.isDebugEnabled()) {
                 log.debug("Building SAML Response for the consumer '" + request.getAssertionConsumerServiceURL() + "'");
@@ -122,9 +126,9 @@ public class SAMLLoginResponse extends SAMLResponse {
             Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
             response.setIssuer(SAMLSSOUtil.getIssuer());
             response.setID(SAMLSSOUtil.createID());
-//            if (!request.isIdPInitSSOEnabled()) {
-//                response.setInResponseTo(authReqDTO.getId());
-//            }
+           if (!messageContext.isIdpInitSSO()) {
+                response.setInResponseTo(messageContext.getId());
+            }
             response.setDestination(request.getAssertionConsumerServiceURL());
             response.setStatus(buildStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
             response.setVersion(SAMLVersion.VERSION_20);
@@ -132,26 +136,28 @@ public class SAMLLoginResponse extends SAMLResponse {
             DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
                     + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
             response.setIssueInstant(issueInstant);
-//            Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
+            //@TODO sessionHandling
+            String sessionId = "";
+            Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(messageContext, notOnOrAfter, sessionId);
 
-//            if (authReqDTO.isDoEnableEncryptedAssertion()) {
-//
-//                String domainName = authReqDTO.getTenantDomain();
-//                String alias = authReqDTO.getCertAlias();
-//                if (alias != null) {
-//                    EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
-//                            EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias, domainName);
-//                    response.getEncryptedAssertions().add(encryptedAssertion);
-//                }
-//            } else {
-//                response.getAssertions().add(assertion);
-//            }
-//
-//            if (authReqDTO.isDoSignResponse()) {
-//                SAMLSSOUtil.setSignature(response, authReqDTO.getSigningAlgorithmUri(), authReqDTO
-// .getDigestAlgorithmUri
-//                        (), new SignKeyDataHolder(authReqDTO.getUser().getAuthenticatedSubjectIdentifier()));
-//            }
+            if (serviceProviderDO.isDoEnableEncryptedAssertion()) {
+
+                String domainName = messageContext.getTenantDomain();
+                String alias = serviceProviderDO.getCertAlias();
+                if (alias != null) {
+                    EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
+                            EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias, domainName);
+                    response.getEncryptedAssertions().add(encryptedAssertion);
+                }
+            } else {
+                response.getAssertions().add(assertion);
+            }
+
+            if (serviceProviderDO.isDoSignResponse()) {
+                SAMLSSOUtil.setSignature(response, serviceProviderDO.getSigningAlgorithmUri(), serviceProviderDO
+                        .getDigestAlgorithmUri(), new SignKeyDataHolder(messageContext.getAuthenticationResult()
+                        .getSubject().getAuthenticatedSubjectIdentifier()));
+            }
             return response;
         }
 

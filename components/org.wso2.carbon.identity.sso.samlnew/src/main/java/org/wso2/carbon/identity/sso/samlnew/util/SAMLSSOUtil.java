@@ -21,11 +21,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.*;
 import org.apache.xerces.util.SecurityManager;
+import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
+import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
@@ -35,6 +37,8 @@ import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
+import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
@@ -46,6 +50,8 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
@@ -57,8 +63,14 @@ import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.samlnew.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLErrorResponse;
+import org.wso2.carbon.identity.sso.samlnew.builders.X509CredentialImpl;
+import org.wso2.carbon.identity.sso.samlnew.builders.assertion.DefaultSAMLAssertionBuilder;
+import org.wso2.carbon.identity.sso.samlnew.builders.assertion.SAMLAssertionBuilder;
+import org.wso2.carbon.identity.sso.samlnew.builders.encryption.SSOEncrypter;
+import org.wso2.carbon.identity.sso.samlnew.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.sso.samlnew.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -77,9 +89,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -95,6 +111,9 @@ public class SAMLSSOUtil {
 
     private static RealmService realmService;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
+    private static SAMLAssertionBuilder samlAssertionBuilder = null;
+    private static SSOSigner ssoSigner = null;
+    private static SSOEncrypter ssoEncrypter = null;
     private static BundleContext bundleContext;
     private static RegistryService registryService;
     private static ConfigurationContextService configCtxService;
@@ -345,22 +364,21 @@ public class SAMLSSOUtil {
      * @throws org.wso2.carbon.identity.base.IdentityException
      */
     public static String buildErrorResponse(String status, String message, String destination, SAMLMessageContext
-            messageContext)
-            throws IdentityException, IOException {
+            messageContext) throws IdentityException, IOException {
 
         List<String> statusCodeList = new ArrayList<String>();
         statusCodeList.add(status);
         messageContext.setStatusCodeList(statusCodeList);
-        messageContext.setMessage(message);
         messageContext.setDestination(destination);
         messageContext.setInResponseToID(null);
         SAMLErrorResponse.SAMLErrorResponseBuilder respBuilder = new SAMLErrorResponse.SAMLErrorResponseBuilder
                 (messageContext);
-
         //Do below in the response builder
         Response response = respBuilder.buildResponse();
-        String resp = SAMLSSOUtil.marshall(response);
-        return compressResponse(resp);
+        String errorResp = compressResponse(SAMLSSOUtil.marshall(response));
+        messageContext.setResponse(errorResp);
+        messageContext.setValid(false);
+        return errorResp;
     }
 
 
@@ -440,6 +458,7 @@ public class SAMLSSOUtil {
         }
         return null;
     }
+
     public static BundleContext getBundleContext() {
         return SAMLSSOUtil.bundleContext;
     }
@@ -507,6 +526,45 @@ public class SAMLSSOUtil {
         return getIssuerFromTenantDomain(getTenantDomainFromThreadLocal());
     }
 
+    public static Assertion buildSAMLAssertion(SAMLMessageContext context, DateTime notOnOrAfter,
+                                               String sessionId) throws IdentityException {
+
+        doBootstrap();
+        String assertionBuilderClass = null;
+        try {
+            assertionBuilderClass = IdentityUtil.getProperty("SSOService.SAMLSSOAssertionBuilder").trim();
+            if (StringUtils.isBlank(assertionBuilderClass)) {
+                assertionBuilderClass = DefaultSAMLAssertionBuilder.class.getName();
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("SAMLSSOAssertionBuilder configuration is set to default builder ", e);
+            }
+            assertionBuilderClass = DefaultSAMLAssertionBuilder.class.getName();
+        }
+
+        try {
+
+            synchronized (Runtime.getRuntime().getClass()) {
+                samlAssertionBuilder = (SAMLAssertionBuilder) Class.forName(assertionBuilderClass).newInstance();
+                samlAssertionBuilder.init();
+            }
+            return samlAssertionBuilder.buildAssertion(context, notOnOrAfter, sessionId);
+
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + assertionBuilderClass, e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + assertionBuilderClass, e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + assertionBuilderClass, e);
+        } catch (Exception e) {
+            throw IdentityException.error("Error while building the saml assertion", e);
+        }
+    }
+
     public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {
 
         Issuer issuer = new IssuerBuilder().buildObject();
@@ -567,6 +625,258 @@ public class SAMLSSOUtil {
 
     }
 
+    /**
+     * Generate the key store name from the domain name
+     *
+     * @param tenantDomain tenant domain name
+     * @return key store file name
+     */
+    public static String generateKSNameFromDomainName(String tenantDomain) {
+
+        String ksName = tenantDomain.trim().replace(".", "-");
+        return ksName + ".jks";
+    }
+
+    /**
+     * Sign the SAML Assertion
+     *
+     * @param response
+     * @param signatureAlgorithm
+     * @param digestAlgorithm
+     * @param cred
+     * @return
+     * @throws IdentityException
+     */
+    public static Assertion setSignature(Assertion response, String signatureAlgorithm, String digestAlgorithm,
+                                         X509Credential cred) throws IdentityException {
+
+        return (Assertion) doSetSignature(response, signatureAlgorithm, digestAlgorithm, cred);
+    }
+
+    /**
+     * Sign the SAML Response message
+     *
+     * @param response
+     * @param signatureAlgorithm
+     * @param digestAlgorithm
+     * @param cred
+     * @return
+     * @throws IdentityException
+     */
+    public static Response setSignature(Response response, String signatureAlgorithm, String digestAlgorithm,
+                                        X509Credential cred) throws IdentityException {
+
+        return (Response) doSetSignature(response, signatureAlgorithm, digestAlgorithm, cred);
+    }
+
+    /**
+     * Generic method to sign SAML Logout Request
+     *
+     * @param request
+     * @param signatureAlgorithm
+     * @param digestAlgorithm
+     * @param cred
+     * @return
+     * @throws IdentityException
+     */
+    private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
+            digestAlgorithm, X509Credential cred) throws IdentityException {
+
+        doBootstrap();
+        try {
+            synchronized (Runtime.getRuntime().getClass()) {
+                ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
+                        "SSOService.SAMLSSOSigner").trim()).newInstance();
+                ssoSigner.init();
+            }
+
+            return ssoSigner.setSignature(request, signatureAlgorithm, digestAlgorithm, cred);
+
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+        } catch (Exception e) {
+            throw IdentityException.error("Error while signing the XML object.", e);
+        }
+    }
+
+    public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
+                                                           String alias, String domainName) throws IdentityException {
+        doBootstrap();
+        try {
+            X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+
+            synchronized (Runtime.getRuntime().getClass()) {
+                ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
+                        "SSOService.SAMLSSOEncrypter").trim()).newInstance();
+                ssoEncrypter.init();
+            }
+            return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (Exception e) {
+            throw IdentityException.error("Error while signing the SAML Response message.", e);
+        }
+    }
+
+    /**
+     * Get the X509CredentialImpl object for a particular tenant
+     *
+     * @param tenantDomain
+     * @param alias
+     * @return X509CredentialImpl object containing the public certificate of
+     * that tenant
+     * @throws org.wso2.carbon.identity.sso.samlnew.exception.IdentitySAML2SSOException Error when creating X509CredentialImpl object
+     */
+    public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
+            throws IdentitySAML2SSOException {
+
+        if (tenantDomain == null || tenantDomain.trim().isEmpty() || alias == null || alias.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid parameters; domain name : " + tenantDomain + ", " +
+                    "alias : " + alias);
+        }
+        int tenantId;
+        try {
+            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            String errorMsg = "Error getting the tenant ID for the tenant domain : " + tenantDomain;
+            throw new IdentitySAML2SSOException(errorMsg, e);
+        }
+
+        KeyStoreManager keyStoreManager;
+        // get an instance of the corresponding Key Store Manager instance
+        keyStoreManager = KeyStoreManager.getInstance(tenantId);
+
+        X509CredentialImpl credentialImpl = null;
+        KeyStore keyStore;
+
+        try {
+            if (tenantId != -1234) {// for tenants, load private key from their generated key store
+                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+            } else { // for super tenant, load the default pub. cert using the
+                // config. in carbon.xml
+                keyStore = keyStoreManager.getPrimaryKeyStore();
+            }
+            java.security.cert.X509Certificate cert =
+                    (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
+            credentialImpl = new X509CredentialImpl(cert);
+
+        } catch (Exception e) {
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
+            throw new IdentitySAML2SSOException(errorMsg, e);
+        }
+        return credentialImpl;
+    }
+
+    /**
+     * Return a Array of Claims containing requested attributes and values
+     *
+     * @param context
+     * @return Map with attributes and values
+     * @throws IdentityException
+     */
+    public static Map<String, String> getAttributes(SAMLMessageContext context
+    ) throws IdentityException {
+
+        int index = 0;
+
+        SAMLSSOServiceProviderDO spDO = getServiceProviderConfig(context);
+
+        if (!context.isIdpInitSSO()) {
+
+            if (context.getAttributeConsumingServiceIndex() == 0) {
+                //SP has not provide a AttributeConsumingServiceIndex in the authnReqDTO
+                if (StringUtils.isNotBlank(spDO.getAttributeConsumingServiceIndex()) && spDO
+                        .isEnableAttributesByDefault()) {
+                    index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
+                } else {
+                    return null;
+                }
+            } else {
+                //SP has provide a AttributeConsumingServiceIndex in the authnReqDTO
+                index = context.getAttributeConsumingServiceIndex();
+            }
+        } else {
+            if (StringUtils.isNotBlank(spDO.getAttributeConsumingServiceIndex()) && spDO.isEnableAttributesByDefault
+                    ()) {
+                index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
+            } else {
+                return null;
+            }
+
+        }
+
+
+		/*
+         * IMPORTANT : checking if the consumer index in the request matches the
+		 * given id to the SP
+		 */
+        if (spDO.getAttributeConsumingServiceIndex() == null ||
+                "".equals(spDO.getAttributeConsumingServiceIndex()) ||
+                index != Integer.parseInt(spDO.getAttributeConsumingServiceIndex())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid AttributeConsumingServiceIndex in AuthnRequest");
+            }
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> claimsMap = new HashMap<String, String>();
+        if (context.getAuthenticationResult().getSubject().getUserAttributes() != null) {
+            for (Map.Entry<ClaimMapping, String> entry : context.getAuthenticationResult().getSubject()
+                    .getUserAttributes().entrySet()) {
+                claimsMap.put(entry.getKey().getRemoteClaim().getClaimUri(), entry.getValue());
+            }
+        }
+        return claimsMap;
+    }
+
+    /**
+     * Returns the configured service provider configurations. The
+     * configurations are taken from the user registry or from the
+     * sso-idp-config.xml configuration file. In Stratos deployment the
+     * configurations are read from the sso-idp-config.xml file.
+     *
+     * @param context
+     * @return
+     * @throws IdentityException
+     */
+    public static SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLMessageContext context)
+            throws IdentityException {
+        try {
+            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+                    .getInstance();
+            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
+                    .getServiceProvider(context.getIssuer());
+            if (ssoIdpConfigs == null) {
+                IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getTenantId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                        (RegistryType.SYSTEM_CONFIGURATION);
+                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, context.getIssuer());
+                context.setStratosDeployment(false); // not stratos
+            } else {
+                context.setStratosDeployment(true); // stratos deployment
+            }
+            return ssoIdpConfigs;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while reading Service Provider configurations", e);
+        }
+    }
+
     public static int getSingleLogoutRetryCount() {
         return singleLogoutRetryCount;
     }
@@ -584,7 +894,8 @@ public class SAMLSSOUtil {
     }
 
     public static int getSAMLResponseValidityPeriod() {
-        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD))) {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SAML_RESPONSE_VALIDITY_PERIOD))) {
             return Integer.parseInt(IdentityUtil.getProperty(
                     IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD).trim());
         } else {

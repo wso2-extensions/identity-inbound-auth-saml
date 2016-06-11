@@ -60,7 +60,7 @@ public class SAMLErrorResponse extends SAMLResponse {
         public Response buildResponse() throws IdentityException {
             String inResponseToID = ((SAMLMessageContext) this.context).getInResponseToID();
             List<String> statusCodes = ((SAMLMessageContext) this.context).getStatusCodeList();
-            String statusMsg = ((SAMLMessageContext) this.context).getMessage();
+            String statusMsg = ((SAMLMessageContext) this.context).getResponse();
             String destination = ((SAMLMessageContext) this.context).getDestination();
 
             if (statusCodes == null || statusCodes.isEmpty()) {

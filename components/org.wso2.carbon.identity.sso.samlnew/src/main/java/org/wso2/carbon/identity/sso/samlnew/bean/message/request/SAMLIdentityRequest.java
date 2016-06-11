@@ -27,8 +27,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
     private String samlRequest;
     private String signature;
     private String sigAlg;
-    private boolean isLoginRequired = false;
-    private boolean isPromptNone = false;
 
     public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
@@ -48,15 +46,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
     public String getSamlRequest() {
         return samlRequest;
     }
-
-    public boolean isLoginRequired() {
-        return this.isLoginRequired;
-    }
-
-    public boolean isPromptNone() {
-        return this.isPromptNone;
-    }
-
 
     public static class SAMLIdentityRequestBuilder extends IdentityRequestBuilder {
 

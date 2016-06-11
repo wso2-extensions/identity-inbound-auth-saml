@@ -15,8 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.sso.samlnew.processor;
 
+package org.wso2.carbon.identity.sso.samlnew.processor;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
@@ -27,7 +27,9 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
+import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLErrorResponse;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLLoginResponse;
+import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLResponse;
 import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
@@ -58,23 +60,24 @@ public class SSOLoginProcessor extends IdentityProcessor {
     }
 
     @Override
-    public SAMLLoginResponse.SAMLLoginResponseBuilder process(IdentityRequest identityRequest) throws
-            FrameworkException {
+    public SAMLResponse.SAMLResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
 
         SAMLMessageContext messageContext = (SAMLMessageContext) getContextIfAvailable(identityRequest);
         AuthenticationResult authnResult = processResponseFromFrameworkLogin(messageContext, identityRequest);
+        SAMLResponse.SAMLResponseBuilder  builder;
         SAMLSSOUtil.setIsSaaSApplication(authnResult.isSaaSApp());
         try {
             SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
         } catch (UserStoreException e) {
-
+            builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+            return builder;
         } catch (IdentityException e) {
+            builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+            return builder;
         }
-        SAMLLoginResponse.SAMLLoginResponseBuilder builder = new SAMLLoginResponse.SAMLLoginResponseBuilder
-                (messageContext);
+        builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(messageContext);
         return builder;
     }
-
 
     @Override
     public String getRelyingPartyId() {
