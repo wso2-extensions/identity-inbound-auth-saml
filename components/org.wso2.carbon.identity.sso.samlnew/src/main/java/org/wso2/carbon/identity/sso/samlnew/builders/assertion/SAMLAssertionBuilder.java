@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.samlnew.builders.assertion;
 
 import org.joda.time.DateTime;
@@ -29,7 +30,7 @@ public interface SAMLAssertionBuilder {
     /**
      * Encrypt the SAML assertion
      *
-     * @param context   SAML assertion to be encrypted
+     * @param context      SAML assertion to be encrypted
      * @param notOnOrAfter Encrypting credential
      * @param sessionId    Certificate alias against which use to Encrypt the assertion.
      * @return Assertion

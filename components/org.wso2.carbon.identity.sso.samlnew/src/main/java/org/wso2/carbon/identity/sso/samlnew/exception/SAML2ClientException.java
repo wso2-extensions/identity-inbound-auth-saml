@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.samlnew.exception;
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;

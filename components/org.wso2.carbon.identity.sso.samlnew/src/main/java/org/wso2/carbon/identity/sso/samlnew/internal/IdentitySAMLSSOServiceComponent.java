@@ -150,17 +150,17 @@ public class IdentitySAMLSSOServiceComponent {
             if (log.isDebugEnabled()) {
                 log.debug("samlsso_response.html " + ssoRedirectPage);
             }
-//
-//            //FileBasedConfigManager.getInstance().addServiceProviders();
-//
-//            if (log.isDebugEnabled()) {
-//                log.debug("Identity SAML SSO bundle is activated");
-//            }
+
+//            FileBasedConfigManager.getInstance().addServiceProviders();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Identity SAML SSO bundle is activated");
+            }
         } catch (FileNotFoundException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath);
             }
-        } //catch (Throwable e) {
+//        } catch (Throwable e) {
 //            SAMLSSOUtil.setSingleLogoutRetryCount(defaultSingleLogoutRetryCount);
 //            SAMLSSOUtil.setSingleLogoutRetryInterval(defaultSingleLogoutRetryInterval);
 //            if (log.isDebugEnabled()) {
@@ -168,9 +168,9 @@ public class IdentitySAMLSSOServiceComponent {
 //                        " Default values for retry count: " + defaultSingleLogoutRetryCount +
 //                        " and interval: " + defaultSingleLogoutRetryInterval + " will be used.", e);
 //            }
-//        } finally {
-//            IdentityIOStreamUtils.closeInputStream(fis);
-//        }
+        } finally {
+            IdentityIOStreamUtils.closeInputStream(fis);
+        }
 
     }
     public static String getSsoRedirectHtml() {
