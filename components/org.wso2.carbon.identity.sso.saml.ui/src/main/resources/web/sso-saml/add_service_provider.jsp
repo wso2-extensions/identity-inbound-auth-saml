@@ -109,20 +109,6 @@ function doValidation() {
     return true;
 }
 
-function edit(issuer) {
-    location.href = "manage_service_providers.jsp?region=region1&item=manage_saml_sso&SPAction=editServiceProvider&issuer=" + issuer;
-}
-
-function removeItem(issuer) {
-    CARBON.showConfirmationDialog(
-            "<fmt:message key='remove.message1'/>" + " " + issuer
-                    + "<fmt:message key='remove.message2'/>",
-            function () {
-                location.href = "remove_service_providers.jsp?issuer="
-                        + issuer;
-            }, null);
-}
-
 function showHideTxtBox(radioBtn) {
     var claimIdRow = document.getElementById('claimIdRow');
     var nameIdRow = document.getElementById('nameIdRow');
@@ -687,7 +673,7 @@ function clearAll() {
 
 %>
 
-<form method="POST" action="add_service_provider_finish.jsp?SPAction=<%=Encode.forUriComponent(spAction)%>"
+<form method="POST" action="add_service_provider_finish-ajaxprocessor.jsp?SPAction=<%=Encode.forUriComponent(spAction)%>"
       id="addServiceProvider" name="addServiceProvider" target="_self"
       onsubmit="return doValidation();">
 <table class="styledLeft" width="100%">

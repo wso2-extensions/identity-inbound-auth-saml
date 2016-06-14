@@ -60,13 +60,26 @@
     }
 
     function removeItem(issuer) {
-        CARBON.showConfirmationDialog(
-                "<fmt:message key='remove.message1'/>" + " " + issuer
-                        + "<fmt:message key='remove.message2'/>",
-                function () {
-                    location.href = "remove_service_providers.jsp?issuer="
-                            + issuer;
-                }, null);
+
+        function doDelete() {
+            $.ajax({
+                type: 'POST',
+                url: 'remove_service_provider-finish-ajaxprocessor.jsp',
+                headers: {
+                    Accept: "text/html"
+                },
+                data: 'issuer=' + issuer,
+                async: false,
+                success: function (responseText, status) {
+                    if (status == "success") {
+                        location.assign("manage_service_providers.jsp");
+                    }
+                }
+            });
+        }
+
+        CARBON.showConfirmationDialog('<fmt:message key='remove.message1'/>' + ' ' + issuer + '<fmt:message key='remove.message2'/>',
+                doDelete, null);
     }
 
 

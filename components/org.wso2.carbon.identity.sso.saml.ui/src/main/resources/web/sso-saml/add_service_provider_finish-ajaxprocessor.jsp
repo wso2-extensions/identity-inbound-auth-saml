@@ -42,6 +42,12 @@
 
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String backendServerURL;
     ConfigurationContext configContext;
     String cookie;
