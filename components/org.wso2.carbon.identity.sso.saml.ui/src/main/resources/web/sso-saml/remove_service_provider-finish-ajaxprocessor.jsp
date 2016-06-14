@@ -32,6 +32,12 @@
 
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     session.setAttribute(SAMLSSOUIConstants.CONFIG_CLIENT, null);
     String backendServerURL;
     ConfigurationContext configContext;
