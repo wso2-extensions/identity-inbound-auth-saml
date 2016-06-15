@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-extension-parent</artifactId>
-        <version>5.1.0</version>
+        <version>5.1.1-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -156,7 +156,6 @@
     </modules>
 
     <properties>
-        <inbound.auth.openid.version>5.1.0</inbound.auth.openid.version>
         <opensaml.version>2.6.4</opensaml.version>
         <opensaml2.wso2.version>2.6.4.wso2v2</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
