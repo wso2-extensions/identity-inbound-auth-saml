@@ -22,8 +22,21 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 
 public class SAML2ClientException extends FrameworkClientException{
-    protected SAML2ClientException(String errorDescription) {
+
+    private String acsUrl;
+    private String exceptionStatus;
+    private String exceptionMessage;
+
+
+    protected SAML2ClientException(String errorDesciption){
+        super(errorDesciption);
+    }
+
+    protected SAML2ClientException(String errorDescription,String exceptionStatus, String exceptionMessage,String acsUrl) {
         super(errorDescription);
+        this.exceptionMessage = exceptionMessage;
+        this.exceptionStatus = exceptionStatus;
+        this.acsUrl = acsUrl;
     }
 
     protected SAML2ClientException(String errorDescription, Throwable cause) {
@@ -36,5 +49,21 @@ public class SAML2ClientException extends FrameworkClientException{
 
     public static SAML2ClientException error(String errorDescription, Throwable cause){
         return new SAML2ClientException(errorDescription, cause);
+    }
+
+    public static SAML2ClientException error(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl){
+        return new SAML2ClientException(errorDescription,exceptionStatus,exceptionMessage,acsUrl);
+    }
+
+    public String getACSUrl(){
+        return this.acsUrl;
+    }
+
+    public String getExceptionStatus() {
+        return exceptionStatus;
+    }
+
+    public String getExceptionMessage() {
+        return exceptionMessage;
     }
 }

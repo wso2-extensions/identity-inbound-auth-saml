@@ -45,19 +45,19 @@ import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 public class SAMLLoginResponse extends SAMLResponse {
 
     private String respString;
-    private boolean isSessionEstablished;
-    private String assertionConsumerURL;
-    private String loginPageURL;
-    private String errorMsg;
-    private AuthenticatedUser subject;
+    private String relayState;
+    private String acsUrl;
+    private String subject;
+    private String authenticatedIdPs;
+    private String tenantDomain;
 
     protected SAMLLoginResponse(IdentityResponseBuilder builder) {
         super(builder);
         this.respString = ((SAMLLoginResponseBuilder) builder).respString;
-        this.isSessionEstablished = ((SAMLLoginResponseBuilder) builder).isSessionEstablished;
-        this.assertionConsumerURL = ((SAMLLoginResponseBuilder) builder).assertionConsumerURL;
-        this.loginPageURL = ((SAMLLoginResponseBuilder) builder).loginPageURL;
-        this.errorMsg = ((SAMLLoginResponseBuilder) builder).errorMsg;
+        this.relayState = ((SAMLLoginResponseBuilder) builder).relayState;
+        this.acsUrl = ((SAMLLoginResponseBuilder) builder).acsUrl;
+        this.authenticatedIdPs = ((SAMLLoginResponseBuilder) builder).authenticatedIdPs;
+        this.tenantDomain = ((SAMLLoginResponseBuilder) builder).tenantDomain;
         this.subject = ((SAMLLoginResponseBuilder) builder).subject;
     }
 
@@ -65,23 +65,7 @@ public class SAMLLoginResponse extends SAMLResponse {
         return respString;
     }
 
-    public boolean isSessionEstablished() {
-        return isSessionEstablished;
-    }
-
-    public String getAssertionConsumerURL() {
-        return assertionConsumerURL;
-    }
-
-    public String getLoginPageURL() {
-        return loginPageURL;
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
-    }
-
-    public AuthenticatedUser getSubject() {
+    public String getSubject() {
         return subject;
     }
 
@@ -92,31 +76,23 @@ public class SAMLLoginResponse extends SAMLResponse {
     public static class SAMLLoginResponseBuilder extends SAMLResponseBuilder {
 
         private static Log log = LogFactory.getLog(SAMLLoginResponseBuilder.class);
-        private String respString;
-        private boolean isSessionEstablished;
-        private String assertionConsumerURL;
-        private String loginPageURL;
-        private String errorMsg;
-        private AuthenticatedUser subject;
 
+        private String respString;
+        private String relayState;
+        private String acsUrl;
+        private String subject;
+        private String authenticatedIdPs;
+        private String tenantDomain;
 
         public SAMLLoginResponseBuilder(IdentityMessageContext context) {
             super(context);
         }
 
         public SAMLLoginResponse build(){
-            try {
-                Response response = this.buildResponse();
-                this.setResponse(response);
-                this.respString = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response));
-            }catch(IdentityException e){
-
-            }
             return new SAMLLoginResponse(this);
         }
 
-        @Override
-        protected Response buildResponse() throws IdentityException {
+        public Response buildResponse() throws IdentityException {
             SAMLMessageContext messageContext = (SAMLMessageContext)this.context;
             SAMLSSOServiceProviderDO serviceProviderDO = messageContext.getSamlssoServiceProviderDO();
             AuthnRequest request = messageContext.getAuthnRequest();
@@ -158,6 +134,8 @@ public class SAMLLoginResponse extends SAMLResponse {
                         .getDigestAlgorithmUri(), new SignKeyDataHolder(messageContext.getAuthenticationResult()
                         .getSubject().getAuthenticatedSubjectIdentifier()));
             }
+            this.setResponse(response);
+            this.setRespString(SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response)));
             return response;
         }
 
@@ -166,28 +144,28 @@ public class SAMLLoginResponse extends SAMLResponse {
             return this;
         }
 
-        public SAMLLoginResponseBuilder setIsSessionEstablished(boolean isSessionEstablished) {
-            this.isSessionEstablished = isSessionEstablished;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setAssertionConsumerURL(String assertionConsumerURL) {
-            this.assertionConsumerURL = assertionConsumerURL;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setLoginPageURL(String loginPageURL) {
-            this.loginPageURL = loginPageURL;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setErrorMsg(String errorMsg) {
-            this.errorMsg = errorMsg;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setSubject(AuthenticatedUser subject) {
+        public SAMLLoginResponseBuilder setSubject(String subject) {
             this.subject = subject;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setRelayState(String relayState) {
+            this.relayState = relayState;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setAcsUrl(String acsUrl) {
+            this.acsUrl = acsUrl;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setAuthenticatedIdPs(String authenticatedIdPs) {
+            this.authenticatedIdPs = authenticatedIdPs;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setTenantDomain(String tenantDomain) {
+            this.tenantDomain = tenantDomain;
             return this;
         }
 

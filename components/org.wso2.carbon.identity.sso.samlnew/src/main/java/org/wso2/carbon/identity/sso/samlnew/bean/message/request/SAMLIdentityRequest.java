@@ -27,12 +27,14 @@ public class SAMLIdentityRequest extends IdentityRequest {
     private String samlRequest;
     private String signature;
     private String sigAlg;
+    private String relayState;
 
     public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
         this.samlRequest = builder.samlRequest;
         this.signature = builder.signature;
         this.sigAlg = builder.sigAlg;
+        this.relayState = builder.relayState;
     }
 
     public String getSignature() {
@@ -47,11 +49,16 @@ public class SAMLIdentityRequest extends IdentityRequest {
         return samlRequest;
     }
 
+    public String getRelayState() {
+        return relayState;
+    }
+
     public static class SAMLIdentityRequestBuilder extends IdentityRequestBuilder {
 
         private String samlRequest;
         private String signature;
         private String sigAlg;
+        private String relayState;
 
         public SAMLIdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
@@ -77,6 +84,11 @@ public class SAMLIdentityRequest extends IdentityRequest {
 
         public SAMLIdentityRequestBuilder setSigAlg(String sigAlg) {
             this.sigAlg = sigAlg;
+            return this;
+        }
+
+        public SAMLIdentityRequestBuilder setRelayState(String relayState){
+            this.relayState = relayState;
             return this;
         }
     }

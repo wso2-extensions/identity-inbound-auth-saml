@@ -26,12 +26,21 @@ import org.apache.xerces.util.SecurityManager;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
+import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.saml2.core.StatusMessage;
+import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml2.core.impl.StatusBuilder;
+import org.opensaml.saml2.core.impl.StatusCodeBuilder;
+import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.io.Marshaller;
@@ -57,6 +66,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -78,6 +88,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -85,6 +96,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.ws.handler.MessageContext;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -356,6 +368,15 @@ public class SAMLSSOUtil {
         }
     }
 
+    public static String getNotificationEndpoint(){
+        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .NOTIFICATION_ENDPOINT);
+        if (StringUtils.isBlank(redirectURL)){
+            redirectURL = IdentityUtil.getServerURL(SAMLSSOConstants.NOTIFICATION_ENDPOINT, false, false);
+        }
+        return redirectURL;
+    }
+
     /**
      * build the error response
      *
@@ -364,24 +385,62 @@ public class SAMLSSOUtil {
      * @return decoded response
      * @throws org.wso2.carbon.identity.base.IdentityException
      */
-    public static String buildErrorResponse(String status, String message, String destination, SAMLMessageContext
-            messageContext) throws IdentityException, IOException {
+    public static String buildErrorResponse(String status, String message, String destination) throws IdentityException, IOException {
 
         List<String> statusCodeList = new ArrayList<String>();
         statusCodeList.add(status);
-        messageContext.setStatusCodeList(statusCodeList);
-        messageContext.setDestination(destination);
-        messageContext.setInResponseToID(null);
-        SAMLErrorResponse.SAMLErrorResponseBuilder respBuilder = new SAMLErrorResponse.SAMLErrorResponseBuilder
-                (messageContext);
         //Do below in the response builder
-        Response response = respBuilder.buildResponse();
+        Response response = buildResponse(null,statusCodeList,message,destination);
         String errorResp = compressResponse(SAMLSSOUtil.marshall(response));
-        messageContext.setResponse(errorResp);
-        messageContext.setValid(false);
         return errorResp;
     }
 
+    public static String buildErrorResponse(String id, List<String> statusCodes, String statusMsg, String destination)
+            throws IdentityException {
+        Response response = buildResponse(id, statusCodes, statusMsg, destination);
+        return SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response));
+    }
+
+    /**
+     * Build the error response
+     *
+     * @return
+     */
+    public static Response buildResponse(String inResponseToID,List<String> statusCodes,String statusMsg,String destination) throws IdentityException {
+
+        Response response = new ResponseBuilder().buildObject();
+
+        if (statusCodes == null || statusCodes.isEmpty()) {
+            throw IdentityException.error("No Status Values");
+        }
+        response.setIssuer(SAMLSSOUtil.getIssuer());
+            Status status = new StatusBuilder().buildObject();
+            StatusCode statusCode = null;
+            for (String statCode : statusCodes) {
+                statusCode = buildStatusCode(statCode, statusCode);
+            }
+            status.setStatusCode(statusCode);
+            buildStatusMsg(status, statusMsg);
+            response.setStatus(status);
+            response.setVersion(SAMLVersion.VERSION_20);
+            response.setID(SAMLSSOUtil.createID());
+            if (inResponseToID != null) {
+                response.setInResponseTo(inResponseToID);
+            }
+            if (destination != null) {
+                response.setDestination(destination);
+            }
+            response.setIssueInstant(new DateTime());
+            return response;
+    }
+
+    public static String splitAppendedTenantDomain(String issuer) {
+
+        if (issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
+            issuer = issuer.substring(0, issuer.lastIndexOf(UserCoreConstants.TENANT_DOMAIN_COMBINER));
+        }
+        return issuer;
+    }
 
     /**
      * Compresses the response String
@@ -401,6 +460,144 @@ public class SAMLSSOUtil {
             deflaterOutputStream.close();
         }
         return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+    }
+
+    /**
+     * Validates the request message's signature. Validates the signature of
+     * both HTTP POST Binding and HTTP Redirect Binding.
+     *
+     * @param authnReqDTO
+     * @return
+     */
+    public static boolean validateAuthnRequestSignature(SAMLMessageContext messageContext) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Validating SAML Request signature");
+        }
+
+        SAMLSSOServiceProviderDO serviceProvider = messageContext.getSamlssoServiceProviderDO();
+
+        String domainName = messageContext.getTenantDomain();
+        if (messageContext.isStratosDeployment()) {
+            domainName = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        String alias = serviceProvider.getCertAlias();
+        RequestAbstractType request = null;
+        try {
+            String decodedReq = null;
+
+            if (messageContext.getQueryString() != null) {
+                decodedReq = SAMLSSOUtil.decode(authnReqDTO.getRequestMessageString());
+            } else {
+                decodedReq = SAMLSSOUtil.decodeForPost(authnReqDTO.getRequestMessageString());
+            }
+
+            request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to unmarshall the SAML Assertion", e);
+            }
+        }
+
+        try {
+            if (authnReqDTO.getQueryString() != null) {
+                // DEFLATE signature in Redirect Binding
+                return validateDeflateSignature(authnReqDTO.getQueryString(), authnReqDTO.getIssuer(), alias,
+                        domainName);
+            } else {
+                // XML signature in SAML Request message for POST Binding
+                return validateXMLSignature(request, alias, domainName);
+            }
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion", e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @param tenantDomain
+     * @return set of destination urls of resident identity provider
+     * @throws IdentityException
+     */
+
+    public static List<String> getDestinationFromTenantDomain(String tenantDomain) throws IdentityException {
+
+        List<String> destinationURLs = new ArrayList<String>();
+        IdentityProvider identityProvider;
+
+        try {
+            identityProvider = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw IdentityException.error(
+                    "Error occurred while retrieving Resident Identity Provider information for tenant " +
+                            tenantDomain, e);
+        }
+        FederatedAuthenticatorConfig[] authnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+        destinationURLs.addAll(IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(authnConfigs,
+                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants.Authenticator
+                        .SAML2SSO.DESTINATION_URL_PREFIX));
+        if (destinationURLs.size() == 0) {
+            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
+            if (StringUtils.isBlank(configDestination)) {
+                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.SAMLSSO_URL, true, true);
+            }
+            destinationURLs.add(configDestination);
+        }
+
+        return destinationURLs;
+    }
+
+    public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws
+            IdentityException {
+        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
+        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
+        if (serviceProvider != null) {
+            return true;
+        }
+
+        int tenantId;
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            tenantId = MultitenantConstants.SUPER_TENANT_ID;
+        } else {
+            try {
+                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            } catch (UserStoreException e) {
+                throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+                        tenantDomain, e);
+            }
+        }
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+            privilegedCarbonContext.setTenantId(tenantId);
+            privilegedCarbonContext.setTenantDomain(tenantDomain);
+
+            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                    (RegistryType.SYSTEM_CONFIGURATION);
+            SAMLSSOServiceProviderDO spDO = persistenceManager.getServiceProvider(registry, issuerName);
+            if (StringUtils.isBlank(requestedACSUrl) || !spDO.getAssertionConsumerUrlList().contains
+                    (requestedACSUrl)) {
+                String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
+                        "AuthnRequest message from  the issuer '" + spDO.getIssuer() +
+                        "'. Possibly " + "an attempt for a spoofing attack";
+                log.error(msg);
+                return false;
+            } else {
+                return true;
+            }
+        } catch (IdentityException e) {
+            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+
     }
 
     public static boolean isSAMLIssuerExists(String issuerName, String tenantDomain) throws IdentitySAML2SSOException {
@@ -705,6 +902,46 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             throw IdentityException.error("Error while signing the XML object.", e);
         }
+    }
+
+    /**
+     * Build the StatusCode for Status of Response
+     *
+     * @param parentStatusCode
+     * @param childStatusCode
+     * @return
+     */
+    private static StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) throws
+            IdentityException {
+        if (parentStatusCode == null) {
+            throw IdentityException.error("Invalid SAML Response Status Code");
+        }
+
+        StatusCode statusCode = new StatusCodeBuilder().buildObject();
+        statusCode.setValue(parentStatusCode);
+
+        //Set the status Message
+        if (childStatusCode != null) {
+            statusCode.setStatusCode(childStatusCode);
+            return statusCode;
+        } else {
+            return statusCode;
+        }
+    }
+
+    /**
+     * Set the StatusMessage for Status of Response
+     *
+     * @param statusMsg
+     * @return
+     */
+    private static  Status buildStatusMsg(Status status, String statusMsg) {
+        if (statusMsg != null) {
+            StatusMessage statusMesssage = new StatusMessageBuilder().buildObject();
+            statusMesssage.setMessage(statusMsg);
+            status.setStatusMessage(statusMesssage);
+        }
+        return status;
     }
 
     public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,

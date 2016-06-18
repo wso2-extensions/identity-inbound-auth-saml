@@ -127,14 +127,10 @@ public class DefaultSSOSigner implements SSOSigner {
      * @throws IdentityException
      */
     private XMLObject buildXMLObject(QName objectQName) throws IdentityException {
-        XMLObjectBuilder builder =
-                org.opensaml.xml.Configuration.getBuilderFactory()
-                        .getBuilder(objectQName);
+        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);
         if (builder == null) {
-            throw IdentityException.error("Unable to retrieve builder for object QName " +
-                    objectQName);
+            throw IdentityException.error("Unable to retrieve builder for object QName " + objectQName);
         }
-        return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(),
-                objectQName.getPrefix());
+        return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(), objectQName.getPrefix());
     }
 }

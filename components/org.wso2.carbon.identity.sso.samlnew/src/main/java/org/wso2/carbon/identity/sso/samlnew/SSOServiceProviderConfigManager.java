@@ -45,7 +45,6 @@ public enum SSOServiceProviderConfigManager {
     }
 
     public static SSOServiceProviderConfigManager getInstance() {
-
         return INSTANCE;
     }
 
@@ -56,6 +55,7 @@ public enum SSOServiceProviderConfigManager {
      * @param spDO       SAMLSSOServiceProviderDO bean representing the Service Provider
      */
     public void addServiceProvider(String issuerName, SAMLSSOServiceProviderDO spDO) {
+
         if (serviceProviderMap.containsKey(issuerName)) {
             log.warn("Duplicate Service Providers detected.");
             return;

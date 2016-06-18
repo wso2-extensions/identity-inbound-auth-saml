@@ -15,8 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
+package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,8 +26,11 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
 import org.wso2.carbon.identity.sso.samlnew.internal.IdentitySAMLSSOServiceComponent;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.PrintWriter;
 
@@ -56,14 +59,20 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         AuthenticationResult authnResult = (AuthenticationResult)messageContext.getParameter("AuthenticationResult");
         AuthnRequest authnRequest = messageContext.getAuthnRequest();
         HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+
+
+        //@TODO assign following values
+        String authenticatedIdPs = "";
+        String relayState = messageContext.getRelayState();
+        String acUrl = getACSUrlWithTenantPartitioning(authnRequest.getAssertionConsumerServiceURL(), messageContext.getTenantDomain());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
 
             String finalPage = null;
             String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
-            String pageWithAcs = htmlPage.replace("$acUrl", authnRequest.getAssertionConsumerServiceURL());
+            String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
             String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse.getRespString()) + "'>");
             String pageWithAcsResponseRelay = pageWithAcsResponse;
-            String relayState = messageContext.getRelayState();
+
             if(relayState != null) {
                 pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState)+ "'>");
             }
@@ -78,53 +87,62 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
             }
 
             builder.setBody(finalPage);
-
+            builder.setStatusCode(200);
             if (log.isDebugEnabled()) {
                 log.debug("samlsso_response.html " + finalPage);
             }
 
-
         } else {
-//            PrintWriter out = resp.getWriter();
-//            out.println("<html>");
-//            out.println("<body>");
-//            out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-//            out.println(" If the redirection fails, please click the post button.</p>");
-//            out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-//            out.println("<p>");
-//            out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'>");
-//
-//            if(relayState != null) {
-//                out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
-//            }
-//
-//            if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
-//                out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
-//                        Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
-//            }
-//
-//            out.println("<button type='submit'>POST</button>");
-//            out.println("</p>");
-//            out.println("</form>");
-//            out.println("<script type='text/javascript'>");
-//            out.println("document.forms[0].submit();");
-//            out.println("</script>");
-//            out.println("</body>");
-//            out.println("</html>");
+            StringBuilder out = new StringBuilder();
+            out.append("<html>");
+            out.append("<body>");
+            out.append("<p>You are now redirected back to " + Encode.forHtmlContent(authnRequest.getAssertionConsumerServiceURL()));
+            out.append(" If the redirection fails, please click the post button.</p>");
+            out.append("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
+            out.append("<p>");
+            out.append("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse.getRespString()) + "'>");
+
+            if(relayState != null) {
+                out.append("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
+            }
+
+            if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
+                out.append("<input type='hidden' name='AuthenticatedIdPs' value='" +
+                        Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+            }
+
+            out.append("<button type='submit'>POST</button>");
+            out.append("</p>");
+            out.append("</form>");
+            out.append("<script type='text/javascript'>");
+            out.append("document.forms[0].submit();");
+            out.append("</script>");
+            out.append("</body>");
+            out.append("</html>");
+            builder.setBody(out.toString());
         }
-//        builder.setStatusCode(response.getResponseStatus());
 //        builder.setHeaders(response.getHeaders());
 //        builder.addHeader(OAuth2.Header.CACHE_CONTROL,
 //                OAuth2.HeaderValue.CACHE_CONTROL_NO_STORE);
 //        builder.addHeader(OAuth2.Header.PRAGMA,
 //                OAuth2.HeaderValue.PRAGMA_NO_CACHE);
-        builder.setBody("");
         return builder;
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder
-                                                                               httpIdentityResponseBuilder, IdentityResponse identityResponse) {
-        return null;
+    public void create(HttpIdentityResponse.HttpIdentityResponseBuilder httpIdentityResponseBuilder, IdentityResponse
+            identityResponse) {
+
+    }
+
+    private String getACSUrlWithTenantPartitioning(String acsUrl, String tenantDomain) {
+        String acsUrlWithTenantDomain = acsUrl;
+        if (tenantDomain != null && "true".equals(IdentityUtil.getProperty(
+                IdentityConstants.ServerConfig.SSO_TENANT_PARTITIONING_ENABLED))) {
+            acsUrlWithTenantDomain =
+                    acsUrlWithTenantDomain + "?" +
+                            MultitenantConstants.TENANT_DOMAIN + "=" + tenantDomain;
+        }
+        return acsUrlWithTenantDomain;
     }
 }

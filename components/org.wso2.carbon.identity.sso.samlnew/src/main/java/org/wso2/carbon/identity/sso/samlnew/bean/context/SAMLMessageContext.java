@@ -26,20 +26,13 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-
 public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends IdentityMessageContext {
-
-
-    //error related properties
-    private String response;
-    private List<String> statusCodeList;
-    private String inResponseToID;
-    private AuthenticatedUser authzUser;
 
     /**
      * The unmarshelled SAML Request
@@ -50,23 +43,24 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
      * Should be set in validateAuthnRequest
      */
     private boolean isValid;
-    private String queryString;
-    private String destination; //needed in validation also
-    private String relayState;
     private String requestMessageString;
     private String issuer;
-    private String id;
+    /**
+     * Subject should be validated before set.
+     * Validation is done in the request validation.
+     */
     private String subject;
-    private String rpSessionId;
-    private String assertionConsumerURL;
     private String tenantDomain;
     private int attributeConsumingServiceIndex;
-    private boolean isForceAuthn;
-    private boolean isPassive;
     private boolean isIdpInitSSO;
     private boolean isStratosDeployment;
     private SAMLSSOServiceProviderDO samlssoServiceProviderDO;
 
+    /**
+     *
+     * @param request
+     * @param parameters
+     */
 
     public SAMLMessageContext(SAMLIdentityRequest request, Map<T1, T2> parameters) {
         super(request, parameters);
@@ -77,36 +71,8 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         return (SAMLIdentityRequest) request;
     }
 
-    public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
-
     public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public List<String> getStatusCodeList() {
-        return statusCodeList;
-    }
-
-    public void setStatusCodeList(List<String> statusCodeList) {
-        this.statusCodeList = statusCodeList;
-    }
-
-    public String getInResponseToID() {
-        return inResponseToID;
-    }
-
-    public void setInResponseToID(String inResponseToID) {
-        this.inResponseToID = inResponseToID;
+        return this.authnRequest.getDestination();
     }
 
     public boolean isIdpInitSSO() {
@@ -115,14 +81,6 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
 
     public void setIdpInitSSO(boolean idpInitSSO) {
         this.isIdpInitSSO = idpInitSSO;
-    }
-
-    public AuthenticatedUser getAuthzUser() {
-        return authzUser;
-    }
-
-    public void setAuthzUser(AuthenticatedUser authzUser) {
-        this.authzUser = authzUser;
     }
 
     public AuthnRequest getAuthnRequest() {
@@ -134,11 +92,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getRelayState() {
-        return relayState;
-    }
-
-    public void setRelayState(String relayState) {
-        this.relayState = relayState;
+        return this.getRequest().getRelayState();
     }
 
     public boolean isValid() {
@@ -150,11 +104,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getQueryString() {
-        return queryString;
-    }
-
-    public void setQueryString(String queryString) {
-        this.queryString = queryString;
+        return this.request.getQueryString();
     }
 
     public String getIssuer() {
@@ -182,28 +132,17 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getRpSessionId() {
-        return rpSessionId;
-    }
-
-    public void setRpSessionId(String rpSessionId) {
-        this.rpSessionId = rpSessionId;
+        return this.request.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
     }
 
     public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        return this.authnRequest.getID();
     }
 
     public String getAssertionConsumerURL() {
-        return assertionConsumerURL;
+        return this.authnRequest.getAssertionConsumerServiceURL();
     }
 
-    public void setAssertionConsumerURL(String assertionConsumerURL) {
-        this.assertionConsumerURL = assertionConsumerURL;
-    }
 
     public String getTenantDomain() {
         return tenantDomain;
@@ -230,21 +169,18 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public boolean isForceAuthn() {
-        return isForceAuthn;
-    }
-
-    public void setForceAuthn(boolean isForceAuthn) {
-        this.isForceAuthn = isForceAuthn;
+        return this.authnRequest.isForceAuthn();
     }
 
     public boolean isPassive() {
-        return isPassive;
+        return this.authnRequest.isPassive();
     }
 
-    public void setPassive(boolean isPassive) {
-        this.isPassive = isPassive;
-    }
-
+    /**
+     *
+     * @return AuthenticationResult saved in the messageContext
+     * while authenticating in the framework.
+     */
     public AuthenticationResult getAuthenticationResult() {
         if (this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT) != null) {
             return (AuthenticationResult) this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT);

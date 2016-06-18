@@ -77,9 +77,9 @@ public class SAMLSSOConstants {
     public static final String FALSE = Boolean.FALSE.toString();
     public static final String TRUE = Boolean.TRUE.toString();
     public static final String VALIDATION_RESPONSE = "validationResponse";
+
     private SAMLSSOConstants() {
     }
-
 
     public static class FileBasedSPConfig {
 

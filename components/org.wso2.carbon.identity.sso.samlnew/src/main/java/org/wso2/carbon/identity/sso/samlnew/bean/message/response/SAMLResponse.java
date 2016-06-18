@@ -53,10 +53,6 @@ public class SAMLResponse extends IdentityResponse {
             this.response = responseBuilder.buildObject();
         }
 
-        protected Response buildResponse() throws IdentityException {
-            return this.response;
-        }
-
         public SAMLResponseBuilder setResponse(Response response) {
             this.response = response;
             return this;

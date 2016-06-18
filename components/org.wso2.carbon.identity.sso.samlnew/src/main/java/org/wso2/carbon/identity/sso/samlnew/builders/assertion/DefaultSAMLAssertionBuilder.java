@@ -81,6 +81,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
     @Override
     public Assertion buildAssertion(SAMLMessageContext context, DateTime notOnOrAfter, String sessionId) throws
             IdentityException {
+
         try {
             AuthenticationResult authnResult = context.getAuthenticationResult();
             DateTime currentTime = new DateTime();

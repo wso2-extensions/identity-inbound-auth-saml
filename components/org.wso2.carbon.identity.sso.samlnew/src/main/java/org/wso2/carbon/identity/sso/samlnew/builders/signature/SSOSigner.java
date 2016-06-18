@@ -42,8 +42,8 @@ public interface SSOSigner {
      * @throws IdentityException
      */
 
-    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
-                                        String alias) throws IdentityException;
+    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred, String alias) throws
+            IdentityException;
 
     /**
      * Set the signature to XML object
