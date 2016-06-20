@@ -184,7 +184,6 @@ public class SSOLoginProcessor extends IdentityProcessor {
 //
 //                storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
 //                removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
-                    builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(messageContext);
                     ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setRelayState(relayState);
                     ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAcsUrl(messageContext
                             .getAssertionConsumerURL());

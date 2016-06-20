@@ -18,40 +18,24 @@
 package org.wso2.carbon.identity.sso.samlnew.processor;
 
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jivesoftware.smackx.packet.DiscoverInfo;
-import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.Subject;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
-import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLResponse;
-import org.wso2.carbon.identity.sso.samlnew.exception.SAML2ClientException;
 import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 import org.opensaml.xml.XMLObject;
 import org.wso2.carbon.identity.sso.samlnew.validators.SSOAuthnRequestValidator;
-import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestProcessor.class);
@@ -62,6 +46,7 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
         return "SPInitSSOAuthnRequestProcessor";
     }
 
+    @Override
     public int getPriority() {
         return -2;
     }
