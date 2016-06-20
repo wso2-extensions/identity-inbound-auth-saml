@@ -56,6 +56,7 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
         return -3;
     }
 
+    @Override
     public SAMLIdentityRequest.SAMLIdentityRequestBuilder create(HttpServletRequest request,
                                                          HttpServletResponse response) throws SAML2ClientException {
 
