@@ -82,15 +82,6 @@ public class SSOLoginProcessor extends IdentityProcessor {
         SAMLResponse.SAMLResponseBuilder builder;
         AuthnRequest authnReq = messageContext.getAuthnRequest();
 
-        try {
-            SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
-        } catch (UserStoreException e) {
-            builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-            return builder;
-        } catch (IdentityException e) {
-            builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-            return builder;
-        }
 
         if (authnResult == null || !authnResult.isAuthenticated()) {
 
@@ -114,6 +105,7 @@ public class SSOLoginProcessor extends IdentityProcessor {
                     ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAcsUrl(messageContext
                             .getAssertionConsumerURL());
                     ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setSubject(messageContext.getSubject());
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(null);
                     ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setTenantDomain(messageContext
                             .getTenantDomain());
                     return builder;
@@ -126,12 +118,16 @@ public class SSOLoginProcessor extends IdentityProcessor {
                 try {
                     if (!authnResult.isAuthenticated()) {
                         String destination = messageContext.getDestination();
-                        String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE, "User authentication failed", destination);
+                        String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
+                                "User authentication failed", destination);
                         builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-                        ((SAMLErrorResponse.SAMLErrorResponseBuilder)builder).setErrorResponse(errorResp);
-                        ((SAMLErrorResponse.SAMLErrorResponseBuilder)builder).setStatus(SAMLSSOConstants.Notification.EXCEPTION_STATUS);
-                        ((SAMLErrorResponse.SAMLErrorResponseBuilder)builder).setMessageLog(SAMLSSOConstants.Notification.EXCEPTION_MESSAGE);
-                        ((SAMLErrorResponse.SAMLErrorResponseBuilder)builder).setAcsUrl(authnReq.getAssertionConsumerServiceURL());
+                        ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(errorResp);
+                        ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setStatus(SAMLSSOConstants
+                                .Notification.EXCEPTION_STATUS);
+                        ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setMessageLog(SAMLSSOConstants
+                                .Notification.EXCEPTION_MESSAGE);
+                        ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setAcsUrl(authnReq
+                                .getAssertionConsumerServiceURL());
                         return builder;
                     } else {
                         throw IdentityException.error("Session data is not found for authenticated user");
@@ -145,46 +141,75 @@ public class SSOLoginProcessor extends IdentityProcessor {
             SAMLSSOUtil.setIsSaaSApplication(authnResult.isSaaSApp());
             try {
                 SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
+            } catch (UserStoreException e) {
+                builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                return builder;
+            } catch (IdentityException e) {
+                builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                return builder;
+            }
+            try {
+                SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
             }catch(UserStoreException | IdentityException e){
                     //TODO
                     //Handle this exception
             }
 
             String relayState;
-
-            if (identityRequest.getParameter(SAMLSSOConstants.RELAY_STATE) != null) {
+//TODO : Fix Identity Request in framework
+            try {
                 relayState = identityRequest.getParameter(SAMLSSOConstants.RELAY_STATE);
-            } else {
+                if(StringUtils.isBlank(relayState)){
+                    relayState = messageContext.getRelayState();
+                }
+            } catch (NullPointerException e) {
                 relayState = messageContext.getRelayState();
             }
+
+//            if (identityRequest.getParameter(SAMLSSOConstants.RELAY_STATE) != null) {
+//                relayState = identityRequest.getParameter(SAMLSSOConstants.RELAY_STATE);
+//            } else {
+//                relayState = messageContext.getRelayState();
+//            }
 
 //            startTenantFlow(authnReqDTO.getTenantDomain());
 
 //            if (sessionId == null) {
 //                sessionId = UUIDGenerator.generateUUID();
 //            }
+            try {
+                builder = authenticate(messageContext, authnResult.isAuthenticated(), authnResult
+                        .getAuthenticatedAuthenticators(), SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD);
+                if (builder instanceof SAMLLoginResponse.SAMLLoginResponseBuilder) { // authenticated
+//
+//                storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
+//                removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
+                    builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(messageContext);
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setRelayState(relayState);
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAcsUrl(messageContext
+                            .getAssertionConsumerURL());
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setSubject(messageContext.getUser()
+                            .getAuthenticatedSubjectIdentifier());
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(messageContext
+                            .getAuthenticationResult().getAuthenticatedIdPs());
+                    ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setTenantDomain(messageContext
+                            .getTenantDomain
+                            ());
+                    return builder;
+                } else { // authentication FAILURE
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setStatus(SAMLSSOConstants
+                            .Notification.EXCEPTION_STATUS);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setMessageLog(SAMLSSOConstants
+                            .Notification.EXCEPTION_MESSAGE);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setAcsUrl(messageContext
+                            .getSamlssoServiceProviderDO().getDefaultAssertionConsumerUrl());
+                    return builder;
+                }
+            } catch (IdentityException e) {
 
-            boolean isSessionEstablished = authenticate(messageContext, authnResult.isAuthenticated(),
-                    authnResult.getAuthenticatedAuthenticators(), SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD);
-
-            if (isSessionEstablished) { // authenticated
-
-                storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
-                removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
-
-                sendResponse(req, resp, relayState, authRespDTO.getRespString(),
-                        authRespDTO.getAssertionConsumerURL(), authRespDTO.getSubject()
-                                .getAuthenticatedSubjectIdentifier(),
-                        authnResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
-            } else { // authentication FAILURE
-                String errorResp = authRespDTO.getRespString();
-                sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
-                        SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
-                        authRespDTO.getAssertionConsumerURL(), req, resp);
             }
         }
-
-        return builder;
+        return null;
     }
 
     @Override
@@ -192,134 +217,151 @@ public class SSOLoginProcessor extends IdentityProcessor {
         return null;
     }
 
-    private boolean authenticate(SAMLMessageContext messageContext, boolean isAuthenticated, String authenticators, String authMode) throws Exception{
+    /**
+     * @param id
+     * @param status
+     * @param statMsg
+     * @return
+     * @throws Exception
+     */
+    private String buildErrorResponse(String id, String status, String statMsg, String destination) throws
+            IdentityException {
+
+        List<String> statusCodeList = new ArrayList<String>();
+        statusCodeList.add(status);
+        return SAMLSSOUtil.buildErrorResponse(id, statusCodeList, statMsg, destination);
+    }
+
+    private SAMLResponse.SAMLResponseBuilder authenticate(SAMLMessageContext messageContext, boolean isAuthenticated, String authenticators,
+                                 String authMode) throws IdentityException{
         SAMLSSOServiceProviderDO serviceProviderConfigs = messageContext.getSamlssoServiceProviderDO();
+        SAMLResponse.SAMLResponseBuilder builder;
         // reading the service provider configs
         //populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
+        try {
+            if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
+                List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(messageContext.getTenantDomain());
 
-        if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
-            List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(messageContext.getTenantDomain());
-
-            if (messageContext.getDestination() == null || !idpUrlSet.contains(messageContext.getDestination())) {
-                String msg = "Destination validation for Authentication Request failed. " + "Received: [" + messageContext.getDestination() + "]." + " Expected one in the list: [" + StringUtils.join(idpUrlSet, ',') + "]";
-                if(log.isDebugEnabled()){
-                    log.debug(msg);
+                if (messageContext.getDestination() == null || !idpUrlSet.contains(messageContext.getDestination())) {
+                    String msg = "Destination validation for Authentication Request failed. " + "Received: [" +
+                            messageContext.getDestination() + "]." + " Expected one in the list: [" + StringUtils
+                            .join(idpUrlSet, ',') + "]";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+                            (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null));
+                    return builder;
                 }
-//                return buildErrorResponse(authnReqDTO.getId(),
-//                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
-            }
 
-            // validate the signature
-            boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO);
+                // validate the signature
+                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(messageContext);
 
-            if (!isSignatureValid) {
-                String msg = "Signature validation for Authentication Request failed.";
-                if(log.isDebugEnabled()){
-                    log.debug(msg);
+                if (!isSignatureValid) {
+                    String msg = "Signature validation for Authentication Request failed.";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+                            (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null));
+                    return builder;
                 }
-                return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
-            }
-        } else {
-            //Validate the assertion consumer url,  only if request is not signed.
-            String acsUrl = authnReqDTO.getAssertionConsumerURL();
-            if (StringUtils.isBlank(acsUrl) || !serviceProviderConfigs.getAssertionConsumerUrlList().contains
-                    (acsUrl)) {
-                String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
-                        "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
-                        "'. Possibly " + "an attempt for a spoofing attack";
-                log.error(msg);
-                return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, acsUrl);
-            }
-        }
-
-        // if subject is specified in AuthnRequest only that user should be
-        // allowed to logged-in
-        if (authnReqDTO.getSubject() != null && authnReqDTO.getUser() != null) {
-            String authenticatedSubjectIdentifier =
-                    authnReqDTO.getUser().getAuthenticatedSubjectIdentifier();
-            if (authenticatedSubjectIdentifier != null &&
-                    !authenticatedSubjectIdentifier.equals(authnReqDTO.getSubject())) {
-                String msg = "Provided username does not match with the requested subject";
-                log.warn(msg);
-                return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.AUTHN_FAILURE, msg, authnReqDTO.getAssertionConsumerURL());
-            }
-        }
-
-        // persist the session
-        SSOSessionPersistenceManager sessionPersistenceManager = SSOSessionPersistenceManager.getPersistenceManager();
-
-        SAMLSSORespDTO samlssoRespDTO = null;
-        String sessionIndexId = null;
-
-        if (isAuthenticated) {
-            if (sessionId != null && sessionPersistenceManager.isExistingTokenId(sessionId)) {
-                sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
             } else {
-                sessionIndexId = UUIDGenerator.generateUUID();
-                sessionPersistenceManager.persistSession(sessionId, sessionIndexId);
+                //Validate the assertion consumer url,  only if request is not signed.
+                String acsUrl = messageContext.getAssertionConsumerURL();
+                if (StringUtils.isBlank(acsUrl) || !serviceProviderConfigs.getAssertionConsumerUrlList().contains
+                        (acsUrl)) {
+                    String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
+                            "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
+                            "'. Possibly " + "an attempt for a spoofing attack";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+                            (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, acsUrl));
+                    return builder;
+                }
             }
 
-            //TODO check whether the same SP exists
-
-            if (authMode.equals(SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD)) {
-                SAMLSSOServiceProviderDO spDO = new SAMLSSOServiceProviderDO();
-                spDO.setIssuer(authnReqDTO.getIssuer());
-                spDO.setAssertionConsumerUrl(authnReqDTO.getAssertionConsumerURL());
-                spDO.setCertAlias(authnReqDTO.getCertAlias());
-                spDO.setSloResponseURL(authnReqDTO.getSloResponseURL());
-                spDO.setSloRequestURL(authnReqDTO.getSloRequestURL());
-                spDO.setTenantDomain(authnReqDTO.getTenantDomain());
-                spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
-                spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
-                spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
-                spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
-                spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
-                spDO.setDoSignResponse(authnReqDTO.isDoSignResponse());
-                spDO.setSigningAlgorithmUri(authnReqDTO.getSigningAlgorithmUri());
-                spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
-                sessionPersistenceManager.persistSession(sessionIndexId,
-                        authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
-                        spDO, authnReqDTO.getRpSessionId(),
-                        authnReqDTO.getIssuer(),
-                        authnReqDTO.getAssertionConsumerURL());
+            // if subject is specified in AuthnRequest only that user should be allowed to logged-in
+            if (messageContext.getSubject() != null && messageContext.getUser() != null) {
+                String authenticatedSubjectIdentifier = messageContext.getUser().getAuthenticatedSubjectIdentifier();
+                if (authenticatedSubjectIdentifier != null && !authenticatedSubjectIdentifier.equals(messageContext
+                        .getSubject())) {
+                    String msg = "Provided username does not match with the requested subject";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+                    ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+                            (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
+                                    serviceProviderConfigs.getDefaultAssertionConsumerUrl()));
+                    return builder;
+                }
             }
 
-            // Build the response for the successful scenario
-            ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-            Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
-            samlssoRespDTO = new SAMLSSORespDTO();
-            String samlResp = SAMLSSOUtil.marshall(response);
+            // persist the session
+//            SSOSessionPersistenceManager sessionPersistenceManager = SSOSessionPersistenceManager
+//                    .getPersistenceManager();
+//
+//            SAMLSSORespDTO samlssoRespDTO = null;
+//            String sessionIndexId = null;
 
-            if (log.isDebugEnabled()) {
-                log.debug(samlResp);
+            if (isAuthenticated) {
+//                if (sessionId != null && sessionPersistenceManager.isExistingTokenId(sessionId)) {
+//                    sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+//                } else {
+//                    sessionIndexId = UUIDGenerator.generateUUID();
+//                    sessionPersistenceManager.persistSession(sessionId, sessionIndexId);
+//                }
+
+                //TODO check whether the same SP exists
+
+//                if (authMode.equals(SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD)) {
+//                    SAMLSSOServiceProviderDO spDO = new SAMLSSOServiceProviderDO();
+//                    spDO.setIssuer(authnReqDTO.getIssuer());
+//                    spDO.setAssertionConsumerUrl(authnReqDTO.getAssertionConsumerURL());
+//                    spDO.setCertAlias(authnReqDTO.getCertAlias());
+//                    spDO.setSloResponseURL(authnReqDTO.getSloResponseURL());
+//                    spDO.setSloRequestURL(authnReqDTO.getSloRequestURL());
+//                    spDO.setTenantDomain(authnReqDTO.getTenantDomain());
+//                    spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
+//                    spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
+//                    spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
+//                    spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
+//                    spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
+//                    spDO.setDoSignResponse(authnReqDTO.isDoSignResponse());
+//                    spDO.setSigningAlgorithmUri(authnReqDTO.getSigningAlgorithmUri());
+//                    spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
+//                    sessionPersistenceManager.persistSession(sessionIndexId,
+//                            authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
+//                            spDO, authnReqDTO.getRpSessionId(),
+//                            authnReqDTO.getIssuer(),
+//                            authnReqDTO.getAssertionConsumerURL());
+//                }
+
+                builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(messageContext);
+                String respString = ((SAMLLoginResponse.SAMLLoginResponseBuilder)builder).buildResponse();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication successfully processed. The SAMLResponse is :" + respString);
+                }
+                return builder;
             }
 
-            samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
-            samlssoRespDTO.setSessionEstablished(true);
-            samlssoRespDTO.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
-            samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());
-            samlssoRespDTO.setSubject(authnReqDTO.getUser());
+        } catch (Exception e) {
+            log.error("Error processing the authentication request", e);
+            builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+                     (messageContext.getId(), SAMLSSOConstants.StatusCodes
+                     .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
+            return builder;
         }
 
-        if (samlssoRespDTO.getRespString() != null) {
-            if (log.isDebugEnabled()) {
-                log.debug(samlssoRespDTO.getRespString());
-            }
-        }
-
-        return samlssoRespDTO;
-    } catch (Exception e) {
-        log.error("Error processing the authentication request", e);
-        SAMLSSORespDTO errorResp =
-                buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
-                        "Authentication Failure, invalid username or password.", null);
-        errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
-        return errorResp;
-    }
+       return null;
     }
 
 }

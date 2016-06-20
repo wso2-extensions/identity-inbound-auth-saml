@@ -43,7 +43,6 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
      * Should be set in validateAuthnRequest
      */
     private boolean isValid;
-    private String requestMessageString;
     private String issuer;
     /**
      * Subject should be validated before set.
@@ -153,13 +152,12 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getRequestMessageString() {
-        return requestMessageString;
+        return ((SAMLIdentityRequest)this.request).getSamlRequest();
     }
 
-    public void setRequestMessageString(String requestMessageString) {
-        this.requestMessageString = requestMessageString;
+    public AuthenticatedUser getUser() {
+        return this.getAuthenticationResult().getSubject();
     }
-
     public String getSubject() {
         return subject;
     }

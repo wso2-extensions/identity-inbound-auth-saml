@@ -29,6 +29,7 @@ import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.RequestAbstractType;
@@ -47,6 +48,7 @@ import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
+import org.opensaml.xml.security.*;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
@@ -83,6 +85,9 @@ import org.wso2.carbon.identity.sso.samlnew.builders.assertion.SAMLAssertionBuil
 import org.wso2.carbon.identity.sso.samlnew.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.sso.samlnew.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.sso.samlnew.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.sso.samlnew.validators.SAML2HTTPRedirectSignatureValidator;
+import org.wso2.carbon.identity.sso.samlnew.validators.SPInitSSOAuthnRequestValidator;
+import org.wso2.carbon.identity.sso.samlnew.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Registry;
@@ -101,6 +106,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -125,6 +131,8 @@ public class SAMLSSOUtil {
     private static RealmService realmService;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
     private static SAMLAssertionBuilder samlAssertionBuilder = null;
+    private static SAML2HTTPRedirectSignatureValidator samlHTTPRedirectSignatureValidator = null;
+    private static String sPInitSSOAuthnRequestValidatorClassName = null;
     private static SSOSigner ssoSigner = null;
     private static SSOEncrypter ssoEncrypter = null;
     private static BundleContext bundleContext;
@@ -466,7 +474,7 @@ public class SAMLSSOUtil {
      * Validates the request message's signature. Validates the signature of
      * both HTTP POST Binding and HTTP Redirect Binding.
      *
-     * @param authnReqDTO
+     * @param messageContext
      * @return
      */
     public static boolean validateAuthnRequestSignature(SAMLMessageContext messageContext) {
@@ -487,11 +495,10 @@ public class SAMLSSOUtil {
             String decodedReq = null;
 
             if (messageContext.getQueryString() != null) {
-                decodedReq = SAMLSSOUtil.decode(authnReqDTO.getRequestMessageString());
+                decodedReq = SAMLSSOUtil.decode(messageContext.getRequestMessageString());
             } else {
-                decodedReq = SAMLSSOUtil.decodeForPost(authnReqDTO.getRequestMessageString());
+                decodedReq = SAMLSSOUtil.decodeForPost(messageContext.getRequestMessageString());
             }
-
             request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
         } catch (IdentityException e) {
             if (log.isDebugEnabled()) {
@@ -500,9 +507,9 @@ public class SAMLSSOUtil {
         }
 
         try {
-            if (authnReqDTO.getQueryString() != null) {
+            if (messageContext.getQueryString() != null) {
                 // DEFLATE signature in Redirect Binding
-                return validateDeflateSignature(authnReqDTO.getQueryString(), authnReqDTO.getIssuer(), alias,
+                return validateDeflateSignature(messageContext.getQueryString(), messageContext.getIssuer(), alias,
                         domainName);
             } else {
                 // XML signature in SAML Request message for POST Binding
@@ -514,6 +521,98 @@ public class SAMLSSOUtil {
             }
             return false;
         }
+    }
+
+    /**
+     * Signature validation for HTTP Redirect Binding
+     * @param queryString
+     * @param issuer
+     * @param alias
+     * @param domainName
+     * @return
+     * @throws IdentityException
+     */
+    public static boolean validateDeflateSignature(String queryString, String issuer,
+                                                   String alias, String domainName) throws IdentityException {
+        try {
+
+            synchronized (Runtime.getRuntime().getClass()) {
+                samlHTTPRedirectSignatureValidator = (SAML2HTTPRedirectSignatureValidator) Class.forName(IdentityUtil.getProperty(
+                        "SSOService.SAML2HTTPRedirectSignatureValidator").trim()).newInstance();
+                samlHTTPRedirectSignatureValidator.init();
+            }
+
+            return samlHTTPRedirectSignatureValidator.validateSignature(queryString, issuer,
+                    alias, domainName);
+
+        } catch (org.opensaml.xml.security.SecurityException e) {
+            log.error("Error validating deflate signature", e);
+            return false;
+        } catch (IdentitySAML2SSOException e) {
+            log.warn("Signature validation failed for the SAML Message : Failed to construct the X509CredentialImpl for the alias " +
+                    alias, e);
+            return false;
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+        }
+    }
+
+    /**
+     * Validate the signature of an assertion
+     *
+     * @param request    SAML Assertion, this could be either a SAML Request or a
+     *                   LogoutRequest
+     * @param alias      Certificate alias against which the signature is validated.
+     * @param domainName domain name of the subject
+     * @return true, if the signature is valid.
+     */
+    public static boolean validateXMLSignature(RequestAbstractType request, String alias,
+                                               String domainName) throws IdentityException {
+
+        boolean isSignatureValid = false;
+
+        if (request.getSignature() != null) {
+            try {
+                X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+
+                synchronized (Runtime.getRuntime().getClass()) {
+                    ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
+                            "SSOService.SAMLSSOSigner").trim()).newInstance();
+                    ssoSigner.init();
+                }
+                return ssoSigner.validateXMLSignature(request, cred, alias);
+            } catch (IdentitySAML2SSOException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Signature validation failed for the SAML Message : Failed to construct the " +
+                            "X509CredentialImpl for the alias " + alias, e);
+                }
+            } catch (IdentityException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Signature Validation Failed for the SAML Assertion : Signature is invalid.", e);
+                }
+            } catch (ClassNotFoundException e) {
+                throw IdentityException.error("Class not found: "
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+            } catch (InstantiationException e) {
+                throw IdentityException.error("Error while instantiating class: "
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+            } catch (IllegalAccessException e) {
+                throw IdentityException.error("Illegal access to class: "
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while validating XML signature.", e);
+                }
+            }
+        }
+        return isSignatureValid;
     }
 
     /**
@@ -761,6 +860,35 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             throw IdentityException.error("Error while building the saml assertion", e);
         }
+    }
+
+    public static SSOAuthnRequestValidator getSPInitSSOAuthnRequestValidator(SAMLMessageContext messageContext) {
+        if (sPInitSSOAuthnRequestValidatorClassName == null || "".equals(sPInitSSOAuthnRequestValidatorClassName)) {
+            try {
+                return new SPInitSSOAuthnRequestValidator(messageContext);
+            } catch (IdentityException e) {
+                log.error("Error while instantiating the SPInitSSOAuthnRequestValidator ", e);
+            }
+        } else {
+            try {
+                // Bundle class loader will cache the loaded class and returned
+                // the already loaded instance, hence calling this method
+                // multiple times doesn't cost.
+                Class clazz = Thread.currentThread().getContextClassLoader()
+                        .loadClass(sPInitSSOAuthnRequestValidatorClassName);
+                return (SSOAuthnRequestValidator) clazz.getDeclaredConstructor(SAMLMessageContext.class).newInstance
+                        (messageContext);
+
+            } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                log.error("Error while instantiating the SPInitSSOAuthnRequestValidator ", e);
+            } catch (NoSuchMethodException e) {
+                log.error("SP initiated authentication request validation class in run time does not have proper" +
+                        "constructors defined.");
+            } catch (InvocationTargetException e) {
+                log.error("Error in creating an instance of the class: " + sPInitSSOAuthnRequestValidatorClassName);
+            }
+        }
+        return null;
     }
 
     public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {

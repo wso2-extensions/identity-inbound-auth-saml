@@ -92,7 +92,7 @@ public class SAMLLoginResponse extends SAMLResponse {
             return new SAMLLoginResponse(this);
         }
 
-        public Response buildResponse() throws IdentityException {
+        public String buildResponse() throws IdentityException {
             SAMLMessageContext messageContext = (SAMLMessageContext)this.context;
             SAMLSSOServiceProviderDO serviceProviderDO = messageContext.getSamlssoServiceProviderDO();
             AuthnRequest request = messageContext.getAuthnRequest();
@@ -135,8 +135,9 @@ public class SAMLLoginResponse extends SAMLResponse {
                         .getSubject().getAuthenticatedSubjectIdentifier()));
             }
             this.setResponse(response);
-            this.setRespString(SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response)));
-            return response;
+            String respString = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response));
+            this.setRespString(respString);
+            return respString;
         }
 
         public SAMLLoginResponseBuilder setRespString(String respString) {

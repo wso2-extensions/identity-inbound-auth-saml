@@ -56,7 +56,7 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
 
         SAMLLoginResponse loginResponse = ((SAMLLoginResponse)identityResponse);
         SAMLMessageContext messageContext = loginResponse.getContext();
-        AuthenticationResult authnResult = (AuthenticationResult)messageContext.getParameter("AuthenticationResult");
+        AuthenticationResult authnResult = messageContext.getAuthenticationResult();
         AuthnRequest authnRequest = messageContext.getAuthnRequest();
         HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
 
