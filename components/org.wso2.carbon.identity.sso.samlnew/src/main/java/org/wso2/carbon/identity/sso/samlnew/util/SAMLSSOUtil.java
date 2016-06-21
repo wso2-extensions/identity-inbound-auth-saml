@@ -29,7 +29,6 @@ import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.RequestAbstractType;
@@ -48,7 +47,6 @@ import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.security.*;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
@@ -78,7 +76,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.samlnew.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.samlnew.bean.context.SAMLMessageContext;
-import org.wso2.carbon.identity.sso.samlnew.bean.message.response.SAMLErrorResponse;
+import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
 import org.wso2.carbon.identity.sso.samlnew.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.samlnew.builders.assertion.DefaultSAMLAssertionBuilder;
 import org.wso2.carbon.identity.sso.samlnew.builders.assertion.SAMLAssertionBuilder;
@@ -101,7 +99,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.ws.handler.MessageContext;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -494,7 +491,7 @@ public class SAMLSSOUtil {
         try {
             String decodedReq = null;
 
-            if (messageContext.getQueryString() != null) {
+            if (messageContext.getRequest().isRedirect()) {
                 decodedReq = SAMLSSOUtil.decode(messageContext.getRequestMessageString());
             } else {
                 decodedReq = SAMLSSOUtil.decodeForPost(messageContext.getRequestMessageString());
@@ -507,9 +504,9 @@ public class SAMLSSOUtil {
         }
 
         try {
-            if (messageContext.getQueryString() != null) {
+            if (messageContext.getRequest().isRedirect()) {
                 // DEFLATE signature in Redirect Binding
-                return validateDeflateSignature(messageContext.getQueryString(), messageContext.getIssuer(), alias,
+                return validateDeflateSignature(messageContext.getRequest(), messageContext.getIssuer(), alias,
                         domainName);
             } else {
                 // XML signature in SAML Request message for POST Binding
@@ -525,14 +522,14 @@ public class SAMLSSOUtil {
 
     /**
      * Signature validation for HTTP Redirect Binding
-     * @param queryString
+     * @param request
      * @param issuer
      * @param alias
      * @param domainName
      * @return
      * @throws IdentityException
      */
-    public static boolean validateDeflateSignature(String queryString, String issuer,
+    public static boolean validateDeflateSignature(SAMLIdentityRequest request, String issuer,
                                                    String alias, String domainName) throws IdentityException {
         try {
 
@@ -542,7 +539,7 @@ public class SAMLSSOUtil {
                 samlHTTPRedirectSignatureValidator.init();
             }
 
-            return samlHTTPRedirectSignatureValidator.validateSignature(queryString, issuer,
+            return samlHTTPRedirectSignatureValidator.validateSignature(request, issuer,
                     alias, domainName);
 
         } catch (org.opensaml.xml.security.SecurityException e) {

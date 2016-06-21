@@ -66,6 +66,8 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
         builder.setSignature(request.getParameter(SAMLSSOConstants.SIGNATURE));
         builder.setSigAlg(request.getParameter(SAMLSSOConstants.SIG_ALG));
         builder.setRelayState(request.getParameter(SAMLSSOConstants.RELAY_STATE));
+        builder.setRedirect(StringUtils.isNotEmpty(request.getQueryString()));
+        builder.setQueryString(request.getQueryString());
         return builder;
     }
 

@@ -103,7 +103,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getQueryString() {
-        return this.request.getQueryString();
+        return this.getRequest().getQueryString();
     }
 
     public String getIssuer() {

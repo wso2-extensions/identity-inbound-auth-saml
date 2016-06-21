@@ -69,6 +69,22 @@ public class SAMLLoginResponse extends SAMLResponse {
         return subject;
     }
 
+    public String getRelayState() {
+        return relayState;
+    }
+
+    public String getAcsUrl() {
+        return acsUrl;
+    }
+
+    public String getAuthenticatedIdPs() {
+        return authenticatedIdPs;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
     public SAMLMessageContext getContext(){
         return (SAMLMessageContext)this.context;
     }

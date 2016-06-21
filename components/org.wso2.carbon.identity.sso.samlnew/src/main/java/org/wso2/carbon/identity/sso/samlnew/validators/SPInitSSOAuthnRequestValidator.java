@@ -212,6 +212,7 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
                 issuer = issuer.substring(0, issuer.lastIndexOf('@'));
                 if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(issuer)) {
                     SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
+                    messageContext.setTenantDomain(tenantDomain);
                     if (log.isDebugEnabled()) {
                         log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + "has been " +
                                 "split");
@@ -221,6 +222,7 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
         }
         if(IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())){
             SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            messageContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         }
         return issuer;
     }

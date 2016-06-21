@@ -148,13 +148,6 @@ public class SSOLoginProcessor extends IdentityProcessor {
                 builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
                 return builder;
             }
-            try {
-                SAMLSSOUtil.setUserTenantDomain(authnResult.getSubject().getTenantDomain());
-            }catch(UserStoreException | IdentityException e){
-                    //TODO
-                    //Handle this exception
-            }
-
             String relayState;
 //TODO : Fix Identity Request in framework
             try {
@@ -235,8 +228,6 @@ public class SSOLoginProcessor extends IdentityProcessor {
                                  String authMode) throws IdentityException{
         SAMLSSOServiceProviderDO serviceProviderConfigs = messageContext.getSamlssoServiceProviderDO();
         SAMLResponse.SAMLResponseBuilder builder;
-        // reading the service provider configs
-        //populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
         try {
             if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
                 List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(messageContext.getTenantDomain());
@@ -318,29 +309,6 @@ public class SSOLoginProcessor extends IdentityProcessor {
 //                }
 
                 //TODO check whether the same SP exists
-
-//                if (authMode.equals(SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD)) {
-//                    SAMLSSOServiceProviderDO spDO = new SAMLSSOServiceProviderDO();
-//                    spDO.setIssuer(authnReqDTO.getIssuer());
-//                    spDO.setAssertionConsumerUrl(authnReqDTO.getAssertionConsumerURL());
-//                    spDO.setCertAlias(authnReqDTO.getCertAlias());
-//                    spDO.setSloResponseURL(authnReqDTO.getSloResponseURL());
-//                    spDO.setSloRequestURL(authnReqDTO.getSloRequestURL());
-//                    spDO.setTenantDomain(authnReqDTO.getTenantDomain());
-//                    spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
-//                    spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
-//                    spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
-//                    spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
-//                    spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
-//                    spDO.setDoSignResponse(authnReqDTO.isDoSignResponse());
-//                    spDO.setSigningAlgorithmUri(authnReqDTO.getSigningAlgorithmUri());
-//                    spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
-//                    sessionPersistenceManager.persistSession(sessionIndexId,
-//                            authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
-//                            spDO, authnReqDTO.getRpSessionId(),
-//                            authnReqDTO.getIssuer(),
-//                            authnReqDTO.getAssertionConsumerURL());
-//                }
 
                 builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(messageContext);
                 String respString = ((SAMLLoginResponse.SAMLLoginResponseBuilder)builder).buildResponse();

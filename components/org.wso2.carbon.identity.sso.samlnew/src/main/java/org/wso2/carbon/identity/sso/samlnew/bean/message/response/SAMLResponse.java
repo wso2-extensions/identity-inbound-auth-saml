@@ -22,7 +22,6 @@ import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 public class SAMLResponse extends IdentityResponse {

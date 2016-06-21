@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.sso.samlnew.validators;
 
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequest;
 import org.wso2.carbon.identity.sso.samlnew.exception.IdentitySAML2SSOException;
 import org.opensaml.xml.security.SecurityException;
 
@@ -25,6 +26,6 @@ public interface SAML2HTTPRedirectSignatureValidator {
 
     public void init() throws IdentityException;
 
-    public boolean validateSignature(String queryString, String issuer, String alias,
+    public boolean validateSignature(SAMLIdentityRequest request, String issuer, String alias,
                                      String domainName) throws SecurityException, IdentitySAML2SSOException;
 }

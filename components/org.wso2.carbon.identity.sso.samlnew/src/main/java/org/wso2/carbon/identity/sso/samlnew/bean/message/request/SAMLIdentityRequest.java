@@ -28,6 +28,8 @@ public class SAMLIdentityRequest extends IdentityRequest {
     private String signature;
     private String sigAlg;
     private String relayState;
+    private boolean isRedirect;
+    private String queryString;
 
     public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
@@ -35,6 +37,8 @@ public class SAMLIdentityRequest extends IdentityRequest {
         this.signature = builder.signature;
         this.sigAlg = builder.sigAlg;
         this.relayState = builder.relayState;
+        this.isRedirect = builder.isRedirect;
+        this.queryString = builder.queryString;
     }
 
     public String getSignature() {
@@ -53,12 +57,21 @@ public class SAMLIdentityRequest extends IdentityRequest {
         return relayState;
     }
 
+    public boolean isRedirect() {return isRedirect;}
+
+    public String getQueryString() {
+        return this.queryString;
+    }
+
     public static class SAMLIdentityRequestBuilder extends IdentityRequestBuilder {
 
         private String samlRequest;
         private String signature;
         private String sigAlg;
         private String relayState;
+        private boolean isRedirect;
+        private String queryString;
+
 
         public SAMLIdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
@@ -89,6 +102,16 @@ public class SAMLIdentityRequest extends IdentityRequest {
 
         public SAMLIdentityRequestBuilder setRelayState(String relayState){
             this.relayState = relayState;
+            return this;
+        }
+
+        public SAMLIdentityRequestBuilder setRedirect(boolean isRedirect){
+            this.isRedirect = isRedirect;
+            return this;
+        }
+
+        public SAMLIdentityRequestBuilder setQueryString(String queryString){
+            this.queryString = queryString;
             return this;
         }
     }
