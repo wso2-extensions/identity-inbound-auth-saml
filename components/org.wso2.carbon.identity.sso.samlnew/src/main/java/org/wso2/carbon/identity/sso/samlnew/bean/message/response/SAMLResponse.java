@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -15,8 +15,47 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.samlnew.bean.message.response;
 
+import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.impl.ResponseBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
+import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
+
 public class SAMLResponse extends IdentityResponse {
+
+    private Response response;
+
+    protected SAMLResponse(IdentityResponseBuilder builder) {
+        super(builder);
+        this.response = ((SAMLResponseBuilder) builder).response;
+    }
+
+    public Response getResponse() {
+        return this.response;
+    }
+
+    public static class SAMLResponseBuilder extends IdentityResponseBuilder {
+
+        private Response response;
+
+        //Do the bootstrap first
+        static {
+            SAMLSSOUtil.doBootstrap();
+        }
+
+        public SAMLResponseBuilder(IdentityMessageContext context) {
+            super(context);
+            ResponseBuilder responseBuilder = new ResponseBuilder();
+            this.response = responseBuilder.buildObject();
+        }
+
+        public SAMLResponseBuilder setResponse(Response response) {
+            this.response = response;
+            return this;
+        }
+    }
+
 }
