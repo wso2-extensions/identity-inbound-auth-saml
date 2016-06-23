@@ -1048,9 +1048,10 @@ public class SAMLSSOUtil {
     }
 
     public static int getSAMLResponseValidityPeriod() {
-        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD))) {
-            return Integer.parseInt(IdentityUtil.getProperty(
-                    IdentityConstants.ServerConfig.SAML_RESPONSE_VALIDITY_PERIOD).trim());
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                .SAML_RESPONSE_VALIDITY_PERIOD))) {
+            return Integer.parseInt(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                    .SAML_RESPONSE_VALIDITY_PERIOD).trim());
         } else {
             return 5;
         }
