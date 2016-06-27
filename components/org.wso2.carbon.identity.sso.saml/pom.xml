@@ -58,6 +58,10 @@
             <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.logging</artifactId>
         </dependency>
@@ -107,7 +111,7 @@
                             org.xml.sax,
                             org.w3c.dom.*,
                             org.eclipse.equinox.http.helper,
-                            org.joda.time; version="${opensaml2.wso2.osgi.version.range}",
+                            org.joda.time; version="${joda.wso2.osgi.version.range}",
                             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
 
                             org.apache.xerces.util; resolution:=optional,
