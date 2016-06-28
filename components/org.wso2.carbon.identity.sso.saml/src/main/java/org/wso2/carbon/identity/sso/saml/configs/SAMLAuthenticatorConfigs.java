@@ -20,29 +20,79 @@ package org.wso2.carbon.identity.sso.saml.configs;
 
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 
 public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig {
+    //This is the key
     @Override
     public String getAuthKey() {
-        return "Salesforce";
+        return "samlsso";
     }
 
+
+    //this is the authType
     @Override
     public String getName() {
-        return "Salesforce";
+        return getAuthKey();
     }
 
     @Override
     public String getFriendlyName() {
-        return "Salesforce Properties";
+        return "salesforce";
     }
 
     @Override
     public Property[] getConfigurationProperties() {
         Property issuer = new Property();
-        issuer.setName("issuer");
+        issuer.setName(SAMLSSOConstants.SAMLFormFields.ISSUER);
         issuer.setDisplayName("Issuer");
         issuer.setValue("https://saml.salesforce.com");
-        return new Property[] { issuer };
+
+        Property acsurls = new Property();
+        acsurls.setName(SAMLSSOConstants.SAMLFormFields.ACS_URLS);
+        acsurls.setDisplayName("Assertion Consumer URLs");
+        acsurls.setDescription("The url where you should redirected after authenticated.");
+
+        Property defaultacs = new Property();
+        defaultacs.setName(SAMLSSOConstants.SAMLFormFields.DEFAULT_ACS);
+        defaultacs.setDisplayName("Default Assertion Consumer URL");
+
+        Property alias = new Property();
+        alias.setName(SAMLSSOConstants.SAMLFormFields.ALIAS);
+        alias.setDisplayName("Certificate Alias");
+
+        Property signAlgo = new Property();
+        signAlgo.setName(SAMLSSOConstants.SAMLFormFields.SIGN_ALGO);
+        signAlgo.setDisplayName("Response Signing Algorithm ");
+        signAlgo.setValue("http://www.w3.org/2000/09/xmldsig#dsa-sha1");
+
+        Property digestAlgo = new Property();
+        digestAlgo.setName(SAMLSSOConstants.SAMLFormFields.DIGEST_ALGO);
+        digestAlgo.setDisplayName("Response Digest Algorithm ");
+        digestAlgo.setValue("http://www.w3.org/2001/04/xmldsig-more#md5");
+
+        Property enableSign = new Property();
+        enableSign.setName(SAMLSSOConstants.SAMLFormFields.ENABLE_RESPONSE_SIGNING);
+        enableSign.setDisplayName("Enable Response Signing");
+        enableSign.setValue("false");
+
+        Property enableSigValidation = new Property();
+        enableSigValidation.setName(SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION);
+        enableSigValidation.setDisplayName("Enable Signature Validation in Authentication Requests and Logout " +
+                "Requests");
+        enableSigValidation.setValue("false");
+
+        Property enableEncAssert = new Property();
+        enableEncAssert.setName(SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION);
+        enableEncAssert.setDisplayName("Enable Assertion Encryption ");
+        enableEncAssert.setValue("false");
+
+        Property hiddenFields = new Property();
+        hiddenFields.setName(SAMLSSOConstants.SAMLFormFields.HIDDEN_FIELDS);
+        hiddenFields.setDisplayName("The fields that the values are set by the server.");
+        hiddenFields.setValue("issuer");
+
+        return new Property[]{issuer, acsurls, defaultacs, alias, signAlgo, digestAlgo, enableSign, enableSigValidation,
+                enableEncAssert, hiddenFields};
     }
 }

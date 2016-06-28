@@ -23,12 +23,14 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
+import org.wso2.carbon.identity.sso.saml.configs.SAMLAuthenticatorConfigs;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -40,6 +42,7 @@ import javax.servlet.Servlet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Hashtable;
 import java.util.Scanner;
 
 /**
@@ -86,7 +89,9 @@ public class IdentitySAMLSSOServiceComponent {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
-
+        SAMLAuthenticatorConfigs samlConfig = new SAMLAuthenticatorConfigs();
+        Hashtable<String, String> props = new Hashtable<String, String>();
+        ctxt.getBundleContext().registerService(AbstractInboundAuthenticatorConfig.class,samlConfig,props);
         // Register a SSOServiceProviderConfigManager object as an OSGi Service
         ctxt.getBundleContext().registerService(SSOServiceProviderConfigManager.class.getName(),
                 SSOServiceProviderConfigManager.getInstance(), null);

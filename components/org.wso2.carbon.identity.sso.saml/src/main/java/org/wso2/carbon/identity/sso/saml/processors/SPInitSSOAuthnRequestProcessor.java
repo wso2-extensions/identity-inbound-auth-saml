@@ -22,11 +22,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
@@ -35,11 +38,12 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
@@ -209,12 +213,44 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
                     .getServiceProvider(authnReqDTO.getIssuer());
             if (ssoIdpConfigs == null) {
-                IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getTenantId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                        (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
+                ssoIdpConfigs = new SAMLSSOServiceProviderDO();
+                ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+                ServiceProvider serviceProvider = appInfo.getServiceProviderByClientId(authnReqDTO.getIssuer(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, PrivilegedCarbonContext
+                                .getThreadLocalCarbonContext().getTenantDomain());
+                Map<String,Property> properties = new HashMap<>();
+                String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
+                for(ServiceProviderProperty property:serviceProvider.getSpProperties()){
+                    if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
+                        appType = property.getValue();
+                        break;
+                    }
+                }
+                for (InboundAuthenticationRequestConfig config : serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs()) {
+                    if (StringUtils.equals(config.getFriendlyName(), appType)) {
+                        for (Property prop : config.getProperties()) {
+                            properties.put(prop.getName(), prop);
+                        }
+                        ssoIdpConfigs.setIssuer(properties.get(SAMLSSOConstants.SAMLFormFields.ISSUER).getValue());
+                        ssoIdpConfigs.setAssertionConsumerUrls(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR));
+                        ssoIdpConfigs.setDefaultAssertionConsumerUrl(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .DEFAULT_ACS).getValue());
+                        ssoIdpConfigs.setCertAlias(properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue());
+                        ssoIdpConfigs.setSigningAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .SIGN_ALGO).getValue());
+                        ssoIdpConfigs.setDigestAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .DIGEST_ALGO).getValue());
+                        ssoIdpConfigs.setDoEnableEncryptedAssertion(Boolean.parseBoolean(properties.get
+                                (SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION).getValue()));
+                        ssoIdpConfigs.setDoSignResponse(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                .SAMLFormFields.ENABLE_RESPONSE_SIGNING).getValue()));
+                        ssoIdpConfigs.setDoValidateSignatureInRequests(Boolean.parseBoolean(properties.get
+                                (SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION).getValue()));
+                        break;
+                    }
+                }
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {
                 authnReqDTO.setStratosDeployment(true); // stratos deployment

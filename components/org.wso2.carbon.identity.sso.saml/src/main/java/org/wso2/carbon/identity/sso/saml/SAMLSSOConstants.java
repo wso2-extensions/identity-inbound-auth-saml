@@ -77,6 +77,21 @@ public class SAMLSSOConstants {
     }
 
 
+    public static class SAMLFormFields {
+        public static final String ISSUER = "issuer";
+        public static final String ACS_URLS = "assertionConsumerURLs";
+        public static final String DEFAULT_ACS = "defaultAssertionConsumerURL";
+        public static final String ALIAS = "alias";
+        public static final String SIGN_ALGO = "signingAlgorithm";
+        public static final String DIGEST_ALGO = "digestAlgorithm";
+        public static final String ENABLE_RESPONSE_SIGNING = "enableResponseSignature";
+        public static final String ENABLE_SIGNATURE_VALIDATION = "enableSigValidation";
+        public static final String ENABLE_ASSERTION_ENCRYPTION = "enableEncAssertion";
+        public static final String HIDDEN_FIELDS = "hiddenFields";
+        public static final String ACS_SEPERATE_CHAR = ",";
+        public static final String SAML_SSO = "samlsso";
+        public static final String APPTYPE = "appType";
+    }
     public static class FileBasedSPConfig {
 
         public static final String SERVICE_PROVIDERS = "ServiceProviders";

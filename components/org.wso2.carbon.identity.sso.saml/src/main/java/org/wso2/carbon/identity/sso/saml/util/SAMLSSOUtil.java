@@ -56,12 +56,18 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -118,6 +124,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -958,6 +965,72 @@ public class SAMLSSOUtil {
         return isSignatureValid;
     }
 
+
+    /**
+     * Returns the configured service provider configurations. The
+     * configurations are taken from the user registry or from the
+     * sso-idp-config.xml configuration file. In Stratos deployment the
+     * configurations are read from the sso-idp-config.xml file.
+     *
+     * @param authnReqDTO
+     * @return
+     * @throws IdentityException
+     */
+    private static SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLSSOAuthnReqDTO authnReqDTO)
+            throws IdentityException {
+        try {
+            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+                    .getInstance();
+            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
+                    .getServiceProvider(authnReqDTO.getIssuer());
+            if (ssoIdpConfigs == null) {
+                ssoIdpConfigs = new SAMLSSOServiceProviderDO();
+                ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+                ServiceProvider serviceProvider = appInfo.getServiceProviderByClientId(authnReqDTO.getIssuer(),
+                        IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, authnReqDTO.getTenantDomain());
+                Map<String,Property> properties = new HashMap<>();
+                String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
+                for(ServiceProviderProperty property:serviceProvider.getSpProperties()){
+                    if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
+                        appType = property.getValue();
+                        break;
+                    }
+                }
+                for (InboundAuthenticationRequestConfig config : serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs()) {
+                    if (StringUtils.equals(config.getFriendlyName(), appType)) {
+                        for (Property prop : config.getProperties()) {
+                            properties.put(prop.getName(), prop);
+                        }
+                        ssoIdpConfigs.setIssuer(properties.get(SAMLSSOConstants.SAMLFormFields.ISSUER).getValue());
+                        ssoIdpConfigs.setAssertionConsumerUrls(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR));
+                        ssoIdpConfigs.setDefaultAssertionConsumerUrl(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .DEFAULT_ACS).getValue());
+                        ssoIdpConfigs.setCertAlias(properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue());
+                        ssoIdpConfigs.setSigningAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .SIGN_ALGO).getValue());
+                        ssoIdpConfigs.setDigestAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                .DIGEST_ALGO).getValue());
+                        ssoIdpConfigs.setDoEnableEncryptedAssertion(Boolean.parseBoolean(properties.get
+                                (SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION).getValue()));
+                        ssoIdpConfigs.setDoSignResponse(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                .SAMLFormFields.ENABLE_RESPONSE_SIGNING).getValue()));
+                        ssoIdpConfigs.setDoValidateSignatureInRequests(Boolean.parseBoolean(properties.get
+                                (SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION).getValue()));
+                        break;
+                    }
+                }
+                authnReqDTO.setStratosDeployment(false); // not stratos
+            } else {
+                authnReqDTO.setStratosDeployment(true); // stratos deployment
+            }
+            return ssoIdpConfigs;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while reading Service Provider configurations", e);
+        }
+    }
+
     /**
      * Return a Array of Claims containing requested attributes and values
      *
@@ -970,25 +1043,18 @@ public class SAMLSSOUtil {
         int index = 0;
 
         // trying to get the Service Provider Configurations
-        SSOServiceProviderConfigManager spConfigManager =
-                SSOServiceProviderConfigManager.getInstance();
+        SSOServiceProviderConfigManager spConfigManager = SSOServiceProviderConfigManager.getInstance();
         SAMLSSOServiceProviderDO spDO = spConfigManager.getServiceProvider(authnReqDTO.getIssuer());
 
         if (spDO == null) {
-            IdentityPersistenceManager persistenceManager =
-                    IdentityPersistenceManager.getPersistanceManager();
-
-            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().
-                    getRegistry(RegistryType.SYSTEM_CONFIGURATION);
-            spDO = persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
+            spDO = getServiceProviderConfig(authnReqDTO);
         }
 
         if (!authnReqDTO.isIdPInitSSOEnabled()) {
 
             if ( authnReqDTO.getAttributeConsumingServiceIndex() == 0) {
                 //SP has not provide a AttributeConsumingServiceIndex in the authnReqDTO
-                if (StringUtils.isNotBlank(spDO.getAttributeConsumingServiceIndex()) && spDO
-                        .isEnableAttributesByDefault()) {
+                if (StringUtils.isNotBlank(spDO.getAttributeConsumingServiceIndex()) && spDO.isEnableAttributesByDefault()) {
                     index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
                 } else {
                     return null;
@@ -1339,12 +1405,31 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantId(tenantId);
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                    (RegistryType.SYSTEM_CONFIGURATION);
-            return persistenceManager.isServiceProviderExists(registry, issuerName);
-        } catch (IdentityException e) {
+            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
+            for(ServiceProviderProperty property:application.getSpProperties()){
+                if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
+                    appType = property.getValue();
+                    break;
+                }
+            }
+            for (InboundAuthenticationRequestConfig config : application.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()) {
+                if (StringUtils.equals(config.getFriendlyName(), appType)) {
+                    for (Property prop : config.getProperties()) {
+                        if (StringUtils.equals(prop.getName(), SAMLSSOConstants.SAMLFormFields.ISSUER) && StringUtils
+                                .equals(issuerName, prop.getValue())) {
+                            return true;
+                        }
+                    }
+
+                    break;
+                }
+            }
+            return false;
+        } catch (IdentityApplicationManagementException e) {
             throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
                                                 "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
         } finally {
@@ -1379,21 +1464,26 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantId(tenantId);
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                    (RegistryType.SYSTEM_CONFIGURATION);
-            SAMLSSOServiceProviderDO spDO = persistenceManager.getServiceProvider(registry, issuerName);
-            if (StringUtils.isBlank(requestedACSUrl) || !spDO.getAssertionConsumerUrlList().contains
+            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            Map<String, ServiceProviderProperty> properties = new HashMap();
+            for (ServiceProviderProperty property : application.getSpProperties()) {
+                properties.put(property.getName(), property);
+            }
+
+            if (StringUtils.isBlank(requestedACSUrl) || !Arrays.asList(properties.get(SAMLSSOConstants.SAMLFormFields
+                    .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR)).contains
                     (requestedACSUrl)) {
                 String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
-                        "AuthnRequest message from  the issuer '" + spDO.getIssuer() +
-                        "'. Possibly " + "an attempt for a spoofing attack";
+                        "AuthnRequest message from  the issuer '" + properties.get(SAMLSSOConstants.SAMLFormFields
+                        .ISSUER).getValue() + "'. Possibly " + "an attempt for a spoofing attack";
                 log.error(msg);
                 return false;
             } else {
                 return true;
             }
-        } catch (IdentityException e) {
+        } catch (IdentityApplicationManagementException e) {
             throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
                     "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
         } finally {
