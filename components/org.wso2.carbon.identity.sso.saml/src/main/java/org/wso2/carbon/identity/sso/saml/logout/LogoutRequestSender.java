@@ -181,9 +181,10 @@ public class LogoutRequestSender {
 
             String hostNameVerificationEnabledProperty =
                     IdentityUtil.getProperty(IdentityConstants.ServerConfig.SLO_HOST_NAME_VERIFICATION_ENABLED);
-            boolean isHostNameVerificationEnabled = StringUtils.isNotBlank(hostNameVerificationEnabledProperty) ?
-                                                    Boolean.parseBoolean(hostNameVerificationEnabledProperty) :
-                                                    true;
+            boolean isHostNameVerificationEnabled = true;
+            if ("false".equalsIgnoreCase(hostNameVerificationEnabledProperty)) {
+                isHostNameVerificationEnabled = false;
+            }
 
             try {
 
