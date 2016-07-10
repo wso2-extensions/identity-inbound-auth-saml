@@ -139,20 +139,22 @@
                             org.wso2.carbon.registry.api; version="${carbon.kernel.registry.imp.pkg.version}",
                             org.wso2.carbon.registry.core.*; version="${carbon.kernel.registry.imp.pkg.version}",
 
-                            org.wso2.carbon.security.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.security.*; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.base;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.*;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.idp.mgt; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.common.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.authenticator.saml2.sso.common;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,
-                            org.wso2.carbon.identity.sso.saml.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.sso.saml.*; version="${identity.inbound.auth.saml.exp.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

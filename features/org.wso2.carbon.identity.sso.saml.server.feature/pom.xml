@@ -112,11 +112,11 @@
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.application.authentication.framework.server:compatible:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.idp.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${carbon.identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:compatible:${carbon.identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${carbon.identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.application.authentication.framework.server:compatible:${carbon.identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.idp.mgt.server:compatible:${carbon.identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

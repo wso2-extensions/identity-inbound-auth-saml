@@ -91,12 +91,13 @@
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.sso.saml.stub.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.sso.saml.ui.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.sso.saml.ui.*; version="${identity.inbound.auth.saml.exp.version}",
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>
