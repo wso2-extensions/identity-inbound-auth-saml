@@ -75,16 +75,17 @@
                         <Import-Package>
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.util;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.sso.saml.stub.types;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${identity.inbound.auth.saml.imp.pkg.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.sso.saml.common.*;
-                            version="${carbon.identity.package.export.version}",
+                            version="${identity.inbound.auth.saml.exp.version}",
                         </Export-Package>
                     </instructions>
                 </configuration>
