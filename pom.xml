@@ -306,7 +306,6 @@
         <carbon.identity.framework.version>5.2.0</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.imp.pkg.version.range>
 
-
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
         <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}</identity.inbound.auth.saml.exp.version>
         <identity.inbound.auth.saml.imp.pkg.version.range>[5.0.0, 6.0.0)</identity.inbound.auth.saml.imp.pkg.version.range>
