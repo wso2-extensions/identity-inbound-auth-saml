@@ -46,6 +46,7 @@ import javax.servlet.Servlet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 /**
@@ -146,7 +147,7 @@ public class IdentitySAMLSSOServiceComponent {
             redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
                     + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
             fis = new FileInputStream(new File(redirectHtmlPath));
-            ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
+            ssoRedirectPage = new Scanner(fis, StandardCharsets.UTF_8.name()).useDelimiter("\\A").next();
             if (log.isDebugEnabled()) {
                 log.debug("samlsso_response.html " + ssoRedirectPage);
             }

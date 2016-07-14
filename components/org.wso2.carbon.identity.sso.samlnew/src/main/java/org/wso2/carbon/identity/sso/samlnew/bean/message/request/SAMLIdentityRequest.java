@@ -29,7 +29,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
     private String sigAlg;
     private String relayState;
     private boolean isRedirect;
-    private String queryString;
 
     public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
@@ -38,7 +37,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
         this.sigAlg = builder.sigAlg;
         this.relayState = builder.relayState;
         this.isRedirect = builder.isRedirect;
-        this.queryString = builder.queryString;
     }
 
     public String getSignature() {
@@ -59,10 +57,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
 
     public boolean isRedirect() {return isRedirect;}
 
-    public String getQueryString() {
-        return this.queryString;
-    }
-
     public static class SAMLIdentityRequestBuilder extends IdentityRequestBuilder {
 
         private String samlRequest;
@@ -70,8 +64,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
         private String sigAlg;
         private String relayState;
         private boolean isRedirect;
-        private String queryString;
-
 
         public SAMLIdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
@@ -90,7 +82,7 @@ public class SAMLIdentityRequest extends IdentityRequest {
             return this;
         }
 
-        public SAMLIdentityRequestBuilder setSamlRequest(String samlRequest) {
+        public SAMLIdentityRequestBuilder setSAMLRequest(String samlRequest) {
             this.samlRequest = samlRequest;
             return this;
         }
@@ -107,11 +99,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
 
         public SAMLIdentityRequestBuilder setRedirect(boolean isRedirect){
             this.isRedirect = isRedirect;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setQueryString(String queryString){
-            this.queryString = queryString;
             return this;
         }
     }

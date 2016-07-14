@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.samlnew.bean.context;
 
-import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -29,7 +28,6 @@ import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityReq
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends IdentityMessageContext {
@@ -54,12 +52,6 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     private boolean isIdpInitSSO;
     private boolean isStratosDeployment;
     private SAMLSSOServiceProviderDO samlssoServiceProviderDO;
-
-    /**
-     *
-     * @param request
-     * @param parameters
-     */
 
     public SAMLMessageContext(SAMLIdentityRequest request, Map<T1, T2> parameters) {
         super(request, parameters);
@@ -158,6 +150,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     public AuthenticatedUser getUser() {
         return this.getAuthenticationResult().getSubject();
     }
+
     public String getSubject() {
         return subject;
     }

@@ -55,7 +55,7 @@ public class SSOLoginProcessor extends IdentityProcessor {
     }
 
     public int getPriority() {
-        return -1;
+        return 1;
     }
 
     @Override

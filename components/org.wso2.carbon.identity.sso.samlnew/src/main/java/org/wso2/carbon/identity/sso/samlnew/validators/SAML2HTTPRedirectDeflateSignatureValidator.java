@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,7 +127,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
             log.debug("Constructed signed content string for HTTP-Redirect DEFLATE " + constructed);
         }
         try {
-            return constructed.getBytes("UTF-8");
+            return constructed.getBytes(StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Encoding not supported.", e);

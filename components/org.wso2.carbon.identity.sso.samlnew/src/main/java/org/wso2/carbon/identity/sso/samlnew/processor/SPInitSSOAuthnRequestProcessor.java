@@ -48,7 +48,7 @@ public class SPInitSSOAuthnRequestProcessor extends IdentityProcessor {
 
     @Override
     public int getPriority() {
-        return -2;
+        return 2;
     }
 
     @Override

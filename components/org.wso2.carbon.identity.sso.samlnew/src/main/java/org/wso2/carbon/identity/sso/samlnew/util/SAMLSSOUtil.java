@@ -259,7 +259,7 @@ public class SAMLSSOUtil {
             LSOutput output = impl.createLSOutput();
             output.setByteStream(byteArrayOutputStrm);
             writer.write(element, output);
-            return byteArrayOutputStrm.toString("UTF-8");
+            return byteArrayOutputStrm.toString(StandardCharsets.UTF_8.name());
         } catch (Exception e) {
             log.error("Error Serializing the SAML Response");
             throw IdentityException.error("Error Serializing the SAML Response", e);
@@ -298,7 +298,7 @@ public class SAMLSSOUtil {
         try {
             org.apache.commons.codec.binary.Base64 base64Decoder =
                     new org.apache.commons.codec.binary.Base64();
-            byte[] xmlBytes = encodedStr.getBytes("UTF-8");
+            byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
             byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
 
             try {
@@ -312,7 +312,7 @@ public class SAMLSSOUtil {
                 }
 
                 inflater.end();
-                String decodedString = new String(xmlMessageBytes, 0, resultLength, "UTF-8");
+                String decodedString = new String(xmlMessageBytes, 0, resultLength, StandardCharsets.UTF_8.name());
                 if (log.isDebugEnabled()) {
                     log.debug("Request message " + decodedString);
                 }
@@ -346,10 +346,10 @@ public class SAMLSSOUtil {
             throws IdentityException {
         try {
             org.apache.commons.codec.binary.Base64 base64Decoder = new org.apache.commons.codec.binary.Base64();
-            byte[] xmlBytes = encodedStr.getBytes("UTF-8");
+            byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
             byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
 
-            String decodedString = new String(base64DecodedByteArray, "UTF-8");
+            String decodedString = new String(base64DecodedByteArray, StandardCharsets.UTF_8.name());
             if (log.isDebugEnabled()) {
                 log.debug("Request message " + decodedString);
             }

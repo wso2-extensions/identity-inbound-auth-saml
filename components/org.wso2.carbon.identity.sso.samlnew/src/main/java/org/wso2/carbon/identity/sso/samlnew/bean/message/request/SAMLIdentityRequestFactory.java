@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,12 +63,16 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
 
         SAMLIdentityRequest.SAMLIdentityRequestBuilder builder = new SAMLIdentityRequest.SAMLIdentityRequestBuilder
                 (request, response);
-        builder.setSamlRequest(request.getParameter(SAMLSSOConstants.SAML_REQUEST));
+        try {
+            super.create(builder, request, response);
+        } catch (FrameworkClientException e) {
+            throw SAML2ClientException.error("Error occurred while creating the Identity Request Builder",e);
+        }
+        builder.setSAMLRequest(request.getParameter(SAMLSSOConstants.SAML_REQUEST));
         builder.setSignature(request.getParameter(SAMLSSOConstants.SIGNATURE));
         builder.setSigAlg(request.getParameter(SAMLSSOConstants.SIG_ALG));
         builder.setRelayState(request.getParameter(SAMLSSOConstants.RELAY_STATE));
         builder.setRedirect(StringUtils.isNotEmpty(request.getQueryString()));
-        builder.setQueryString(request.getQueryString());
         return builder;
     }
 
@@ -76,7 +81,6 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        if (exception instanceof SAML2ClientException) {
             HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse
                     .HttpIdentityResponseBuilder();
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
@@ -84,17 +88,16 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
             //TODO Send status codes rather than full messages in the GET request
             try {
                 queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(((SAML2ClientException)
-                        exception).getExceptionStatus(), "UTF-8")});
+                        exception).getExceptionStatus(), StandardCharsets.UTF_8.name())});
                 queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(((SAML2ClientException)
-                        exception).getExceptionMessage(), "UTF-8")});
+                        exception).getExceptionMessage(), StandardCharsets.UTF_8.name())});
                 if (exception.getMessage() != null) {
                     queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(exception.getMessage()
-                            , "UTF-8")});
-
+                            , StandardCharsets.UTF_8.name())});
                 }
                 if (((SAML2ClientException) exception).getACSUrl() != null) {
                     queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode((
-                            (SAML2ClientException) exception).getACSUrl(), "UTF-8")});
+                            (SAML2ClientException) exception).getACSUrl(), StandardCharsets.UTF_8.name())});
                 }
                 builder.setParameters(queryParams);
             } catch (UnsupportedEncodingException e) {
@@ -105,7 +108,5 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
             builder.setRedirectURL(redirectURL);
             builder.setStatusCode(HttpServletResponse.SC_MOVED_TEMPORARILY);
             return builder;
-        }
-        return super.handleException(exception, request, response);
     }
 }

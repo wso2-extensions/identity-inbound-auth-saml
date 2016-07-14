@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -153,18 +154,18 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         //TODO Send status codes rather than full messages in the GET request
         try {
             queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(errorResponse.getStatus(),
-                    "UTF-8")});
+                    StandardCharsets.UTF_8.name())});
             queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(errorResponse.getMessageLog()
-                    , "UTF-8")});
+                    , StandardCharsets.UTF_8.name())});
 
             if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
                 queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(errorResponse
-                        .getErrorResponse(), "UTF-8")});
+                        .getErrorResponse(), StandardCharsets.UTF_8.name())});
             }
 
             if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
                 queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode(errorResponse
-                        .getAcsUrl(), "UTF-8")});
+                        .getAcsUrl(), StandardCharsets.UTF_8.name())});
             }
         } catch (UnsupportedEncodingException e) {
 
