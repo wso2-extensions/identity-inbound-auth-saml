@@ -93,7 +93,7 @@ public class FileBasedConfigManager {
                 return new SAMLSSOServiceProviderDO[0];
             }
 
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
             DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(configFilePath);
         } catch (Exception e) {

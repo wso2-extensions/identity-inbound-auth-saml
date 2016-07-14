@@ -26,9 +26,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -37,16 +36,11 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -173,47 +167,33 @@ public class LogoutRequestSender {
                 log.debug("SAMLRequest : " + decodedSAMLRequest);
             }
 
+            String hostNameVerificationEnabledProperty =
+                    IdentityUtil.getProperty(IdentityConstants.ServerConfig.SLO_HOST_NAME_VERIFICATION_ENABLED);
+            boolean isHostNameVerificationEnabled = true;
+            if ("false".equalsIgnoreCase(hostNameVerificationEnabledProperty)) {
+                isHostNameVerificationEnabled = false;
+            }
+
             try {
-                int port = derivePortFromAssertionConsumerURL(logoutReqDTO.getAssertionConsumerURL());
-                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(logoutReqParams, SAMLSSOConstants.ENCODING_FORMAT);
+
+                HttpClient httpClient;
+                if (!isHostNameVerificationEnabled) {
+                    httpClient = HttpClients.custom()
+                                            .setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+                                            .build();
+                } else {
+                    httpClient = HttpClients.createDefault();
+                }
+
+                UrlEncodedFormEntity entity =
+                        new UrlEncodedFormEntity(logoutReqParams, SAMLSSOConstants.ENCODING_FORMAT);
+
                 HttpPost httpPost = new HttpPost(logoutReqDTO.getAssertionConsumerURL());
                 httpPost.setEntity(entity);
                 httpPost.addHeader(SAMLSSOConstants.COOKIE_PARAM_KEY, SAMLSSOConstants.SESSION_ID_PARAM_KEY + logoutReqDTO.getRpSessionId());
                 if (isSAMLSOAPBindingEnabled) {
                     httpPost.addHeader(SAMLSSOConstants.SOAP_ACTION_PARAM_KEY, SAMLSSOConstants.SOAP_ACTION);
                 }
-                TrustManager easyTrustManager = new X509TrustManager() {
-
-                    @Override
-                    public void checkClientTrusted(
-                            java.security.cert.X509Certificate[] x509Certificates,
-                            String s)
-                            throws java.security.cert.CertificateException {
-                        //overridden method, no method body needed here
-                    }
-
-                    @Override
-                    public void checkServerTrusted(
-                            java.security.cert.X509Certificate[] x509Certificates,
-                            String s)
-                            throws java.security.cert.CertificateException {
-                        //overridden method, no method body needed here
-                    }
-
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
-                };
-
-                SSLContext sslContext = SSLContext.getInstance(SAMLSSOConstants.CRYPTO_PROTOCOL);
-                sslContext.init(null, new TrustManager[]{easyTrustManager}, null);
-                SSLSocketFactory sf = new SSLSocketFactory(sslContext);
-                sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-                Scheme httpsScheme = new Scheme(SAMLSSOConstants.COM_PROTOCOL, sf, port);
-
-                HttpClient httpClient = new DefaultHttpClient();
-                httpClient.getConnectionManager().getSchemeRegistry().register(httpsScheme);
 
                 HttpResponse response = null;
                 boolean isSuccessfullyLogout = false;
@@ -274,14 +254,7 @@ public class LogoutRequestSender {
                 }
 
             } catch (IOException e) {
-                log.error("Error sending logout requests to : " +
-                        logoutReqDTO.getAssertionConsumerURL(), e);
-            } catch (GeneralSecurityException e) {
-                log.error("Error registering the EasySSLProtocolSocketFactory", e);
-            } catch (RuntimeException e) {
-                log.error("Runtime exception occurred.", e);
-            } catch (URISyntaxException e) {
-                log.error("Error deriving port from the assertion consumer url", e);
+                log.error("Error sending logout requests to : " + logoutReqDTO.getAssertionConsumerURL(), e);
             }
         }
     }
