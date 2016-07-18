@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.1.1-SNAPSHOT</version>
+    <version>5.1.1</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -303,7 +303,7 @@
 
     <properties>
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
-        <identity.framework.version>5.2.0</identity.framework.version>
+        <identity.framework.version>5.5.0-SNAPSHOT</identity.framework.version>
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
 
         <httpcore.version>4.3.3.wso2v1</httpcore.version>

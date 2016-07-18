@@ -31,7 +31,7 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
     //This is the key
     @Override
     public String getAuthKey() {
-        return SAMLSSOConstants.SAMLFormFields.CUSTOM;
+        return null;
     }
 
 
@@ -39,6 +39,11 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
     @Override
     public String getName() {
         return SAMLSSOConstants.SAMLFormFields.SAML_SSO;
+    }
+
+    @Override
+    public String getConfigName(){
+        return "custom";
     }
 
     @Override
@@ -138,9 +143,9 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         audiences.setDisplayName("Audience URLs");
 
         Property enableRecipients = new Property();
-        enableEncAssert.setName(SAMLSSOConstants.SAMLFormFields.ENABLE_RECIPIENTS);
-        enableEncAssert.setDisplayName("Enable Recipient Validation ");
-        enableEncAssert.setValue("false");
+        enableRecipients.setName(SAMLSSOConstants.SAMLFormFields.ENABLE_RECIPIENTS);
+        enableRecipients.setDisplayName("Enable Recipient Validation ");
+        enableRecipients.setValue("false");
 
         Property receipients = new Property();
         receipients.setName(SAMLSSOConstants.SAMLFormFields.RECEIPIENT_URLS);
@@ -162,5 +167,10 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
                 enableSigValidation, enableEncAssert, enableSLO, sloUrl, sloRequestURL, enableAtrProf,
                 enableDefaultAtrProf, enableAudienceRestriction, audiences, enableRecipients, receipients,
                 enableIDPSSO, enableIDPSLO, idpSLOUrls};
+    }
+
+    @Override
+    public String getRelyingPartyKey() {
+        return SAMLSSOConstants.SAMLFormFields.ISSUER;
     }
 }

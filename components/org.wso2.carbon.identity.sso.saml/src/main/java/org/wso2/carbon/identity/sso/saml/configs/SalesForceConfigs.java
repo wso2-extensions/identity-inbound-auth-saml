@@ -26,7 +26,7 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
     //This is the key
     @Override
     public String getAuthKey() {
-        return "salesforce";
+        return null;
     }
 
 
@@ -34,6 +34,11 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
     @Override
     public String getName() {
         return super.getName();
+    }
+
+    @Override
+    public String getConfigName(){
+        return "salesforce";
     }
 
     @Override
@@ -60,6 +65,11 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
         System.arraycopy(samlProps, 0, properties, 0, properties.length - 1);
         properties[properties.length - 1] = hiddenFields;
         return properties;
+    }
+
+    @Override
+    public String getRelyingPartyKey() {
+        return SAMLSSOConstants.SAMLFormFields.ISSUER;
     }
 
     private String getHiddenFields(String[] hiddenFields) {
