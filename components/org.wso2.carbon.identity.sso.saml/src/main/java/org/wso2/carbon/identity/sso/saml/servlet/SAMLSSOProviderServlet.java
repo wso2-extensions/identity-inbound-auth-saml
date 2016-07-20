@@ -548,6 +548,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throw IdentityException.error("Unexpected error in sending message out");
         }
 
+        resp.setContentType("text/html; charset=UTF-8");
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
 
             String finalPage = null;
