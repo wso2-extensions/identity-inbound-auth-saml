@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml.configs;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 
 public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
@@ -49,10 +49,17 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
     @Override
     public Property[] getConfigurationProperties() {
         Property[] samlProps = super.getConfigurationProperties();
+        for(Property prop : samlProps) {
+            if(StringUtils.equals(prop.getName(), SAMLSSOConstants.SAMLFormFields.ISSUER)) {
+                prop.setValue("https://saml.salesforce.com");
+                prop.setDefaultValue("https://saml.salesforce.com");
+                break;
+            }
+        }
         Property hiddenFields = new Property();
         hiddenFields.setName(SAMLSSOConstants.SAMLFormFields.HIDDEN_FIELDS);
         hiddenFields.setDisplayName("Hidden Fields");
-        hiddenFields.setValue(getHiddenFields(new String[]{SAMLSSOConstants.SAMLFormFields.ISSUER, SAMLSSOConstants
+        hiddenFields.setValue(getHiddenFields(new String[]{SAMLSSOConstants
                 .SAMLFormFields.ENABLE_SINGLE_LOGOUT, SAMLSSOConstants.SAMLFormFields.SLO_RESPONSE_URL,
                 SAMLSSOConstants.SAMLFormFields.SLO_REQUEST_URL, SAMLSSOConstants.SAMLFormFields.ENABLE_ATTR_PROF,
                 SAMLSSOConstants.SAMLFormFields.ENABLE_DEFAULT_ATTR_PROF, SAMLSSOConstants.SAMLFormFields

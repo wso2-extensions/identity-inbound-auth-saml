@@ -56,7 +56,7 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         Property issuer = new Property();
         issuer.setName(SAMLSSOConstants.SAMLFormFields.ISSUER);
         issuer.setDisplayName("Issuer");
-        issuer.setValue("https://saml.salesforce.com");
+
 
         Property acsurls = new Property();
         acsurls.setName(SAMLSSOConstants.SAMLFormFields.ACS_URLS);

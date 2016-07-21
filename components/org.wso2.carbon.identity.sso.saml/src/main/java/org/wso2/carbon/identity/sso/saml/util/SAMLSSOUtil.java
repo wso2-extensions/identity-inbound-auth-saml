@@ -965,7 +965,7 @@ public class SAMLSSOUtil {
      * @return
      * @throws IdentityException
      */
-    private static SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLSSOAuthnReqDTO authnReqDTO)
+    public static SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLSSOAuthnReqDTO authnReqDTO)
             throws IdentityException {
         try {
             SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
@@ -978,35 +978,137 @@ public class SAMLSSOUtil {
                 ServiceProvider serviceProvider = appInfo.getServiceProviderByClientId(authnReqDTO.getIssuer(),
                         IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, authnReqDTO.getTenantDomain());
                 Map<String,Property> properties = new HashMap<>();
-                String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
-                for(ServiceProviderProperty property:serviceProvider.getSpProperties()){
-                    if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
-                        appType = property.getValue();
-                        break;
-                    }
-                }
+
                 for (InboundAuthenticationRequestConfig config : serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs()) {
-                    if (StringUtils.equals(config.getFriendlyName(), appType)) {
+                    if (StringUtils.equals(config.getInboundAuthKey(), authnReqDTO.getIssuer()) && StringUtils.equals
+                            (config.getInboundAuthType(), IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                         for (Property prop : config.getProperties()) {
                             properties.put(prop.getName(), prop);
                         }
                         ssoIdpConfigs.setIssuer(properties.get(SAMLSSOConstants.SAMLFormFields.ISSUER).getValue());
-                        ssoIdpConfigs.setAssertionConsumerUrls(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR));
-                        ssoIdpConfigs.setDefaultAssertionConsumerUrl(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .DEFAULT_ACS).getValue());
-                        ssoIdpConfigs.setCertAlias(properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue());
-                        ssoIdpConfigs.setSigningAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .SIGN_ALGO).getValue());
-                        ssoIdpConfigs.setDigestAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .DIGEST_ALGO).getValue());
-                        ssoIdpConfigs.setDoEnableEncryptedAssertion(Boolean.parseBoolean(properties.get
-                                (SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION).getValue()));
-                        ssoIdpConfigs.setDoSignResponse(Boolean.parseBoolean(properties.get(SAMLSSOConstants
-                                .SAMLFormFields.ENABLE_RESPONSE_SIGNING).getValue()));
-                        ssoIdpConfigs.setDoValidateSignatureInRequests(Boolean.parseBoolean(properties.get
-                                (SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION).getValue()));
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue())) {
+                            ssoIdpConfigs.setAssertionConsumerUrls(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR));
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ACS_INDEX) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.ACS_INDEX).getValue())) {
+                            ssoIdpConfigs.setAttributeConsumingServiceIndex(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.ACS_INDEX).getValue());
+                            if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_DEFAULT_ATTR_PROF) != null &&
+                                    StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                            .ENABLE_DEFAULT_ATTR_PROF).getValue())) {
+                                ssoIdpConfigs.setEnableAttributesByDefault(Boolean.parseBoolean(properties.get
+                                        (SAMLSSOConstants.SAMLFormFields.ENABLE_DEFAULT_ATTR_PROF).getValue()));
+                            }
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.DEFAULT_ACS) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.DEFAULT_ACS).getValue())) {
+                            ssoIdpConfigs.setDefaultAssertionConsumerUrl(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.DEFAULT_ACS).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.NAME_ID_FORMAT) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.NAME_ID_FORMAT).getValue()
+                                )) {
+                            ssoIdpConfigs.setNameIDFormat(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .NAME_ID_FORMAT).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS) != null && StringUtils.isNotBlank
+                                (properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue())) {
+                            ssoIdpConfigs.setCertAlias(properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue
+                                    ());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.SIGN_ALGO) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.SIGN_ALGO).getValue())) {
+                            ssoIdpConfigs.setSigningAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .SIGN_ALGO).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.DIGEST_ALGO) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.DIGEST_ALGO).getValue())) {
+                            ssoIdpConfigs.setDigestAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .DIGEST_ALGO).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_RESPONSE_SIGNING) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_RESPONSE_SIGNING).getValue())) {
+                            ssoIdpConfigs.setDoSignResponse(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.ENABLE_RESPONSE_SIGNING).getValue()));
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_SIGNATURE_VALIDATION).getValue())) {
+                            ssoIdpConfigs.setDoValidateSignatureInRequests(Boolean.parseBoolean(properties.get
+                                    (SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION).getValue()));
+                        }
+                        ssoIdpConfigs.setDoSignAssertions(true);
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_ASSERTION_ENCRYPTION).getValue())) {
+                            ssoIdpConfigs.setDoEnableEncryptedAssertion(Boolean.parseBoolean(properties.get
+                                    (SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION).getValue()));
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_SINGLE_LOGOUT) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_SINGLE_LOGOUT).getValue())) {
+                            ssoIdpConfigs.setDoSingleLogout(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.ENABLE_SINGLE_LOGOUT).getValue()));
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.SLO_RESPONSE_URL) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.SLO_RESPONSE_URL).getValue
+                                        ())) {
+                            ssoIdpConfigs.setSloResponseURL(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .SLO_RESPONSE_URL).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.SLO_REQUEST_URL) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.SLO_REQUEST_URL).getValue
+                                        ())) {
+                            ssoIdpConfigs.setSloRequestURL(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .SLO_REQUEST_URL).getValue());
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_AUDIENCE_RESTRICTION) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_AUDIENCE_RESTRICTION).getValue())) {
+                            if (Boolean.parseBoolean(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .ENABLE_AUDIENCE_RESTRICTION).getValue()) && properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.AUDIENCE_URLS) != null && StringUtils.isNotBlank(properties.get
+                                    (SAMLSSOConstants.SAMLFormFields.AUDIENCE_URLS).getValue())) {
+                                ssoIdpConfigs.setRequestedAudiences(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .AUDIENCE_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields
+                                        .ACS_SEPERATE_CHAR));
+                            }
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_RECIPIENTS) != null && StringUtils
+                                .isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_RECIPIENTS)
+                                        .getValue())) {
+                            if (Boolean.parseBoolean(properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .ENABLE_RECIPIENTS).getValue()) && properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .RECEIPIENT_URLS) != null && StringUtils.isNotBlank(properties.get
+                                    (SAMLSSOConstants.SAMLFormFields.RECEIPIENT_URLS).getValue())) {
+                                ssoIdpConfigs.setRequestedRecipients(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .RECEIPIENT_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields
+                                        .ACS_SEPERATE_CHAR));
+                            }
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_IDP_INIT_SSO) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_IDP_INIT_SSO).getValue())) {
+                            ssoIdpConfigs.setIdPInitSSOEnabled(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.ENABLE_IDP_INIT_SSO).getValue()));
+                        }
+                        if (properties.get(SAMLSSOConstants.SAMLFormFields.ENABLE_IDP_INIT_SLO) != null &&
+                                StringUtils.isNotBlank(properties.get(SAMLSSOConstants.SAMLFormFields
+                                        .ENABLE_IDP_INIT_SLO).getValue())) {
+                            ssoIdpConfigs.setIdPInitSLOEnabled(Boolean.parseBoolean(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.ENABLE_IDP_INIT_SLO).getValue()));
+                            if (ssoIdpConfigs.isIdPInitSLOEnabled() && properties.get(SAMLSSOConstants.SAMLFormFields
+                                    .IDP_SLO_URLS) != null && StringUtils.isNotBlank(properties.get(SAMLSSOConstants
+                                    .SAMLFormFields.IDP_SLO_URLS).getValue())) {
+                                ssoIdpConfigs.setIdpInitSLOReturnToURLs(properties.get(SAMLSSOConstants
+                                        .SAMLFormFields.IDP_SLO_URLS).getValue().split(SAMLSSOConstants
+                                        .SAMLFormFields.ACS_SEPERATE_CHAR));
+                            }
+                        }
                         break;
                     }
                 }
@@ -1397,24 +1499,11 @@ public class SAMLSSOUtil {
             ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
             ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
-            String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
-            for(ServiceProviderProperty property:application.getSpProperties()){
-                if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
-                    appType = property.getValue();
-                    break;
-                }
-            }
             for (InboundAuthenticationRequestConfig config : application.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(config.getFriendlyName(), appType)) {
-                    for (Property prop : config.getProperties()) {
-                        if (StringUtils.equals(prop.getName(), SAMLSSOConstants.SAMLFormFields.ISSUER) && StringUtils
-                                .equals(issuerName, prop.getValue())) {
-                            return true;
-                        }
-                    }
-
-                    break;
+                if (StringUtils.equals(config.getInboundAuthKey(), issuerName) && StringUtils.equals(config
+                        .getInboundAuthType(), IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
+                    return true;
                 }
             }
             return false;
@@ -1456,14 +1545,21 @@ public class SAMLSSOUtil {
             ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
             ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
                     IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
-            Map<String, ServiceProviderProperty> properties = new HashMap();
-            for (ServiceProviderProperty property : application.getSpProperties()) {
-                properties.put(property.getName(), property);
+            Map<String, Property> properties = new HashMap();
+            for (InboundAuthenticationRequestConfig authenticationRequestConfig : application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
+                if (StringUtils.equals(authenticationRequestConfig.getInboundAuthType(), IdentityApplicationConstants
+                        .Authenticator.SAML2SSO.NAME) && StringUtils.equals(authenticationRequestConfig
+                        .getInboundAuthKey(), issuerName)) {
+                    for(Property property : authenticationRequestConfig.getProperties()){
+                        properties.put(property.getName(), property);
+                    }
+                }
             }
 
-            if (StringUtils.isBlank(requestedACSUrl) || !Arrays.asList(properties.get(SAMLSSOConstants.SAMLFormFields
-                    .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR)).contains
-                    (requestedACSUrl)) {
+            if (StringUtils.isBlank(requestedACSUrl) || properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS) ==
+                    null || properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue() == null || !Arrays
+                    .asList(properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue().split
+                            (SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR)).contains(requestedACSUrl)) {
                 String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
                         "AuthnRequest message from  the issuer '" + properties.get(SAMLSSOConstants.SAMLFormFields
                         .ISSUER).getValue() + "'. Possibly " + "an attempt for a spoofing attack";

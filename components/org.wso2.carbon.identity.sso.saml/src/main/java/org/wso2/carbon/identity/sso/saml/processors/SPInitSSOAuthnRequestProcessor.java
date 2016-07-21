@@ -207,58 +207,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
      */
     private SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLSSOAuthnReqDTO authnReqDTO)
             throws IdentityException {
-        try {
-            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
-                    .getInstance();
-            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
-                    .getServiceProvider(authnReqDTO.getIssuer());
-            if (ssoIdpConfigs == null) {
-                ssoIdpConfigs = new SAMLSSOServiceProviderDO();
-                ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-                ServiceProvider serviceProvider = appInfo.getServiceProviderByClientId(authnReqDTO.getIssuer(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, PrivilegedCarbonContext
-                                .getThreadLocalCarbonContext().getTenantDomain());
-                Map<String,Property> properties = new HashMap<>();
-                String appType = SAMLSSOConstants.SAMLFormFields.SAML_SSO;
-                for(ServiceProviderProperty property:serviceProvider.getSpProperties()){
-                    if(StringUtils.equals(property.getName(), SAMLSSOConstants.SAMLFormFields.APPTYPE)){
-                        appType = property.getValue();
-                        break;
-                    }
-                }
-                for (InboundAuthenticationRequestConfig config : serviceProvider.getInboundAuthenticationConfig()
-                        .getInboundAuthenticationRequestConfigs()) {
-                    if (StringUtils.equals(config.getFriendlyName(), appType)) {
-                        for (Property prop : config.getProperties()) {
-                            properties.put(prop.getName(), prop);
-                        }
-                        ssoIdpConfigs.setIssuer(properties.get(SAMLSSOConstants.SAMLFormFields.ISSUER).getValue());
-                        ssoIdpConfigs.setAssertionConsumerUrls(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .ACS_URLS).getValue().split(SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR));
-                        ssoIdpConfigs.setDefaultAssertionConsumerUrl(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .DEFAULT_ACS).getValue());
-                        ssoIdpConfigs.setCertAlias(properties.get(SAMLSSOConstants.SAMLFormFields.ALIAS).getValue());
-                        ssoIdpConfigs.setSigningAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .SIGN_ALGO).getValue());
-                        ssoIdpConfigs.setDigestAlgorithmUri(properties.get(SAMLSSOConstants.SAMLFormFields
-                                .DIGEST_ALGO).getValue());
-                        ssoIdpConfigs.setDoEnableEncryptedAssertion(Boolean.parseBoolean(properties.get
-                                (SAMLSSOConstants.SAMLFormFields.ENABLE_ASSERTION_ENCRYPTION).getValue()));
-                        ssoIdpConfigs.setDoSignResponse(Boolean.parseBoolean(properties.get(SAMLSSOConstants
-                                .SAMLFormFields.ENABLE_RESPONSE_SIGNING).getValue()));
-                        ssoIdpConfigs.setDoValidateSignatureInRequests(Boolean.parseBoolean(properties.get
-                                (SAMLSSOConstants.SAMLFormFields.ENABLE_SIGNATURE_VALIDATION).getValue()));
-                        break;
-                    }
-                }
-                authnReqDTO.setStratosDeployment(false); // not stratos
-            } else {
-                authnReqDTO.setStratosDeployment(true); // stratos deployment
-            }
-            return ssoIdpConfigs;
-        } catch (Exception e) {
-            throw IdentityException.error("Error while reading Service Provider configurations", e);
-        }
+        return SAMLSSOUtil.getServiceProviderConfig(authnReqDTO);
     }
 
     /**
