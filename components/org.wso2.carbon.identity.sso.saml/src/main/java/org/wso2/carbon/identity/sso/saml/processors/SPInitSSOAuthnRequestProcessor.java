@@ -21,21 +21,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.Response;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.ArrayList;
@@ -203,26 +197,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
      */
     private SAMLSSOServiceProviderDO getServiceProviderConfig(SAMLSSOAuthnReqDTO authnReqDTO)
             throws IdentityException {
-        try {
-            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
-                    .getInstance();
-            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
-                    .getServiceProvider(authnReqDTO.getIssuer());
-            if (ssoIdpConfigs == null) {
-                IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getTenantId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                        (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
-                authnReqDTO.setStratosDeployment(false); // not stratos
-            } else {
-                authnReqDTO.setStratosDeployment(true); // stratos deployment
-            }
-            return ssoIdpConfigs;
-        } catch (Exception e) {
-            throw IdentityException.error("Error while reading Service Provider configurations", e);
-        }
+        return SAMLSSOUtil.getServiceProviderConfig(authnReqDTO);
     }
 
     /**
