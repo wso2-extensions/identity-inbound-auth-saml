@@ -94,7 +94,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.wso2.carbon.identity.sso.saml.stub.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${identity.inbound.auth.saml.exp.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>
