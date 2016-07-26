@@ -81,6 +81,37 @@ public class SAMLSSOConstants {
     private SAMLSSOConstants() {
     }
 
+    public static class SAMLFormFields {
+        public static final String ISSUER = "issuer";
+        public static final String ACS_URLS = "assertionConsumerURLs";
+        public static final String ACS_INDEX = "acsindex";
+        public static final String AUDIENCE_URLS = "audienceURLs";
+        public static final String IDP_SLO_URLS = "idpSLOURLs";
+        public static final String RECEIPIENT_URLS = "receipientURLs";
+        public static final String DEFAULT_ACS = "defaultAssertionConsumerURL";
+        public static final String NAME_ID_FORMAT = "nameIdFormat";
+        public static final String ENABLE_SINGLE_LOGOUT = "enableSingleLogout";
+        public static final String SLO_RESPONSE_URL = "sloResponseURL";
+        public static final String SLO_REQUEST_URL = "sloRequestURL";
+        public static final String ALIAS = "alias";
+        public static final String SIGN_ALGO = "signingAlgorithm";
+        public static final String DIGEST_ALGO = "digestAlgorithm";
+        public static final String ENABLE_RESPONSE_SIGNING = "enableResponseSignature";
+        public static final String ENABLE_SIGNATURE_VALIDATION = "enableSigValidation";
+        public static final String ENABLE_ASSERTION_ENCRYPTION = "enableEncAssertion";
+        public static final String ENABLE_RECIPIENTS = "enableRecipients";
+        public static final String ENABLE_ATTR_PROF = "enableAttributeProfile";
+        public static final String ENABLE_DEFAULT_ATTR_PROF = "enableDefaultAttributeProfile";
+        public static final String ENABLE_AUDIENCE_RESTRICTION = "enableAudienceRestriction";
+        public static final String ENABLE_IDP_INIT_SSO = "enableIdPInitSSO";
+        public static final String ENABLE_IDP_INIT_SLO = "enableIdPInitSLO";
+        public static final String HIDDEN_FIELDS = "hiddenFields";
+        public static final String ACS_SEPERATE_CHAR = ",";
+        public static final String SAML_SSO = "samlsso";
+        public static final String CUSTOM = "custom";
+        public static final String APPTYPE = "appType";
+    }
+
     public static class FileBasedSPConfig {
 
         public static final String SERVICE_PROVIDERS = "ServiceProviders";

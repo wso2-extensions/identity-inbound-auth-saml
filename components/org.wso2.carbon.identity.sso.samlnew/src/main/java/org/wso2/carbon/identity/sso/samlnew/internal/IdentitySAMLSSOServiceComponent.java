@@ -28,12 +28,15 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.request.SAMLIdentityRequestFactory;
 import org.wso2.carbon.identity.sso.samlnew.bean.message.response.HttpSAMLResponseFactory;
+import org.wso2.carbon.identity.sso.samlnew.configs.SAMLAuthenticatorConfigs;
+import org.wso2.carbon.identity.sso.samlnew.configs.SalesForceConfigs;
 import org.wso2.carbon.identity.sso.samlnew.processor.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.samlnew.processor.SSOLoginProcessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -47,6 +50,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.util.Hashtable;
 import java.util.Scanner;
 
 /**
@@ -110,6 +114,13 @@ public class IdentitySAMLSSOServiceComponent {
         ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SPInitSSOAuthnRequestProcessor
                 (), null);
         ctxt.getBundleContext().registerService(IdentityProcessor.class.getName(), new SSOLoginProcessor(), null);
+        SalesForceConfigs salesforce = new SalesForceConfigs();
+        Hashtable<String, String> props = new Hashtable<String, String>();
+        ctxt.getBundleContext().registerService(AbstractInboundAuthenticatorConfig.class, salesforce, props);
+        SAMLAuthenticatorConfigs samlconfig = new SAMLAuthenticatorConfigs();
+        Hashtable<String, String> samlprops = new Hashtable<String, String>();
+        ctxt.getBundleContext().registerService(AbstractInboundAuthenticatorConfig.class, samlconfig, samlprops);
+
         String redirectHtmlPath = null;
         FileInputStream fis = null;
         try {
