@@ -107,9 +107,9 @@ public class SAMLSSOConstants {
         public static final String ENABLE_IDP_INIT_SLO = "enableIdPInitSLO";
         public static final String HIDDEN_FIELDS = "hiddenFields";
         public static final String ACS_SEPERATE_CHAR = ",";
-        public static final String SAML_SSO = "samlsso";
+        public static final String SAML_SSO = "samlssocloud";
         public static final String CUSTOM = "custom";
-        public static final String APPTYPE = "appType";
+        public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
     }
 
     public static class FileBasedSPConfig {

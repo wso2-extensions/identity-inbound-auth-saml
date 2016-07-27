@@ -176,9 +176,9 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         return builder;
     }
     @Override
-    public void create(HttpIdentityResponse.HttpIdentityResponseBuilder httpIdentityResponseBuilder, IdentityResponse
+    public HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder httpIdentityResponseBuilder, IdentityResponse
             identityResponse) {
-
+            return create(identityResponse);
     }
 
     private String getACSUrlWithTenantPartitioning(String acsUrl, String tenantDomain) {

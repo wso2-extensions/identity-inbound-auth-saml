@@ -34,6 +34,10 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         return null;
     }
 
+    @Override
+    public String getConfigName() {
+        return SAMLSSOConstants.SAMLFormFields.CUSTOM;
+    }
 
     //this is the authType
     @Override
@@ -42,13 +46,8 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
     }
 
     @Override
-    public String getConfigName(){
-        return "custom";
-    }
-
-    @Override
     public String getFriendlyName() {
-        return SAMLSSOConstants.SAMLFormFields.SAML_SSO;
+        return SAMLSSOConstants.SAMLFormFields.CUSTOM;
     }
 
     @Override
@@ -57,6 +56,10 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         issuer.setName(SAMLSSOConstants.SAMLFormFields.ISSUER);
         issuer.setDisplayName("Issuer");
 
+        Property appType = new Property();
+        appType.setName(SAMLSSOConstants.SAMLFormFields.WELLKNOWN_APPLICATION_TYPE);
+        appType.setValue(getConfigName());
+        appType.setDisplayName("UI Config Type");
 
         Property acsurls = new Property();
         acsurls.setName(SAMLSSOConstants.SAMLFormFields.ACS_URLS);
@@ -163,8 +166,8 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         idpSLOUrls.setName(SAMLSSOConstants.SAMLFormFields.IDP_SLO_URLS);
         idpSLOUrls.setDisplayName("IDP SLO Urls");
 
-        return new Property[]{issuer, acsurls, acsindex, defaultacs, nameid, alias, signAlgo, digestAlgo, enableSign,
-                enableSigValidation, enableEncAssert, enableSLO, sloUrl, sloRequestURL, enableAtrProf,
+        return new Property[]{issuer, appType, acsurls, acsindex, defaultacs, nameid, alias, signAlgo, digestAlgo,
+                enableSign, enableSigValidation, enableEncAssert, enableSLO, sloUrl, sloRequestURL, enableAtrProf,
                 enableDefaultAtrProf, enableAudienceRestriction, audiences, enableRecipients, receipients,
                 enableIDPSSO, enableIDPSLO, idpSLOUrls};
     }

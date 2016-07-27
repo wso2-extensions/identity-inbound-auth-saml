@@ -29,16 +29,15 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
         return null;
     }
 
+    @Override
+    public String getConfigName() {
+        return "salesforce";
+    }
 
     //this is the authType
     @Override
     public String getName() {
-        return super.getName();
-    }
-
-    @Override
-    public String getConfigName(){
-        return "salesforce";
+        return SAMLSSOConstants.SAMLFormFields.SAML_SSO;
     }
 
     @Override
@@ -90,4 +89,5 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
         }
         return hiddenFieldsStr.toString();
     }
+
 }
