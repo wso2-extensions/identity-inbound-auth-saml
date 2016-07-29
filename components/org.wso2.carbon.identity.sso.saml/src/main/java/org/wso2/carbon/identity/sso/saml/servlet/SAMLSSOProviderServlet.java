@@ -658,9 +658,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             null, sessionDTO.getTenantDomain());
                     return;
                 } else {
-                    String errorResp = SAMLSSOUtil.buildErrorResponse(
-                            SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
-                            "User authentication failed", destination);
+
+                    List<String> statusCodes = new ArrayList<>();
+                    statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
+                    statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
+
+                    String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(reqValidationDTO.getId(),
+                                                                                statusCodes, "User authentication " +
+                                                                                             "failed", destination);
                     sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                             SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
                             reqValidationDTO.getAssertionConsumerURL(), req, resp);
@@ -670,10 +675,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             } else { // if forceAuthn or normal flow
                 //TODO send a saml response with a status message.
                 if (!authResult.isAuthenticated()) {
-                    String destination = reqValidationDTO.getDestination();
-                    String errorResp = SAMLSSOUtil.buildErrorResponse(
-                            SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
-                            "User authentication failed", destination);
+                    String destination = reqValidationDTO.getAssertionConsumerURL();
+
+                    List<String> statusCodes = new ArrayList<String>();
+                    statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
+                    statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
+
+                    String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(
+                            reqValidationDTO.getId(), statusCodes, "User authentication failed", destination);
                     sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                             SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
                             reqValidationDTO.getAssertionConsumerURL(), req, resp);
