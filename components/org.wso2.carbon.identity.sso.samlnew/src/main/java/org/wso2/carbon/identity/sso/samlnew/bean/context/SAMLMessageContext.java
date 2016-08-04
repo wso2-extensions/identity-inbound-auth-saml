@@ -143,10 +143,6 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         this.tenantDomain = tenantDomain;
     }
 
-    public String getRequestMessageString() {
-        return ((SAMLIdentityRequest)this.request).getSamlRequest();
-    }
-
     public AuthenticatedUser getUser() {
         return this.getAuthenticationResult().getSubject();
     }

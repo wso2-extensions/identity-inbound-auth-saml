@@ -58,6 +58,7 @@ public class SAMLSSOConstants {
     public static final String SAML_ENDPOINT = "samlsso/carbon/";
     public static final String DEFAULT_LOGOUT_ENDPOINT = "/authenticationendpoint/samlsso_logout.do";
     public static final String SAMLSSO_URL = "/samlsso";
+    public static final String IDENTITY_URL = "/identity";
     public static final String NOTIFICATION_ENDPOINT ="/authenticationendpoint/samlsso_notification.do";
     public static final String SLO_SAML_SOAP_BINDING_ENABLED = "SSOService.SLOSAMLSOAPBindingEnabled";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
@@ -77,7 +78,7 @@ public class SAMLSSOConstants {
     public static final String FALSE = Boolean.FALSE.toString();
     public static final String TRUE = Boolean.TRUE.toString();
     public static final String VALIDATION_RESPONSE = "validationResponse";
-
+    public static final String GET_METHOD = "GET";
     private SAMLSSOConstants() {
     }
 
@@ -105,11 +106,10 @@ public class SAMLSSOConstants {
         public static final String ENABLE_AUDIENCE_RESTRICTION = "enableAudienceRestriction";
         public static final String ENABLE_IDP_INIT_SSO = "enableIdPInitSSO";
         public static final String ENABLE_IDP_INIT_SLO = "enableIdPInitSLO";
-        public static final String HIDDEN_FIELDS = "hiddenFields";
         public static final String ACS_SEPERATE_CHAR = ",";
         public static final String SAML_SSO = "samlssocloud";
         public static final String CUSTOM = "custom";
-        public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
+
     }
 
     public static class FileBasedSPConfig {

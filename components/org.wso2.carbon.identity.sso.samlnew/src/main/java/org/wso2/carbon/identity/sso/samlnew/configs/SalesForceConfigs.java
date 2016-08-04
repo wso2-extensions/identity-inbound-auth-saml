@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.samlnew.configs;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
 
 public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
@@ -56,7 +57,7 @@ public class SalesForceConfigs extends SAMLAuthenticatorConfigs {
             }
         }
         Property hiddenFields = new Property();
-        hiddenFields.setName(SAMLSSOConstants.SAMLFormFields.HIDDEN_FIELDS);
+        hiddenFields.setName(IdentityConstants.ServerConfig.HIDDEN_FIELDS);
         hiddenFields.setDisplayName("Hidden Fields");
         hiddenFields.setValue(getHiddenFields(new String[]{SAMLSSOConstants
                 .SAMLFormFields.ENABLE_SINGLE_LOGOUT, SAMLSSOConstants.SAMLFormFields.SLO_RESPONSE_URL,

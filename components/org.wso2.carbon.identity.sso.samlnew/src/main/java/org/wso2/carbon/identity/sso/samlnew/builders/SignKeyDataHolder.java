@@ -145,7 +145,7 @@ public class SignKeyDataHolder implements X509Credential {
             }
 
         } catch (Exception e) {
-            throw IdentityException.error(e.getMessage(), e);
+            throw IdentityException.error("Failed to build the SignKeyDataHolder", e);
         }
 
     }

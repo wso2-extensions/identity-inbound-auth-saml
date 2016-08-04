@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +50,7 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
     public boolean canHandle(IdentityResponse identityResponse) {
-        if(identityResponse instanceof SAMLLoginResponse || identityResponse instanceof SAMLErrorResponse) {
+        if (identityResponse instanceof SAMLLoginResponse || identityResponse instanceof SAMLErrorResponse) {
             return true;
         }
         return false;
@@ -60,11 +59,19 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
     @Override
     public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
 
-        if(identityResponse instanceof SAMLLoginResponse){
+        if (identityResponse instanceof SAMLLoginResponse) {
             return sendResponse(identityResponse);
-        }else{
+        } else {
             return sendNotification(identityResponse);
         }
+    }
+
+    @Override
+    public HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder
+                                                                           httpIdentityResponseBuilder,
+                                                                   IdentityResponse
+                                                                           identityResponse) {
+        return create(identityResponse);
     }
 
     private HttpIdentityResponse.HttpIdentityResponseBuilder sendResponse(IdentityResponse identityResponse) {
@@ -76,72 +83,74 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         String relayState = loginResponse.getRelayState();
         String acUrl = getACSUrlWithTenantPartitioning(loginResponse.getAcsUrl(), loginResponse.getTenantDomain());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
-
-            String finalPage = null;
-            String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
-            String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-            String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input " +
-                    "type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse.getRespString
-                    ()) + "'>");
-            String pageWithAcsResponseRelay = pageWithAcsResponse;
-
-            if (relayState != null) {
-                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input" +
-                        " type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
-            }
-
-            if (StringUtils.isBlank(authenticatedIdPs)) {
-                finalPage = pageWithAcsResponseRelay;
-            } else {
-                finalPage = pageWithAcsResponseRelay.replace(
-                        "<!--$additionalParams-->",
-                        "<input type='hidden' name='AuthenticatedIdPs' value='"
-                                + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
-            }
-
-            builder.setBody(finalPage);
-            if (log.isDebugEnabled()) {
-                log.debug("samlsso_response.html " + finalPage);
-            }
-
+            builder.setBody(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
         } else {
-            StringBuilder out = new StringBuilder();
-            out.append("<html>");
-            out.append("<body>");
-            out.append("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-            out.append(" If the redirection fails, please click the post button.</p>");
-            out.append("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-            out.append("<p>");
-            out.append("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse
-                    .getRespString()) + "'>");
-
-            if (relayState != null) {
-                out.append("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) +
-                        "'>");
-            }
-
-            if (StringUtils.isBlank(authenticatedIdPs)) {
-                out.append("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                        Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
-            }
-
-            out.append("<button type='submit'>POST</button>");
-            out.append("</p>");
-            out.append("</form>");
-            out.append("<script type='text/javascript'>");
-            out.append("document.forms[0].submit();");
-            out.append("</script>");
-            out.append("</body>");
-            out.append("</html>");
-            builder.setBody(out.toString());
+            builder.setBody(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
         }
-//        builder.setHeaders(response.getHeaders());
-//        builder.addHeader(OAuth2.Header.CACHE_CONTROL,
-//                OAuth2.HeaderValue.CACHE_CONTROL_NO_STORE);
-//        builder.addHeader(OAuth2.Header.PRAGMA,
-//                OAuth2.HeaderValue.PRAGMA_NO_CACHE);
         builder.setStatusCode(HttpServletResponse.SC_OK);
         return builder;
+    }
+
+    private String getRedirectHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
+            loginResponse) {
+        String finalPage = null;
+        String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
+        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
+        String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input " +
+                "type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse.getRespString
+                ()) + "'>");
+        String pageWithAcsResponseRelay = pageWithAcsResponse;
+
+        if (relayState != null) {
+            pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input" +
+                    " type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
+        }
+
+        if (StringUtils.isBlank(authenticatedIdPs)) {
+            finalPage = pageWithAcsResponseRelay;
+        } else {
+            finalPage = pageWithAcsResponseRelay.replace(
+                    "<!--$additionalParams-->",
+                    "<input type='hidden' name='AuthenticatedIdPs' value='"
+                            + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("samlsso_response.html " + finalPage);
+        }
+        return finalPage;
+    }
+
+    private String getPostHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
+            loginResponse) {
+        StringBuilder out = new StringBuilder();
+        out.append("<html>");
+        out.append("<body>");
+        out.append("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
+        out.append(" If the redirection fails, please click the post button.</p>");
+        out.append("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
+        out.append("<p>");
+        out.append("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse
+                .getRespString()) + "'>");
+
+        if (relayState != null) {
+            out.append("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) +
+                    "'>");
+        }
+
+        if (StringUtils.isBlank(authenticatedIdPs)) {
+            out.append("<input type='hidden' name='AuthenticatedIdPs' value='" +
+                    Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+        }
+
+        out.append("<button type='submit'>POST</button>");
+        out.append("</p>");
+        out.append("</form>");
+        out.append("<script type='text/javascript'>");
+        out.append("document.forms[0].submit();");
+        out.append("</script>");
+        out.append("</body>");
+        out.append("</html>");
+        return out.toString();
     }
 
     private HttpIdentityResponse.HttpIdentityResponseBuilder sendNotification(IdentityResponse identityResponse) {
@@ -174,11 +183,6 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         builder.setParameters(queryParams);
         builder.setRedirectURL(redirectURL);
         return builder;
-    }
-    @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder httpIdentityResponseBuilder, IdentityResponse
-            identityResponse) {
-            return create(identityResponse);
     }
 
     private String getACSUrlWithTenantPartitioning(String acsUrl, String tenantDomain) {

@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
@@ -57,7 +58,7 @@ public class SAMLAuthenticatorConfigs extends AbstractInboundAuthenticatorConfig
         issuer.setDisplayName("Issuer");
 
         Property appType = new Property();
-        appType.setName(SAMLSSOConstants.SAMLFormFields.WELLKNOWN_APPLICATION_TYPE);
+        appType.setName(IdentityConstants.ServerConfig.WELLKNOWN_APPLICATION_TYPE);
         appType.setValue(getConfigName());
         appType.setDisplayName("UI Config Type");
 

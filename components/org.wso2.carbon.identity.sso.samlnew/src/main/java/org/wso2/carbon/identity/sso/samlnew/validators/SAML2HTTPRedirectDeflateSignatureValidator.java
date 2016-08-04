@@ -102,7 +102,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     }
 
     /**
-     * @param queryString
+     * @param request
      * @return
      * @throws SecurityPolicyException
      */

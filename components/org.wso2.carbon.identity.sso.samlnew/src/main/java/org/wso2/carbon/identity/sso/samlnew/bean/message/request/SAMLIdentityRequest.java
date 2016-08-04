@@ -18,53 +18,88 @@
 
 package org.wso2.carbon.identity.sso.samlnew.bean.message.request;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
+import org.wso2.carbon.identity.sso.samlnew.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.samlnew.util.SAMLSSOUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 
 public class SAMLIdentityRequest extends IdentityRequest {
-    private String samlRequest;
-    private String signature;
-    private String sigAlg;
-    private String relayState;
-    private boolean isRedirect;
 
+    private static Log log = LogFactory.getLog(SAMLIdentityRequest.class);
     public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
-        this.samlRequest = builder.samlRequest;
-        this.signature = builder.signature;
-        this.sigAlg = builder.sigAlg;
-        this.relayState = builder.relayState;
-        this.isRedirect = builder.isRedirect;
     }
 
     public String getSignature() {
-        return signature;
+        if(this.getParameter(SAMLSSOConstants.SIGNATURE) != null) {
+            return this.getParameter(SAMLSSOConstants.SIGNATURE);
+        } else {
+            try {
+                return SAMLSSOUtil.getParameterFromQueryString(this.getQueryString(), SAMLSSOConstants.SIGNATURE);
+            } catch(UnsupportedEncodingException e){
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to decode the Signature ", e);
+                }
+            }
+        }
+        return null;
     }
 
     public String getSigAlg() {
-        return sigAlg;
+        if(this.getParameter(SAMLSSOConstants.SIG_ALG) != null) {
+            return this.getParameter(SAMLSSOConstants.SIG_ALG);
+        } else {
+            try {
+                return SAMLSSOUtil.getParameterFromQueryString(this.getQueryString(), SAMLSSOConstants.SIG_ALG);
+            } catch(UnsupportedEncodingException e){
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to decode the Signature Algorithm ", e);
+                }
+            }
+        }
+        return null;
     }
 
     public String getSamlRequest() {
-        return samlRequest;
+        if(this.getParameter(SAMLSSOConstants.SAML_REQUEST) != null) {
+            return this.getParameter(SAMLSSOConstants.SAML_REQUEST);
+        } else {
+            try {
+                return SAMLSSOUtil.getParameterFromQueryString(this.getQueryString(), SAMLSSOConstants.SAML_REQUEST);
+            } catch(UnsupportedEncodingException e){
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to decode the SAML Request ", e);
+                }
+            }
+        }
+        return null;
     }
 
     public String getRelayState() {
-        return relayState;
+        if(this.getParameter(SAMLSSOConstants.RELAY_STATE) != null) {
+            return this.getParameter(SAMLSSOConstants.RELAY_STATE);
+        } else {
+            try {
+                return SAMLSSOUtil.getParameterFromQueryString(this.getQueryString(), SAMLSSOConstants.RELAY_STATE);
+            } catch(UnsupportedEncodingException e){
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to decode the Relay State ", e);
+                }
+            }
+        }
+        return null;
     }
 
-    public boolean isRedirect() {return isRedirect;}
+    public boolean isRedirect() {
+        return this.getMethod() == SAMLSSOConstants.GET_METHOD;
+    }
 
     public static class SAMLIdentityRequestBuilder extends IdentityRequestBuilder {
-
-        private String samlRequest;
-        private String signature;
-        private String sigAlg;
-        private String relayState;
-        private boolean isRedirect;
-
         public SAMLIdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
         }
@@ -75,31 +110,6 @@ public class SAMLIdentityRequest extends IdentityRequest {
         @Override
         public SAMLIdentityRequest build() {
             return new SAMLIdentityRequest(this);
-        }
-
-        public SAMLIdentityRequestBuilder setSignature(String signature) {
-            this.signature = signature;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setSAMLRequest(String samlRequest) {
-            this.samlRequest = samlRequest;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setSigAlg(String sigAlg) {
-            this.sigAlg = sigAlg;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setRelayState(String relayState){
-            this.relayState = relayState;
-            return this;
-        }
-
-        public SAMLIdentityRequestBuilder setRedirect(boolean isRedirect){
-            this.isRedirect = isRedirect;
-            return this;
         }
     }
 }

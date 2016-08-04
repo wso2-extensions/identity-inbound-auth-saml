@@ -91,19 +91,6 @@ public class IdentitySAMLSSOServiceComponent {
 
     protected void activate(ComponentContext ctxt) {
         SAMLSSOUtil.setBundleContext(ctxt.getBundleContext());
-//        HttpService httpService = SAMLSSOUtil.getHttpService();
-//
-//        // Register SAML SSO servlet
-//        Servlet samlSSOServlet = new ContextPathServletAdaptor(new SAMLSSOProviderServlet(),
-//                                                               SAMLSSOConstants.SAMLSSO_URL);
-//        try {
-//            httpService.registerServlet(SAMLSSOConstants.SAMLSSO_URL, samlSSOServlet, null, null);
-//        } catch (Exception e) {
-//            String errMsg = "Error when registering SAML SSO Servlet via the HttpService.";
-//            log.error(errMsg, e);
-//            throw new RuntimeException(errMsg, e);
-//        }
-//
         // Register a SSOServiceProviderConfigManager object as an OSGi Service
         ctxt.getBundleContext().registerService(SSOServiceProviderConfigManager.class.getName(),
                 SSOServiceProviderConfigManager.getInstance(), null);
@@ -170,7 +157,7 @@ public class IdentitySAMLSSOServiceComponent {
             }
         } catch (FileNotFoundException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath);
+                log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath, e);
             }
 //        } catch (Throwable e) {
 //            SAMLSSOUtil.setSingleLogoutRetryCount(defaultSingleLogoutRetryCount);

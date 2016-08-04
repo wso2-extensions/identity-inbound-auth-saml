@@ -68,11 +68,6 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
         } catch (FrameworkClientException e) {
             throw SAML2ClientException.error("Error occurred while creating the Identity Request Builder",e);
         }
-        builder.setSAMLRequest(request.getParameter(SAMLSSOConstants.SAML_REQUEST));
-        builder.setSignature(request.getParameter(SAMLSSOConstants.SIGNATURE));
-        builder.setSigAlg(request.getParameter(SAMLSSOConstants.SIG_ALG));
-        builder.setRelayState(request.getParameter(SAMLSSOConstants.RELAY_STATE));
-        builder.setRedirect(StringUtils.isNotEmpty(request.getQueryString()));
         return builder;
     }
 

@@ -108,7 +108,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -379,6 +382,17 @@ public class SAMLSSOUtil {
         }
     }
 
+    public static String getParameterFromQueryString(String queryString, String paraName) throws
+            UnsupportedEncodingException {
+        String[] params = queryString.split("&");
+        for (String param : params) {
+            if (StringUtils.equals(param.split("=")[0], paraName)) {
+                return URLDecoder.decode(param.split("=")[1], StandardCharsets.UTF_8.name());
+            }
+        }
+        return null;
+    }
+
     public static String getNotificationEndpoint(){
         String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
                 .NOTIFICATION_ENDPOINT);
@@ -487,7 +501,6 @@ public class SAMLSSOUtil {
         }
 
         SAMLSSOServiceProviderDO serviceProvider = messageContext.getSamlssoServiceProviderDO();
-
         String domainName = messageContext.getTenantDomain();
         if (messageContext.isStratosDeployment()) {
             domainName = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -498,14 +511,15 @@ public class SAMLSSOUtil {
             String decodedReq = null;
 
             if (messageContext.getRequest().isRedirect()) {
-                decodedReq = SAMLSSOUtil.decode(messageContext.getRequestMessageString());
+                decodedReq = SAMLSSOUtil.decode(messageContext.getRequest().getSamlRequest());
             } else {
-                decodedReq = SAMLSSOUtil.decodeForPost(messageContext.getRequestMessageString());
+                decodedReq = SAMLSSOUtil.decodeForPost(messageContext.getRequest().getSamlRequest());
             }
             request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
         } catch (IdentityException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Signature Validation failed for the SAMLRequest : Failed to unmarshall the SAML Assertion", e);
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to unmarshall the SAML " +
+                        "Assertion", e);
             }
         }
 
@@ -541,7 +555,7 @@ public class SAMLSSOUtil {
 
             synchronized (Runtime.getRuntime().getClass()) {
                 samlHTTPRedirectSignatureValidator = (SAML2HTTPRedirectSignatureValidator) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAML2HTTPRedirectSignatureValidator").trim()).newInstance();
+                        "SSOService.SAML2HTTPRedirectSignatureValidatorCloud").trim()).newInstance();
                 samlHTTPRedirectSignatureValidator.init();
             }
 
@@ -557,13 +571,13 @@ public class SAMLSSOUtil {
             return false;
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidatorCloud"), e);
         } catch (InstantiationException e) {
             throw IdentityException.error("Error while instantiating class: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidatorCloud"), e);
         } catch (IllegalAccessException e) {
             throw IdentityException.error("Illegal access to class: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidatorCloud"), e);
         }
     }
 
@@ -587,7 +601,7 @@ public class SAMLSSOUtil {
 
                 synchronized (Runtime.getRuntime().getClass()) {
                     ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
-                            "SSOService.SAMLSSOSigner").trim()).newInstance();
+                            "SSOService.SAMLSSOSignerCloud").trim()).newInstance();
                     ssoSigner.init();
                 }
                 return ssoSigner.validateXMLSignature(request, cred, alias);
@@ -602,13 +616,13 @@ public class SAMLSSOUtil {
                 }
             } catch (ClassNotFoundException e) {
                 throw IdentityException.error("Class not found: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
             } catch (InstantiationException e) {
                 throw IdentityException.error("Error while instantiating class: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
             } catch (IllegalAccessException e) {
                 throw IdentityException.error("Illegal access to class: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error while validating XML signature.", e);
@@ -642,9 +656,9 @@ public class SAMLSSOUtil {
                 IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants.Authenticator
                         .SAML2SSO.DESTINATION_URL_PREFIX));
         if (destinationURLs.size() == 0) {
-            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
+            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_CLOUD_URL);
             if (StringUtils.isBlank(configDestination)) {
-                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.SAMLSSO_URL, true, true);
+                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.IDENTITY_URL, true, true);
             }
             destinationURLs.add(configDestination);
         }
@@ -680,12 +694,13 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
             ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
-                    IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
+                    .SAMLFormFields.SAML_SSO, tenantDomain);
             Map<String, Property> properties = new HashMap();
-            for (InboundAuthenticationRequestConfig authenticationRequestConfig : application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authenticationRequestConfig.getInboundAuthType(), IdentityApplicationConstants
-                        .Authenticator.SAML2SSO.NAME) && StringUtils.equals(authenticationRequestConfig
+            for (InboundAuthenticationRequestConfig authenticationRequestConfig : application
+                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
+                if (StringUtils.equals(authenticationRequestConfig.getInboundAuthType(), SAMLSSOConstants
+                        .SAMLFormFields.SAML_SSO) && StringUtils.equals(authenticationRequestConfig
                         .getInboundAuthKey(), issuerName)) {
                     for(Property property : authenticationRequestConfig.getProperties()){
                         properties.put(property.getName(), property);
@@ -741,12 +756,12 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
             ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName,
-                    IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
+                    .SAMLFormFields.SAML_SSO, tenantDomain);
             for (InboundAuthenticationRequestConfig config : application.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
                 if (StringUtils.equals(config.getInboundAuthKey(), issuerName) && StringUtils.equals(config
-                        .getInboundAuthType(), IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
+                        .getInboundAuthType(), SAMLSSOConstants.SAMLFormFields.SAML_SSO)) {
                     return true;
                 }
             }
@@ -849,13 +864,13 @@ public class SAMLSSOUtil {
         doBootstrap();
         String assertionBuilderClass = null;
         try {
-            assertionBuilderClass = IdentityUtil.getProperty("SSOService.SAMLSSOAssertionBuilder").trim();
+            assertionBuilderClass = IdentityUtil.getProperty("SSOService.SAMLSSOAssertionBuilderCloud").trim();
             if (StringUtils.isBlank(assertionBuilderClass)) {
                 assertionBuilderClass = DefaultSAMLAssertionBuilder.class.getName();
             }
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
-                log.debug("SAMLSSOAssertionBuilder configuration is set to default builder ", e);
+                log.debug("SAMLSSOAssertionBuilderCloud configuration is set to default builder ", e);
             }
             assertionBuilderClass = DefaultSAMLAssertionBuilder.class.getName();
         }
@@ -1032,7 +1047,7 @@ public class SAMLSSOUtil {
         try {
             synchronized (Runtime.getRuntime().getClass()) {
                 ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAMLSSOSigner").trim()).newInstance();
+                        "SSOService.SAMLSSOSignerCloud").trim()).newInstance();
                 ssoSigner.init();
             }
 
@@ -1040,13 +1055,13 @@ public class SAMLSSOUtil {
 
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
         } catch (InstantiationException e) {
             throw IdentityException.error("Error while instantiating class: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
         } catch (IllegalAccessException e) {
             throw IdentityException.error("Illegal access to class: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOSignerCloud"), e);
         } catch (Exception e) {
             throw IdentityException.error("Error while signing the XML object.", e);
         }
@@ -1100,19 +1115,19 @@ public class SAMLSSOUtil {
 
             synchronized (Runtime.getRuntime().getClass()) {
                 ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAMLSSOEncrypter").trim()).newInstance();
+                        "SSOService.SAMLSSOEncrypterCloud").trim()).newInstance();
                 ssoEncrypter.init();
             }
             return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypterCloud"), e);
         } catch (InstantiationException e) {
             throw IdentityException.error("Error while instantiating class: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypterCloud"), e);
         } catch (IllegalAccessException e) {
             throw IdentityException.error("Illegal access to class: "
-                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypterCloud"), e);
         } catch (Exception e) {
             throw IdentityException.error("Error while signing the SAML Response message.", e);
         }
@@ -1250,13 +1265,13 @@ public class SAMLSSOUtil {
                 ssoIdpConfigs = new SAMLSSOServiceProviderDO();
                 ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
                 ServiceProvider serviceProvider = appInfo.getServiceProviderByClientId(context.getIssuer(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, context.getTenantDomain());
+                        SAMLSSOConstants.SAMLFormFields.SAML_SSO, context.getTenantDomain());
                 Map<String,Property> properties = new HashMap<>();
 
                 for (InboundAuthenticationRequestConfig config : serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs()) {
                     if (StringUtils.equals(config.getInboundAuthKey(), context.getIssuer()) && StringUtils.equals
-                            (config.getInboundAuthType(), IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
+                            (config.getInboundAuthType(), SAMLSSOConstants.SAMLFormFields.SAML_SSO)) {
                         for (Property prop : config.getProperties()) {
                             properties.put(prop.getName(), prop);
                         }
