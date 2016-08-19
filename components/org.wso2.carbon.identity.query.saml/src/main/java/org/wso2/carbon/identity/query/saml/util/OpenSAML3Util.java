@@ -1,21 +1,19 @@
 /*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *  *
- *  * WSO2 Inc. licenses this file to you under the Apache License,
- *  * Version 2.0 (the "License"); you may not use this file except
- *  * in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing,
- *  * software distributed under the License is distributed on an
- *  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  * KIND, either express or implied.  See the License for the
- *  * specific language governing permissions and limitations
- *  * under the License.
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
  *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied. See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
  */
 
 package org.wso2.carbon.identity.query.saml.util;
@@ -236,7 +234,7 @@ public class OpenSAML3Util {
      * @param alias      Certificate alias against which the signature is validated.
      * @param domainName domain name of the subject
      * @return true, if the signature is valid.
-     * @throws IdentityException If unable to load credential information
+     * @throws IdentityException When signature is invalid or unable to load credential information
      */
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
                                                String domainName) throws IdentityException {
@@ -245,7 +243,7 @@ public class OpenSAML3Util {
 
         if (request.getSignature() != null) {
             try {
-                X509Credential cred = (X509Credential) OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
+                X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
 
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
@@ -297,7 +295,8 @@ public class OpenSAML3Util {
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
-            } else { // for super tenant, load the default pub. cert using the
+            } else {
+                // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
                 keyStore = keyStoreManager.getPrimaryKeyStore();
             }

@@ -64,8 +64,7 @@
                 <artifactId>org.wso2.carbon.logging</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
-
-            <dependency>
+			<dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.identity.base</artifactId>
                 <version>${carbon.identity.framework.version}</version>
@@ -96,8 +95,7 @@
                 <version>${carbon.identity.framework.version}</version>
                 <type>war</type>
             </dependency>
-
-            <dependency>
+			<dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml.stub</artifactId>
                 <version>${project.version}</version>
@@ -195,8 +193,7 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-
-    </repositories>
+	</repositories>
 
     <build>
         <pluginManagement>

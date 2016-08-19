@@ -1,21 +1,19 @@
 /*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *  *
- *  * WSO2 Inc. licenses this file to you under the Apache License,
- *  * Version 2.0 (the "License"); you may not use this file except
- *  * in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing,
- *  * software distributed under the License is distributed on an
- *  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  * KIND, either express or implied.  See the License for the
- *  * specific language governing permissions and limitations
- *  * under the License.
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
  *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied. See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
  */
 
 package org.wso2.carbon.identity.query.saml.processor;
@@ -67,7 +65,7 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
         try {
             assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
         } catch (IdentityException e) {
-            log.error(e);
+            log.error("Unable to build assertion ", e);
         }
 
         assertions.add(assertion);
@@ -75,9 +73,9 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
 
         try {
             response = QueryResponseBuilder.build(assertions, issuerConfig, user);
-            log.info("SAMLSubjectQueryProcessor : response generated");
+            log.debug("Response generated with ID : "+response.getID());
         } catch (IdentityException e) {
-            log.error(e);
+            log.error("Unable to build response ",e);
         }
 
         return response;
@@ -94,7 +92,7 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
         try {
             return SAMLQueryRequestUtil.getServiceProviderConfig(issuer);
         } catch (IdentityException e) {
-            e.printStackTrace();
+            log.error("Unable to load service provider configurations", e);
         }
         return new SAMLSSOServiceProviderDO();
     }

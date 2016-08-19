@@ -46,6 +46,12 @@
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
+		<dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.identity.query.saml.server.feature</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>
@@ -70,6 +76,9 @@
                                 </includedFeatureDef>
                                 <includedFeatureDef>
                                     org.wso2.carbon.identity:org.wso2.carbon.identity.sso.saml.ui.feature
+                                </includedFeatureDef>
+								<includedFeatureDef>
+                                    org.wso2.carbon.identity:org.wso2.carbon.identity.query.saml.server.feature
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>
