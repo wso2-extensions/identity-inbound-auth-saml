@@ -107,12 +107,16 @@
                 <artifactId>org.wso2.carbon.identity.sso.saml.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
+			<dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+			<dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+				<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents.wso2</groupId>
                 <artifactId>httpcore</artifactId>
@@ -292,6 +296,7 @@
     </pluginRepositories>
 
     <modules>
+		<module>components/org.wso2.carbon.identity.query.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml.common</module>
         <module>components/org.wso2.carbon.identity.sso.saml.ui</module>
@@ -299,6 +304,7 @@
         <module>features/org.wso2.carbon.identity.sso.saml.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.server.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.ui.feature</module>
+		<module>features/org.wso2.carbon.identity.query.saml.server.feature</module>
     </modules>
 
     <properties>
