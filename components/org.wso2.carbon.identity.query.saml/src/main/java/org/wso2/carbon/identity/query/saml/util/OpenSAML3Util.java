@@ -34,7 +34,11 @@ import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.security.x509.X509Credential;
-import org.opensaml.xmlsec.signature.*;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.SignableXMLObject;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.X509Certificate;
+import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.support.Signer;
@@ -249,7 +253,7 @@ public class OpenSAML3Util {
                 return true;
             } catch (IdentitySAML2SSOException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Signature validation failed for the SAML Message : Failed to construct the X509CredentialImpl for the alias " +
+                    log.debug("Failed to construct the X509CredentialImpl for the alias " +
                             alias, e);
                 }
             } catch (Exception e) {
