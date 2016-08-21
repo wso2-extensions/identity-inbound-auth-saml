@@ -34,16 +34,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * This class is used to override existing implementation on Assertion building and store Assertions before
- * sending to the requester
+ * This class is used to override existing implementation on Assertion building and
+ * store Assertions before sending to the requester
  */
-public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder implements Serializable {
+public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
+        implements Serializable {
 
     /**
      * Standard login
      */
     private final static Log log = LogFactory.getLog(ExtendedDefaultAssertionBuilder.class);
-    private final static String ASSERTION_STORE_SQL = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID, " +
+    private final static String ASSERTION_STORE_SQL = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID," +
             "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_SESSION_INDEX ,SAML2_ASSERTION) VALUES (?,?,?,?,?,?)";
 
     /**
@@ -66,7 +67,8 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
      * @throws IdentityException If unable to collect issuer information
      */
     @Override
-    public Assertion buildAssertion(SAMLSSOAuthnReqDTO samlssoAuthnReqDTO, DateTime notOnOrAfter, String sessionId) throws IdentityException {
+    public Assertion buildAssertion(SAMLSSOAuthnReqDTO samlssoAuthnReqDTO, DateTime notOnOrAfter, String sessionId)
+            throws IdentityException {
 
         Assertion assertion = super.buildAssertion(samlssoAuthnReqDTO, notOnOrAfter, sessionId);
 
