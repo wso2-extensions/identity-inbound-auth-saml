@@ -69,7 +69,7 @@ public class SAMLSubjectQueryValidator extends AbstractSAMLQueryValidator {
         if (subject != null && subject.getNameID() != null &&
                 subject.getNameID().getFormat() != null && super.getSsoIdpConfig().getNameIDFormat() != null &&
                 subject.getNameID().getFormat().equals(super.getSsoIdpConfig().getNameIDFormat())) {
-            log.info("Request subject is valid");
+            log.debug("Request subject is valid");
             isValidsubject = true;
         }
         return isValidsubject;

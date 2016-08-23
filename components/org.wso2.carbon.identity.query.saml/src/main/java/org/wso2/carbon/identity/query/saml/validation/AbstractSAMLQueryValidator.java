@@ -123,11 +123,11 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
                     alias, domainName);
 
             if (isValidSig) {
-                log.info("Signature successfully validated");
+                log.debug("Signature successfully validated");
                 return true;
 
             } else {
-                log.info("In valid Signature");
+                log.debug("In valid Signature");
                 return false;
             }
 
@@ -154,9 +154,6 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
 
             throw IdentityException.error(SAMLQueryRequestConstants.ValidationMessage.EXIT_WITH_ERROR);
         } else {
-            IssuerName = issuer.getValue();
-            IssuerSPProvidedID = issuer.getSPProvidedID();
-
             if (issuer.getFormat() != null) {
                 if (issuer.getFormat().equals(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT)) {
 
@@ -166,12 +163,12 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
                             log.error(SAMLQueryRequestConstants.ServiceMessages.NULL_ISSUER);
                             return validIssuer;
                         } else {
-                            log.info(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
+                            log.debug(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
                             validIssuer = true;
                         }
                     } catch (IdentityException e) {
                         log.error(SAMLQueryRequestConstants.ServiceMessages.ISSUER_VALIDATION_FAILED);
-                        log.error(e.getMessage());
+                        log.error("Unable to load Service Provider info", e);
                     }
 
                 } else {

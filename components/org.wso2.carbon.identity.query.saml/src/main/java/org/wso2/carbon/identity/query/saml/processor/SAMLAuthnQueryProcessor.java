@@ -57,87 +57,90 @@ public class SAMLAuthnQueryProcessor implements SAMLQueryProcessor {
      * @return Response response message including one or more assertions
      */
     public Response process(RequestAbstractType request) {
-        AuthnQuery authnQuery = (AuthnQuery) request;
-        String issuerFullName = getIssuer(authnQuery.getIssuer());
-        String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-        String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
-        String user = authnQuery.getSubject().getNameID().getValue() + "@" + tenantdomain;
-        SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
-        String requestedSessionIndex = authnQuery.getSessionIndex();
-        RequestedAuthnContext requestedAuthnContext = authnQuery.getRequestedAuthnContext();
-        List<AuthnContextClassRef> authnContextClassRefs = requestedAuthnContext.getAuthnContextClassRefs();
-        boolean isAuthStatementsPresent = isAuthStatementPresent(requestedSessionIndex, authnContextClassRefs);
-        List<Assertion> assertionsMatchBySubject = new ArrayList<Assertion>();
-        Map<String, Assertion> filteredAssertions = new HashMap<String, Assertion>();
-        List<Assertion> uniqueAssertions = new ArrayList<Assertion>();
         Response response = null;
-        List<SAMLAssertionFinder> finders = getFinders();
-        for (SAMLAssertionFinder finder : finders) {
-            List<Assertion> assertions = finder.findBySubject(user);
-            if (assertions.size() > 0) {
-                assertionsMatchBySubject.addAll(assertions);
-            }
-        }
-        if (assertionsMatchBySubject.size() > 0) {
-            if (isAuthStatementsPresent) {
-                if (requestedSessionIndex != null && requestedSessionIndex.length() > 0) {
-                    for (Assertion assertion : assertionsMatchBySubject) {
-                        List<AuthnStatement> authnStatements = assertion.getAuthnStatements();
-                        for (AuthnStatement authnStatement : authnStatements) {
-                            String sessionIndex = authnStatement.getSessionIndex();
-                            if (requestedSessionIndex.equals(sessionIndex)) {
-                                filteredAssertions.put(assertion.getID(), assertion);
-                                break;
-                            }
-                        }
-
-                    }
+        try {
+            AuthnQuery authnQuery = (AuthnQuery) request;
+            String issuerFullName = getIssuer(authnQuery.getIssuer());
+            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
+            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
+            String user = authnQuery.getSubject().getNameID().getValue() + "@" + tenantdomain;
+            SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
+            String requestedSessionIndex = authnQuery.getSessionIndex();
+            RequestedAuthnContext requestedAuthnContext = authnQuery.getRequestedAuthnContext();
+            List<AuthnContextClassRef> authnContextClassRefs = requestedAuthnContext.getAuthnContextClassRefs();
+            boolean isAuthStatementsPresent = isAuthStatementPresent(requestedSessionIndex, authnContextClassRefs);
+            List<Assertion> assertionsMatchBySubject = new ArrayList<Assertion>();
+            Map<String, Assertion> filteredAssertions = new HashMap<String, Assertion>();
+            List<Assertion> uniqueAssertions = new ArrayList<Assertion>();
+            List<SAMLAssertionFinder> finders = getFinders();
+            for (SAMLAssertionFinder finder : finders) {
+                List<Assertion> assertions = finder.findBySubject(user);
+                if (assertions.size() > 0) {
+                    assertionsMatchBySubject.addAll(assertions);
                 }
-                if (authnContextClassRefs.size() > 0) {
-                    for (Assertion assertion : assertionsMatchBySubject) {
-                        for (AuthnContextClassRef authnContextClassRef : authnContextClassRefs) {
+            }
+            if (assertionsMatchBySubject.size() > 0) {
+                if (isAuthStatementsPresent) {
+                    if (requestedSessionIndex != null && requestedSessionIndex.length() > 0) {
+                        for (Assertion assertion : assertionsMatchBySubject) {
                             List<AuthnStatement> authnStatements = assertion.getAuthnStatements();
                             for (AuthnStatement authnStatement : authnStatements) {
-                                if (authnStatement.getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef().equals(
-                                        authnContextClassRef.getAuthnContextClassRef())) {
-                                    filteredAssertions.putIfAbsent(assertion.getID(), assertion);
+                                String sessionIndex = authnStatement.getSessionIndex();
+                                if (requestedSessionIndex.equals(sessionIndex)) {
+                                    filteredAssertions.put(assertion.getID(), assertion);
                                     break;
                                 }
                             }
 
                         }
                     }
-                }
+                    if (authnContextClassRefs.size() > 0) {
+                        for (Assertion assertion : assertionsMatchBySubject) {
+                            for (AuthnContextClassRef authnContextClassRef : authnContextClassRefs) {
+                                List<AuthnStatement> authnStatements = assertion.getAuthnStatements();
+                                for (AuthnStatement authnStatement : authnStatements) {
+                                    if (authnStatement.getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef().equals(
+                                            authnContextClassRef.getAuthnContextClassRef())) {
+                                        filteredAssertions.putIfAbsent(assertion.getID(), assertion);
+                                        break;
+                                    }
+                                }
 
-                if (filteredAssertions.size() > 0) {
-                    uniqueAssertions.addAll(filteredAssertions.values());
+                            }
+                        }
+                    }
+
+                    if (filteredAssertions.size() > 0) {
+                        uniqueAssertions.addAll(filteredAssertions.values());
+                    } else {
+
+                        log.error("No assertions Stored for Given SessionIndex or Context");
+                        return null;
+                    }
                 } else {
-
-                    log.error("No assertions Stored for Given SessionIndex or Context");
-                    return null;
+                    uniqueAssertions.addAll(assertionsMatchBySubject);
                 }
+
             } else {
-                uniqueAssertions.addAll(assertionsMatchBySubject);
+
+                log.debug("No Assertions Matched with Subject");
+                return null;
             }
 
-        } else {
 
-            log.debug("No Assertions Matched with Subject");
-            return null;
-        }
+            if (uniqueAssertions.size() > 0) {
+                try {
+                    response = QueryResponseBuilder.build(uniqueAssertions, issuerConfig, tenantdomain);
+                    log.debug("Response generated with ID : " + response.getID());
+                    return response;
+                } catch (IdentityException e) {
+                    log.error("Unable to build response for AuthnQuery ", e);
+                }
 
-
-        if (uniqueAssertions.size() > 0) {
-            try {
-                response = QueryResponseBuilder.build(uniqueAssertions, issuerConfig, tenantdomain);
-                log.debug("Response generated with ID : "+response.getID());
-                return response;
-            } catch (IdentityException e) {
-                log.error("Unable to build response for AuthnQuery ", e);
             }
-
+        } catch (Exception ex) {
+            log.error("Unable to process AuthnQuery ", ex);
         }
-
         return response;
     }
 

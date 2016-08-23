@@ -112,7 +112,7 @@ public class SAMLQueryMessageReceiver extends AbstractInOutMessageReceiver {
                     }
                 } else {
 
-                    log.info("Request message contain validation issues");
+                    log.debug("Request message contain validation issues");
                 }
 
             } else {
@@ -154,7 +154,7 @@ public class SAMLQueryMessageReceiver extends AbstractInOutMessageReceiver {
 
 
             } catch (IdentityException e) {
-                log.error("Unable to build error response ",e);
+                log.error("Unable to build error response ", e);
             }
 
 

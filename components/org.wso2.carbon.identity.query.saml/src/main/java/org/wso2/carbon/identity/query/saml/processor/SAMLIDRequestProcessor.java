@@ -53,33 +53,36 @@ public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
      * @return Response Generated response message including assertions
      */
     public Response process(RequestAbstractType request) {
-        AssertionIDRequest assertion = (AssertionIDRequest) request;
-        String issuerFullName = getIssuer(request.getIssuer());
-        String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-        String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
-        SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
-        List<AssertionIDRef> assertionIDRefs = assertion.getAssertionIDRefs();
         Response response = null;
-        List<Assertion> assertionList = new ArrayList<Assertion>();
-        for (AssertionIDRef assertionidref : assertionIDRefs) {
-            List<SAMLAssertionFinder> finders = getFinders();
-            String id = assertionidref.getAssertionID();
-            for (SAMLAssertionFinder finder : finders) {
-                Assertion returnAssertion = finder.findByID(id);
-                if (returnAssertion != null) {
-                    assertionList.add(returnAssertion);
+        try {
+            AssertionIDRequest assertion = (AssertionIDRequest) request;
+            String issuerFullName = getIssuer(request.getIssuer());
+            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
+            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
+            SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
+            List<AssertionIDRef> assertionIDRefs = assertion.getAssertionIDRefs();
+            List<Assertion> assertionList = new ArrayList<Assertion>();
+            for (AssertionIDRef assertionidref : assertionIDRefs) {
+                List<SAMLAssertionFinder> finders = getFinders();
+                String id = assertionidref.getAssertionID();
+                for (SAMLAssertionFinder finder : finders) {
+                    Assertion returnAssertion = finder.findByID(id);
+                    if (returnAssertion != null) {
+                        assertionList.add(returnAssertion);
+                    }
                 }
             }
-        }
-        if (assertionList.size() > 0) {
-            try {
-                response = QueryResponseBuilder.build(assertionList, issuerConfig, tenantdomain);
-                log.debug("Response generated with ID : "+response.getID());
-            } catch (IdentityException e) {
-                log.error("Unable to build response for SAMLIDRequest ", e);
+            if (assertionList.size() > 0) {
+                try {
+                    response = QueryResponseBuilder.build(assertionList, issuerConfig, tenantdomain);
+                    log.debug("Response generated with ID : " + response.getID());
+                } catch (IdentityException e) {
+                    log.error("Unable to build response for SAMLIDRequest ", e);
+                }
             }
+        } catch (Exception ex) {
+            log.error("Unable to process AssertionIDRequest ", ex);
         }
-
         return response;
     }
 
@@ -119,7 +122,7 @@ public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
         try {
             return SAMLQueryRequestUtil.getServiceProviderConfig(issuer);
         } catch (IdentityException e) {
-            log.error("Unable to get service provider information ",e);
+            log.error("Unable to get service provider information ", e);
         }
         return null;
     }

@@ -53,31 +53,35 @@ public class SAMLAttributeQueryProcessor extends SAMLSubjectQueryProcessor {
      */
     @Override
     public Response process(RequestAbstractType request) {
-        AttributeQuery query = (AttributeQuery) request;
-        String user = getUserName(query.getSubject());
-        String issuerFullName = getIssuer(request.getIssuer());
-        String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-        String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
-        List<Attribute> requestedattributes = query.getAttributes();
-        SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
-        String claimAttributes[] = getAttributesAsArray(requestedattributes);
-        List<Assertion> assertions = new ArrayList<Assertion>();
-        Map<String, String> attributes = getUserAttributes(user, claimAttributes, issuerConfig);
-        Assertion assertion = null;
-        try {
-            assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
-        } catch (IdentityException e) {
-            log.error(e);
-        }
-        assertions.add(assertion);
         Response response = null;
         try {
-            response = QueryResponseBuilder.build(assertions, issuerConfig, tenantdomain);
-            log.debug("Response generated with ID : "+response.getID());
-        } catch (IdentityException e) {
-            log.error("Unable to build response for the AttributeQuery ", e);
-        }
+            AttributeQuery query = (AttributeQuery) request;
+            String user = getUserName(query.getSubject());
+            String issuerFullName = getIssuer(request.getIssuer());
+            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
+            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
+            List<Attribute> requestedattributes = query.getAttributes();
+            SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
+            String claimAttributes[] = getAttributesAsArray(requestedattributes);
+            List<Assertion> assertions = new ArrayList<Assertion>();
+            Map<String, String> attributes = getUserAttributes(user, claimAttributes, issuerConfig);
+            Assertion assertion = null;
+            try {
+                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
+                assertions.add(assertion);
+            } catch (IdentityException e) {
+                log.error("Unable to build assertion ", e);
+            }
 
+            try {
+                response = QueryResponseBuilder.build(assertions, issuerConfig, tenantdomain);
+                log.debug("Response generated with ID : " + response.getID());
+            } catch (IdentityException e) {
+                log.error("Unable to build response for the AttributeQuery ", e);
+            }
+        } catch (Exception ex) {
+            log.error("Unable to process AttributeQuery ", ex);
+        }
         return response;
     }
 

@@ -31,11 +31,11 @@
 
         <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
         <description>
-            To administer Identity Provider related functionality.
+            To query Assertions from Identity Server
         </description>
 
-        <operation name="TestToken" mep="http://www.w3.org/2006/01/wsdl/in-out">
-            <actionMapping>http://schemas.xmlsoap.org/ws/2005/02/trust/RST/Test</actionMapping>
+        <operation name="querySAML" mep="http://www.w3.org/2006/01/wsdl/in-out">
+            <actionMapping>http://wso2.org/identity/saml/query</actionMapping>
         </operation>
     </service>
 

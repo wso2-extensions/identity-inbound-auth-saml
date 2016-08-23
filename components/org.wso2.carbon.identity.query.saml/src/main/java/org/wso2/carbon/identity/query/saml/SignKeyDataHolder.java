@@ -132,10 +132,10 @@ public class SignKeyDataHolder implements X509Credential {
             }
 
         } catch (IdentityException e) {
-            log.error(e);
+            log.error("Unable to access realm service ", e);
 
         } catch (Exception e) {
-            log.error(e);
+            log.error("Signature processing failed ", e);
 
         }
 

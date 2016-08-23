@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
-import org.opensaml.saml.saml1.core.AuthorizationDecisionQuery;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
 import org.opensaml.saml.saml2.core.AttributeQuery;
 import org.opensaml.saml.saml2.core.AuthnQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.SubjectQuery;
+import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
 
 /**
  * This factory class is used to select relevant validation class dynamically
@@ -53,7 +53,7 @@ public class SAMLValidatorFactory {
 
             samlQueryValidator = new SAMLAuthQueryValidator();
 
-        } else if (request instanceof AuthorizationDecisionQuery) {
+        } else if (request instanceof AuthzDecisionQueryImpl) {
 
             samlQueryValidator = new SAMLAuthzDecisionValidator();
 

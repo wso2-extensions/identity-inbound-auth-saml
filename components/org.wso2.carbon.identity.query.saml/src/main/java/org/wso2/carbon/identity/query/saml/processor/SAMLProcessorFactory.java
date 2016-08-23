@@ -19,11 +19,11 @@
 package org.wso2.carbon.identity.query.saml.processor;
 
 
-import org.opensaml.saml.saml1.core.impl.AuthorizationDecisionQueryImpl;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.impl.AttributeQueryImpl;
 import org.opensaml.saml.saml2.core.impl.AuthnQueryImpl;
+import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
 import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 
 /**
@@ -54,7 +54,7 @@ public class SAMLProcessorFactory {
 
             samlQueryProcessor = new SAMLAuthnQueryProcessor();
 
-        } else if (request instanceof AuthorizationDecisionQueryImpl) {
+        } else if (request instanceof AuthzDecisionQueryImpl) {
 
             samlQueryProcessor = new SAMLAuthzDecisionProcessor();
 

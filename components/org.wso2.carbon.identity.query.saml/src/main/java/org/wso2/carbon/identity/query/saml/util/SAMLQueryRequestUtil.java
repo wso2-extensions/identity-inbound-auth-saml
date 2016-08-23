@@ -45,6 +45,7 @@ import org.opensaml.saml.saml2.core.AudienceRestriction;
 import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml.saml2.core.AuthnStatement;
+import org.opensaml.saml.saml2.core.AuthzDecisionStatement;
 import org.opensaml.saml.saml2.core.Conditions;
 import org.opensaml.saml.saml2.core.NameID;
 import org.opensaml.saml.saml2.core.Subject;
@@ -210,6 +211,91 @@ public class SAMLQueryRequestUtil {
     /**
      * this method is used to build SAML2.0 assertion
      *
+     * @param ssoIdPConfigs          issuer information
+     * @param tenantDomain           tenant domain of issuer
+     * @param authzDecisionStatement authentication decision statements
+     * @return Assertion set of elements contain inside assertion
+     * @throws IdentityException If unable to collect issuer information
+     */
+    public static Assertion buildSAMLAssertion(String tenantDomain, AuthzDecisionStatement authzDecisionStatement,
+                                               SAMLSSOServiceProviderDO ssoIdPConfigs)
+            throws IdentityException {
+
+        DateTime currentTime = new DateTime();
+        DateTime notOnOrAfter =
+                new DateTime(currentTime.getMillis() +
+                        (long) SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 *
+                                1000);
+        Assertion samlAssertion = new AssertionBuilder().buildObject();
+        samlAssertion.setID(SAMLSSOUtil.createID());
+        samlAssertion.setVersion(SAMLVersion.VERSION_20);
+        samlAssertion.setIssuer(OpenSAML3Util.getIssuer("carbon.super"));
+        samlAssertion.setIssueInstant(currentTime);
+        Subject subject = new SubjectBuilder().buildObject();
+        NameID nameId = new NameIDBuilder().buildObject();
+
+
+        if (ssoIdPConfigs.getNameIDFormat() != null) {
+            nameId.setFormat(ssoIdPConfigs.getNameIDFormat());
+        } else {
+            nameId.setFormat(NameIdentifier.EMAIL);
+        }
+        subject.setNameID(nameId);
+
+        SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder().buildObject();
+        subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
+
+        SubjectConfirmationData subjectConfirmationData =
+                new SubjectConfirmationDataBuilder().buildObject();
+        subjectConfirmationData.setRecipient(ssoIdPConfigs.getAssertionConsumerUrl());
+        subjectConfirmationData.setNotOnOrAfter(notOnOrAfter);
+
+        subjectConfirmation.setSubjectConfirmationData(subjectConfirmationData);
+        subject.getSubjectConfirmations().add(subjectConfirmation);
+        samlAssertion.setSubject(subject);
+
+        AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
+        authStmt.setAuthnInstant(new DateTime());
+
+        AuthnContext authContext = new AuthnContextBuilder().buildObject();
+        AuthnContextClassRef authCtxClassRef = new AuthnContextClassRefBuilder().buildObject();
+        authCtxClassRef.setAuthnContextClassRef(AuthnContext.PASSWORD_AUTHN_CTX);
+        authContext.setAuthnContextClassRef(authCtxClassRef);
+        authStmt.setAuthnContext(authContext);
+        samlAssertion.getAuthnStatements().add(authStmt);
+
+        AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder().buildObject();
+        Audience issuerAudience = new AudienceBuilder().buildObject();
+        issuerAudience.setAudienceURI(ssoIdPConfigs.getIssuer());
+        audienceRestriction.getAudiences().add(issuerAudience);
+        if (ssoIdPConfigs.getRequestedAudiences() != null) {
+            for (String requestedAudience : ssoIdPConfigs.getRequestedAudiences()) {
+                Audience audience = new AudienceBuilder().buildObject();
+                audience.setAudienceURI(requestedAudience);
+                audienceRestriction.getAudiences().add(audience);
+            }
+        }
+
+        Conditions conditions = new ConditionsBuilder().buildObject();
+        conditions.setNotBefore(currentTime);
+        conditions.setNotOnOrAfter(notOnOrAfter);
+        conditions.getAudienceRestrictions().add(audienceRestriction);
+        samlAssertion.setConditions(conditions);
+
+        samlAssertion.getAuthzDecisionStatements().add(authzDecisionStatement);
+
+        if (ssoIdPConfigs.isDoSignAssertions()) {
+
+            OpenSAML3Util.setSignature(samlAssertion, ssoIdPConfigs.getSigningAlgorithmUri(), ssoIdPConfigs
+                    .getDigestAlgorithmUri(), new SignKeyDataHolder(tenantDomain));
+        }
+
+        return samlAssertion;
+    }
+
+    /**
+     * this method is used to build SAML2.0 assertion
+     *
      * @param ssoIdPConfigs issuer information
      * @param tenantDomain  tenant domain of issuer
      * @param claims        List of requested claims
@@ -296,6 +382,7 @@ public class SAMLQueryRequestUtil {
 
         return samlAssertion;
     }
+
 
     /**
      * This method is used to build Attribute Statement including user attributes

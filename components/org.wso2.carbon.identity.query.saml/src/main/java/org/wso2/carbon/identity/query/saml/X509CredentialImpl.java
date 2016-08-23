@@ -64,6 +64,7 @@ public class X509CredentialImpl implements X509Credential {
 
     /**
      * Constructor
+     *
      * @param cert certificate of the source
      */
     public X509CredentialImpl(X509Certificate cert) {
@@ -147,8 +148,6 @@ public class X509CredentialImpl implements X509Credential {
 
         return null;
     }
-
-
 
 
 }

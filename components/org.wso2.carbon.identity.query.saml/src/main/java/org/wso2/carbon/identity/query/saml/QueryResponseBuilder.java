@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class QueryResponseBuilder {
      */
     public static Response build(List<Assertion> assertions, SAMLSSOServiceProviderDO ssoIdPConfigs, String tenantDomain) throws IdentityException {
         if (log.isDebugEnabled()) {
-            log.info("Building SAML Response for the consumer '");
+            log.debug("Building SAML Response for the consumer '");
         }
         Response response = new ResponseBuilder().buildObject();
         response.setIssuer(OpenSAML3Util.getIssuer(tenantDomain));
@@ -92,7 +93,7 @@ public class QueryResponseBuilder {
     public static Response build(List<InvalidItemDTO> invalidItem) throws IdentityException {
 
         Response response = new ResponseBuilder().buildObject();
-        response.setIssuer(OpenSAML3Util.getIssuer("carbon.super"));
+        response.setIssuer(OpenSAML3Util.getIssuer(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
         response.setID(SAMLSSOUtil.createID());
         String statusCode = "";
         String statusMessage = "";

@@ -56,7 +56,7 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      */
     public Assertion findByID(String id) {
         Assertion assertion = null;
-        if (id.length() > 0 && id != null) {
+        if (id.length() > 0) {
             assertion = readAssertion(id);
             return assertion;
 
@@ -106,6 +106,9 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
             if (connection != null) {
                 IdentityDatabaseUtil.closeConnection(connection);
             }
+            if (resultSet != null) {
+                IdentityDatabaseUtil.closeResultSet(resultSet);
+            }
         }
 
         return assertions;
@@ -146,6 +149,9 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
             }
             if (connection != null) {
                 IdentityDatabaseUtil.closeConnection(connection);
+            }
+            if (resultSet != null) {
+                IdentityDatabaseUtil.closeResultSet(resultSet);
             }
         }
 

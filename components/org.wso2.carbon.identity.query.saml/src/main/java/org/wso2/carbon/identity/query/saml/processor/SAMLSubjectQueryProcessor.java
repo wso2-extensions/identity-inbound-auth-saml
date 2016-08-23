@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAttributeFinder;
-import org.wso2.carbon.identity.query.saml.handler.UserStoreAttributeFinder;
+import org.wso2.carbon.identity.query.saml.handler.SAMLAttributeFinderImpl;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -56,31 +56,35 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
      * @return Response container of one or more assertions
      */
     public Response process(RequestAbstractType request) {
-
-        SubjectQuery query = (SubjectQuery) request;
-        String user = getUserName(query.getSubject());
-        String issuerFullName = getIssuer(request.getIssuer());
-        String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-        String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
-        SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
-        Map<String, String> attributes = getUserAttributes(user, null, issuerConfig);
-        Assertion assertion = null;
-        List<Assertion> assertions = null;
         Response response = null;
         try {
-            assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
-        } catch (IdentityException e) {
-            log.error("Unable to build assertion ", e);
-        }
+            SubjectQuery query = (SubjectQuery) request;
+            String user = getUserName(query.getSubject());
+            String issuerFullName = getIssuer(request.getIssuer());
+            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
+            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
+            SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
+            Map<String, String> attributes = getUserAttributes(user, null, issuerConfig);
+            Assertion assertion = null;
+            List<Assertion> assertions = null;
+            try {
+                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
+                assertions.add(assertion);
+            } catch (IdentityException e) {
+                log.error("Unable to build assertion ", e);
+            } catch (NullPointerException e) {
+                log.error("No assertions to add into list", e);
+            }
 
-        assertions.add(assertion);
 
-
-        try {
-            response = QueryResponseBuilder.build(assertions, issuerConfig, user);
-            log.debug("Response generated with ID : "+response.getID());
-        } catch (IdentityException e) {
-            log.error("Unable to build response ",e);
+            try {
+                response = QueryResponseBuilder.build(assertions, issuerConfig, user);
+                log.debug("Response generated with ID : " + response.getID());
+            } catch (IdentityException e) {
+                log.error("Unable to build response ", e);
+            }
+        } catch (Exception ex) {
+            log.error("Unable to process SubjectQuery", ex);
         }
 
         return response;
@@ -156,7 +160,8 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
     private List<SAMLAttributeFinder> getAttributeFinders() {
 
         List<SAMLAttributeFinder> finders = new ArrayList<SAMLAttributeFinder>();
-        finders.add(new UserStoreAttributeFinder());
+        finders.add(new SAMLAttributeFinderImpl());
         return finders;
     }
+
 }

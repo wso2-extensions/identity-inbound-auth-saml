@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
+import org.opensaml.saml.saml2.core.Action;
+import org.opensaml.saml.saml2.core.AuthzDecisionQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 
@@ -39,6 +41,14 @@ public class SAMLAuthzDecisionValidator extends SAMLSubjectQueryValidator {
      */
     @Override
     public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
-        return super.validate(invalidItems, request);
+        boolean isSuperValidated;
+        isSuperValidated = super.validate(invalidItems, request);
+        if (isSuperValidated) {
+            List<Action> actions = ((AuthzDecisionQuery) request).getActions();
+            String resource = ((AuthzDecisionQuery) request).getResource();
+            return (actions.size() > 0) && resource.length() > 0;
+        } else {
+            return false;
+        }
     }
 }
