@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.query.saml.handler;
 
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+
 import java.util.Map;
 
 /**
@@ -27,6 +29,6 @@ public interface SAMLAttributeFinder {
 
     void init();
 
-    Map<String, String> getAttributes(String user, String[] attributes);
+    Map<String, String> getAttributes(String user, String[] attributes) throws IdentitySAML2QueryException;
 
 }

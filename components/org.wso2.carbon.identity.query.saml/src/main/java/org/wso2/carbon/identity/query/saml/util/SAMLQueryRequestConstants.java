@@ -28,14 +28,21 @@ public class SAMLQueryRequestConstants {
      */
     public static class ValidationType {
 
-
         public static final String VAL_MESSAGE_BODY = "Validation Message Body";
-        public static final String VAL_UNMARSHAL = "UnMarshalling the Request";
+        public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
         public static final String VAL_MESSAGE_TYPE = "Validation Message Type";
         public static final String VAL_VERSION = "Validating the Version";
         public static final String VAL_ISSUER = "Checking for Issuer";
         public static final String VAL_SIGNATURE = "Validating Signature";
-        public static final String NO_ASSERTIONS = "No Assertions Found";
+        public static final String NO_ASSERTIONS = "No Assertions Matched";
+        public static final String VAL_ASSERTION_ID = "Invalid Assertion ID";
+        public static final String VAL_SUBJECT = "Invalid Subject";
+        public static final String VAL_ACTIONS = "No Actions";
+        public static final String VAL_RESOURCE = "No Resource";
+        public static final String VAL_AUTHN_QUERY = "No sessionIndex or AuthnContextClassRefs";
+        public static final String STRING_TO_OMELEMENT = "String convert to OMElement";
+        public static final String NULL_OMELEMENT = "OMElement is null";
+        public static final String VAL_VALIDATION_ERROR = "Validation error";
     }
 
     /**
@@ -43,15 +50,22 @@ public class SAMLQueryRequestConstants {
      */
     public static class ValidationMessage {
 
-        public static final String EXIT_WITH_ERROR = "Validation service error exit.";
-        public static final String ERROR_LOADING_SP_CONF = "Error while reading Service Provider configurations.";
+        public static final String VALIDATION_ERROR = "Request message contain validation errors";
         public static final String VAL_MESSAGE_BODY_ERROR = "Message Body is Empty";
-        public static final String VAL_UNMARSHAL_FAIL = " Unable to UnMarshall the request";
+        public static final String VAL_INTERNAL_SERVER_ERROR = "Internal Server Error Occurred";
         public static final String VAL_MESSAGE_TYPE_ERROR = "Invalid Standard Request Message Type";
         public static final String VAL_VERSION_ERROR = "Invalid SAML version, expected version is 2.0";
         public static final String VAL_ISSUER_ERROR = "Issuer is Not Validated";
         public static final String VAL_SIGNATURE_ERROR = "Signature Validation for Request Failed";
-        public static final String NO_ASSERTIONS_ERROR = "No Assertions Found on Server";
+        public static final String NO_ASSERTIONS_ERROR = "No Assertions match with request";
+        public static final String VAL_ASSERTION_ID_ERROR = "AssertionID request contain Invalid Assertion ID";
+        public static final String VAL_SUBJECT_ERROR = "Request subject is invalid";
+        public static final String VAL_ACTIONS_ERROR = "AuthzDecision request contain no actions";
+        public static final String VAL_RESOURCE_ERROR = "AuthzDecision request do not present resource";
+        public static final String VAL_AUTHN_QUERY_ERROR = "Request message type does present any sessionindex or" +
+                " authncontextclassref";
+        public static final String STRING_TO_OMELEMENT_ERROR = "Unable to convert String to OMElement";
+        public static final String NULL_OMELEMENT_ERROR = "OMElement is null after converting from String";
 
     }
 
@@ -69,7 +83,7 @@ public class SAMLQueryRequestConstants {
         public static final String NON_COMPAT_SAML_VERSION = "Request contain non SAML 2.0";
         public static final String COMPLETE_VALIDATION = "Request Message Validated";
         public static final String SOAP_RESPONSE_CREATED = "SOAP Response Created";
-        public static final String SOAP_RESPONSE_CREATION_FAILED = "Internal Error in Creating SOAP Response ";
+        public static final String SOAP_RESPONSE_CREATION_FAILED = "Internal Error on Creating SOAP Response ";
         public static final String MARSHAL_ERROR = "Unable to Marshal Response ";
     }
 
@@ -80,6 +94,9 @@ public class SAMLQueryRequestConstants {
         public static final String UTF8_ENC = "UTF-8";
         public static final String ISSUER_FORMAT =
                 "urn:oasis:names:tc:SAML:2.0:nameid-format:entity";
+        public static final String ATTRIBUTE_HANDLER = "SAMLQuery.AttributeHandlers";
+        public static final String ASSERTION_HANDLER = "SAMLQuery.AssertionFinders";
+        public static final String HANDLER_PROPERY_DELIMETER = ",";
 
     }
 }

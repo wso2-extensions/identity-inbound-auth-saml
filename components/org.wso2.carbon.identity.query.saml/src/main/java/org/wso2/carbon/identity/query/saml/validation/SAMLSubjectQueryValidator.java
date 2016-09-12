@@ -24,6 +24,8 @@ import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 
 import java.util.List;
 
@@ -43,17 +45,26 @@ public class SAMLSubjectQueryValidator extends AbstractSAMLQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      Any type of assertion request
      * @return Boolean true, if request message contain no validation errors
+     * @throws  IdentitySAML2QueryException If unable to validate SubjectQuery
      */
     @Override
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
         boolean isSuperValidated = super.validate(invalidItems, request);
-        if (!isSuperValidated) {
-
+        if (isSuperValidated) {
+            boolean isSubjectValid;
+            isSubjectValid = this.validateSubject((SubjectQueryImpl) request);
+            if (!isSubjectValid) {
+                invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_SUBJECT,
+                        SAMLQueryRequestConstants.ValidationMessage.VAL_SUBJECT_ERROR));
+            }
+            return isSubjectValid;
+        } else {
+            invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_SUBJECT,
+                    SAMLQueryRequestConstants.ValidationMessage.VAL_SUBJECT_ERROR));
             return false;
         }
-        boolean isSubjectValid;
-        isSubjectValid = this.validateSubject((SubjectQueryImpl) request);
-        return isSubjectValid;
+
     }
 
     /**
@@ -69,8 +80,11 @@ public class SAMLSubjectQueryValidator extends AbstractSAMLQueryValidator {
         if (subject != null && subject.getNameID() != null &&
                 subject.getNameID().getFormat() != null && super.getSsoIdpConfig().getNameIDFormat() != null &&
                 subject.getNameID().getFormat().equals(super.getSsoIdpConfig().getNameIDFormat())) {
-            log.debug("Request subject is valid");
+            log.debug("Request with id:" + subjectQuery.getID() + " contain valid subject");
             isValidsubject = true;
+        } else {
+            log.debug("Request with id:" + subjectQuery.getID() + " contain in-valid subject");
+            return isValidsubject;
         }
         return isValidsubject;
     }

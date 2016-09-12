@@ -45,7 +45,7 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
      */
     private final static Log log = LogFactory.getLog(ExtendedDefaultAssertionBuilder.class);
     private final static String ASSERTION_STORE_SQL = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID," +
-            "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_SESSION_INDEX ,SAML2_ASSERTION) VALUES (?,?,?,?,?,?)";
+            "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_AUTHN_CONTEXT_CLASS_REF ,SAML2_ASSERTION) VALUES (?,?,?,?,?,?)";
 
     /**
      * This method is used to initialize
@@ -71,7 +71,6 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
             throws IdentityException {
 
         Assertion assertion = super.buildAssertion(samlssoAuthnReqDTO, notOnOrAfter, sessionId);
-
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {

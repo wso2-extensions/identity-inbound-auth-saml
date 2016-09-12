@@ -25,11 +25,10 @@ import org.opensaml.saml.saml2.core.Attribute;
 import org.opensaml.saml.saml2.core.AttributeQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,16 +49,16 @@ public class SAMLAttributeQueryProcessor extends SAMLSubjectQueryProcessor {
      *
      * @param request attribute query request message
      * @return Response response message with requested assertion
+     * @throws  IdentitySAML2QueryException If unable to build assertion or response
      */
     @Override
-    public Response process(RequestAbstractType request) {
+    public Response process(RequestAbstractType request) throws IdentitySAML2QueryException {
         Response response = null;
         try {
+            String issuer = getIssuer(request);
+            String tenantDomain = getTenantDomain(request);
             AttributeQuery query = (AttributeQuery) request;
             String user = getUserName(query.getSubject());
-            String issuerFullName = getIssuer(request.getIssuer());
-            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
             List<Attribute> requestedattributes = query.getAttributes();
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
             String claimAttributes[] = getAttributesAsArray(requestedattributes);
@@ -67,20 +66,28 @@ public class SAMLAttributeQueryProcessor extends SAMLSubjectQueryProcessor {
             Map<String, String> attributes = getUserAttributes(user, claimAttributes, issuerConfig);
             Assertion assertion = null;
             try {
-                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
+                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantDomain, attributes, issuerConfig);
                 assertions.add(assertion);
-            } catch (IdentityException e) {
-                log.error("Unable to build assertion ", e);
+            } catch (IdentitySAML2QueryException e) {
+                log.error("Unable to build assertion for the AttributeQuery id:" + query.getID(), e);
+                throw new IdentitySAML2QueryException("Unable to build assertion for the AttributeQuery id:"
+                        + query.getID(),e);
             }
-
-            try {
-                response = QueryResponseBuilder.build(assertions, issuerConfig, tenantdomain);
-                log.debug("Response generated with ID : " + response.getID());
-            } catch (IdentityException e) {
-                log.error("Unable to build response for the AttributeQuery ", e);
+            if (assertions.size() > 0) {
+                try {
+                    response = QueryResponseBuilder.build(assertions, issuerConfig, tenantDomain);
+                    log.debug("Response generated with ID : " + response.getID() + " for the AttributeRequest Id:" +
+                            query.getID());
+                } catch (IdentitySAML2QueryException e) {
+                    log.error("Unable to build response for the AttributeQuery with id:" + query.getID(), e);
+                    throw new IdentitySAML2QueryException("Unable to build response for the AttributeQuery id:"
+                            + query.getID(),e);
+                }
+            } else {
+                return null;
             }
-        } catch (Exception ex) {
-            log.error("Unable to process AttributeQuery ", ex);
+        } catch (IdentitySAML2QueryException e) {
+            throw new IdentitySAML2QueryException("Unable to process AttributeQuery id:" + request.getID());
         }
         return response;
     }
@@ -90,23 +97,20 @@ public class SAMLAttributeQueryProcessor extends SAMLSubjectQueryProcessor {
      *
      * @param claimattributes List of requested claims
      * @return String[] List of requested claims
+     * @throws  IdentitySAML2QueryException If friendly name is null
      */
-    private String[] getAttributesAsArray(List<Attribute> claimattributes) {
+    private String[] getAttributesAsArray(List<Attribute> claimattributes) throws IdentitySAML2QueryException {
         List<String> list = new ArrayList<String>();
         String[] claimArray = null;
         if (claimattributes.size() > 0) {
             for (Attribute attribute : claimattributes) {
                 if (attribute.getFriendlyName() != null) {
                     list.add(attribute.getFriendlyName());
-
                 }
             }
             claimArray = list.toArray(new String[list.size()]);
             return claimArray;
         }
-
         return claimArray;
     }
-
-
 }

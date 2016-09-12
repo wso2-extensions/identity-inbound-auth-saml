@@ -21,89 +21,92 @@ package org.wso2.carbon.identity.query.saml.processor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.SubjectQuery;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.handler.SAMLAssertionFinder;
+import org.wso2.carbon.identity.query.saml.handler.SAMLAssertionFinderImpl;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAttributeFinder;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAttributeFinderImpl;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * This calss is used to process common elements of
- * AttributeQuery,AuthnQuery,
- * AuthorizationDecisionQuery,SubjectQuery messages.This class is the parent of
- * given class list.
+ * AttributeQuery, AuthnQuery,
+ * AuthorizationDecisionQuery, SubjectQuery messages.This class is the parent of given class list.
  */
 public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
-
+    /**
+     * Standard logging
+     */
     final static Log log = LogFactory.getLog(SAMLSubjectQueryProcessor.class);
 
     /**
      * This method used to generate response object according to subject
-     *
      * @param request assertion request message
      * @return Response container of one or more assertions
+     * @throws  IdentitySAML2QueryException  If unable to load issuerconfig, user attributes, and build assertions.
      */
-    public Response process(RequestAbstractType request) {
-        Response response = null;
-        try {
+    public Response process(RequestAbstractType request) throws IdentitySAML2QueryException {
+            Response response = null;
+            String issuer = getIssuer(request);
+            String tenantDomain = getTenantDomain(request);
             SubjectQuery query = (SubjectQuery) request;
             String user = getUserName(query.getSubject());
-            String issuerFullName = getIssuer(request.getIssuer());
-            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
             Map<String, String> attributes = getUserAttributes(user, null, issuerConfig);
             Assertion assertion = null;
             List<Assertion> assertions = null;
             try {
-                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, attributes, issuerConfig);
+                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantDomain, attributes, issuerConfig);
                 assertions.add(assertion);
-            } catch (IdentityException e) {
-                log.error("Unable to build assertion ", e);
-            } catch (NullPointerException e) {
-                log.error("No assertions to add into list", e);
+            }  catch (NullPointerException e) {
+                log.error("No assertions for the subject:" + user + " and request id:" + query.getID(), e);
+                throw new IdentitySAML2QueryException("No assertions for the subject:" + user + " and request id:" +
+                        query.getID());
             }
-
-
-            try {
-                response = QueryResponseBuilder.build(assertions, issuerConfig, user);
-                log.debug("Response generated with ID : " + response.getID());
-            } catch (IdentityException e) {
-                log.error("Unable to build response ", e);
+            if (assertions.size() > 0) {
+                try {
+                    response = QueryResponseBuilder.build(assertions, issuerConfig, user);
+                    log.debug("Response generated with ID : " + response.getID() + " For the request id:" +
+                            query.getID());
+                } catch (IdentitySAML2QueryException e) {
+                    log.error("Unable to build response for the request id:" + query.getID(), e);
+                    throw new IdentitySAML2QueryException("Unable to build response for the request id:" +
+                            query.getID());
+                }
+            } else {
+                return null;
             }
-        } catch (Exception ex) {
-            log.error("Unable to process SubjectQuery", ex);
-        }
-
         return response;
     }
 
     /**
      * This method used to load issuer config
-     *
      * @param issuer issuer name
      * @return SAMLSSOServiceProviderDO issuer config object
+     * @throws IdentitySAML2QueryException If unable to load service provider configuration
      */
-    protected SAMLSSOServiceProviderDO getIssuerConfig(String issuer) {
-
+    protected SAMLSSOServiceProviderDO getIssuerConfig(String issuer) throws IdentitySAML2QueryException {
         try {
             return SAMLQueryRequestUtil.getServiceProviderConfig(issuer);
         } catch (IdentityException e) {
-            log.error("Unable to load service provider configurations", e);
+            log.error("Unable to load service provider configurations for the service provider:" + issuer, e);
+            throw new IdentitySAML2QueryException("Unable to load service provider configurations for the issuer:"
+                    + issuer);
         }
-        return new SAMLSSOServiceProviderDO();
     }
 
     /**
@@ -113,37 +116,22 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
      * @param attributes   list of requested attributes
      * @param issuerConfig issuer config information
      * @return Map List of user attributes
+     * @throws  IdentitySAML2QueryException If unable to load Attributes
      */
     protected Map<String, String> getUserAttributes(String user, String[] attributes,
-                                                    Object issuerConfig) {
-
+                                                    Object issuerConfig) throws IdentitySAML2QueryException {
         List<SAMLAttributeFinder> finders = getAttributeFinders();
-
         for (SAMLAttributeFinder finder : finders) {
             Map<String, String> attributeMap = finder.getAttributes(user, attributes);
             if (attributeMap != null && attributeMap.size() > 0) {
-                //filter attributes based on attribute query here
                 return attributeMap;
             }
         }
-
-        return new HashMap<String, String>();
-    }
-
-    /**
-     * get issuer value
-     *
-     * @param issuer issuer element
-     * @return String issuer name
-     */
-    protected String getIssuer(Issuer issuer) {
-
-        return issuer.getValue();
+        return null;
     }
 
     /**
      * method used to get subject value
-     *
      * @param subject subject element of request message
      * @return String subject value
      */
@@ -154,14 +142,108 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
 
     /**
      * method used to select attribute finder source
-     *
      * @return List list of attribute finders
+     * @throws  IdentitySAML2QueryException If unable to read property file
      */
-    private List<SAMLAttributeFinder> getAttributeFinders() {
+    private List<SAMLAttributeFinder> getAttributeFinders() throws IdentitySAML2QueryException {
 
         List<SAMLAttributeFinder> finders = new ArrayList<SAMLAttributeFinder>();
-        finders.add(new SAMLAttributeFinderImpl());
+
+        String finderClassesString = IdentityUtil.getProperty(
+                SAMLQueryRequestConstants.GenericConstants.ATTRIBUTE_HANDLER);
+        if (finderClassesString != null && finderClassesString.trim().length() > 0) {
+            String[] finderClasses = finderClassesString.trim().split(
+                    SAMLQueryRequestConstants.GenericConstants.HANDLER_PROPERY_DELIMETER);
+            for (String finderClass : finderClasses) {
+                synchronized (Runtime.getRuntime().getClass()) {
+                    try {
+                        SAMLAttributeFinder finder =
+                                (SAMLAttributeFinder) Class.forName(finderClass.trim()).newInstance();
+                        finder.init();
+                        finders.add(finder);
+                    } catch (ClassNotFoundException e) {
+                        log.error("Unable to find class for getting attribute finders", e);
+                        throw new IdentitySAML2QueryException("Unable to find class for getting  attribute finders");
+                    } catch (InstantiationException e) {
+                        log.error("Unable to initiate class for getting attribute finders", e);
+                        throw new IdentitySAML2QueryException("Unable to initiate class for getting attribute finders");
+                    } catch (IllegalAccessException e) {
+                        log.error("Unable to access class for getting attribute finders", e);
+                        throw new IdentitySAML2QueryException("Unable to access class for getting attribute finders");
+                    }
+                }
+            }
+        } else {
+            finders.add(new SAMLAttributeFinderImpl());
+        }
         return finders;
+    }
+
+    /**
+     * This method is used to select Assertion finders
+     * @return List List of different assertion finders
+     * @throws  IdentitySAML2QueryException If unable to read property file
+     */
+    protected List<SAMLAssertionFinder> getFinders() throws IdentitySAML2QueryException {
+        List<SAMLAssertionFinder> finders = new ArrayList<SAMLAssertionFinder>();
+        String finderClassesString = IdentityUtil.getProperty(
+                SAMLQueryRequestConstants.GenericConstants.ASSERTION_HANDLER);
+        if (finderClassesString != null && finderClassesString.trim().length() > 0) {
+            String[] finderClasses = finderClassesString.trim().split(
+                    SAMLQueryRequestConstants.GenericConstants.HANDLER_PROPERY_DELIMETER);
+            for (String finderClass : finderClasses) {
+                synchronized (Runtime.getRuntime().getClass()) {
+                    try {
+                        SAMLAssertionFinder finder =
+                                (SAMLAssertionFinder) Class.forName(finderClass.trim()).newInstance();
+                        finder.init();
+                        finders.add(finder);
+                    } catch (ClassNotFoundException e) {
+                        log.error("Error while loading class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Error while loading class for getting assertion finders");
+                    } catch (InstantiationException e) {
+                        log.error("Unable to initiate class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Unable to initiate class for getting assertion finders");
+                    } catch (IllegalAccessException e) {
+                        log.error("Unable to access class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Unable to access class for getting assertion finders");
+                    }
+                }
+            }
+        } else {
+            finders.add(new SAMLAssertionFinderImpl());
+        }
+        return finders;
+    }
+
+    /**
+     * This method is used to get issuer name from full qualified issuer value
+     * @param request Assertion request message
+     * @return String issuer name
+     */
+    protected String getIssuer(RequestAbstractType request) {
+        String fullQualifiedIssuer = request.getIssuer().getValue();
+        return MultitenantUtils.getTenantAwareUsername(fullQualifiedIssuer);
+    }
+
+    /**
+     * This method is used to get tenant domain from full qualified issuer value
+     * @param request Assertion request message
+     * @return String tenant domain value
+     */
+    protected String getTenantDomain(RequestAbstractType request) {
+        String fullQualifiedIssuer = request.getIssuer().getValue();
+        return MultitenantUtils.getTenantDomain(fullQualifiedIssuer);
+    }
+
+    /**
+     * This method is used to get subject value along with tenant domain
+     * @param request Assertion request message
+     * @param tenantDomain Tenant domain of the subject
+     * @return String full qualified subject value
+     */
+    protected String getFullQualifiedSubject(SubjectQuery request, String tenantDomain) {
+        return request.getSubject().getNameID().getValue() + "@" + tenantDomain;
     }
 
 }

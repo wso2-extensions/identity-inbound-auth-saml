@@ -20,10 +20,12 @@ package org.wso2.carbon.identity.query.saml.handler;
 
 import org.opensaml.saml.saml2.core.AuthzDecisionQuery;
 import org.opensaml.saml.saml2.core.DecisionTypeEnumeration;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 
 public interface SAMLAuthzDecisionHandler {
 
     void init();
 
-    DecisionTypeEnumeration getAuthorizationDecision(AuthzDecisionQuery authzDecisionQuery);
+    DecisionTypeEnumeration getAuthorizationDecision(AuthzDecisionQuery authzDecisionQuery)
+            throws IdentitySAML2QueryException;
 }

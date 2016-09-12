@@ -32,31 +32,41 @@ import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.impl.ActionBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthzDecisionStatementBuilder;
 import org.opensaml.saml.saml2.core.impl.EvidenceBuilder;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAuthzDecisionHandler;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAuthzDecisionHandlerImpl;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is used to process AuthzDecisionQuery Request and build response message including relevant assertions
+ */
 public class SAMLAuthzDecisionProcessor extends SAMLSubjectQueryProcessor {
+    /**
+     * Standard logging
+     */
+    private static final Log log = LogFactory.getLog(SAMLAuthzDecisionProcessor.class);
 
-    private static final Log log = LogFactory.getLog(SAMLAttributeQueryProcessor.class);
-
+    /**
+     * This method is used to process AuthzDecisionQuery request message
+     *
+     * @param request assertion request message
+     * @return Response Collection of zero or more Assertions
+     * @throws IdentitySAML2QueryException If occur exception while processing request message
+     * @see AuthzDecisionQuery
+     */
     @Override
-    public Response process(RequestAbstractType request) {
-
+    public Response process(RequestAbstractType request) throws IdentitySAML2QueryException {
         Response response = null;
         try {
+            String issuer = getIssuer(request);
+            String tenantDomain = getTenantDomain(request);
             AuthzDecisionQuery authzDecisionQuery = (AuthzDecisionQuery) request;
             String resource = authzDecisionQuery.getResource();
-            String issuerFullName = getIssuer(request.getIssuer());
-            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
             List<Action> requestedActions = authzDecisionQuery.getActions();
             List<Action> permittedActions = new ArrayList<Action>();
             for (Action action : requestedActions) {
@@ -64,53 +74,55 @@ public class SAMLAuthzDecisionProcessor extends SAMLSubjectQueryProcessor {
                 tempAction.setAction(action.getAction());
                 permittedActions.add(tempAction);
             }
-
+            //assume evidence contains assertionIdRefs only
             Evidence receivedEvidence = authzDecisionQuery.getEvidence();
-            Evidence reliedEvidence = new EvidenceBuilder().buildObject();
+            Evidence passedEvidence = new EvidenceBuilder().buildObject();
             if (receivedEvidence.getAssertionIDReferences() != null) {
-                for (AssertionIDRef assertionIDRef : receivedEvidence.getAssertionIDReferences()) {
-                    AssertionIDRef out_assertionIDRef = assertionIDRef;
-                    reliedEvidence.getAssertionIDReferences().add(out_assertionIDRef);
+                for (AssertionIDRef in_assertionIDRef : receivedEvidence.getAssertionIDReferences()) {
+                    in_assertionIDRef.setParent(null);
+                    AssertionIDRef out_assertionIDRef = in_assertionIDRef;
+                    passedEvidence.getAssertionIDReferences().add(out_assertionIDRef);
                 }
-            }
-
-            for (Action action : requestedActions) {
-                Action tempAction = new ActionBuilder().buildObject();
-                tempAction.setAction(action.getAction());
-                permittedActions.add(tempAction);
             }
 
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
             SAMLAuthzDecisionHandler samlAuthzDecisionHandler = new SAMLAuthzDecisionHandlerImpl();
-            DecisionTypeEnumeration decisionTypeEnumeration = samlAuthzDecisionHandler.getAuthorizationDecision(authzDecisionQuery);
+            DecisionTypeEnumeration decisionTypeEnumeration = samlAuthzDecisionHandler
+                    .getAuthorizationDecision(authzDecisionQuery);
             AuthzDecisionStatement authzDecisionStatement = new AuthzDecisionStatementBuilder().buildObject();
             authzDecisionStatement.setResource(resource);
             authzDecisionStatement.setDecision(decisionTypeEnumeration);
             authzDecisionStatement.getActions().addAll(permittedActions);
-           // authzDecisionStatement.setEvidence(reliedEvidence);
+            authzDecisionStatement.setEvidence(passedEvidence);
 
             Assertion assertion = null;
             List<Assertion> assertions = new ArrayList<Assertion>();
             try {
-                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantdomain, authzDecisionStatement, issuerConfig);
+                assertion = SAMLQueryRequestUtil.buildSAMLAssertion(tenantDomain, authzDecisionStatement, issuerConfig);
                 assertions.add(assertion);
-            } catch (IdentityException e) {
-                log.error("Unable to build assertion ", e);
+            } catch (NullPointerException e) {
+                log.error("Throws NullPointerException while building assertion for the AuthzDecision request with id: "
+                        + authzDecisionQuery.getID(), e);
+                throw new IdentitySAML2QueryException("Throws NullPointerException while building assertion for the " +
+                        "AuthzDecision request with id: " + authzDecisionQuery.getID(), e);
             }
 
             try {
-                response = QueryResponseBuilder.build(assertions, issuerConfig, tenantdomain);
-                log.debug("Response generated with ID : " + response.getID());
-            } catch (IdentityException e) {
-                log.error("Unable to build response for the AttributeQuery ", e);
+                response = QueryResponseBuilder.build(assertions, issuerConfig, tenantDomain);
+                log.debug("Response generated with ID : " + response.getID() + " for the request id: "
+                        + authzDecisionQuery.getID());
+            } catch (NullPointerException e) {
+                log.error("Throws NullPointerException while building response for the AuthzDecision request with id: "
+                        + authzDecisionQuery.getID(), e);
+                throw new IdentitySAML2QueryException("Throws NullPointerException while building response for the " +
+                        "AuthzDecision request with id: " + authzDecisionQuery.getID());
             }
-        } catch (Exception ex) {
-
-            log.error("Unable to process AuthzDecisionQuery", ex);
+        } catch (NullPointerException e) {
+            log.error("Throws NullPointerException while processing AuthzDecision request with id: "
+                    + request.getID(), e);
+            throw new IdentitySAML2QueryException("Throws NullPointerException while processing " +
+                    "AuthzDecision request with id: " + request.getID(), e);
         }
-
         return response;
     }
-
-
 }

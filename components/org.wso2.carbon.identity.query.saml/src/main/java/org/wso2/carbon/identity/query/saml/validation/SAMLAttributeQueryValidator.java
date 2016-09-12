@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.query.saml.validation;
 
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 
 import java.util.List;
 
@@ -35,9 +36,11 @@ public class SAMLAttributeQueryValidator extends SAMLSubjectQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      AttributeQuery request message
      * @return Boolean true, If request message validated completely
+     * @throws IdentitySAML2QueryException throw when internal error on validation
      */
     @Override
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
         return super.validate(invalidItems, request);
     }
 }

@@ -22,6 +22,8 @@ import org.opensaml.saml.saml2.core.AssertionIDRef;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 
 import java.util.List;
 
@@ -38,9 +40,11 @@ public class SAMLIDRequestValidator extends AbstractSAMLQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      Any type of assertion request
      * @return Boolean true, if request message is completely validated
+     * @throws  IdentitySAML2QueryException If unable to validate AssertionID request
      */
     @Override
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
         boolean isSuperValid;
         isSuperValid = super.validate(invalidItems, request);
 
@@ -49,7 +53,9 @@ public class SAMLIDRequestValidator extends AbstractSAMLQueryValidator {
             return assertionIDRefs.size() > 0;
 
         } else {
-            return false;
+            invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_ASSERTION_ID,
+                    SAMLQueryRequestConstants.ValidationMessage.VAL_ASSERTION_ID_ERROR));
+            return isSuperValid;
         }
     }
 }

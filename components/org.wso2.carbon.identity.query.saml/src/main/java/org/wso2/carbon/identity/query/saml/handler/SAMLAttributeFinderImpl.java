@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.query.saml.handler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -37,14 +38,15 @@ import java.util.Map;
  * @see SAMLAttributeFinder
  */
 public class SAMLAttributeFinderImpl implements SAMLAttributeFinder {
-
+    /**
+     * Standard logging
+     */
     private static final Log log = LogFactory.getLog(SAMLAttributeFinderImpl.class);
 
     /**
      * This method is used to initialize
      */
     public void init() {
-
     }
 
     /**
@@ -53,15 +55,16 @@ public class SAMLAttributeFinderImpl implements SAMLAttributeFinder {
      * @param user       Name of the user
      * @param attributes Array of requested user attributes
      * @return Map Collection of attribute name and value pairs
+     * @throws  IdentitySAML2QueryException If unable to locate user store and retrieve user information
      */
-    public Map<String, String> getAttributes(String user, String[] attributes) {
+    public Map<String, String> getAttributes(String user, String[] attributes) throws IdentitySAML2QueryException {
         try {
             UserStoreManager userStoreManager = SAMLQueryServiceComponent.getRealmservice().
                     getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).
                     getUserStoreManager();
 
             if (attributes == null || attributes.length == 0) {
-
+                // no requested attributes presented on request
                 List<String> list = new ArrayList<String>();
                 ClaimMapping[] claimMappings = SAMLQueryServiceComponent.getRealmservice()
                         .getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId())
@@ -73,12 +76,10 @@ public class SAMLAttributeFinderImpl implements SAMLAttributeFinder {
                 }
                 attributes = list.toArray(new String[list.size()]);
             }
-
             return userStoreManager.getUserClaimValues(user, attributes, null);
         } catch (UserStoreException e) {
-            log.error("Unable to locate to user store and retrieve data ", e);
+            log.error("Unable to locate to user store and retrieve attributes ", e);
+            throw new IdentitySAML2QueryException("Unable to locate to user store and retrieve attributes", e);
         }
-
-        return null;
     }
 }

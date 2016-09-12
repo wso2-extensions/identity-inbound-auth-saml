@@ -28,7 +28,6 @@ public class InvalidItemDTO {
 
     /**
      * Constructor
-     *
      * @param validationType This is the type of validation error
      * @param message        This is the validation message
      */
@@ -47,7 +46,6 @@ public class InvalidItemDTO {
 
         return message;
     }
-
 
     /**
      * This method is used to get validation type

@@ -22,6 +22,8 @@ import org.opensaml.saml.saml2.core.Action;
 import org.opensaml.saml.saml2.core.AuthzDecisionQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 
 import java.util.List;
 
@@ -38,15 +40,27 @@ public class SAMLAuthzDecisionValidator extends SAMLSubjectQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      AuthzDecisionQuery request message
      * @return Boolean true, if request message is valid
+     * @throws  IdentitySAML2QueryException If unable to validate AuthzDecisionQuery
      */
     @Override
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
         boolean isSuperValidated;
         isSuperValidated = super.validate(invalidItems, request);
         if (isSuperValidated) {
             List<Action> actions = ((AuthzDecisionQuery) request).getActions();
             String resource = ((AuthzDecisionQuery) request).getResource();
-            return (actions.size() > 0) && resource.length() > 0;
+            if (actions.size() <= 0) {
+                invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_ACTIONS,
+                        SAMLQueryRequestConstants.ValidationMessage.VAL_ACTIONS_ERROR));
+                return false;
+            } else if (resource.length() <= 0) {
+                invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_RESOURCE,
+                        SAMLQueryRequestConstants.ValidationMessage.VAL_RESOURCE_ERROR));
+                return false;
+            } else {
+                return true;
+            }
         } else {
             return false;
         }

@@ -34,9 +34,9 @@ import org.opensaml.saml.saml2.core.impl.StatusMessageBuilder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
-import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -48,16 +48,17 @@ import java.util.List;
  */
 public class QueryResponseBuilder {
 
-    private final static Log log = LogFactory.getLog(SAMLQueryRequestUtil.class);
+    private final static Log log = LogFactory.getLog(QueryResponseBuilder.class);
 
     /**
      * @param assertions    List of assertions match with request
      * @param ssoIdPConfigs Issuer information
      * @param tenantDomain  requester's tenant domain
      * @return Response element which contain one or more assertions
-     * @throws IdentityException If unable to collect issuer information
+     * @throws IdentitySAML2QueryException If unable to collect issuer information
      */
-    public static Response build(List<Assertion> assertions, SAMLSSOServiceProviderDO ssoIdPConfigs, String tenantDomain) throws IdentityException {
+    public static Response build(List<Assertion> assertions, SAMLSSOServiceProviderDO ssoIdPConfigs,
+                                 String tenantDomain) throws IdentitySAML2QueryException {
         if (log.isDebugEnabled()) {
             log.debug("Building SAML Response for the consumer '");
         }
@@ -68,16 +69,19 @@ public class QueryResponseBuilder {
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         response.setIssueInstant(issueInstant);
-        /**
-         * adding assertions into array
-         */
+
+        //adding assertions into array
         for (Assertion assertion : assertions) {
             response.getAssertions().add(assertion);
         }
-
         //Sign on response message
-        OpenSAML3Util.setSignature(response, ssoIdPConfigs.getSigningAlgorithmUri(), ssoIdPConfigs
-                .getDigestAlgorithmUri(), new SignKeyDataHolder(tenantDomain));
+        try {
+            OpenSAML3Util.setSignature(response, ssoIdPConfigs.getSigningAlgorithmUri(), ssoIdPConfigs
+                    .getDigestAlgorithmUri(), new SignKeyDataHolder(tenantDomain));
+        } catch (IdentityException e) {
+            log.error("Sign key data holder throws exception ", e);
+            throw new IdentitySAML2QueryException("Sign key data holder throws exception");
+        }
 
         return response;
     }
@@ -88,16 +92,15 @@ public class QueryResponseBuilder {
      *
      * @param invalidItem List of invalid items (violations)
      * @return Response element which contain error status and error message
-     * @throws IdentityException If unable to collect issuer
+     * @throws IdentitySAML2QueryException If unable to collect issuer
      */
-    public static Response build(List<InvalidItemDTO> invalidItem) throws IdentityException {
+    public static Response build(List<InvalidItemDTO> invalidItem) throws IdentitySAML2QueryException {
 
         Response response = new ResponseBuilder().buildObject();
         response.setIssuer(OpenSAML3Util.getIssuer(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
         response.setID(SAMLSSOUtil.createID());
         String statusCode = "";
         String statusMessage = "";
-
         //selecting Status Code
         if (invalidItem.size() > 0) {
             statusMessage = invalidItem.get(0).getMessage();
@@ -122,19 +125,16 @@ public class QueryResponseBuilder {
     public static Status buildStatus(String status, String statMsg) {
 
         Status stat = new StatusBuilder().buildObject();
-
         // Set the status code
         StatusCode statCode = new StatusCodeBuilder().buildObject();
         statCode.setValue(status);
         stat.setStatusCode(statCode);
-
-        // Set the status Message
+        /* Set the status Message */
         if (statMsg != null) {
             StatusMessage statMesssage = new StatusMessageBuilder().buildObject();
             statMesssage.setMessage(statMsg);
             stat.setStatusMessage(statMesssage);
         }
-
         return stat;
     }
 
@@ -159,6 +159,26 @@ public class QueryResponseBuilder {
             statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
         } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.NO_ASSERTIONS)) {
             statusCode = StatusCode.NO_AUTHN_CONTEXT;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_ASSERTION_ID)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_SUBJECT)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_ACTIONS)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_RESOURCE)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_AUTHN_QUERY)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.STRING_TO_OMELEMENT)) {
+            statusCode = SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.NULL_OMELEMENT)) {
+            statusCode = SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.VAL_VALIDATION_ERROR)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.INTERNAL_SERVER_ERROR)) {
+            statusCode = SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR;
+        } else if (validationType.equalsIgnoreCase(SAMLQueryRequestConstants.ValidationType.NO_ASSERTIONS)) {
+            statusCode = SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR;
         } else {
             statusCode = SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR;
         }

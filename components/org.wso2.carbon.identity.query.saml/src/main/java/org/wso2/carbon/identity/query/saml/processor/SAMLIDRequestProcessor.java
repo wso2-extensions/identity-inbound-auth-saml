@@ -23,14 +23,15 @@ import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AssertionIDRef;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
-import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAssertionFinder;
 import org.wso2.carbon.identity.query.saml.handler.SAMLAssertionFinderImpl;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -51,16 +52,16 @@ public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
      *
      * @param request AssertionIDRequest from requester
      * @return Response Generated response message including assertions
+     * @throws  IdentitySAML2QueryException If unable to generate SAML Response
      */
-    public Response process(RequestAbstractType request) {
+    public Response process(RequestAbstractType request) throws IdentitySAML2QueryException {
         Response response = null;
         try {
-            AssertionIDRequest assertion = (AssertionIDRequest) request;
-            String issuerFullName = getIssuer(request.getIssuer());
-            String issuer = MultitenantUtils.getTenantAwareUsername(issuerFullName);
-            String tenantdomain = MultitenantUtils.getTenantDomain(issuerFullName);
+            String issuer = getIssuer(request);
+            String tenantDomain = getTenantDomain(request);
+            AssertionIDRequest assertionIDRequest = (AssertionIDRequest) request;
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
-            List<AssertionIDRef> assertionIDRefs = assertion.getAssertionIDRefs();
+            List<AssertionIDRef> assertionIDRefs = assertionIDRequest.getAssertionIDRefs();
             List<Assertion> assertionList = new ArrayList<Assertion>();
             for (AssertionIDRef assertionidref : assertionIDRefs) {
                 List<SAMLAssertionFinder> finders = getFinders();
@@ -74,57 +75,90 @@ public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
             }
             if (assertionList.size() > 0) {
                 try {
-                    response = QueryResponseBuilder.build(assertionList, issuerConfig, tenantdomain);
-                    log.debug("Response generated with ID : " + response.getID());
-                } catch (IdentityException e) {
-                    log.error("Unable to build response for SAMLIDRequest ", e);
+                    response = QueryResponseBuilder.build(assertionList, issuerConfig, tenantDomain);
+                    log.debug("Response generated with ID : " + response.getID() + " for the AssertionIDRequest id:"
+                            + assertionIDRequest.getID());
+                } catch (IdentitySAML2QueryException e) {
+                    log.error("Unable to build response for AssertionIdRequest id:" + request.getID(), e);
+                    throw new IdentitySAML2QueryException("Unable to build response for AssertionIdRequest id:"
+                            + request.getID());
                 }
+            } else {
+                //no assertions found for requested Assertion-ID
+                return null;
             }
-        } catch (Exception ex) {
-            log.error("Unable to process AssertionIDRequest ", ex);
+        } catch (IdentitySAML2QueryException e) {
+            throw new IdentitySAML2QueryException("Unable to process AsserionIDRequest with id:" + request.getID(), e);
         }
         return response;
     }
 
     /**
      * This method is used to select Assertion finders
-     *
      * @return List List of different assertion finders
+     * @throws IdentitySAML2QueryException If unable to read property file or NullPointer
      */
-    private List<SAMLAssertionFinder> getFinders() {
+    private List<SAMLAssertionFinder> getFinders() throws IdentitySAML2QueryException {
         List<SAMLAssertionFinder> finders = new ArrayList<SAMLAssertionFinder>();
-        SAMLAssertionFinder finder = new SAMLAssertionFinderImpl();
-        finder.init();
-        finders.add(finder);
+        String finderClassesString = IdentityUtil.getProperty(
+                SAMLQueryRequestConstants.GenericConstants.ASSERTION_HANDLER);
+        if (finderClassesString != null && finderClassesString.trim().length() > 0) {
+            String[] finderClasses = finderClassesString.trim().split(
+                    SAMLQueryRequestConstants.GenericConstants.HANDLER_PROPERY_DELIMETER);
+            for (String finderClass : finderClasses) {
+                synchronized (Runtime.getRuntime().getClass()) {
+                    try {
+                        SAMLAssertionFinder finder =
+                                (SAMLAssertionFinder) Class.forName(finderClass.trim()).newInstance();
+                        finder.init();
+                        finders.add(finder);
+                    } catch (ClassNotFoundException e) {
+                        log.error("Error while loading class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Error while loading class for getting  assertion finders");
+                    } catch (InstantiationException e) {
+                        log.error("Unable to initiate class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Unable to initiate class for getting assertion finders");
+                    } catch (IllegalAccessException e) {
+                        log.error("Unable to access class for getting assertion finders", e);
+                        throw new IdentitySAML2QueryException("Unable to access class for getting assertion finders");
+                    }
+                }
+            }
+        } else {
+            finders.add(new SAMLAssertionFinderImpl());
+        }
         return finders;
     }
 
+    /**
+     * This method is used to get issuer from full qualified issuer value
+     * @param request Assertion query request
+     * @return String issuer value
+     */
+    private String getIssuer(RequestAbstractType request) {
+        String fullQualifiedIssuer = request.getIssuer().getValue();
+        return MultitenantUtils.getTenantAwareUsername(fullQualifiedIssuer);
+
+    }
 
     /**
-     * This method is used to get issuer value
-     *
-     * @param issuer Issuer element of request message
-     * @return String full qualified issuer name Ex: xxxx@carbon.super
+     * This method is used to get tenant domain from full qualified issuer
+     * @param request Assertion query request
+     * @return String tenant domain value
      */
-    protected String getIssuer(Issuer issuer) {
-
-        return issuer.getValue();
+    private String getTenantDomain(RequestAbstractType request) {
+        String fullQualifiedIssuer = request.getIssuer().getValue();
+        return MultitenantUtils.getTenantDomain(fullQualifiedIssuer);
     }
 
     /**
      * This method is used to collect service provider information
-     *
      * @param issuer name of the issuer
      * @return SAMLSSOServiceProviderDO instance of information data
+     * @throws  IdentitySAML2QueryException If unable to get service provider information
      */
-    protected SAMLSSOServiceProviderDO getIssuerConfig(String issuer) {
-
-        try {
-            return SAMLQueryRequestUtil.getServiceProviderConfig(issuer);
-        } catch (IdentityException e) {
-            log.error("Unable to get service provider information ", e);
-        }
-        return null;
+    protected SAMLSSOServiceProviderDO getIssuerConfig(String issuer) throws IdentitySAML2QueryException {
+        return SAMLQueryRequestUtil.getServiceProviderConfig(issuer);
     }
 
 }

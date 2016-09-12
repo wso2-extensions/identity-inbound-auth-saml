@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
+import org.opensaml.saml.saml2.core.AuthnQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 
 import java.util.List;
 
@@ -36,9 +39,32 @@ public class SAMLAuthQueryValidator extends SAMLSubjectQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      AuthnQuery request message
      * @return Boolean true, if request message validated completely
+     * @throws  IdentitySAML2QueryException If unable to validate AuthnQuery message
      */
     @Override
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
-        return super.validate(invalidItems, request);
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
+        boolean isSuperValid;
+        boolean sessionIndexPresent = false;
+        boolean authnContextClassRefPresent = false;
+        isSuperValid = super.validate(invalidItems, request);
+        if (isSuperValid) {
+            AuthnQuery authnQuery = (AuthnQuery) request;
+            if (authnQuery.getSessionIndex() != null && authnQuery.getSessionIndex().length() > 0) {
+                sessionIndexPresent = true;
+            }
+            if (authnQuery.getRequestedAuthnContext().getAuthnContextClassRefs().size() > 0) {
+                authnContextClassRefPresent = true;
+            }
+            if (sessionIndexPresent || authnContextClassRefPresent) {
+                return true;
+            } else {
+                invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_AUTHN_QUERY,
+                        SAMLQueryRequestConstants.ValidationMessage.VAL_AUTHN_QUERY_ERROR));
+                return false;
+            }
+        } else {
+            return isSuperValid;
+        }
     }
 }

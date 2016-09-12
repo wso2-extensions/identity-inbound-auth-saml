@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.query.saml.X509CredentialImpl;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
@@ -61,6 +62,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,16 +75,16 @@ import static org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil.generateKSNameF
  */
 public class OpenSAML3Util {
 
-    private static Log log = LogFactory.getLog(OpenSAML3Util.class);
+    private static final Log log = LogFactory.getLog(OpenSAML3Util.class);
 
     /**
      * this method is used to get issuer according to tenant domain.
      *
      * @param tenantDomain tenant domain of the issuer
      * @return Issuer  instance of Issuer
-     * @throws IdentityException If unable to connect with RealmService
+     * @throws IdentitySAML2QueryException If unable to connect with RealmService
      */
-    public static Issuer getIssuer(String tenantDomain) throws IdentityException {
+    public static Issuer getIssuer(String tenantDomain) throws IdentitySAML2QueryException {
 
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = null;
@@ -96,22 +98,27 @@ public class OpenSAML3Util {
             try {
                 tenantId = SAMLQueryServiceComponent.getRealmservice().getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e) {
-                throw IdentityException.error("Error occurred while retrieving tenant id from tenant domain", e);
+                log.error("Error occurred while retrieving tenant id from tenant domain", e);
+                throw new IdentitySAML2QueryException("Error occurred while retrieving tenant id from tenant domain");
             }
 
             if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
-                throw IdentityException.error("Invalid tenant domain - '" + tenantDomain + "'");
+                log.error("Invalid tenant domain - '" + tenantDomain + "'");
+                throw new IdentitySAML2QueryException("Error occurred while retrieving tenant id from tenant domain");
             }
         }
 
-        IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-
         try {
+            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
             identityProvider = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
         } catch (IdentityProviderManagementException e) {
-            throw IdentityException.error(
+            log.error("Error occurred while retrieving Resident Identity Provider information for tenant", e);
+            throw new IdentitySAML2QueryException(
                     "Error occurred while retrieving Resident Identity Provider information for tenant " +
-                            tenantDomain, e);
+                            tenantDomain);
+        } catch (IdentityException e) {
+            log.error("Error occurred while retrieving Identity Provider Information for tenant", e);
+            throw new IdentitySAML2QueryException("Error occurred while retrieving Identity Provider Information for tenant");
         }
         FederatedAuthenticatorConfig[] authnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
         for (FederatedAuthenticatorConfig config : authnConfigs) {
@@ -135,18 +142,37 @@ public class OpenSAML3Util {
      * @param signatureAlgorithm signature algorithm
      * @param digestAlgorithm    cryptographic hash algorithm
      * @param cred               X509Credential instance
-     * @throws IdentityException If unable to write signature to the assertion
+     * @throws IdentitySAML2QueryException If unable to write signature to the assertion
      */
     public static void setSignature(Assertion assertion, String signatureAlgorithm, String digestAlgorithm,
-                                    X509Credential cred) throws IdentityException {
+                                    X509Credential cred) throws IdentitySAML2QueryException {
 
-        doSetSignature(assertion, signatureAlgorithm, digestAlgorithm, cred);
+        try {
+            doSetSignature(assertion, signatureAlgorithm, digestAlgorithm, cred);
+        } catch (IdentityException e) {
+            log.error("Unable to set signature to the assertion id"+assertion.getID(),e);
+            throw new IdentitySAML2QueryException("Unable to set signature to the assertion id"+assertion.getID(),e);
+        }
     }
 
+    /**
+     * This method is used to set Signature to the Response message
+     * @param response Genareated Response including zero or more assertions
+     * @param signatureAlgorithm signature Algorithm
+     * @param digestAlgorithm cryptographic hash algorithm
+     * @param cred X509Credential instance
+     * @return Response response message
+     * @throws IdentitySAML2QueryException If unable to set signature to the response
+     */
     public static Response setSignature(Response response, String signatureAlgorithm, String digestAlgorithm,
-                                        X509Credential cred) throws IdentityException {
+                                        X509Credential cred) throws IdentitySAML2QueryException {
 
-        return (Response) doSetSignature(response, signatureAlgorithm, digestAlgorithm, cred);
+        try {
+            return (Response) doSetSignature(response, signatureAlgorithm, digestAlgorithm, cred);
+        } catch (IdentityException e) {
+            log.error("Unable to set signature to the response id:"+response.getID(),e);
+            throw new IdentitySAML2QueryException("Unable to set signature to the response id:"+response.getID(),e);
+        }
     }
 
     /**
@@ -157,18 +183,18 @@ public class OpenSAML3Util {
      * @param digestAlgorithm    cryptographic hash algorithm
      * @param cred               X509credential instance
      * @return SignableXMLObject signed XML object
-     * @throws IdentityException If unable to set signature
+     * @throws IdentitySAML2QueryException If unable to set signature
      */
     private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
-            digestAlgorithm, X509Credential cred) throws IdentityException {
-        SAMLQueryRequestUtil.doBootstrap();
+            digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
         try {
-
+            SAMLQueryRequestUtil.doBootstrap();
             return setSSOSignature(request, signatureAlgorithm, digestAlgorithm, cred);
 
 
-        } catch (Exception e) {
-            throw IdentityException.error("Error while signing the XML object.", e);
+        } catch (IdentityException e) {
+            log.error("Error while signing the XML object.", e);
+            throw new IdentitySAML2QueryException("Error while signing the XML object.");
         }
     }
 
@@ -180,17 +206,14 @@ public class OpenSAML3Util {
      * @param digestAlgorithm    cryptographic hash algorithm
      * @param cred               X509Credential instance
      * @return SignableXMLObject signed XML object
-     * @throws IdentityException If unable to set signature
+     * @throws IdentitySAML2QueryException If unable to set signature
      */
     public static SignableXMLObject setSSOSignature(SignableXMLObject signableXMLObject, String signatureAlgorithm, String
-            digestAlgorithm, X509Credential cred) throws IdentityException {
-
+            digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
         Signature signature = (Signature) buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
         signature.setSigningCredential(cred);
         signature.setSignatureAlgorithm(signatureAlgorithm);
         signature.setCanonicalizationAlgorithm(Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
-
-
         try {
             KeyInfo keyInfo = (KeyInfo) buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
             X509Data data = (X509Data) buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
@@ -201,9 +224,9 @@ public class OpenSAML3Util {
             keyInfo.getX509Datas().add(data);
             signature.setKeyInfo(keyInfo);
         } catch (CertificateEncodingException e) {
-            throw IdentityException.error("Error occurred while retrieving encoded cert", e);
+            log.error("Error occurred while retrieving encoded cert", e);
+            throw new IdentitySAML2QueryException("Error occurred while retrieving encoded cert");
         }
-
         signableXMLObject.setSignature(signature);
         ((SAMLObjectContentReference) signature.getContentReferences().get(0)).setDigestAlgorithm(digestAlgorithm);
 
@@ -216,17 +239,16 @@ public class OpenSAML3Util {
         try {
             marshaller.marshall(signableXMLObject);
         } catch (MarshallingException e) {
-            throw IdentityException.error("Unable to marshall the request", e);
+            log.error("Unable to marshall the request", e);
+            throw new IdentitySAML2QueryException("Unable to marshall the request");
         }
-
         Init.init();
-
         try {
             Signer.signObjects(signatureList);
         } catch (SignatureException e) {
-            throw IdentityException.error("Error occurred while signing request", e);
+            log.error("Error occurred while signing request", e);
+            throw new IdentitySAML2QueryException("Error occurred while signing request");
         }
-
         return signableXMLObject;
     }
 
@@ -238,28 +260,21 @@ public class OpenSAML3Util {
      * @param alias      Certificate alias against which the signature is validated.
      * @param domainName domain name of the subject
      * @return true, if the signature is valid.
-     * @throws IdentityException When signature is invalid or unable to load credential information
+     * @throws IdentitySAML2QueryException When signature is invalid or unable to load credential information
      */
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
-                                               String domainName) throws IdentityException {
-
+                                               String domainName) throws IdentitySAML2QueryException {
         boolean isSignatureValid = false;
-
         if (request.getSignature() != null) {
             try {
                 X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
-
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
-            } catch (IdentitySAML2SSOException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to construct the X509CredentialImpl for the alias " +
-                            alias, e);
-                }
-            } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while validating XML signature.", e);
-                }
+            } catch (SignatureException e) {
+                log.error("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
+                        +alias+" ,domainname: "+domainName,e);
+                throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
+                        +alias+" ,domainname: "+domainName,e);
             }
         }
         return isSignatureValid;
@@ -270,15 +285,13 @@ public class OpenSAML3Util {
      *
      * @param tenantDomain tenant domain of the issuer
      * @param alias        alias of cert
-     * @return X509CredentialImpl object containing the public certificate of
-     * that tenant
-     * @throws org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException Error when creating X509CredentialImpl object
+     * @return X509CredentialImpl object containing the public certificate of that tenant
+     * @throws IdentitySAML2QueryException Error when creating X509CredentialImpl object
      */
     public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
-            throws IdentitySAML2SSOException {
-
+            throws IdentitySAML2QueryException {
         if (tenantDomain.trim() == null || alias.trim() == null) {
-            throw new IllegalArgumentException("Invalid parameters; domain name : " + tenantDomain + ", " +
+            log.error("Invalid parameters; domain name : " + tenantDomain + ", " +
                     "alias : " + alias);
         }
         int tenantId;
@@ -286,16 +299,13 @@ public class OpenSAML3Util {
             tenantId = SAMLQueryServiceComponent.getRealmservice().getTenantManager().getTenantId(tenantDomain);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             String errorMsg = "Error getting the tenant ID for the tenant domain : " + tenantDomain;
-            throw new IdentitySAML2SSOException(errorMsg, e);
+            throw new IdentitySAML2QueryException(errorMsg, e);
         }
-
         KeyStoreManager keyStoreManager;
         // get an instance of the corresponding Key Store Manager instance
         keyStoreManager = KeyStoreManager.getInstance(tenantId);
-
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
-
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
@@ -308,9 +318,15 @@ public class OpenSAML3Util {
                     (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
             credentialImpl = new X509CredentialImpl(cert);
 
+        } catch (KeyStoreException e) {
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of "
+                    + tenantDomain;
+            log.error(errorMsg, e);
+            throw new IdentitySAML2QueryException(errorMsg,e);
         } catch (Exception e) {
-            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
-            throw new IdentitySAML2SSOException(errorMsg, e);
+            //keyStoreManager throws Exception
+            log.error("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
+            throw new IdentitySAML2QueryException("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
         }
         return credentialImpl;
     }

@@ -24,6 +24,10 @@ import org.opensaml.saml.saml2.core.AuthnQuery;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.SubjectQuery;
 import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
+import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
+
+import java.util.List;
 
 /**
  * This factory class is used to select relevant validation class dynamically
@@ -36,30 +40,21 @@ public class SAMLValidatorFactory {
      * @param request any type of request message
      * @return SAMLQueryValidator selected validation class
      */
-    public static SAMLQueryValidator getValidator(RequestAbstractType request) {
-
-
+    public static SAMLQueryValidator getValidator(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
         SAMLQueryValidator samlQueryValidator = null;
-
         if (request instanceof AssertionIDRequest) {
-
             samlQueryValidator = new SAMLIDRequestValidator();
-
         } else if (request instanceof AttributeQuery) {
-
             samlQueryValidator = new SAMLAttributeQueryValidator();
-
         } else if (request instanceof AuthnQuery) {
-
             samlQueryValidator = new SAMLAuthQueryValidator();
-
         } else if (request instanceof AuthzDecisionQueryImpl) {
-
             samlQueryValidator = new SAMLAuthzDecisionValidator();
-
         } else if (request instanceof SubjectQuery) {
-
             samlQueryValidator = new SAMLSubjectQueryValidator();
+        } else {
+            invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_MESSAGE_TYPE,
+                    SAMLQueryRequestConstants.ValidationMessage.VAL_MESSAGE_TYPE_ERROR));
         }
         return samlQueryValidator;
     }

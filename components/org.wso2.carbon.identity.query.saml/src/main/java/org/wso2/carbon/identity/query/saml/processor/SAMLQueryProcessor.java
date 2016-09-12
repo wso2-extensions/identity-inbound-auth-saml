@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.query.saml.processor;
 
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 
 /**
  * SAMLQueryProcessor interface has multiple implementations for processing different
@@ -29,9 +30,9 @@ import org.opensaml.saml.saml2.core.Response;
 public interface SAMLQueryProcessor {
     /**
      * This method is used to process different types of request messages
-     *
      * @param request assertion request message
      * @return Response container of one or more assertions
+     * @throws IdentitySAML2QueryException If unable to generate SAML Response
      */
-    Response process(RequestAbstractType request);
+    Response process(RequestAbstractType request) throws IdentitySAML2QueryException;
 }

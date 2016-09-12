@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.query.saml.handler;
 
 import org.opensaml.saml.saml2.core.Assertion;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 
 import java.util.List;
 
@@ -31,9 +32,14 @@ public interface SAMLAssertionFinder {
 
     void init();
 
-    Assertion findByID(String id);
+    Assertion findByID(String id) throws IdentitySAML2QueryException;
 
-    List<Assertion> findBySubject(String subject);
+    List<Assertion> findBySubject(String subject) throws IdentitySAML2QueryException;
+
+    List<Assertion> findBySubjectAndSessionIndex(String subject, String sessionIndex) throws IdentitySAML2QueryException;
+
+    List<Assertion> findBySubjectAndAuthnContextClassRef(String subject, String authnContextClassRef)
+            throws IdentitySAML2QueryException;
 
 
 }

@@ -20,9 +20,10 @@ package org.wso2.carbon.identity.query.saml.handler;
 
 import org.opensaml.saml.saml2.core.AuthzDecisionQuery;
 import org.opensaml.saml.saml2.core.DecisionTypeEnumeration;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 
 /**
- *
+ * This class is used to implement SAMLAuthzDecisionHandler interface to process resources and actions
  */
 public class SAMLAuthzDecisionHandlerImpl implements SAMLAuthzDecisionHandler {
 
@@ -30,16 +31,16 @@ public class SAMLAuthzDecisionHandlerImpl implements SAMLAuthzDecisionHandler {
      * Initializer
      */
     public void init() {
-
     }
 
     /**
-     * This demo implementation of AuthzDecisionQuery
-     *
+     * This method is a demo implementation of getting action permissions for requested resources
      * @param authzDecisionQuery AuthzDecision request message
      * @return DecisionType Decision taken by IDP on resource
+     * @throws  IdentitySAML2QueryException If unable to process
      */
-    public DecisionTypeEnumeration getAuthorizationDecision(AuthzDecisionQuery authzDecisionQuery) {
+    public DecisionTypeEnumeration getAuthorizationDecision(AuthzDecisionQuery authzDecisionQuery)
+            throws IdentitySAML2QueryException{
         return DecisionTypeEnumeration.PERMIT;
 
     }

@@ -24,7 +24,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
- * @scr.component name="identity.saml.query" immediate="true"
+ * @scr.component name="identity.query.saml" immediate="true"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
@@ -52,9 +52,9 @@ public class SAMLQueryServiceComponent {
      * @param ctxt component context instance
      */
     protected void activate(ComponentContext ctxt) {
-
-        log.debug("SAMLQueryServiceComponent is activated");
-        log.debug("SAMLQueryServiceComponent  : Bundle activated");
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLQueryServiceComponent is activated with ID: " + ctxt.getUsingBundle().getBundleId());
+        }
 
     }
 
@@ -72,11 +72,11 @@ public class SAMLQueryServiceComponent {
      *
      * @param realmService <code>RealmService</code>
      */
-    protected void setRealmService(RealmService realmService) {
+    protected static void setRealmService(RealmService realmService) {
+        realmservice = realmService;
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm set in to bundle");
         }
-        realmservice = realmService;
     }
 
     /**
@@ -84,10 +84,10 @@ public class SAMLQueryServiceComponent {
      *
      * @param realmService <code>RealmService</code>
      */
-    protected void unsetRealmService(RealmService realmService) {
+    protected static void unsetRealmService(RealmService realmService) {
+        realmservice = null;
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm unset in to bundle");
         }
-        realmservice = null;
     }
 }

@@ -29,14 +29,17 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.crypto.SecretKey;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -62,9 +65,9 @@ public class SignKeyDataHolder implements X509Credential {
      * This constructor is used to collect certificate information of the signature
      *
      * @param tenantDomain String type of tenant domain
-     * @throws IdentityException If unable connect with RealmService
+     * @throws IdentitySAML2QueryException If unable connect with RealmService
      */
-    public SignKeyDataHolder(String tenantDomain) throws IdentityException {
+    public SignKeyDataHolder(String tenantDomain) throws IdentitySAML2QueryException {
         String keyAlias;
         KeyStoreAdmin keyAdmin;
         KeyStoreManager keyMan;
@@ -133,10 +136,16 @@ public class SignKeyDataHolder implements X509Credential {
 
         } catch (IdentityException e) {
             log.error("Unable to access realm service ", e);
-
+            throw new IdentitySAML2QueryException("Unable to access realm service");
+        } catch (KeyStoreException e) {
+            log.error("Unable to load keystore", e);
+            throw new IdentitySAML2QueryException("Unable to load keystore");
+        } catch (UserStoreException e) {
+            log.error("Unable to load user store", e);
+            throw new IdentitySAML2QueryException("Unable to load user store");
         } catch (Exception e) {
-            log.error("Signature processing failed ", e);
-
+            log.error("Unable to get primary keystore", e);
+            throw new IdentitySAML2QueryException("Unable to get primary keystore");
         }
 
     }

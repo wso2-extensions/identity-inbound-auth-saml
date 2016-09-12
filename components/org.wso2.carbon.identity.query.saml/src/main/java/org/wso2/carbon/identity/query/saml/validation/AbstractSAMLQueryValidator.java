@@ -26,6 +26,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
@@ -59,8 +60,10 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      * @param invalidItems List of invalid items tracked by validation process
      * @param request      Any type of assertion request
      * @return Boolean true if request is completely validated
+     * @throws  IdentitySAML2QueryException If unable to validate request message elements
      */
-    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request) {
+    public boolean validate(List<InvalidItemDTO> invalidItems, RequestAbstractType request)
+            throws IdentitySAML2QueryException {
 
         boolean isIssuerValidated;
         boolean isSignatureValidated;
@@ -69,7 +72,6 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
         try {
             //validate SAML Request vertion
             isValidSAMLVersion = this.validateSAMLVersion(request);
-
             if (isValidSAMLVersion) {
                 //validate Issuer of Request
                 isIssuerValidated = this.validateIssuer(request);
@@ -79,9 +81,7 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
                         SAMLQueryRequestConstants.ValidationMessage.VAL_VERSION_ERROR));
                 log.error(SAMLQueryRequestConstants.ValidationMessage.VAL_VERSION_ERROR);
                 return false;
-
             }
-
             if (isIssuerValidated) {
                 //validate Signature of Request
                 isSignatureValidated = this.validateSignature(request);
@@ -98,9 +98,9 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
                         SAMLQueryRequestConstants.ValidationMessage.VAL_SIGNATURE_ERROR));
                 log.error(SAMLQueryRequestConstants.ValidationMessage.VAL_SIGNATURE_ERROR);
             }
-        } catch (IdentityException ex) {
+        } catch (IdentitySAML2QueryException e) {
             log.error(SAMLQueryRequestConstants.ServiceMessages.SERVER_ERROR_PROCESSING_ISSUER_SIG_VERSION);
-            return false;
+            throw new IdentitySAML2QueryException("Internal error while validating request signature", e);
         }
         return isSignatureValidated;
     }
@@ -110,32 +110,29 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      *
      * @param request any type of assertion request message
      * @return Boolean true, if signature is validated
+     * @throws  IdentitySAML2QueryException If unable to validate signature
      */
-    protected boolean validateSignature(RequestAbstractType request) {
+    protected boolean validateSignature(RequestAbstractType request) throws IdentitySAML2QueryException {
         String alias;
         boolean isValidSig;
         String domainName;
         alias = ssoIdpConfig.getCertAlias();
         domainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-
-            isValidSig = OpenSAML3Util.validateXMLSignature(request,
-                    alias, domainName);
-
+            isValidSig = OpenSAML3Util.validateXMLSignature(request, alias, domainName);
             if (isValidSig) {
-                log.debug("Signature successfully validated");
+                log.debug("Request with id" + request.getID() + " contain valid signature");
                 return true;
 
             } else {
-                log.debug("In valid Signature");
+                log.debug("Request with id:" + request.getID() + " contain in-valid Signature");
                 return false;
             }
 
-        } catch (IdentityException ex) {
+        } catch (IdentityException e) {
             log.error(SAMLQueryRequestConstants.ServiceMessages.SIGNATURE_VALIDATION_FAILED);
-            log.error(ex.getMessage());
+            throw new IdentitySAML2QueryException("Unable to validate signature of request with id:" + request.getID(), e);
         }
-        return false;
     }
 
     /**
@@ -143,47 +140,29 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      *
      * @param request any type of request message
      * @return Boolean true, if issuer is valid
-     * @throws IdentityException If unable to collect issuer information
+     * @throws IdentitySAML2QueryException If unable to collect issuer information
      */
-    protected boolean validateIssuer(RequestAbstractType request) throws IdentityException {
+    protected boolean validateIssuer(RequestAbstractType request) throws IdentitySAML2QueryException {
+        //get full quealified issuer
         Issuer issuer = request.getIssuer();
         boolean validIssuer = false;
-        String IssuerSPProvidedID;
-        String IssuerName;
-        if (issuer.getValue() == null && issuer.getSPProvidedID() == null) {
-
-            throw IdentityException.error(SAMLQueryRequestConstants.ValidationMessage.EXIT_WITH_ERROR);
+        if (issuer.getValue() == null) {
+            throw new IdentitySAML2QueryException("Issuer value is empty. Unable to validate issuer");
         } else {
-            if (issuer.getFormat() != null) {
-                if (issuer.getFormat().equals(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT)) {
-
-                    try {
-                        ssoIdpConfig = SAMLQueryRequestUtil.getServiceProviderConfig(issuer.getValue());
-                        if (ssoIdpConfig == null) {
-                            log.error(SAMLQueryRequestConstants.ServiceMessages.NULL_ISSUER);
-                            return validIssuer;
-                        } else {
-                            log.debug(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
-                            validIssuer = true;
-                        }
-                    } catch (IdentityException e) {
-                        log.error(SAMLQueryRequestConstants.ServiceMessages.ISSUER_VALIDATION_FAILED);
-                        log.error("Unable to load Service Provider info", e);
+            if (issuer.getFormat() != null && issuer.getFormat().equals(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT)) {
+                    ssoIdpConfig = SAMLQueryRequestUtil.getServiceProviderConfig(issuer.getValue());
+                    if (ssoIdpConfig == null) {
+                        log.error(SAMLQueryRequestConstants.ServiceMessages.NULL_ISSUER);
+                        return validIssuer;
+                    } else {
+                        log.debug(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
+                        return !validIssuer;
                     }
-
-                } else {
-
-                    log.error(SAMLQueryRequestConstants.ServiceMessages.NO_ISSUER_PRESENTED);
-                    throw IdentityException.error(
-                            SAMLQueryRequestConstants.ValidationMessage.EXIT_WITH_ERROR);
-                }
-
+            } else {
+                log.error("NameID format is invalid in request ID:" + request.getID() + " and issuer: " + issuer.getValue());
+                return validIssuer;
             }
-
         }
-
-
-        return validIssuer;
     }
 
     /**
@@ -191,16 +170,15 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      *
      * @param request any type of request message
      * @return Boolean true, if SAML version is 2.0
-     * @throws IdentityException if SAML version not compatible
+     * @throws IdentitySAML2QueryException if SAML version not compatible
      */
-    protected boolean validateSAMLVersion(RequestAbstractType request) throws IdentityException {
+    protected boolean validateSAMLVersion(RequestAbstractType request) throws IdentitySAML2QueryException {
         boolean isValidversion = false;
-        if (request.getVersion().equals(SAMLVersion.VERSION_20)) {
+        if (request.getVersion() != null && request.getVersion().equals(SAMLVersion.VERSION_20)) {
             isValidversion = true;
         } else {
             log.error(SAMLQueryRequestConstants.ServiceMessages.NON_COMPAT_SAML_VERSION);
-            throw IdentityException.error(SAMLQueryRequestConstants.ValidationMessage.EXIT_WITH_ERROR);
-
+           // throw new IdentitySAML2QueryException("Request contain empty SAML version or non 2.0 version");
         }
         return isValidversion;
     }
@@ -211,6 +189,7 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      * @return SAMLSSOServiceProviderDO issuer information
      */
     public SAMLSSOServiceProviderDO getSsoIdpConfig() {
+
         return ssoIdpConfig;
     }
 
