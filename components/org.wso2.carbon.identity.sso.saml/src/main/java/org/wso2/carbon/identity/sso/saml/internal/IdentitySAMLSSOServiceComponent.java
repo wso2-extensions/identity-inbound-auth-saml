@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -64,6 +65,7 @@ public class IdentitySAMLSSOServiceComponent {
     private static Log log = LogFactory.getLog(IdentitySAMLSSOServiceComponent.class);
     private static int defaultSingleLogoutRetryCount = 5;
 
+    private static ServerConfigurationService serverConfigurationService = null;
     private static long defaultSingleLogoutRetryInterval = 60000;
 
     private static String ssoRedirectPage = null;
@@ -220,5 +222,23 @@ public class IdentitySAMLSSOServiceComponent {
             log.debug("HTTP Service is unset in the SAML SSO bundle");
         }
         SAMLSSOUtil.setHttpService(null);
+    }
+
+    public static ServerConfigurationService getServerConfigurationService() {
+        return IdentitySAMLSSOServiceComponent.serverConfigurationService;
+    }
+
+    protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Set the ServerConfiguration Service");
+        }
+        IdentitySAMLSSOServiceComponent.serverConfigurationService = serverConfigurationService;
+
+    }
+    protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Unset the ServerConfiguration Service");
+        }
+        IdentitySAMLSSOServiceComponent.serverConfigurationService = null;
     }
 }
