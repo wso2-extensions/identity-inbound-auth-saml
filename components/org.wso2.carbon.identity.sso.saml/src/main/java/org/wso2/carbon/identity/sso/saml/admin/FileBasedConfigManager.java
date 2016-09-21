@@ -24,9 +24,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 
 import javax.xml.parsers.DocumentBuilder;

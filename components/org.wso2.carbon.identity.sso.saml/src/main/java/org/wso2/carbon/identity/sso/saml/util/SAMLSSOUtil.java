@@ -63,10 +63,12 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -121,7 +123,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -1388,7 +1389,7 @@ public class SAMLSSOUtil {
             IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
             Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
                     (RegistryType.SYSTEM_CONFIGURATION);
-            SAMLSSOServiceProviderDO spDO = persistenceManager.getServiceProvider(registry, issuerName);
+            SAMLSSOServiceProviderDO spDO=persistenceManager.getServiceProvider(registry, issuerName);
             if (StringUtils.isBlank(requestedACSUrl) || !spDO.getAssertionConsumerUrlList().contains
                     (requestedACSUrl)) {
                 String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
