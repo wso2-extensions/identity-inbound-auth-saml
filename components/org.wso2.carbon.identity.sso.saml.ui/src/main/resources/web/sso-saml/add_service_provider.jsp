@@ -1641,7 +1641,8 @@ if (isEditSP && show) {
         }
 
         function doCancel(){
-                location.href = 'index.jsp';
+                document.getElementById("metadataFromFileSystem").value = "";
+
         }
 
              </script>

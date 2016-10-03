@@ -84,7 +84,7 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
                         policyContent += temp;
                     }
                     if (!"".equals(policyContent)) {
-                        serviceProviderDTO = client.uploadServiceProvider(policyContent);
+                            serviceProviderDTO = client.uploadServiceProvider(policyContent);
                     }
                 }
             }

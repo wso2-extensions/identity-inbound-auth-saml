@@ -106,7 +106,7 @@ public class SAMLSSOConfigAdmin {
      * @return
      * @throws IdentityException
      */
-    public SAMLSSOServiceProviderDTO    uploadRelyingPartyServiceProvider(String metadata) throws IdentityException {
+    public SAMLSSOServiceProviderDTO uploadRelyingPartyServiceProvider(String metadata) throws IdentityException {
 
         IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
         Parser parser = new Parser(registry);
