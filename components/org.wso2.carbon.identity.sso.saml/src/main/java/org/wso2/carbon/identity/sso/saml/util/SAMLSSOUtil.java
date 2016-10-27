@@ -165,7 +165,6 @@ public class SAMLSSOUtil {
     private static ConfigurationContextService configCtxService;
     private static HttpService httpService;
     private static boolean isBootStrapped = false;
-    private static Random random = new Random();
     private static int singleLogoutRetryCount = 5;
     private static long singleLogoutRetryInterval = 60000;
     private static String responseBuilderClassName = null;

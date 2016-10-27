@@ -24,10 +24,10 @@
         <version>1</version>
     </parent>
 
-    <groupId>org.wso2.carbon.identity</groupId>
+    <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.1.2-SNAPSHOT</version>
+    <version>5.1.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -64,54 +64,56 @@
                 <artifactId>org.wso2.carbon.logging</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
-			<dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.base</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.core</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.core.ui</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.authentication.endpoint</artifactId>
                 <version>${carbon.identity.framework.version}</version>
                 <type>war</type>
             </dependency>
-			<dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml.stub</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
-			<dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
 			<dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
 				<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -193,7 +195,8 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-	</repositories>
+
+    </repositories>
 
     <build>
         <pluginManagement>
@@ -306,7 +309,7 @@
 
     <properties>
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
-        <carbon.identity.framework.version>5.2.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.5.0</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
