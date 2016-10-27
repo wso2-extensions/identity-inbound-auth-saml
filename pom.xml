@@ -112,7 +112,11 @@
                 <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+			<dependency>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+				<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents.wso2</groupId>
                 <artifactId>httpcore</artifactId>
@@ -292,6 +296,7 @@
     </pluginRepositories>
 
     <modules>
+		<module>components/org.wso2.carbon.identity.query.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml.common</module>
         <module>components/org.wso2.carbon.identity.sso.saml.ui</module>
@@ -299,6 +304,7 @@
         <module>features/org.wso2.carbon.identity.sso.saml.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.server.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.ui.feature</module>
+		<module>features/org.wso2.carbon.identity.query.saml.server.feature</module>
     </modules>
 
     <properties>
@@ -326,6 +332,7 @@
         <carbon.base.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.base.imp.pkg.version.range>
         <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
+        <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
 
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
