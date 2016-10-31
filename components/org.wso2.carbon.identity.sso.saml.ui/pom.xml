@@ -77,7 +77,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -95,6 +94,12 @@
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.sso.saml.stub.*;
                             version="${identity.inbound.auth.saml.imp.pkg.version.range}",
+                            javax.activation;version="0.0.0",
+                            org.apache.commons.fileupload.*; version="${commons-fileupload.imp.pkg.version.range}",
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.ui.*; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.apache.commons.io,
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.sso.saml.ui.*; version="${identity.inbound.auth.saml.exp.version}",
