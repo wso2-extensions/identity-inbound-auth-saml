@@ -153,6 +153,16 @@
                 <artifactId>axis2-client</artifactId>
                 <version>${axis2.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+                <artifactId>org.wso2.carbon.identity.sso.saml.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.metadata.saml2</groupId>
+                <artifactId>org.wso2.carbon.identity.inbound.metadata.saml2</artifactId>
+                <version>${identity.metadata.saml2.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -302,8 +312,10 @@
     </modules>
 
     <properties>
+
+        <identity.metadata.saml2.version>0.1.0-SNAPSHOT</identity.metadata.saml2.version>
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
-        <carbon.identity.framework.version>5.5.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.6.0</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
@@ -347,6 +359,7 @@
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
     </properties>
 
 </project>

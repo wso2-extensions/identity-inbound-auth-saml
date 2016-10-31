@@ -61,6 +61,7 @@
 
 function doValidation() {
     var fld = document.getElementsByName("issuer")[0];
+    alert("bbbbb");
     var value = fld.value;
     if (value.length == 0) {
         CARBON.showWarningDialog(
@@ -145,6 +146,26 @@ function disableFullQualifiedUsername(chkbx) {
     }
 
 }
+function doValidationUrl() {
+     var fld = document.getElementsByName("metadataFromUrl")[0];
+     var value = fld.value;
+     var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+     if (value.length != 0) {
+         value = value.replace(/^\s+/, "");
+         if (value.length != 0) {
+             if (!regexp.test(value)) {
+                 CARBON.showWarningDialog("<fmt:message key='sp.enter.valid.url'/>", null, null);
+                 return false;
+             }
+         }
+     } else {
+         CARBON.showWarningDialog("<fmt:message key='sp.enter.valid.url'/>", null, null);
+         return false;
+     }
+     return true;
+ }
+
+
 
 function disableResponseSignature(chkbx) {
     document.addServiceProvider.enableResponseSignature.value = (chkbx.checked) ? true
@@ -1554,6 +1575,78 @@ if (isEditSP && show) {
 </table>
 <input type="hidden" id="attributeConsumingServiceIndex" name="attributeConsumingServiceIndex" value="<%=Encode.forHtmlAttribute(attributeConsumingServiceIndex)%>"/>
 </form>
+
+     <%
+         if (!isEditSP) {
+     %>
+     <form method="POST" action="../../fileupload/service"
+          id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
+           onsubmit="return doValidation();">
+           <br/>
+         <table class="styledLeft" width="100%">
+         <thead>
+             <tr>
+                 <th><fmt:message key="saml.sso.upload.service.provider.metadata"/></th>
+             </tr>
+         </thead>
+         <tbody>
+             <tr>
+                 <td><span>File Location: </span><input type="file" id="metadataFromFileSystem"
+                                                    name="metadataFromFileSystem" size="50" /></td>
+             </tr>
+             <tr><td>
+                 <input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button" onclick="doSubmit();"/>
+                 <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>" onclick="doCancel();"/></td>
+                 </tr>
+             </tbody>
+         </table>
+     </form>
+     <br/>
+     <form method="POST" action="upload_service_provider_from_url_finish.jsp?SPAction=<%=spAction%>"
+               id="uploadServiceProviderFromUrl" name="uploadServiceProviderFromUrl" target="_self" onsubmit="return doValidationUrl();">
+               <br/>
+             <table class="styledLeft" width="100%">
+             <thead>
+                 <tr>
+                     <th><fmt:message key="saml.sso.upload.service.provider.metadata.from.url"/></th>
+                 </tr>
+             </thead>
+             <tbody>
+                 <tr>
+                     <td><span>URL: </span><input type="url" class="text-box-big" id="metadataFromUrl" name="metadataFromUrl"/></td>
+                 </tr>
+                 <tr><td>
+                     <input type="submit" class="button" value="<fmt:message key='saml.sso.upload'/>" class="button"/ >
+                     <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>" onclick="doCancel();"/></td>
+                     </tr>
+                 </tbody>
+             </table>
+         </form>
+     <%
+     }
+     %>
+
+<script type="text/javascript">
+
+        function doSubmit(){
+                var policy;
+                policy = document.uploadServiceProvider.metadataFromFileSystem.value;
+
+                if (policy == '') {
+                        CARBON.showWarningDialog("<fmt:message key='sp.enter.valid.issuer'/>");
+                        return;
+                }
+
+                document.uploadServiceProvider.submit();
+        }
+
+        function doCancel(){
+                document.getElementById("metadataFromFileSystem").value = "";
+
+        }
+
+             </script>
 </div>
+
 </div>
 </fmt:bundle>
