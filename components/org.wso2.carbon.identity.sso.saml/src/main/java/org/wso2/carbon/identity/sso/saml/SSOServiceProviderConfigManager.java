@@ -21,6 +21,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 
+//import org.wso2.carbon.identity.saml.metadata.model.SAMLSSOServiceProviderDO;
+
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
