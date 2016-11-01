@@ -54,14 +54,9 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      * @return
      * @throws IdentityException
      */
-    public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentitySAML2SSOException {
+    public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-        try {
-            return configAdmin.addRelyingPartyServiceProvider(spDto);
-        } catch (IdentityException e) {
-            log.error("Error while adding service provider", e);
-            throw new IdentitySAML2SSOException("Error while adding service provider");
-        }
+        return configAdmin.addRelyingPartyServiceProvider(spDto);
     }
 
     /**
