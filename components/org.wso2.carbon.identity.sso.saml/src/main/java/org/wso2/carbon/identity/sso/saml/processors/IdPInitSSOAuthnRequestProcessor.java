@@ -201,8 +201,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                 IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
                         .getPersistanceManager();
                 Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry,
-                        authnReqDTO.getIssuer());
+                ssoIdpConfigs = persistenceManager.getServiceProvider(registry,authnReqDTO.getIssuer());
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {
                 authnReqDTO.setStratosDeployment(true); // stratos deployment

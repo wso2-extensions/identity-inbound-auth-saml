@@ -24,9 +24,11 @@ import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
+//import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
@@ -223,7 +225,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
                 Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
                         (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
+                ssoIdpConfigs =  persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {
                 authnReqDTO.setStratosDeployment(true); // stratos deployment
