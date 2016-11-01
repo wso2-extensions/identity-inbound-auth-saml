@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.sso.saml.stub.IdentitySAMLSSOConfigServiceIdentityException;
 import org.wso2.carbon.identity.sso.saml.stub.IdentitySAMLSSOConfigServiceIdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.stub.IdentitySAMLSSOConfigServiceStub;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
@@ -64,7 +65,7 @@ public class SAMLSSOConfigServiceClient {
         boolean status  ;
         try {
             status = stub.addRPServiceProvider(serviceProviderDTO);
-        } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentitySAML2SSOException e) {
+        } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
             throw new IdentitySAML2SSOUiException("Error while uploading the service provider", e);
         }
         return status;
