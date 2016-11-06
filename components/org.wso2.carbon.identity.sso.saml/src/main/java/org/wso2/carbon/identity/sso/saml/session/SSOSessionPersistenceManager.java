@@ -28,6 +28,10 @@ import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCache;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheEntry;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheKey;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * This class is used to persist the sessions established with Service providers
  */
@@ -175,6 +179,47 @@ public class SSOSessionPersistenceManager {
             return true;
         }
         return false;
+    }
+
+    public static void removeSession(String sessionId, String issuer) {
+
+        String sessionIndex = null;
+        if (sessionId != null) {
+            sessionIndex = getSessionIndexFromCache(sessionId);
+        }
+
+        if (sessionIndex != null) {
+            SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey(sessionIndex);
+            SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
+            if (issuer != null) {
+                if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
+                    SAMLSSOServiceProviderDO providerDO = cacheEntry.getSessionInfoData().getServiceProviderList().get(issuer);
+                    if (providerDO != null && providerDO.isDoSingleLogout()) {
+                        Set<String> sloSupportedIssuers = new HashSet<String>();
+                        //Filter out service providers which enabled the single logout
+                        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
+                                getServiceProviderList().entrySet()) {
+                            if (entry.getValue().isDoSingleLogout()) {
+                                sloSupportedIssuers.add(entry.getKey());
+                            }
+                        }
+                        //Remove service providers which enabled the single logout
+                        for (String sloSupportedIssuer : sloSupportedIssuers) {
+                            cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
+                        }
+                    } else {
+                        cacheEntry.getSessionInfoData().removeServiceProvider(issuer);
+                    }
+                }
+            }
+
+            if (cacheEntry.getSessionInfoData() == null || cacheEntry.getSessionInfoData().getServiceProviderList() == null ||
+                    cacheEntry.getSessionInfoData().getServiceProviderList().isEmpty()) {
+                //Clear the session info cache if there isn't session data or service providers
+                SAMLSSOParticipantCache.getInstance().clearCacheEntry(cacheKey);
+                removeSessionIndexFromCache(sessionId);
+            }
+        }
     }
 
     public String getSessionIndexFromTokenId(String tokenId) {
