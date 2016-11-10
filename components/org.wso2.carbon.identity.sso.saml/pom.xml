@@ -83,7 +83,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.metadata.saml2</groupId>
-            <artifactId>org.wso2.carbon.identity.inbound.metadata.saml2</artifactId>
+            <artifactId>org.wso2.carbon.identity.sp.metadata.saml2</artifactId>
         </dependency>
     </dependencies>
 
@@ -125,7 +125,6 @@
                             org.apache.xerces.impl; resolution:= optional,
                             org.owasp.encoder,
                             org.wso2.carbon.base.api,
-                            org.wso2.carbon.identity.inbound.metadata.saml2.util,
                             org.wso2.carbon.identity.core.model,
                             org.wso2.carbon.idp.mgt.util,
                             javax.crypto,
@@ -204,7 +203,9 @@
                             org.wso2.carbon.user.core.service,
                             org.wso2.carbon.user.core.tenant,
                             org.wso2.carbon.utils,
-                            org.wso2.carbon.utils.multitenancy
+                            org.wso2.carbon.utils.multitenancy,
+                            org.wso2.carbon.identity.sp.metadata.saml2.Exception,
+                            org.wso2.carbon.identity.sp.metadata.saml2.util,
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,

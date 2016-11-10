@@ -28,7 +28,8 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.inbound.metadata.saml2.util.Parser;
+import org.wso2.carbon.identity.sp.metadata.saml2.Exception.InvalidMetadataException;
+import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -73,7 +74,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return persistenceManager.addServiceProvider(registry,serviceProviderDO);
+            return persistenceManager.addServiceProvider(registry, serviceProviderDO);
         } catch (IdentityException e) {
             log.error("Error obtaining a registry for adding a new service provider", e);
             throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
@@ -81,14 +82,13 @@ public class SAMLSSOConfigAdmin {
     }
 
     /**
-     *Save Certificate To Key Store
+     * Save Certificate To Key Store
      *
      * @param serviceProviderDO
-     *
      * @throws java.security.cert.CertificateException,java.lang.Exception
      */
 
-    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws  java.security.cert.CertificateException,java.lang.Exception {
+    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws java.security.cert.CertificateException, java.lang.Exception {
 
         UserRegistry userRegistry = (UserRegistry) registry;
 
@@ -112,13 +112,18 @@ public class SAMLSSOConfigAdmin {
         Parser parser = new Parser(registry);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         //pass metadarta to samlSSOServiceProvider object
-        samlssoServiceProviderDO = parser.parse(metadata,samlssoServiceProviderDO);
+        try {
+
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException ex) {
+            throw IdentityException.error("Error parsing SP metadata", ex);
+        }
         try {
             //save certificate
             this.saveCertificateToKeyStore(samlssoServiceProviderDO);
         } catch (java.security.cert.CertificateException ex) {
             log.error("Error While setting Certificate and alias", ex);
-        }catch(java.lang.Exception ex){
+        } catch (java.lang.Exception ex) {
             log.error("Error While setting Certificate and alias", ex);
         }
 
@@ -127,7 +132,7 @@ public class SAMLSSOConfigAdmin {
 
             if (response) {
                 return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
-            }else {
+            } else {
                 throw IdentityException.error("Error while adding new service provider");
             }
         } catch (IdentityException e) {
@@ -270,7 +275,7 @@ public class SAMLSSOConfigAdmin {
         try {
             IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
                     .getPersistanceManager();
-            SAMLSSOServiceProviderDO[] providersSet =persistenceManager.getServiceProviders(registry);
+            SAMLSSOServiceProviderDO[] providersSet = persistenceManager.getServiceProviders(registry);
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {
