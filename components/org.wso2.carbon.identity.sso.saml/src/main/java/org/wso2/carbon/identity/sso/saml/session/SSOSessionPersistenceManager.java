@@ -234,7 +234,7 @@ public class SSOSessionPersistenceManager {
                     cacheEntry.getSessionInfoData().getServiceProviderList().isEmpty()) {
                 //Clear the session info cache if there isn't session data or service providers
                 if(log.isDebugEnabled()) {
-                    log.debug("Clearing the session data from cache with session index " + sessionIndex + " and " + issuer);
+                    log.debug("Clearing the session data from cache with session index " + sessionIndex + " and issuer " + issuer);
                 }
                 SAMLSSOParticipantCache.getInstance().clearCacheEntry(cacheKey);
                 removeSessionIndexFromCache(sessionId);
