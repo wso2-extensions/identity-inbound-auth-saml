@@ -181,11 +181,20 @@ public class SSOSessionPersistenceManager {
         return false;
     }
 
+    /**
+     * Clear the session when logout is called.
+     *
+     * @param sessionId created session id to invalidate
+     * @param issuer name of the issuer
+     */
     public static void removeSession(String sessionId, String issuer) {
 
         String sessionIndex = null;
         if (sessionId != null) {
             sessionIndex = getSessionIndexFromCache(sessionId);
+            if(log.isDebugEnabled()) {
+                log.debug("Retrieved session index from session id with session index " + sessionIndex);
+            }
         }
 
         if (sessionIndex != null) {
@@ -206,9 +215,17 @@ public class SSOSessionPersistenceManager {
                         //Remove service providers which enabled the single logout
                         for (String sloSupportedIssuer : sloSupportedIssuers) {
                             cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
+                            if(log.isDebugEnabled()) {
+                                log.debug("Removed SLO supported service provider from session info data  with name " + sloSupportedIssuer);
+                            }
                         }
                     } else {
-                        cacheEntry.getSessionInfoData().removeServiceProvider(issuer);
+                        if(cacheEntry.getSessionInfoData() != null) {
+                            cacheEntry.getSessionInfoData().removeServiceProvider(issuer);
+                            if(log.isDebugEnabled()) {
+                                log.debug("Removed service provider from session info data  with name " + issuer);
+                            }
+                        }
                     }
                 }
             }
@@ -216,6 +233,9 @@ public class SSOSessionPersistenceManager {
             if (cacheEntry.getSessionInfoData() == null || cacheEntry.getSessionInfoData().getServiceProviderList() == null ||
                     cacheEntry.getSessionInfoData().getServiceProviderList().isEmpty()) {
                 //Clear the session info cache if there isn't session data or service providers
+                if(log.isDebugEnabled()) {
+                    log.debug("Clearing the session data from cache with session index " + sessionIndex + " and " + issuer);
+                }
                 SAMLSSOParticipantCache.getInstance().clearCacheEntry(cacheKey);
                 removeSessionIndexFromCache(sessionId);
             }
