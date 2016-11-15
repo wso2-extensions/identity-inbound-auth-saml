@@ -148,7 +148,7 @@
                             org.apache.http,
                             org.apache.http.client,
                             org.apache.http.client.entity,
-                            che.http.client.methods,
+                            org.apache.http.client.methods,
                             org.apache.http.conn.ssl,
                             org.apache.http.impl.client,
                             org.apache.http.message,
