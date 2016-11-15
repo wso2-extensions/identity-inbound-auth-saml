@@ -76,7 +76,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return persistenceManager.addServiceProvider(registry,serviceProviderDO);
+            return persistenceManager.addServiceProvider(registry, serviceProviderDO);
         } catch (IdentityException e) {
             log.error("Error obtaining a registry for adding a new service provider", e);
             throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
@@ -84,14 +84,13 @@ public class SAMLSSOConfigAdmin {
     }
 
     /**
-     *Save Certificate To Key Store
+     * Save Certificate To Key Store
      *
      * @param serviceProviderDO
-     *
      * @throws java.security.cert.CertificateException,java.lang.Exception
      */
 
-    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws  java.security.cert.CertificateException,java.lang.Exception {
+    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws CertificateException, Exception {
 
         UserRegistry userRegistry = (UserRegistry) registry;
 
@@ -116,10 +115,10 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
 
         try {
-            //pass metadarta to samlSSOServiceProvider object
+            //pass metadata to samlSSOServiceProvider object
             samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
         } catch (InvalidMetadataException e) {
-            throw IdentityException.error("Error parsing metadata", e);
+            throw IdentityException.error("Error parsing SP metadata", e);
         }
 
         try {
@@ -136,7 +135,7 @@ public class SAMLSSOConfigAdmin {
 
             if (response) {
                 return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
-            }else {
+            } else {
                 throw IdentityException.error("Error while adding new service provider");
             }
         } catch (IdentityException e) {
@@ -279,7 +278,7 @@ public class SAMLSSOConfigAdmin {
         try {
             IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
                     .getPersistanceManager();
-            SAMLSSOServiceProviderDO[] providersSet =persistenceManager.getServiceProviders(registry);
+            SAMLSSOServiceProviderDO[] providersSet = persistenceManager.getServiceProviders(registry);
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {

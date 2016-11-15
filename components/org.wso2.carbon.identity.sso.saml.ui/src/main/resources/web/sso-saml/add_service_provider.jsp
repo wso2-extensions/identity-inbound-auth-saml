@@ -1632,7 +1632,7 @@ if (isEditSP && show) {
                 policy = document.uploadServiceProvider.metadataFromFileSystem.value;
 
                 if (policy == '') {
-                        CARBON.showWarningDialog("<fmt:message key='sp.enter.valid.issuer'/>");
+                        CARBON.showWarningDialog("<fmt:message key='sp.metadata.valid.file'/>");
                         return;
                 }
 
