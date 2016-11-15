@@ -125,6 +125,7 @@
                             org.apache.xerces.impl; resolution:= optional,
                             org.owasp.encoder,
                             org.wso2.carbon.base.api,
+                            org.wso2.carbon.identity.sp.metadata.saml2.Exception,
                             org.wso2.carbon.identity.sp.metadata.saml2.util,
                             org.wso2.carbon.identity.core.model,
                             org.wso2.carbon.idp.mgt.util,
