@@ -61,7 +61,6 @@
 
 function doValidation() {
     var fld = document.getElementsByName("issuer")[0];
-    alert("bbbbb");
     var value = fld.value;
     if (value.length == 0) {
         CARBON.showWarningDialog(

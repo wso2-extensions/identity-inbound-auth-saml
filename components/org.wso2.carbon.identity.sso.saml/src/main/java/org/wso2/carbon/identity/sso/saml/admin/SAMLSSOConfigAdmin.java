@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
+import java.security.cert.CertificateException;
+
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
  * providers are supported here.
@@ -128,6 +130,23 @@ public class SAMLSSOConfigAdmin {
         }
 
         try {
+            //pass metadata to samlSSOServiceProvider object
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException e) {
+            throw IdentityException.error("Error parsing SP metadata", e);
+        }
+
+        try {
+            //save certificate
+            this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+        } catch (CertificateException e) {
+            log.error("Error While setting Certificate and alias", e);
+        } catch (Exception e) {
+            log.error("Error While setting Certificate and alias", e);
+
+        }
+
+        try {
             boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
 
             if (response) {
@@ -138,6 +157,7 @@ public class SAMLSSOConfigAdmin {
         } catch (IdentityException e) {
             throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
         }
+
     }
 
     private SAMLSSOServiceProviderDO createSAMLSSOServiceProviderDO(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
