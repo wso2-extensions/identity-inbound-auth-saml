@@ -28,13 +28,16 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.inbound.metadata.saml2.util.Parser;
+import org.wso2.carbon.identity.sp.metadata.saml2.Exception.InvalidMetadataException;
+import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
+
+import java.security.cert.CertificateException;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -111,15 +114,21 @@ public class SAMLSSOConfigAdmin {
         IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
         Parser parser = new Parser(registry);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
-        //pass metadarta to samlSSOServiceProvider object
-        samlssoServiceProviderDO = parser.parse(metadata,samlssoServiceProviderDO);
+
+        try {
+            //pass metadarta to samlSSOServiceProvider object
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException e) {
+            throw IdentityException.error("Error parsing metadata", e);
+        }
+
         try {
             //save certificate
             this.saveCertificateToKeyStore(samlssoServiceProviderDO);
-        } catch (java.security.cert.CertificateException ex) {
-            log.error("Error While setting Certificate and alias", ex);
-        }catch(java.lang.Exception ex){
-            log.error("Error While setting Certificate and alias", ex);
+        } catch (CertificateException e) {
+            log.error("Error While setting Certificate and alias", e);
+        } catch(Exception e) {
+            log.error("Error While setting Certificate and alias", e);
         }
 
         try {
