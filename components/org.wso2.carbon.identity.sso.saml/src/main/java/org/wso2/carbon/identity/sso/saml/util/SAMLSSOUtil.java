@@ -1216,11 +1216,7 @@ public class SAMLSSOUtil {
     public static void removeSession(String sessionId, String issuer) {
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-
-        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
-
-        SSOSessionPersistenceManager.removeSessionInfoDataFromCache(sessionIndex);
-        SSOSessionPersistenceManager.removeSessionIndexFromCache(sessionId);
+        ssoSessionPersistenceManager.removeSession(sessionId, issuer);
     }
 
     public static void setTenantDomainInThreadLocal(String tenantDomain) throws UserStoreException, IdentityException {
