@@ -80,111 +80,145 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         try {
             DateTime currentTime = new DateTime();
             Assertion samlAssertion = new AssertionBuilder().buildObject();
-            samlAssertion.setID(SAMLSSOUtil.createID());
-            samlAssertion.setVersion(SAMLVersion.VERSION_20);
-            samlAssertion.setIssuer(SAMLSSOUtil.getIssuer());
-            samlAssertion.setIssueInstant(currentTime);
-            Subject subject = new SubjectBuilder().buildObject();
 
-            NameID nameId = new NameIDBuilder().buildObject();
+            this.setBasicInfo(samlAssertion, currentTime);
 
-            nameId.setValue(authReqDTO.getUser().getAuthenticatedSubjectIdentifier());
-            if (authReqDTO.getNameIDFormat() != null) {
-                nameId.setFormat(authReqDTO.getNameIDFormat());
-            } else {
-                nameId.setFormat(NameIdentifier.EMAIL);
-            }
+            this.setSubject(authReqDTO, notOnOrAfter, samlAssertion);
 
-            subject.setNameID(nameId);
-
-            SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder()
-                    .buildObject();
-            subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
-            SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
-            scData.setRecipient(authReqDTO.getAssertionConsumerURL());
-            scData.setNotOnOrAfter(notOnOrAfter);
-            if (!authReqDTO.isIdPInitSSOEnabled()) {
-                scData.setInResponseTo(authReqDTO.getId());
-            }
-            subjectConfirmation.setSubjectConfirmationData(scData);
-            subject.getSubjectConfirmations().add(subjectConfirmation);
-
-            if (authReqDTO.getRequestedRecipients() != null && authReqDTO.getRequestedRecipients().length > 0) {
-                for (String recipient : authReqDTO.getRequestedRecipients()) {
-                    subjectConfirmation = new SubjectConfirmationBuilder()
-                            .buildObject();
-                    subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
-                    scData = new SubjectConfirmationDataBuilder().buildObject();
-                    scData.setRecipient(recipient);
-                    scData.setNotOnOrAfter(notOnOrAfter);
-                    if (!authReqDTO.isIdPInitSSOEnabled()) {
-                        scData.setInResponseTo(authReqDTO.getId());
-                    }
-                    subjectConfirmation.setSubjectConfirmationData(scData);
-                    subject.getSubjectConfirmations().add(subjectConfirmation);
-                }
-            }
-
-            samlAssertion.setSubject(subject);
-
-            AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
-            authStmt.setAuthnInstant(new DateTime());
-
-            AuthnContext authContext = new AuthnContextBuilder().buildObject();
-            AuthnContextClassRef authCtxClassRef = new AuthnContextClassRefBuilder().buildObject();
-            authCtxClassRef.setAuthnContextClassRef(AuthnContext.PASSWORD_AUTHN_CTX);
-            authContext.setAuthnContextClassRef(authCtxClassRef);
-            authStmt.setAuthnContext(authContext);
-            if (authReqDTO.isDoSingleLogout()) {
-                authStmt.setSessionIndex(sessionId);
-            }
-            samlAssertion.getAuthnStatements().add(authStmt);
-
+            this.addAuthStatement(authReqDTO, sessionId, samlAssertion);
             /*
                 * If <AttributeConsumingServiceIndex> element is in the <AuthnRequest> and according to
                 * the spec 2.0 the subject MUST be in the assertion
                 */
-            Map<String, String> claims = SAMLSSOUtil.getAttributes(authReqDTO);
-            if (claims != null && !claims.isEmpty()) {
-                AttributeStatement attrStmt = buildAttributeStatement(claims);
-                if (attrStmt != null) {
-                    samlAssertion.getAttributeStatements().add(attrStmt);
-                }
-            }
 
-            AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
-                    .buildObject();
-            Audience issuerAudience = new AudienceBuilder().buildObject();
-            issuerAudience.setAudienceURI(authReqDTO.getIssuerWithDomain());
-            audienceRestriction.getAudiences().add(issuerAudience);
-            if (authReqDTO.getRequestedAudiences() != null) {
-                for (String requestedAudience : authReqDTO.getRequestedAudiences()) {
-                    Audience audience = new AudienceBuilder().buildObject();
-                    audience.setAudienceURI(requestedAudience);
-                    audienceRestriction.getAudiences().add(audience);
-                }
-            }
-            Conditions conditions = new ConditionsBuilder().buildObject();
-            conditions.setNotBefore(currentTime);
-            conditions.setNotOnOrAfter(notOnOrAfter);
-            conditions.getAudienceRestrictions().add(audienceRestriction);
-            samlAssertion.setConditions(conditions);
+            this.addAttributeStatements(authReqDTO, samlAssertion);
 
-            if (authReqDTO.getDoSignAssertions()) {
-                SAMLSSOUtil.setSignature(samlAssertion, authReqDTO.getSigningAlgorithmUri(), authReqDTO
-                        .getDigestAlgorithmUri(), new SignKeyDataHolder(authReqDTO.getUser()
-                        .getAuthenticatedSubjectIdentifier()));
-            }
+            this.setConditions(authReqDTO, currentTime, notOnOrAfter, samlAssertion);
+
+            this.setSignature(authReqDTO, samlAssertion);
 
             return samlAssertion;
+
         } catch (Exception e) {
             log.error("Error when reading claim values for generating SAML Response", e);
             throw IdentityException.error(
                     "Error when reading claim values for generating SAML Response", e);
         }
     }
+    protected void setBasicInfo(Assertion samlAssertion, DateTime currentTime)throws IdentityException{
+        samlAssertion.setID(SAMLSSOUtil.createID());
+        samlAssertion.setVersion(SAMLVersion.VERSION_20);
+        samlAssertion.setIssuer(SAMLSSOUtil.getIssuer());
+        samlAssertion.setIssueInstant(currentTime);
+    }
 
-    private AttributeStatement buildAttributeStatement(Map<String, String> claims) {
+    protected  void setNameId(SAMLSSOAuthnReqDTO authReqDTO, Subject subject){
+        NameID nameId = new NameIDBuilder().buildObject();
+
+        nameId.setValue(authReqDTO.getUser().getAuthenticatedSubjectIdentifier());
+        if (authReqDTO.getNameIDFormat() != null) {
+            nameId.setFormat(authReqDTO.getNameIDFormat());
+        } else {
+            nameId.setFormat(NameIdentifier.EMAIL);
+        }
+        subject.setNameID(nameId);
+    }
+
+    protected void addSubjectConfirmation(SAMLSSOAuthnReqDTO authReqDTO, DateTime notOnOrAfter, Subject subject ){
+        SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder()
+                .buildObject();
+        subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
+        SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
+        scData.setRecipient(authReqDTO.getAssertionConsumerURL());
+        scData.setNotOnOrAfter(notOnOrAfter);
+        if (!authReqDTO.isIdPInitSSOEnabled()) {
+            scData.setInResponseTo(authReqDTO.getId());
+        }
+        subjectConfirmation.setSubjectConfirmationData(scData);
+        subject.getSubjectConfirmations().add(subjectConfirmation);
+
+        if (authReqDTO.getRequestedRecipients() != null && authReqDTO.getRequestedRecipients().length > 0) {
+            for (String recipient : authReqDTO.getRequestedRecipients()) {
+                subjectConfirmation = new SubjectConfirmationBuilder()
+                        .buildObject();
+                subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
+                scData = new SubjectConfirmationDataBuilder().buildObject();
+                scData.setRecipient(recipient);
+                scData.setNotOnOrAfter(notOnOrAfter);
+                if (!authReqDTO.isIdPInitSSOEnabled()) {
+                    scData.setInResponseTo(authReqDTO.getId());
+                }
+                subjectConfirmation.setSubjectConfirmationData(scData);
+                subject.getSubjectConfirmations().add(subjectConfirmation);
+            }
+        }
+    }
+
+    protected void setSubject (SAMLSSOAuthnReqDTO authReqDTO, DateTime notOnOrAfter, Assertion samlAssertion){
+        Subject subject = new SubjectBuilder().buildObject();
+
+        this.setNameId(authReqDTO, subject);
+
+        this.addSubjectConfirmation(authReqDTO,notOnOrAfter,subject);
+
+        samlAssertion.setSubject(subject);
+    }
+
+
+    protected void setSignature(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion) throws IdentityException{
+        if (authReqDTO.getDoSignAssertions()) {
+            SAMLSSOUtil.setSignature(samlAssertion, authReqDTO.getSigningAlgorithmUri(), authReqDTO
+                    .getDigestAlgorithmUri(), new SignKeyDataHolder(authReqDTO.getUser()
+                    .getAuthenticatedSubjectIdentifier()));
+        }
+    }
+
+    protected void setConditions(SAMLSSOAuthnReqDTO authReqDTO,  DateTime currentTime, DateTime notOnOrAfter,  Assertion samlAssertion) {
+        AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
+                .buildObject();
+        Audience issuerAudience = new AudienceBuilder().buildObject();
+        issuerAudience.setAudienceURI(authReqDTO.getIssuerWithDomain());
+        audienceRestriction.getAudiences().add(issuerAudience);
+        if (authReqDTO.getRequestedAudiences() != null) {
+            for (String requestedAudience : authReqDTO.getRequestedAudiences()) {
+                Audience audience = new AudienceBuilder().buildObject();
+                audience.setAudienceURI(requestedAudience);
+                audienceRestriction.getAudiences().add(audience);
+            }
+        }
+        Conditions conditions = new ConditionsBuilder().buildObject();
+        conditions.setNotBefore(currentTime);
+        conditions.setNotOnOrAfter(notOnOrAfter);
+        conditions.getAudienceRestrictions().add(audienceRestriction);
+
+        samlAssertion.setConditions(conditions);
+    }
+
+    protected void addAttributeStatements(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion) throws IdentityException{
+        Map<String, String> claims = SAMLSSOUtil.getAttributes(authReqDTO);
+        if (claims != null && !claims.isEmpty()) {
+            AttributeStatement attrStmt = buildAttributeStatement(claims);
+            if (attrStmt != null) {
+                samlAssertion.getAttributeStatements().add(attrStmt);
+            }
+        }
+    }
+
+    protected void addAuthStatement(SAMLSSOAuthnReqDTO authReqDTO, String sessionId, Assertion samlAssertion) {
+        AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
+        authStmt.setAuthnInstant(new DateTime());
+        AuthnContext authContext = new AuthnContextBuilder().buildObject();
+        AuthnContextClassRef authCtxClassRef = new AuthnContextClassRefBuilder().buildObject();
+        authCtxClassRef.setAuthnContextClassRef(AuthnContext.PASSWORD_AUTHN_CTX);
+        authContext.setAuthnContextClassRef(authCtxClassRef);
+        authStmt.setAuthnContext(authContext);
+        if (authReqDTO.isDoSingleLogout()) {
+            authStmt.setSessionIndex(sessionId);
+        }
+        samlAssertion.getAuthnStatements().add(authStmt);
+    }
+
+    protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
 
         String claimSeparator = claims.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         if (StringUtils.isNotBlank(claimSeparator)) {
