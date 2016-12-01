@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.identity.sso.saml.logout.LogoutRequestSender;
+import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -741,6 +742,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSession(sessionDTO.getSessionId(), validationResponseDTO.getIssuer());
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
+            if ( SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
+                // remove tokenId Cookie when there is no session available.
+                removeTokenIdCookie(request, response);
+            }
+
             if (validationResponseDTO.isIdPInitSLO()) {
                 // redirecting to the return URL or IS logout page
                 response.sendRedirect(validationResponseDTO.getReturnToURL());
@@ -828,6 +834,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("SSO tokenId Cookie is removed");
+                    }
                     cookie.setMaxAge(0);
                     resp.addCookie(cookie);
                     break;
