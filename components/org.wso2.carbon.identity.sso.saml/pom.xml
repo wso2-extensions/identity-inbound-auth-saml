@@ -125,8 +125,11 @@
                             org.apache.xerces.impl; resolution:= optional,
                             org.owasp.encoder,
                             org.wso2.carbon.base.api,
+<<<<<<< HEAD
+=======
                             org.wso2.carbon.identity.sp.metadata.saml2.Exception,
                             org.wso2.carbon.identity.sp.metadata.saml2.util,
+>>>>>>> 7f87e03fd4dd377c63c6e610117a66abc05f3e5a
                             org.wso2.carbon.identity.core.model,
                             org.wso2.carbon.idp.mgt.util,
                             javax.crypto,
@@ -205,7 +208,9 @@
                             org.wso2.carbon.user.core.service,
                             org.wso2.carbon.user.core.tenant,
                             org.wso2.carbon.utils,
-                            org.wso2.carbon.utils.multitenancy
+                            org.wso2.carbon.utils.multitenancy,
+                            org.wso2.carbon.identity.sp.metadata.saml2.Exception,
+                            org.wso2.carbon.identity.sp.metadata.saml2.util,
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,

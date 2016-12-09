@@ -90,7 +90,7 @@ public class SAMLSSOConfigAdmin {
      * @throws java.security.cert.CertificateException,java.lang.Exception
      */
 
-    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws CertificateException, Exception {
+    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws java.security.cert.CertificateException, java.lang.Exception {
 
         UserRegistry userRegistry = (UserRegistry) registry;
 
@@ -113,6 +113,21 @@ public class SAMLSSOConfigAdmin {
         IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
         Parser parser = new Parser(registry);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        //pass metadarta to samlSSOServiceProvider object
+        try {
+
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException ex) {
+            throw IdentityException.error("Error parsing SP metadata", ex);
+        }
+        try {
+            //save certificate
+            this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+        } catch (java.security.cert.CertificateException ex) {
+            log.error("Error While setting Certificate and alias", ex);
+        } catch (java.lang.Exception ex) {
+            log.error("Error While setting Certificate and alias", ex);
+        }
 
         try {
             //pass metadata to samlSSOServiceProvider object
@@ -126,8 +141,9 @@ public class SAMLSSOConfigAdmin {
             this.saveCertificateToKeyStore(samlssoServiceProviderDO);
         } catch (CertificateException e) {
             log.error("Error While setting Certificate and alias", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Error While setting Certificate and alias", e);
+
         }
 
         try {
@@ -141,6 +157,7 @@ public class SAMLSSOConfigAdmin {
         } catch (IdentityException e) {
             throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
         }
+
     }
 
     private SAMLSSOServiceProviderDO createSAMLSSOServiceProviderDO(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
