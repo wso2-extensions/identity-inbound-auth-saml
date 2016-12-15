@@ -25,12 +25,4 @@
             <Class>org.wso2.carbon.identity.sso.saml.ui.client.SamlSPMetadataUploadExecutor</Class>
         </Mapping>
     </FileUploadConfig>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>Attribute Query</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/attributequery</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
-
 </component>
