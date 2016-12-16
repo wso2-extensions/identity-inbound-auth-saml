@@ -43,6 +43,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String[] requestedAudiences;
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
+    private boolean enableAttributeQueryProfile;
     private boolean enableAttributesByDefault;
     private String nameIdClaimUri;
     private String nameIDFormat;
@@ -311,6 +312,14 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setSloRequestURL(String sloRequestURL) {
         this.sloRequestURL = sloRequestURL;
+    }
+
+    public boolean getDoenEableAttributeQueryProfile() {
+        return enableAttributeQueryProfile;
+    }
+
+    public void setDoenEableAttributeQueryProfile(boolean enableAttributeQueryProfile) {
+        this.enableAttributeQueryProfile = enableAttributeQueryProfile;
     }
 
     public boolean isIdPInitSLOEnabled() {

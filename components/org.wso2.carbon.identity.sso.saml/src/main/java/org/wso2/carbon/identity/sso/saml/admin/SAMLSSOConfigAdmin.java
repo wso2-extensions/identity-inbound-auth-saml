@@ -170,6 +170,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setNameIdClaimUri(serviceProviderDTO.getNameIdClaimUri());
         serviceProviderDO.setSigningAlgorithmUri(serviceProviderDTO.getSigningAlgorithmURI());
         serviceProviderDO.setDigestAlgorithmUri(serviceProviderDTO.getDigestAlgorithmURI());
+        serviceProviderDO.setDoenEableAttributeQueryProfile(serviceProviderDTO.getDoenEableAttributeQueryProfile());
 
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -293,6 +294,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
                 providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
+                providerDTO.setDoenEableAttributeQueryProfile(providerDO.getDoenEableAttributeQueryProfile());
 
                 if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
                     providerDTO.setLoginPageURL("");

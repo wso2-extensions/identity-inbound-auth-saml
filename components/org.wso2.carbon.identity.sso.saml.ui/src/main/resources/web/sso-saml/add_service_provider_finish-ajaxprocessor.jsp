@@ -100,6 +100,9 @@
             serviceProviderDTO.setDoSignResponse(true);
         }
 
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.SAML_SSO_ENABLE_ATTRIBUTE_PROFILE))) {
+            serviceProviderDTO.setDoenEableAttributeQueryProfile(true);
+        }
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_SIGNATURE))) {
             serviceProviderDTO.setDoSignAssertions(true);
