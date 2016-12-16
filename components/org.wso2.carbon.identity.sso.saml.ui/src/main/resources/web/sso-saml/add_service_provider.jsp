@@ -1136,6 +1136,27 @@
                                 </tr>
                                 <%}%>
 
+                                <!-- Enable Attribute Query Profile -->
+                                <% if (isEditSP && provider.getDoenEableAttributeQueryProfile()) {
+                                %>
+                                <tr>
+                                    <td colspan="2">
+                                        <input type="checkbox" id="enableAttributeQueryProfile"
+                                               name="enableAttributeQueryProfile" value="true" checked="checked"/>
+                                        <fmt:message
+                                                key='sp.enable.attribute.query.profile'/>
+                                    </td>
+                                </tr>
+                                <% } else {%>
+                                <tr>
+                                    <td colspan="2">
+                                        <input type="checkbox" id="enableAttributeQueryProfile"
+                                               name="enableAttributeQueryProfile" value="true"/>
+                                        <fmt:message
+                                                key='sp.enable.attribute.query.profile'/>
+                                    </td>
+                                </tr>
+                                <%}%>
 
                                 <!-- EnableSingleLogout -->
                                 <tr>

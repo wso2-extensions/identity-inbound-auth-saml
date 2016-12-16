@@ -51,6 +51,7 @@ public class SAMLSSOUIConstants {
 
     public static final String SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+    public static final String SAML_SSO_ENABLE_ATTRIBUTE_PROFILE = "enableAttributeQueryProfile";
 
     private SAMLSSOUIConstants() {
     }
