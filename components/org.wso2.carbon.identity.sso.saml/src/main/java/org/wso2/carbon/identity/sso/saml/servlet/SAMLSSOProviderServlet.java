@@ -1042,7 +1042,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
 
         CommonAuthRequestWrapper requestWrapper = new CommonAuthRequestWrapper(request);
-        requestWrapper.setParameter(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
+        requestWrapper.setParameter(FrameworkConstants.SESSION_DATA_KEY, URLEncoder.encode(sessionDataKey,"UTF-8"));
         requestWrapper.setParameter(FrameworkConstants.RequestParams.TYPE, type);
 
         CommonAuthResponseWrapper responseWrapper = new CommonAuthResponseWrapper(response);
