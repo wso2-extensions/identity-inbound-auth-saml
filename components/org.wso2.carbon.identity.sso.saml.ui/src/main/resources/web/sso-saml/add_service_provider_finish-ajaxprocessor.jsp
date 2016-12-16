@@ -100,6 +100,13 @@
             serviceProviderDTO.setDoSignResponse(true);
         }
 
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_QUERY_REQUEST_PROFILE))) {
+            serviceProviderDTO.setAssertionQueryRequestProfileEnabled(true);
+        }
+
+        if (request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) != null) {
+            serviceProviderDTO.setSupportedAssertionQueryRequestTypes(request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
+        }
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_SIGNATURE))) {
             serviceProviderDTO.setDoSignAssertions(true);

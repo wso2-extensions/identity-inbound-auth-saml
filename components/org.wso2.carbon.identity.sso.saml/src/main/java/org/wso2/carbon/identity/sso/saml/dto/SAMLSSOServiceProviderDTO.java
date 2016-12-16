@@ -43,6 +43,8 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String[] requestedAudiences;
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
+    private boolean isAssertionQueryRequestProfileEnabled;
+    private String supportedAssertionQueryRequestTypes;
     private boolean enableAttributesByDefault;
     private String nameIdClaimUri;
     private String nameIDFormat;
@@ -101,6 +103,22 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setEnableAttributeProfile(boolean enableAttributeProfile) {
         this.enableAttributeProfile = enableAttributeProfile;
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    }
+
+    public String getSupportedAssertionQueryRequestTypes() {
+        return supportedAssertionQueryRequestTypes;
+    }
+
+    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
+        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
     }
 
     public boolean isEnableAttributesByDefault() {
