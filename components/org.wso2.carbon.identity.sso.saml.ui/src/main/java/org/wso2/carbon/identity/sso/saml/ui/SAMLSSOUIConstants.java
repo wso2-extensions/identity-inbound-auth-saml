@@ -51,6 +51,8 @@ public class SAMLSSOUIConstants {
 
     public static final String SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+    public static final String ENABLE_ASSERTION_QUERY_REQUEST_PROFILE = "enableAssertionQueryRequestProfile";
+    public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "supportedAssertionQueryRequestTypes";
 
     private SAMLSSOUIConstants() {
     }

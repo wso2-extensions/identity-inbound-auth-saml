@@ -170,6 +170,9 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setNameIdClaimUri(serviceProviderDTO.getNameIdClaimUri());
         serviceProviderDO.setSigningAlgorithmUri(serviceProviderDTO.getSigningAlgorithmURI());
         serviceProviderDO.setDigestAlgorithmUri(serviceProviderDTO.getDigestAlgorithmURI());
+        serviceProviderDO.setAssertionQueryRequestProfileEnabled(serviceProviderDTO
+                .isAssertionQueryRequestProfileEnabled());
+        serviceProviderDO.setSupportedAssertionQueryRequestTypes(serviceProviderDTO.getSupportedAssertionQueryRequestTypes());
 
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -293,6 +296,8 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
                 providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
+                providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
+                providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
 
                 if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
                     providerDTO.setLoginPageURL("");

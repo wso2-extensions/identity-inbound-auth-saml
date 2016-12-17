@@ -1136,7 +1136,6 @@
                                 </tr>
                                 <%}%>
 
-
                                 <!-- EnableSingleLogout -->
                                 <tr>
                                     <td colspan="2"><input type="checkbox"
@@ -1616,6 +1615,28 @@
                                 <%
                                     }
                                 %>
+
+                                <tr><td></td></tr>
+
+                                <!-- Enable Attribute Query Profile -->
+                                <% if (isEditSP && provider.isAssertionQueryRequestProfileEnabledSpecified()) {
+                                %>
+                                <tr>
+                                    <td colspan="2">
+                                        <input type="checkbox" id="enableAssertionQueryRequestProfile"
+                                               name="enableAssertionQueryRequestProfile" value="true" checked="checked"/>
+                                        <fmt:message key='sp.enable.assertion.query.request.profile'/>
+                                    </td>
+                                </tr>
+                                <% } else {%>
+                                <tr>
+                                    <td colspan="2">
+                                        <input type="checkbox" id="enableAssertionQueryRequestProfile"
+                                               name="enableAssertionQueryRequestProfile" value="true"/>
+                                        <fmt:message key='sp.enable.assertion.query.request.profile'/>
+                                    </td>
+                                </tr>
+                                <%}%>
 
                             </table>
                         </td>
