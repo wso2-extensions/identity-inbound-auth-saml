@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.List;
 
@@ -88,7 +89,7 @@ public class SAMLSubjectQueryValidator extends AbstractSAMLQueryValidator {
                         getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).
                         getUserStoreManager();
                 String user = subject.getNameID().getValue();
-                if (userStoreManager.isExistingUser(user)) {
+                if (userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(user))) {
                     log.debug("Request with id:" + subjectQuery.getID() + " contain valid subject");
                     isValidsubject = true;
                 } else {

@@ -25,6 +25,7 @@ import org.opensaml.saml.saml2.core.AssertionIDRef;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.query.saml.QueryResponseBuilder;
@@ -58,7 +59,7 @@ public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
         Response response = null;
         try {
             String issuer = getIssuer(request);
-            String tenantDomain = getTenantDomain(request);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             AssertionIDRequest assertionIDRequest = (AssertionIDRequest) request;
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
             List<AssertionIDRef> assertionIDRefs = assertionIDRequest.getAssertionIDRefs();
