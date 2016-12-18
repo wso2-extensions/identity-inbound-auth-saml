@@ -43,6 +43,7 @@ public class SAMLQueryRequestConstants {
         public static final String STRING_TO_OMELEMENT = "String convert to OMElement";
         public static final String NULL_OMELEMENT = "OMElement is null";
         public static final String VAL_VALIDATION_ERROR = "Validation error";
+        public static final String VAL_PROFILE_ENABLED = "Checking Assertion Query/Request profile enabled";
     }
 
     /**
@@ -66,6 +67,7 @@ public class SAMLQueryRequestConstants {
                 " authncontextclassref";
         public static final String STRING_TO_OMELEMENT_ERROR = "Unable to convert String to OMElement";
         public static final String NULL_OMELEMENT_ERROR = "OMElement is null after converting from String";
+        public static final String VAL_PROFILE_ENABLED_ERROR = "Assertion Query/Request profile not enabled";
 
     }
 
