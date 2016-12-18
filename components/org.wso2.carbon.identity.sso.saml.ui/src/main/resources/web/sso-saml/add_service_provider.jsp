@@ -1619,7 +1619,8 @@
                                 <tr><td></td></tr>
 
                                 <!-- Enable Attribute Query Profile -->
-                                <% if (isEditSP && provider.isAssertionQueryRequestProfileEnabledSpecified()) {
+                                <% if (isEditSP && provider.isAssertionQueryRequestProfileEnabledSpecified() &&
+                                        provider.getAssertionQueryRequestProfileEnabled()) {
                                 %>
                                 <tr>
                                     <td colspan="2">
