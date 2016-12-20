@@ -192,7 +192,6 @@
                             org.wso2.carbon.identity.application.common.cache,
                             org.wso2.carbon.identity.application.common.model,
                             org.wso2.carbon.identity.application.common.util,
-                            org.wso2.carbon.identity.base.xsd,
                             org.wso2.carbon.identity.core,
                             org.wso2.carbon.identity.core.dao,
                             org.wso2.carbon.identity.core.persistence,
