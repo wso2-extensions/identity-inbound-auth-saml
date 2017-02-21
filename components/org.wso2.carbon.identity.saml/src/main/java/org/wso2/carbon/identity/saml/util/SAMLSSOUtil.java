@@ -794,7 +794,7 @@ public class SAMLSSOUtil {
     /**
      * Return a Array of Claims containing requested attributes and values
      *
-     * @param context
+     * @param authenticationContext
      * @return Map with attributes and values
      * @throws IdentityException
      */
@@ -854,7 +854,7 @@ public class SAMLSSOUtil {
 
         aggregatedClaims = SAMLInboundServiceDataHolder.getInstance()
                 .getGatewayClaimResolverService().transformToOtherDialect(aggregatedClaims, dialect, Optional
-                        .of(profileName));
+                        .ofNullable(profileName));
 
         aggregatedClaims.stream().forEach(claim -> claimsMap.put(claim.getClaimUri(), claim.getValue()));
         return claimsMap;
