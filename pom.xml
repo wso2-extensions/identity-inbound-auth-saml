@@ -28,7 +28,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>6.0.0.SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -142,7 +142,7 @@
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
         <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}
         </identity.inbound.auth.saml.exp.version>
-        <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
+        <carbon.identity.commons.version>0.1.20</carbon.identity.commons.version>
         <carbon.identity.gateway.version>1.0.0-SNAPSHOT</carbon.identity.gateway.version>
 
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>

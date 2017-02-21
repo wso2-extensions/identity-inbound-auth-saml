@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
-        <version>6.0.0.SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -82,8 +82,8 @@
         <import.package>
             org.osgi.framework.*;version="[1.8.0, 2.0.0)",
             org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
-            org.apache.xml.security.utils.*,
-            org.apache.xerces.util.*
+            org.apache.xerces.util.*,
+            org.apache.commons.ssl.*,
         </import.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
