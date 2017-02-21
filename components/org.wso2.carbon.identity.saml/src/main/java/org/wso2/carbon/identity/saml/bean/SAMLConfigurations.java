@@ -6,7 +6,8 @@ import java.util.List;
 
 public class SAMLConfigurations {
 
-    private String keyStoreLocation = System.getProperty("carbon.home") + File.separator + "security" + File
+    private String keyStoreLocation = System.getProperty("carbon.home")+ File.separator + "resources" + File.separator +
+                                      "security" + File
             .separator + "wso2carbon.jks";;
     private String keyStoreType = "JKS";
     private String keyStorePassword = "wso2carbon";
