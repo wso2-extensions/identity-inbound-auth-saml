@@ -23,8 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
@@ -41,9 +41,9 @@ public class SPInitSAMLValidator extends SAMLValidator {
 
     @Override
     public boolean canHandle(MessageContext messageContext) {
-        if (messageContext instanceof IdentityMessageContext) {
-            IdentityMessageContext identityMessageContext = (IdentityMessageContext) messageContext;
-            if (identityMessageContext.getIdentityRequest() instanceof SAMLSpInitRequest) {
+        if (messageContext instanceof GatewayMessageContext) {
+            GatewayMessageContext gatewayMessageContext = (GatewayMessageContext) messageContext;
+            if (gatewayMessageContext.getIdentityRequest() instanceof SAMLSpInitRequest) {
                 return true;
             }
         }

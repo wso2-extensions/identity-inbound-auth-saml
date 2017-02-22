@@ -15,7 +15,7 @@ import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;

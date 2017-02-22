@@ -21,29 +21,33 @@ package org.wso2.carbon.identity.saml.request;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
+import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.exception.SAML2ClientException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.msf4j.Request;
 
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
+public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLIdentityRequestFactory.class);
+    private static Logger log = LoggerFactory.getLogger(SAMLIdentityRequestBuilderFactory.class);
 
     @Override
     public String getName() {
-        return "SAMLIdentityRequestFactory";
+        return "SAMLIdentityRequestBuilderFactory";
     }
 
     @Override
@@ -63,27 +67,27 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
     }
 
     @Override
-    public IdentityRequest.IdentityRequestBuilder create(Request request) throws FrameworkClientException {
+    public GatewayRequest.IdentityRequestBuilder create(Request request) throws GatewayClientException {
 
         String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
         String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
         String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
-        IdentityRequest.IdentityRequestBuilder builder = null;
+        GatewayRequest.IdentityRequestBuilder builder = null;
         if (spEntityID != null || slo != null) {
             builder = new SAMLIdpInitRequest.SAMLIdpInitRequestBuilder();
         } else if (samlRequest != null) {
             builder = new SAMLSpInitRequest.SAMLSpInitRequestBuilder
                     (request);
         } else {
-            throw new FrameworkClientException("Invalid request message or single logout message");
+            throw new GatewayClientException("Invalid request message or single logout message");
         }
         super.create(builder, request);
         return builder;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception) {
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        javax.ws.rs.core.Response.ResponseBuilder builder = javax.ws.rs.core.Response.noContent();
         String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
         Map<String, String[]> queryParams = new HashMap();
         //TODO Send status codes rather than full messages in the GET request
@@ -100,14 +104,25 @@ public class SAMLIdentityRequestFactory extends HttpIdentityRequestFactory {
                 queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode((
                         (SAML2ClientException) exception).getACSUrl(), StandardCharsets.UTF_8.name())});
             }
-            builder.setParameters(queryParams);
+            //builder.setParameters(queryParams);
         } catch (UnsupportedEncodingException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while encoding query parameters.", e);
             }
         }
-        builder.setRedirectURL(redirectURL);
-        builder.setStatusCode(301);
+
+        String httpQueryString = Utils.buildQueryString(queryParams);
+        if (redirectURL.indexOf("?") > -1) {
+            redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
+        } else {
+            redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
+        }
+        try {
+            builder.location(new URI(redirectURL));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        builder.status(301);
         return builder;
     }
 }

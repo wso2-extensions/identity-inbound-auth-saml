@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.saml.exception;
 
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
-public class SAML2Exception extends FrameworkServerException {
+public class SAML2Exception extends GatewayServerException {
     public SAML2Exception(String message) {
         super(message);
     }

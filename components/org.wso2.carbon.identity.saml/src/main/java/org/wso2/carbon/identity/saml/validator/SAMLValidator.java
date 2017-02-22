@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.saml.validator;
 
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandler
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLIdentityRequest;
+import org.wso2.carbon.identity.saml.request.SAMLGatewayRequest;
 
 import java.util.Properties;
 
@@ -33,7 +33,7 @@ public abstract class SAMLValidator extends AbstractRequestHandler {
 
     @Override
     public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws RequestHandlerException {
-        SAMLMessageContext samlMessageContext = new SAMLMessageContext((SAMLIdentityRequest)authenticationContext
+        SAMLMessageContext samlMessageContext = new SAMLMessageContext((SAMLGatewayRequest)authenticationContext
                 .getIdentityRequest(), null);
         authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, samlMessageContext);
         return FrameworkHandlerResponse.CONTINUE;

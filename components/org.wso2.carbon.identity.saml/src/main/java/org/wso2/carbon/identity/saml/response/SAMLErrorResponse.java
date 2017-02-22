@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.saml.response;
 
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 public class SAMLErrorResponse extends SAMLResponse {
 
@@ -28,7 +27,7 @@ public class SAMLErrorResponse extends SAMLResponse {
     private String status;
     private String messageLog;
 
-    public SAMLErrorResponse(IdentityResponse.IdentityResponseBuilder responsebuilder) {
+    public SAMLErrorResponse(GatewayResponseBuilder responsebuilder) {
 
         super(responsebuilder);
         this.errorResponse = ((SAMLErrorResponseBuilder) responsebuilder).errorResponse;
@@ -60,7 +59,7 @@ public class SAMLErrorResponse extends SAMLResponse {
         private String status;
         private String messageLog;
 
-        public SAMLErrorResponseBuilder(IdentityMessageContext context) {
+        public SAMLErrorResponseBuilder(GatewayMessageContext context) {
             super(context);
         }
 

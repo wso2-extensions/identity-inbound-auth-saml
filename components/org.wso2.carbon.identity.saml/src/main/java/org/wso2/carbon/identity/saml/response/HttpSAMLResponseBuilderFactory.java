@@ -22,59 +22,106 @@ import org.apache.commons.lang.StringUtils;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
+import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
+public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(HttpSAMLResponseFactory.class);
+    private static Logger log = LoggerFactory.getLogger(HttpSAMLResponseBuilderFactory.class);
 
     @Override
     public String getName() {
-        return "HttpSAMLResponseFactory";
+        return "HttpSAMLResponseBuilderFactory";
     }
 
     @Override
-    public boolean canHandle(IdentityResponse identityResponse) {
-        if (identityResponse instanceof SAMLLoginResponse || identityResponse instanceof SAMLErrorResponse) {
+    public boolean canHandle(GatewayResponse gatewayResponse) {
+        if (gatewayResponse instanceof SAMLLoginResponse || gatewayResponse instanceof SAMLErrorResponse) {
             return true;
         }
         return false;
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
+    public HttpGatewayResponse.HttpIdentityResponseBuilder create(GatewayResponse gatewayResponse) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        create(builder, identityResponse);
+        HttpGatewayResponse.HttpIdentityResponseBuilder builder = new HttpGatewayResponse.HttpIdentityResponseBuilder();
+        create(builder, gatewayResponse);
         return builder;
 //
     }
 
     @Override
-    public void create(HttpIdentityResponse.HttpIdentityResponseBuilder builder,
-                                                                   IdentityResponse identityResponse) {
-        super.create(builder, identityResponse);
-        if (identityResponse instanceof SAMLLoginResponse) {
-            sendResponse(builder, identityResponse);
+    public void create(HttpGatewayResponse.HttpIdentityResponseBuilder builder,
+                                                                   GatewayResponse gatewayResponse) {
+        super.create(builder, gatewayResponse);
+        if (gatewayResponse instanceof SAMLLoginResponse) {
+            sendResponse(builder, gatewayResponse);
         } else {
-            sendNotification(builder, identityResponse);
+            sendNotification(builder, gatewayResponse);
         }
     }
 
-    private void sendResponse(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse
-            identityResponse) {
-        SAMLLoginResponse loginResponse = ((SAMLLoginResponse) identityResponse);
+
+    public Response.ResponseBuilder createBuilder(GatewayResponse gatewayResponse) {
+        Response.ResponseBuilder builder = Response.noContent();
+        createBuilder(builder, gatewayResponse);
+        return builder;
+    }
+
+    public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
+        super.createBuilder(builder, gatewayResponse);
+        if (gatewayResponse instanceof SAMLLoginResponse) {
+            sendResponse(builder, gatewayResponse);
+        } else {
+            sendNotification(builder, gatewayResponse);
+        }
+    }
+
+    private void sendResponse(Response.ResponseBuilder builder, GatewayResponse
+            gatewayResponse) {
+
+            SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
+
+            String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
+            String relayState = loginResponse.getRelayState();
+            String acUrl = loginResponse.getAcsUrl();
+
+            //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
+            builder.type(MediaType.TEXT_HTML);
+
+            if (SAMLConfigurations.getInstance().getSsoResponseHtml() != null) {
+                builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+            } else {
+                builder.entity(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+            }
+            builder.status(200);
+
+    }
+
+
+
+    private void sendResponse(HttpGatewayResponse.HttpIdentityResponseBuilder builder, GatewayResponse
+            gatewayResponse) {
+        SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
 
         String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
         String relayState = loginResponse.getRelayState();
@@ -151,9 +198,9 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         return out.toString();
     }
 
-    private void sendNotification(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse
-                                  identityResponse) {
-        SAMLErrorResponse errorResponse = ((SAMLErrorResponse) identityResponse);
+    private void sendNotification(HttpGatewayResponse.HttpIdentityResponseBuilder builder, GatewayResponse
+            gatewayResponse) {
+        SAMLErrorResponse errorResponse = ((SAMLErrorResponse) gatewayResponse);
         String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
         Map<String, String[]> queryParams = new HashMap();
 
@@ -179,6 +226,48 @@ public class HttpSAMLResponseFactory extends HttpIdentityResponseFactory {
         builder.setStatusCode(302);
         builder.setParameters(queryParams);
         builder.setRedirectURL(redirectURL);
+    }
+
+    private void sendNotification(Response.ResponseBuilder builder, GatewayResponse
+            gatewayResponse) {
+        try {
+            SAMLErrorResponse errorResponse = ((SAMLErrorResponse) gatewayResponse);
+            String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
+            Map<String, String[]> queryParams = new HashMap();
+
+            //TODO Send status codes rather than full messages in the GET request
+            try {
+                queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(errorResponse.getStatus(),
+                                                                                        StandardCharsets.UTF_8.name())});
+                queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(errorResponse.getMessageLog()
+                        , StandardCharsets.UTF_8.name())});
+
+                if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
+                    queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(errorResponse
+                                                                                                       .getErrorResponse(), StandardCharsets.UTF_8.name())});
+                }
+
+                if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
+                    queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode(errorResponse
+                                                                                                                 .getAcsUrl(), StandardCharsets.UTF_8.name())});
+                }
+            } catch (UnsupportedEncodingException e) {
+
+            }
+            builder.status(302);
+            //builder.setParameters(queryParams);
+            String httpQueryString = Utils.buildQueryString(queryParams);
+            if (redirectURL.indexOf("?") > -1) {
+                redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
+            } else {
+                redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
+            }
+            builder.location(new URI(redirectURL));
+
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

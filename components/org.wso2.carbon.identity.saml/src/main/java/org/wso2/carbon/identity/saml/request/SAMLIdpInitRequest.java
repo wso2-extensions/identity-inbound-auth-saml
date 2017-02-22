@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.msf4j.Request;
 
-public class SAMLIdpInitRequest extends SAMLIdentityRequest {
+public class SAMLIdpInitRequest extends SAMLGatewayRequest {
     public SAMLIdpInitRequest(SAMLIdpInitRequestBuilder builder) {
         super(builder);
     }

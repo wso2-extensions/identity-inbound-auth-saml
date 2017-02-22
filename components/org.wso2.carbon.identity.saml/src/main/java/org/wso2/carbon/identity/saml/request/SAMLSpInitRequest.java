@@ -25,7 +25,7 @@ import org.wso2.msf4j.Request;
 
 import java.io.UnsupportedEncodingException;
 
-public class SAMLSpInitRequest extends SAMLIdentityRequest {
+public class SAMLSpInitRequest extends SAMLGatewayRequest {
 
     private static Logger log = LoggerFactory.getLogger(SAMLSpInitRequest.class);
 

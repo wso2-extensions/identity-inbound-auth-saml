@@ -11,12 +11,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-public class SAMLIdentityRequest extends ClientAuthenticationRequest {
+public class SAMLGatewayRequest extends ClientAuthenticationRequest {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLIdentityRequest.class);
+    private static Logger log = LoggerFactory.getLogger(SAMLGatewayRequest.class);
 
 
-    public SAMLIdentityRequest(SAMLIdentityRequestBuilder builder) {
+    public SAMLGatewayRequest(SAMLIdentityRequestBuilder builder) {
         super(builder);
     }
 

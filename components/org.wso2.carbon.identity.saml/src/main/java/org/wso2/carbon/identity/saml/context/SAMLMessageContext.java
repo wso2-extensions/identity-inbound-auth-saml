@@ -18,16 +18,16 @@
 
 package org.wso2.carbon.identity.saml.context;
 
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.saml.request.SAMLGatewayRequest;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
-import org.wso2.carbon.identity.saml.request.SAMLIdentityRequest;
 import org.wso2.carbon.identity.saml.request.SAMLIdpInitRequest;
 
 import java.io.Serializable;
 import java.util.Map;
 
-public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends IdentityMessageContext {
+public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends GatewayMessageContext {
 
     private static final long serialVersionUID = 104634801939285909L;
     /**
@@ -54,13 +54,13 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     private SAMLValidatorConfig samlValidatorConfig;
     private SAMLResponseHandlerConfig responseHandlerConfig;
 
-    public SAMLMessageContext(SAMLIdentityRequest request, Map<T1, T2> parameters) {
+    public SAMLMessageContext(SAMLGatewayRequest request, Map<T1, T2> parameters) {
         super(request, parameters);
     }
 
     @Override
-    public SAMLIdentityRequest getIdentityRequest() {
-        return (SAMLIdentityRequest) identityRequest;
+    public SAMLGatewayRequest getIdentityRequest() {
+        return (SAMLGatewayRequest) identityRequest;
     }
 
     public void setDestination(String destination) {

@@ -20,15 +20,15 @@ package org.wso2.carbon.identity.saml.response;
 
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
-public class SAMLResponse extends IdentityResponse {
+public class SAMLResponse extends GatewayResponse {
 
     private Response response;
 
-    protected SAMLResponse(IdentityResponseBuilder builder) {
+    protected SAMLResponse(GatewayResponseBuilder builder) {
         super(builder);
         this.response = ((SAMLResponseBuilder) builder).response;
     }
@@ -37,7 +37,7 @@ public class SAMLResponse extends IdentityResponse {
         return this.response;
     }
 
-    public static class SAMLResponseBuilder extends IdentityResponseBuilder {
+    public static class SAMLResponseBuilder extends GatewayResponseBuilder {
 
         private Response response;
 
@@ -46,7 +46,7 @@ public class SAMLResponse extends IdentityResponse {
             SAMLSSOUtil.doBootstrap();
         }
 
-        public SAMLResponseBuilder(IdentityMessageContext context) {
+        public SAMLResponseBuilder(GatewayMessageContext context) {
             super(context);
             ResponseBuilder responseBuilder = new ResponseBuilder();
             this.response = responseBuilder.buildObject();

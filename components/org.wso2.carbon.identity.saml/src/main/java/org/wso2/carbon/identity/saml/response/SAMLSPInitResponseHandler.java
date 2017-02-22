@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.saml.response;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
@@ -47,7 +47,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(null);
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setTenantDomain(samlMessageContext
                         .getTenantDomain());
-                response.setIdentityResponseBuilder(builder);
+                response.setGatewayResponseBuilder(builder);
             } catch (IdentityException ex) {
                 ex.printStackTrace();
             }
@@ -59,7 +59,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 //            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
 //                    (122, SAMLSSOConstants.StatusCodes
 //                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
-        response.setIdentityResponseBuilder(builder);
+        response.setGatewayResponseBuilder(builder);
         return response;
 
     }
@@ -102,14 +102,14 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 //            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
 //                    (122, SAMLSSOConstants.StatusCodes
 //                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
-            response.setIdentityResponseBuilder(builder);
+            response.setGatewayResponseBuilder(builder);
             return response;
         }
 
         if (log.isDebugEnabled()) {
             log.debug("Authentication successfully processed. The SAMLResponse is :" + respString);
         }
-        response.setIdentityResponseBuilder(builder);
+        response.setGatewayResponseBuilder(builder);
         return response;
     }
 

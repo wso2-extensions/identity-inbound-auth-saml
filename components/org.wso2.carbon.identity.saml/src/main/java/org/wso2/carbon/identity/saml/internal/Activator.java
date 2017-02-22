@@ -24,13 +24,13 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
-import org.wso2.carbon.identity.saml.request.SAMLIdentityRequestFactory;
-import org.wso2.carbon.identity.saml.response.HttpSAMLResponseFactory;
+import org.wso2.carbon.identity.saml.request.SAMLIdentityRequestBuilderFactory;
+import org.wso2.carbon.identity.saml.response.HttpSAMLResponseBuilderFactory;
 import org.wso2.carbon.identity.saml.response.SAMLIdpInitResponseHandler;
 import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
 import org.wso2.carbon.identity.saml.validator.IDPInitSAMLValidator;
@@ -47,8 +47,8 @@ public class Activator implements BundleActivator {
     @Activate
     public void start(BundleContext bundleContext) throws Exception {
         try {
-            bundleContext.registerService(HttpIdentityRequestFactory.class, new SAMLIdentityRequestFactory(), null);
-            bundleContext.registerService(HttpIdentityResponseFactory.class, new HttpSAMLResponseFactory(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLIdentityRequestBuilderFactory(), null);
+            bundleContext.registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);
 
             bundleContext.registerService(AbstractRequestHandler.class, new SPInitSAMLValidator(), null);
             bundleContext.registerService(AbstractRequestHandler.class, new IDPInitSAMLValidator(), null);
