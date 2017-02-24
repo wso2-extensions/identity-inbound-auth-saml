@@ -47,7 +47,7 @@ public class SAMLIdpInitRequest extends SAMLGatewayRequest {
         return StringUtils.isNotBlank(getSLO()) && StringUtils.equals(getSLO(), "true");
     }
 
-    public static class SAMLIdpInitRequestBuilder extends SAMLIdentityRequestBuilder {
+    public static class SAMLIdpInitRequestBuilder extends SAMLGatewayRequestBuilder {
         public SAMLIdpInitRequestBuilder(Request request) {
             super(request);
         }

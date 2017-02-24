@@ -21,38 +21,38 @@ package org.wso2.carbon.identity.saml.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 
-public class SAML2ClientException extends GatewayClientException {
+public class SAMLClientException extends GatewayClientException {
 
     private String acsUrl;
     private String exceptionStatus;
     private String exceptionMessage;
 
 
-    protected SAML2ClientException(String errorDesciption){
+    protected SAMLClientException(String errorDesciption){
         super(errorDesciption);
     }
 
-    protected SAML2ClientException(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl) {
+    protected SAMLClientException(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl) {
         super(errorDescription);
         this.exceptionMessage = exceptionMessage;
         this.exceptionStatus = exceptionStatus;
         this.acsUrl = acsUrl;
     }
 
-    protected SAML2ClientException(String errorDescription, Throwable cause) {
+    protected SAMLClientException(String errorDescription, Throwable cause) {
         super(errorDescription, cause);
     }
 
-    public static SAML2ClientException error(String errorDescription){
-        return new SAML2ClientException(errorDescription);
+    public static SAMLClientException error(String errorDescription){
+        return new SAMLClientException(errorDescription);
     }
 
-    public static SAML2ClientException error(String errorDescription, Throwable cause){
-        return new SAML2ClientException(errorDescription, cause);
+    public static SAMLClientException error(String errorDescription, Throwable cause){
+        return new SAMLClientException(errorDescription, cause);
     }
 
-    public static SAML2ClientException error(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl){
-        return new SAML2ClientException(errorDescription,exceptionStatus,exceptionMessage,acsUrl);
+    public static SAMLClientException error(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl){
+        return new SAMLClientException(errorDescription, exceptionStatus, exceptionMessage, acsUrl);
     }
 
     public String getACSUrl(){

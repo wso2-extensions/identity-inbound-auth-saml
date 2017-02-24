@@ -23,15 +23,15 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 /**
  * Exception implementation to be used inside SAML2 SSO Identity Provider impl.
  */
-public class IdentitySAML2SSOException extends IdentityException {
+public class SAMLServerException extends IdentityException {
 
     private static final long serialVersionUID = 7027553884968546755L;
 
-    public IdentitySAML2SSOException(String message) {
+    public SAMLServerException(String message) {
         super(message);
     }
 
-    public IdentitySAML2SSOException(String message, Throwable cause) {
+    public SAMLServerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -24,11 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.exception.SAML2ClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.msf4j.Request;
 
@@ -51,7 +50,7 @@ public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFact
     }
 
     @Override
-    public boolean canHandle(Request request) {
+    public boolean canHandle(Request request) throws GatewayClientException {
         String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
         String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
         String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
@@ -67,12 +66,12 @@ public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFact
     }
 
     @Override
-    public GatewayRequest.IdentityRequestBuilder create(Request request) throws GatewayClientException {
+    public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
         String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
         String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
         String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
-        GatewayRequest.IdentityRequestBuilder builder = null;
+        GatewayRequest.GatewayRequestBuilder builder = null;
         if (spEntityID != null || slo != null) {
             builder = new SAMLIdpInitRequest.SAMLIdpInitRequestBuilder();
         } else if (samlRequest != null) {
@@ -92,17 +91,17 @@ public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFact
         Map<String, String[]> queryParams = new HashMap();
         //TODO Send status codes rather than full messages in the GET request
         try {
-            queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(((SAML2ClientException)
+            queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(((SAMLClientException)
                     exception).getExceptionStatus(), StandardCharsets.UTF_8.name())});
-            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(((SAML2ClientException)
+            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(((SAMLClientException)
                     exception).getExceptionMessage(), StandardCharsets.UTF_8.name())});
             if (exception.getMessage() != null) {
                 queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(exception.getMessage()
                         , StandardCharsets.UTF_8.name())});
             }
-            if (((SAML2ClientException) exception).getACSUrl() != null) {
+            if (((SAMLClientException) exception).getACSUrl() != null) {
                 queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode((
-                        (SAML2ClientException) exception).getACSUrl(), StandardCharsets.UTF_8.name())});
+                        (SAMLClientException) exception).getACSUrl(), StandardCharsets.UTF_8.name())});
             }
             //builder.setParameters(queryParams);
         } catch (UnsupportedEncodingException e) {

@@ -16,7 +16,7 @@ public class SAMLGatewayRequest extends ClientAuthenticationRequest {
     private static Logger log = LoggerFactory.getLogger(SAMLGatewayRequest.class);
 
 
-    public SAMLGatewayRequest(SAMLIdentityRequestBuilder builder) {
+    public SAMLGatewayRequest(SAMLGatewayRequestBuilder builder) {
         super(builder);
     }
 
@@ -38,12 +38,12 @@ public class SAMLGatewayRequest extends ClientAuthenticationRequest {
         return null;
     }
 
-    public static class SAMLIdentityRequestBuilder extends ClientAuthenticationRequest.ClientAuthenticationRequestBuilder {
-        public SAMLIdentityRequestBuilder(Request request) {
+    public static class SAMLGatewayRequestBuilder extends ClientAuthenticationRequest.ClientAuthenticationRequestBuilder {
+        public SAMLGatewayRequestBuilder(Request request) {
             super();
         }
 
-        public SAMLIdentityRequestBuilder() {
+        public SAMLGatewayRequestBuilder() {
             super();
         }
     }

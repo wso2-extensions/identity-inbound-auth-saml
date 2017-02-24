@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAML2ClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.request.SAMLIdpInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
@@ -61,8 +61,8 @@ public class IdPInitSSOAuthnRequestValidator {
                 log.debug("spEntityID parameter not found in request");
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                    "spEntityID parameter not found in request", null));
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                                                                           "spEntityID parameter not found in request", null));
         }
 
         if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
@@ -74,7 +74,7 @@ public class IdPInitSSOAuthnRequestValidator {
                 log.debug(message);
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, message, null));
         }
 

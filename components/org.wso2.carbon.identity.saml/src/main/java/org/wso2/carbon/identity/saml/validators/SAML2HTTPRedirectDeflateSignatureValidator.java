@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
-import org.wso2.carbon.identity.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
@@ -194,11 +194,11 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * @param domainName
      * @return
      * @throws SecurityException
-     * @throws IdentitySAML2SSOException
+     * @throws SAMLServerException
      */
     public boolean validateSignature(SAMLSpInitRequest request, String issuer, String alias,
                                      String domainName) throws SecurityException,
-            IdentitySAML2SSOException {
+                                                               SAMLServerException {
 
         byte[] signature = getSignature(request.getSignature());
         byte[] signedContent = getSignedContent(request);

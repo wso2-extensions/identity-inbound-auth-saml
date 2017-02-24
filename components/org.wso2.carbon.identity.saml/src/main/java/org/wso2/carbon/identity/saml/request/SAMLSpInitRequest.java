@@ -78,7 +78,7 @@ public class SAMLSpInitRequest extends SAMLGatewayRequest {
         return null;
     }
 
-    public static class SAMLSpInitRequestBuilder extends SAMLIdentityRequestBuilder {
+    public static class SAMLSpInitRequestBuilder extends SAMLGatewayRequestBuilder {
         public SAMLSpInitRequestBuilder(Request request) {
             super(request);
         }

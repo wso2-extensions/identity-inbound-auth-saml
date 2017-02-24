@@ -3,7 +3,7 @@
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
+ *  in compliance with the License.SAML2SSORedirectRequestResponseBuilderFactory
  *  You may obtain a copy of the License at
  *
  *    http://www.apache.org/licenses/LICENSE-2.0
@@ -22,9 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
@@ -61,25 +61,9 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
     }
 
     @Override
-    public HttpGatewayResponse.HttpIdentityResponseBuilder create(GatewayResponse gatewayResponse) {
-
-        HttpGatewayResponse.HttpIdentityResponseBuilder builder = new HttpGatewayResponse.HttpIdentityResponseBuilder();
-        create(builder, gatewayResponse);
-        return builder;
-//
+    public boolean canHandle(GatewayServerException exception) {
+        return super.canHandle(exception);
     }
-
-    @Override
-    public void create(HttpGatewayResponse.HttpIdentityResponseBuilder builder,
-                                                                   GatewayResponse gatewayResponse) {
-        super.create(builder, gatewayResponse);
-        if (gatewayResponse instanceof SAMLLoginResponse) {
-            sendResponse(builder, gatewayResponse);
-        } else {
-            sendNotification(builder, gatewayResponse);
-        }
-    }
-
 
     public Response.ResponseBuilder createBuilder(GatewayResponse gatewayResponse) {
         Response.ResponseBuilder builder = Response.noContent();
@@ -119,22 +103,7 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
 
 
 
-    private void sendResponse(HttpGatewayResponse.HttpIdentityResponseBuilder builder, GatewayResponse
-            gatewayResponse) {
-        SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
 
-        String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
-        String relayState = loginResponse.getRelayState();
-        String acUrl = loginResponse.getAcsUrl();
-        builder.setRedirectURL(acUrl);
-        builder.setContentType("text/html");
-        if (SAMLConfigurations.getInstance().getSsoResponseHtml() != null) {
-            builder.setBody(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-        } else {
-            builder.setBody(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-        }
-        builder.setStatusCode(200);
-    }
 
     private String getRedirectHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
             loginResponse) {
@@ -196,36 +165,6 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
         out.append("</body>");
         out.append("</html>");
         return out.toString();
-    }
-
-    private void sendNotification(HttpGatewayResponse.HttpIdentityResponseBuilder builder, GatewayResponse
-            gatewayResponse) {
-        SAMLErrorResponse errorResponse = ((SAMLErrorResponse) gatewayResponse);
-        String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
-        Map<String, String[]> queryParams = new HashMap();
-
-        //TODO Send status codes rather than full messages in the GET request
-        try {
-            queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(errorResponse.getStatus(),
-                    StandardCharsets.UTF_8.name())});
-            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(errorResponse.getMessageLog()
-                    , StandardCharsets.UTF_8.name())});
-
-            if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
-                queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(errorResponse
-                        .getErrorResponse(), StandardCharsets.UTF_8.name())});
-            }
-
-            if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
-                queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode(errorResponse
-                        .getAcsUrl(), StandardCharsets.UTF_8.name())});
-            }
-        } catch (UnsupportedEncodingException e) {
-
-        }
-        builder.setStatusCode(302);
-        builder.setParameters(queryParams);
-        builder.setRedirectURL(redirectURL);
     }
 
     private void sendNotification(Response.ResponseBuilder builder, GatewayResponse

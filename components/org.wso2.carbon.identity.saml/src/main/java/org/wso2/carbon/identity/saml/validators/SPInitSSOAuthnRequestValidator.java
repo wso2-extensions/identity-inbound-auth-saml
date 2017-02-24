@@ -34,8 +34,8 @@ import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.IdentitySAML2SSOException;
-import org.wso2.carbon.identity.saml.exception.SAML2ClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
@@ -72,12 +72,12 @@ public class SPInitSSOAuthnRequestValidator {
                 log.debug("Invalid version in the SAMLRequest" + authnReq.getVersion());
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                             .VERSION_MISMATCH, "Invalid SAML Version " + "in Authentication Request. SAML Version" +
                             " should " +
                             "be equal to 2.0", messageContext.getAssertionConsumerURL()), SAMLSSOConstants
                             .Notification.EXCEPTION_STATUS,
-                    SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, authnReq.getAssertionConsumerServiceURL());
+                                            SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, authnReq.getAssertionConsumerServiceURL());
         }
 
         // Issuer MUST NOT be null
@@ -90,7 +90,7 @@ public class SPInitSSOAuthnRequestValidator {
                 log.debug("SAML Request issuer validation failed. Issuer should not be empty");
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, "Issuer/ProviderName " + "should not be empty in the Authentication Request" +
                     ".", authnReq.getAssertionConsumerServiceURL()));
         }
@@ -103,7 +103,7 @@ public class SPInitSSOAuthnRequestValidator {
                 log.debug(message);
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, message, null));
         }
 
@@ -114,7 +114,7 @@ public class SPInitSSOAuthnRequestValidator {
                 log.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, "Issuer Format attribute" + " value is invalid", authnReq
                     .getAssertionConsumerServiceURL()));
         }
@@ -133,7 +133,7 @@ public class SPInitSSOAuthnRequestValidator {
                         authnReq.getIssuer().getValue());
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, "Invalid Assertion " + "Consumer Service URL in the Authentication " +
                     "Request" + ".", acsUrl));
         }
@@ -152,7 +152,7 @@ public class SPInitSSOAuthnRequestValidator {
                         .getSubjectConfirmations().get(0));
             }
             messageContext.setValid(false);
-            throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                     .REQUESTOR_ERROR, "Subject Confirmation " + "methods should NOT be in the request.", authnReq
                     .getAssertionConsumerServiceURL()));
         }
@@ -178,7 +178,7 @@ public class SPInitSSOAuthnRequestValidator {
                 if (log.isDebugEnabled()) {
                     log.debug(msg);
                 }
-                throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                         .REQUESTOR_ERROR, msg, authnReq.getAssertionConsumerServiceURL()));
             }
 
@@ -191,7 +191,7 @@ public class SPInitSSOAuthnRequestValidator {
                     log.debug(msg);
                 }
                 messageContext.setValid(false);
-                throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                         .REQUESTOR_ERROR, msg, authnReq.getAssertionConsumerServiceURL()));
             }
         } else {
@@ -206,7 +206,7 @@ public class SPInitSSOAuthnRequestValidator {
                     log.debug(msg);
                 }
                 messageContext.setValid(false);
-                throw SAML2ClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                         .REQUESTOR_ERROR, msg, authnReq.getAssertionConsumerServiceURL()));
             }
         }
@@ -268,7 +268,7 @@ public class SPInitSSOAuthnRequestValidator {
         } catch (org.opensaml.xml.security.SecurityException e) {
             log.error("Error validating deflate signature", e);
             return false;
-        } catch (IdentitySAML2SSOException e) {
+        } catch (SAMLServerException e) {
             log.warn("Signature validation failed for the SAML Message : Failed to construct the X509CredentialImpl for the alias " +
                     alias, e);
             return false;
@@ -292,7 +292,7 @@ public class SPInitSSOAuthnRequestValidator {
             try {
                 X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
                 return new DefaultSSOSigner().validateXMLSignature(request, cred, alias);
-            } catch (IdentitySAML2SSOException e) {
+            } catch (SAMLServerException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Signature validation failed for the SAML Message : Failed to construct the " +
                             "X509CredentialImpl for the alias " + alias, e);

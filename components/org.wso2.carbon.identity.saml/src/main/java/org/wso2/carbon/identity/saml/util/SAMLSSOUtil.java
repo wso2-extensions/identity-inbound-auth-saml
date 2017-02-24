@@ -66,7 +66,7 @@ import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceDataHolder;
 import org.wso2.carbon.identity.saml.validators.SAML2HTTPRedirectSignatureValidator;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
@@ -458,7 +458,7 @@ public class SAMLSSOUtil {
 //            try {
 //                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
 //            } catch (UserStoreException e) {
-//                throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+//                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
 //                        tenantDomain, e);
 //            }
 //        }
@@ -497,7 +497,7 @@ public class SAMLSSOUtil {
 //                return true;
 //            }
 //        } catch (IdentityApplicationManagementException e) {
-//            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+//            throw new SAMLServerException("Error occurred while validating existence of SAML service provider " +
 //                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
 //        } finally {
 //            PrivilegedCarbonContext.endTenantFlow();
@@ -505,7 +505,7 @@ public class SAMLSSOUtil {
 
     }
 
-    public static boolean isSAMLIssuerExists(String issuerName, String tenantDomain) throws IdentitySAML2SSOException {
+    public static boolean isSAMLIssuerExists(String issuerName, String tenantDomain) throws SAMLServerException {
         return true;
         // TODO
 //        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
@@ -522,7 +522,7 @@ public class SAMLSSOUtil {
 //            try {
 //                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
 //            } catch (UserStoreException e) {
-//                throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+//                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
 //                        tenantDomain, e);
 //            }
 //        }
@@ -547,7 +547,7 @@ public class SAMLSSOUtil {
 //            }
 //            return false;
 //        } catch (IdentityApplicationManagementException e) {
-//            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+//            throw new SAMLServerException("Error occurred while validating existence of SAML service provider " +
 //                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
 //        } finally {
 //            PrivilegedCarbonContext.endTenantFlow();
@@ -768,10 +768,10 @@ public class SAMLSSOUtil {
      * @param alias
      * @return X509CredentialImpl object containing the public certificate of
      * that tenant
-     * @throws IdentitySAML2SSOException Error when creating X509CredentialImpl object
+     * @throws SAMLServerException Error when creating X509CredentialImpl object
      */
     public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
-            throws IdentitySAML2SSOException {
+            throws SAMLServerException {
 
 
         KeyStoreManager keyStoreManager;
@@ -787,7 +787,7 @@ public class SAMLSSOUtil {
             credentialImpl = new X509CredentialImpl(cert);
             return credentialImpl;
         } catch (Exception e) {
-            throw new IdentitySAML2SSOException("Error while initializing keystore");
+            throw new SAMLServerException("Error while initializing keystore");
         }
     }
 
