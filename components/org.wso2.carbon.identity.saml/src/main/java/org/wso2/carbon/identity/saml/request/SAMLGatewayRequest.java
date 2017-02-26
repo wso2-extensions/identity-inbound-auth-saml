@@ -27,7 +27,8 @@ public class SAMLGatewayRequest extends ClientAuthenticationRequest {
             try {
                 String relayState = getParameter(SAMLSSOConstants.RELAY_STATE);
                 if (StringUtils.isNotEmpty(relayState)) {
-                    URLDecoder.decode(this.getQueryParameter(SAMLSSOConstants.RELAY_STATE), StandardCharsets.UTF_8.name());
+                   return URLDecoder.decode(this.getQueryParameter(SAMLSSOConstants.RELAY_STATE), StandardCharsets.UTF_8
+                            .name());
                 }
             } catch (UnsupportedEncodingException e) {
 //                if (log.isDebugEnabled()) {
