@@ -29,18 +29,17 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 
-import java.io.IOException;
 import java.util.List;
 
 
@@ -50,7 +49,7 @@ public class SPInitSSOAuthnRequestValidator {
     private SAMLMessageContext messageContext;
 
 
-    public SPInitSSOAuthnRequestValidator(SAMLMessageContext messageContext) throws IdentityException {
+    public SPInitSSOAuthnRequestValidator(SAMLMessageContext messageContext)   {
         this.messageContext = messageContext;
     }
 
@@ -60,7 +59,7 @@ public class SPInitSSOAuthnRequestValidator {
      * @return boolean
      * @throws IdentityException
      */
-    public boolean validate(AuthnRequest authnReq) throws IdentityException, IOException {
+    public boolean validate(AuthnRequest authnReq) throws SAMLClientException, SAMLServerException {
 
         Issuer issuer = authnReq.getIssuer();
         Subject subject = authnReq.getSubject();
@@ -95,8 +94,7 @@ public class SPInitSSOAuthnRequestValidator {
                     ".", authnReq.getAssertionConsumerServiceURL()));
         }
 
-        if (!SAMLSSOUtil.isSAMLIssuerExists(issuer.getValue(),
-                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+        if (!SAMLSSOUtil.isSAMLIssuerExists(issuer.getValue())) {
             String message = "A Service Provider with the Issuer '" + issuer.getValue() + "' is not " +
                     "registered. Service Provider should be registered in " + "advance";
             if (log.isDebugEnabled()) {
@@ -123,7 +121,7 @@ public class SPInitSSOAuthnRequestValidator {
         // Check for a Spoofing attack
         String acsUrl = authnReq.getAssertionConsumerServiceURL();
         boolean acsValidated = false;
-        acsValidated = SAMLSSOUtil.validateACS(messageContext.getTenantDomain(), messageContext.getIssuer(), authnReq
+        acsValidated = SAMLSSOUtil.validateACS(messageContext.getIssuer(), authnReq
                 .getAssertionConsumerServiceURL());
 
         if (!acsValidated) {
@@ -228,9 +226,9 @@ public class SPInitSSOAuthnRequestValidator {
             String decodedReq = null;
 
             if (messageContext.getIdentityRequest().isRedirect()) {
-                decodedReq = SAMLSSOUtil.decode(((SAMLSpInitRequest) messageContext.getIdentityRequest()).getSamlRequest());
+                decodedReq = SAMLSSOUtil.decode(((SAMLSPInitRequest) messageContext.getIdentityRequest()).getSamlRequest());
             } else {
-                decodedReq = SAMLSSOUtil.decodeForPost(((SAMLSpInitRequest) messageContext.getIdentityRequest())
+                decodedReq = SAMLSSOUtil.decodeForPost(((SAMLSPInitRequest) messageContext.getIdentityRequest())
                         .getSamlRequest());
             }
             request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
@@ -244,7 +242,7 @@ public class SPInitSSOAuthnRequestValidator {
         try {
             if (messageContext.getIdentityRequest().isRedirect()) {
                 // DEFLATE signature in Redirect Binding
-                return validateDeflateSignature((SAMLSpInitRequest) messageContext.getIdentityRequest(), messageContext
+                return validateDeflateSignature((SAMLSPInitRequest) messageContext.getIdentityRequest(), messageContext
                         .getIssuer(), alias, "");
             } else {
                 // XML signature in SAML Request message for POST Binding
@@ -259,7 +257,7 @@ public class SPInitSSOAuthnRequestValidator {
     }
 
 
-    private boolean validateDeflateSignature(SAMLSpInitRequest request, String issuer,
+    private boolean validateDeflateSignature(SAMLSPInitRequest request, String issuer,
                                              String alias, String domainName) throws IdentityException {
         try {
             return new SAML2HTTPRedirectDeflateSignatureValidator().validateSignature(request, issuer,
@@ -290,7 +288,7 @@ public class SPInitSSOAuthnRequestValidator {
 
         if (request.getSignature() != null) {
             try {
-                X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+                X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
                 return new DefaultSSOSigner().validateXMLSignature(request, cred, alias);
             } catch (SAMLServerException e) {
                 if (log.isDebugEnabled()) {
@@ -306,7 +304,8 @@ public class SPInitSSOAuthnRequestValidator {
         return false;
     }
 
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws RequestHandlerException {
+    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
+                                                                                          RequestValidatorException {
         return null;
     }
 

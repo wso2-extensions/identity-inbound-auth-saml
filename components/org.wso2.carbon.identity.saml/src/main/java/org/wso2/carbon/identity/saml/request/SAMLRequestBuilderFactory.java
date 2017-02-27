@@ -40,13 +40,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFactory {
+public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLIdentityRequestBuilderFactory.class);
+    private static Logger log = LoggerFactory.getLogger(SAMLRequestBuilderFactory.class);
 
     @Override
     public String getName() {
-        return "SAMLIdentityRequestBuilderFactory";
+        return "SAMLRequestBuilderFactory";
     }
 
     @Override
@@ -73,10 +73,10 @@ public class SAMLIdentityRequestBuilderFactory extends GatewayRequestBuilderFact
         String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
         GatewayRequest.GatewayRequestBuilder builder = null;
         if (spEntityID != null || slo != null) {
-            builder = new SAMLIdpInitRequest.SAMLIdpInitRequestBuilder();
+            builder = new SAMLIDPInitRequest.SAMLIdpInitRequestBuilder();
         } else if (samlRequest != null) {
-            builder = new SAMLSpInitRequest.SAMLSpInitRequestBuilder
-                    (request);
+            builder = new SAMLSPInitRequest.SAMLSpInitRequestBuilder
+                    ();
         } else {
             throw new GatewayClientException("Invalid request message or single logout message");
         }

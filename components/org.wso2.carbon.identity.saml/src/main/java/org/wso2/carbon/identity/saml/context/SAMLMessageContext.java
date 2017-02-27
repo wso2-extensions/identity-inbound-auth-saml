@@ -19,10 +19,10 @@
 package org.wso2.carbon.identity.saml.context;
 
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLGatewayRequest;
+import org.wso2.carbon.identity.saml.request.SAMLRequest;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
-import org.wso2.carbon.identity.saml.request.SAMLIdpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -48,19 +48,18 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
      * Validation is done in the request validation.
      */
     private String subject;
-    private String tenantDomain;
     private int attributeConsumingServiceIndex;
 
     private SAMLValidatorConfig samlValidatorConfig;
     private SAMLResponseHandlerConfig responseHandlerConfig;
 
-    public SAMLMessageContext(SAMLGatewayRequest request, Map<T1, T2> parameters) {
+    public SAMLMessageContext(SAMLRequest request, Map<T1, T2> parameters) {
         super(request, parameters);
     }
 
     @Override
-    public SAMLGatewayRequest getIdentityRequest() {
-        return (SAMLGatewayRequest) identityRequest;
+    public SAMLRequest getIdentityRequest() {
+        return (SAMLRequest) identityRequest;
     }
 
     public void setDestination(String destination) {
@@ -87,13 +86,13 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         if (!isIdpInitSSO()) {
             return this.destination;
         } else if (isIdpInitSSO()) {
-            return ((SAMLIdpInitRequest) this.getIdentityRequest()).getAcs();
+            return ((SAMLIDPInitRequest) this.getIdentityRequest()).getAcs();
         }
         return null;
     }
 
     public boolean isIdpInitSSO() {
-        return this.getIdentityRequest() instanceof SAMLIdpInitRequest;
+        return this.getIdentityRequest() instanceof SAMLIDPInitRequest;
     }
 
     public String getRelayState() {
@@ -167,13 +166,6 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         return this.isPassive;
     }
 
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
-
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
-    }
 
     //TODO
    /* public AuthenticatedUser getUser() {

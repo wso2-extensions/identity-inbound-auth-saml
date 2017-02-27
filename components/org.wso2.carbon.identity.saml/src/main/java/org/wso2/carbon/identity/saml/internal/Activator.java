@@ -26,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
-import org.wso2.carbon.identity.saml.request.SAMLIdentityRequestBuilderFactory;
+import org.wso2.carbon.identity.saml.request.SAMLRequestBuilderFactory;
 import org.wso2.carbon.identity.saml.response.HttpSAMLResponseBuilderFactory;
 import org.wso2.carbon.identity.saml.response.SAMLIdpInitResponseHandler;
 import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
@@ -47,11 +47,11 @@ public class Activator implements BundleActivator {
     @Activate
     public void start(BundleContext bundleContext) throws Exception {
         try {
-            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLIdentityRequestBuilderFactory(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLRequestBuilderFactory(), null);
             bundleContext.registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);
 
-            bundleContext.registerService(AbstractRequestHandler.class, new SPInitSAMLValidator(), null);
-            bundleContext.registerService(AbstractRequestHandler.class, new IDPInitSAMLValidator(), null);
+            bundleContext.registerService(AbstractRequestValidator.class, new SPInitSAMLValidator(), null);
+            bundleContext.registerService(AbstractRequestValidator.class, new IDPInitSAMLValidator(), null);
 
             bundleContext.registerService(AbstractResponseHandler.class, new SAMLSPInitResponseHandler(), null);
             bundleContext.registerService(AbstractResponseHandler.class, new SAMLIdpInitResponseHandler(), null);

@@ -26,11 +26,11 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLIdpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.validators.IdPInitSSOAuthnRequestValidator;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class IDPInitSAMLValidator extends SAMLValidator {
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof GatewayMessageContext) {
             GatewayMessageContext gatewayMessageContext = (GatewayMessageContext) messageContext;
-            if (gatewayMessageContext.getIdentityRequest() instanceof SAMLIdpInitRequest) {
+            if (gatewayMessageContext.getIdentityRequest() instanceof SAMLIDPInitRequest) {
                 return true;
             }
             return false;
@@ -53,17 +53,18 @@ public class IDPInitSAMLValidator extends SAMLValidator {
 
 
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws RequestHandlerException {
+    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
+                                                                                          RequestValidatorException {
 
         super.validate(authenticationContext);
         GatewayRequest gatewayRequest = authenticationContext.getIdentityRequest();
 
-        if (!((SAMLIdpInitRequest) gatewayRequest).isLogout()) {
+        if (!((SAMLIDPInitRequest) gatewayRequest).isLogout()) {
             try {
 
                 SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
                 IdPInitSSOAuthnRequestValidator validator = new IdPInitSSOAuthnRequestValidator(messageContext);
-                String spEntityID = ((SAMLIdpInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
+                String spEntityID = ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
                 authenticationContext.setUniqueId(spEntityID);
                 validateServiceProvider(authenticationContext);
                 if (validator.validate(null)) {
@@ -75,7 +76,7 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                         if (log.isDebugEnabled()) {
                             log.debug(msg);
                         }
-                        throw new RequestHandlerException(msg);
+                        throw new RequestValidatorException(msg);
                     }
 
                     if (!samlValidatorConfig.isIdPInitSSOEnabled()) {
@@ -83,7 +84,7 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                         if (log.isDebugEnabled()) {
                             log.debug(msg);
                         }
-                        throw new RequestHandlerException(msg);
+                        throw new RequestValidatorException(msg);
                     }
 
                     if (samlValidatorConfig.isEnableAttributesByDefault() && samlValidatorConfig
@@ -93,8 +94,8 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                     }
 
 
-                    String acsUrl = StringUtils.isNotBlank(((SAMLIdpInitRequest) messageContext.getIdentityRequest()).getAcs()) ? (
-                            (SAMLIdpInitRequest) messageContext.getIdentityRequest()).getAcs() : samlValidatorConfig
+                    String acsUrl = StringUtils.isNotBlank(((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getAcs()) ? (
+                            (SAMLIDPInitRequest) messageContext.getIdentityRequest()).getAcs() : samlValidatorConfig
                             .getDefaultAssertionConsumerUrl();
                     if (StringUtils.isBlank(acsUrl) || !samlValidatorConfig.getAssertionConsumerUrlList().contains
                             (acsUrl)) {
@@ -104,17 +105,17 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                         if (log.isDebugEnabled()) {
                             log.debug(msg);
                         }
-                        throw new RequestHandlerException(msg);
+                        throw new RequestValidatorException(msg);
                     }
                     return FrameworkHandlerResponse.CONTINUE;
                 }
             } catch (IdentityException e) {
-                throw new RequestHandlerException("Error while validating SAML request");
+                throw new RequestValidatorException("Error while validating SAML request");
             } catch (IOException e) {
-                throw new RequestHandlerException("Error while validating SAML request");
+                throw new RequestValidatorException("Error while validating SAML request");
             }
         }
-        throw new RequestHandlerException("Error while validating SAML request");
+        throw new RequestValidatorException("Error while validating SAML request");
     }
 
     public String getName() {

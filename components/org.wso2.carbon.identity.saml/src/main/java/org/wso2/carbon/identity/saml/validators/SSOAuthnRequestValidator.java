@@ -17,11 +17,7 @@
  */
 package org.wso2.carbon.identity.saml.validators;
 
-import org.opensaml.saml2.core.AuthnRequest;
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
-
-import java.io.IOException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 
 /**
  * Interface to implement in order to validate a received SAML SSO request
@@ -29,6 +25,6 @@ import java.io.IOException;
  * <IdPInitSSOAuthnRequestValidator></IdPInitSSOAuthnRequestValidator> for IDP initiated authentication request flow,
  * <SPInitSSOAuthnRequestValidator></SPInitSSOAuthnRequestValidator> for SP initiated authentication request flow.
  */
-public abstract class SSOAuthnRequestValidator extends AbstractRequestHandler {
+public abstract class SSOAuthnRequestValidator extends AbstractRequestValidator {
 
 }

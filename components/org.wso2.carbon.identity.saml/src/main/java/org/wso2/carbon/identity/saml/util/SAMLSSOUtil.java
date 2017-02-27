@@ -122,7 +122,7 @@ public class SAMLSSOUtil {
      * @return AuthnRequest Object
      * @throws
      */
-    public static XMLObject unmarshall(String authReqStr) throws IdentityException {
+    public static XMLObject unmarshall(String authReqStr) throws SAMLServerException {
         InputStream inputStream = null;
         try {
             doBootstrap();
@@ -145,7 +145,7 @@ public class SAMLSSOUtil {
             return unmarshaller.unmarshall(element);
         } catch (Exception e) {
             log.error("Error in constructing AuthRequest from the encoded String", e);
-            throw IdentityException.error(
+            throw new SAMLServerException(
                     "Error in constructing AuthRequest from the encoded String ",
                     e);
         } finally {
@@ -165,7 +165,7 @@ public class SAMLSSOUtil {
      * @param xmlObject
      * @return serialized auth. req
      */
-    public static String marshall(XMLObject xmlObject) throws IdentityException {
+    public static String marshall(XMLObject xmlObject) throws SAMLServerException {
 
         ByteArrayOutputStream byteArrayOutputStrm = null;
         try {
@@ -187,7 +187,7 @@ public class SAMLSSOUtil {
             return byteArrayOutputStrm.toString(StandardCharsets.UTF_8.name());
         } catch (Exception e) {
             log.error("Error Serializing the SAML Response");
-            throw IdentityException.error("Error Serializing the SAML Response", e);
+            throw new SAMLServerException("Error Serializing the SAML Response", e);
         } finally {
             if (byteArrayOutputStrm != null) {
                 try {
@@ -219,7 +219,7 @@ public class SAMLSSOUtil {
      * @param encodedStr encoded AuthReq
      * @return decoded AuthReq
      */
-    public static String decode(String encodedStr) throws IdentityException {
+    public static String decode(String encodedStr) throws SAMLServerException {
         try {
             org.apache.commons.codec.binary.Base64 base64Decoder =
                     new org.apache.commons.codec.binary.Base64();
@@ -261,14 +261,14 @@ public class SAMLSSOUtil {
                 return decodedStr;
             }
         } catch (IOException e) {
-            throw IdentityException.error("Error when decoding the SAML Request.", e);
+            throw new SAMLServerException("Error when decoding the SAML Request.", e);
         }
 
     }
 
 
     public static String decodeForPost(String encodedStr)
-            throws IdentityException {
+            throws SAMLServerException {
         try {
             org.apache.commons.codec.binary.Base64 base64Decoder = new org.apache.commons.codec.binary.Base64();
             byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
@@ -281,8 +281,7 @@ public class SAMLSSOUtil {
             return decodedString;
 
         } catch (IOException e) {
-            throw IdentityException.error(
-                    "Error when decoding the SAML Request.", e);
+            throw new SAMLServerException("Error when decoding the SAML Request.", e);
         }
 
     }
@@ -331,15 +330,22 @@ public class SAMLSSOUtil {
      * @return decoded response
      * @throws org.wso2.carbon.identity
      */
-    public static String buildErrorResponse(String status, String message, String destination) throws
-            IdentityException, IOException {
+    public static String buildErrorResponse(String status, String message, String destination)
+              {
 
         List<String> statusCodeList = new ArrayList<String>();
         statusCodeList.add(status);
         //Do below in the response builder
-        Response response = buildResponse(null, statusCodeList, message, destination);
-        String errorResp = compressResponse(SAMLSSOUtil.marshall(response));
-        return errorResp;
+                  String errorResp = null;
+                  try {
+                      Response response = buildResponse(null, statusCodeList, message, destination);
+                      errorResp = compressResponse(SAMLSSOUtil.marshall(response));
+                  } catch (SAMLServerException e) {
+                      e.printStackTrace();
+                  } catch (IOException e) {
+                      e.printStackTrace();
+                  }
+                  return errorResp;
     }
 
     public static String buildErrorResponse(String id, List<String> statusCodes, String statusMsg, String destination)
@@ -354,12 +360,12 @@ public class SAMLSSOUtil {
      * @return
      */
     public static Response buildResponse(String inResponseToID, List<String> statusCodes, String statusMsg, String
-            destination) throws IdentityException {
+            destination) throws SAMLServerException {
 
         Response response = new ResponseBuilder().buildObject();
 
         if (statusCodes == null || statusCodes.isEmpty()) {
-            throw IdentityException.error("No Status Values");
+            throw  new SAMLServerException("No Status Values");
         }
         response.setIssuer(SAMLSSOUtil.getIssuer());
         Status status = new StatusBuilder().buildObject();
@@ -440,8 +446,7 @@ public class SAMLSSOUtil {
 //
 //        return destinationURLs;
 //    }
-    public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws
-            IdentityException {
+    public static boolean validateACS(String issuerName, String requestedACSUrl)  {
         // TODO
         return true;
 //        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
@@ -505,7 +510,7 @@ public class SAMLSSOUtil {
 
     }
 
-    public static boolean isSAMLIssuerExists(String issuerName, String tenantDomain) throws SAMLServerException {
+    public static boolean isSAMLIssuerExists(String issuerName) throws SAMLServerException {
         return true;
         // TODO
 //        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
@@ -626,13 +631,13 @@ public class SAMLSSOUtil {
      *
      * @return Issuer
      */
-    public static Issuer getIssuer() throws IdentityException {
+    public static Issuer getIssuer()   {
 
-        return getIssuerFromTenantDomain(getTenantDomainFromThreadLocal());
+        return getIssuerFromTenantDomain();
     }
 
 
-    public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {
+    public static Issuer getIssuerFromTenantDomain()  {
 
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = SAMLConfigurations.getInstance().getIdpEntityId();
@@ -728,10 +733,10 @@ public class SAMLSSOUtil {
      * @param childStatusCode
      * @return
      */
-    private static StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) throws
-            IdentityException {
+    private static StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode)
+            throws SAMLServerException {
         if (parentStatusCode == null) {
-            throw IdentityException.error("Invalid SAML Response Status Code");
+            throw new SAMLServerException("Invalid SAML Response Status Code");
         }
 
         StatusCode statusCode = new StatusCodeBuilder().buildObject();
@@ -764,13 +769,12 @@ public class SAMLSSOUtil {
     /**
      * Get the X509CredentialImpl object for a particular tenant
      *
-     * @param tenantDomain
      * @param alias
      * @return X509CredentialImpl object containing the public certificate of
      * that tenant
      * @throws SAMLServerException Error when creating X509CredentialImpl object
      */
-    public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
+    public static X509CredentialImpl getX509CredentialImplForTenant(String alias)
             throws SAMLServerException {
 
 

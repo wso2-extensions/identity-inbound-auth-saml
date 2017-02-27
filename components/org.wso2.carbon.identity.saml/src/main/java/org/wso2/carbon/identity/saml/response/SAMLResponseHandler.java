@@ -86,12 +86,11 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
 
         if (responseBuilderConfig.isDoEnableEncryptedAssertion()) {
 
-            String domainName = messageContext.getTenantDomain();
             String alias = responseBuilderConfig.getCertAlias();
             // TODO
             if (alias != null) {
                 EncryptedAssertion encryptedAssertion = setEncryptedAssertion(assertion,
-                        EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias, domainName);
+                        EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias);
                 response.getEncryptedAssertions().add(encryptedAssertion);
             }
         } else {
@@ -131,11 +130,11 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
     }
 
     public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
-                                                    String alias, String domainName) throws IdentityException {
+                                                    String alias) throws IdentityException {
         SAMLSSOUtil.doBootstrap();
 
         SSOEncrypter ssoEncrypter = new DefaultSSOEncrypter();
-        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
         return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
     }
 

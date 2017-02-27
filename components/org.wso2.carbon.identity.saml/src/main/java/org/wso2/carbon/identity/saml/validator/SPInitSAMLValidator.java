@@ -21,19 +21,19 @@ import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.xml.XMLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
+import org.wso2.carbon.identity.saml.exception.SAMLClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.validators.SPInitSSOAuthnRequestValidator;
-
-import java.io.IOException;
 
 public class SPInitSAMLValidator extends SAMLValidator {
 
@@ -43,7 +43,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof GatewayMessageContext) {
             GatewayMessageContext gatewayMessageContext = (GatewayMessageContext) messageContext;
-            if (gatewayMessageContext.getIdentityRequest() instanceof SAMLSpInitRequest) {
+            if (gatewayMessageContext.getIdentityRequest() instanceof SAMLSPInitRequest) {
                 return true;
             }
         }
@@ -52,10 +52,12 @@ public class SPInitSAMLValidator extends SAMLValidator {
     }
 
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws RequestHandlerException {
+    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
+                                                                                          RequestValidatorException {
         super.validate(authenticationContext);
-        SAMLSpInitRequest identityRequest = (SAMLSpInitRequest) authenticationContext.getIdentityRequest();
+        SAMLSPInitRequest identityRequest = (SAMLSPInitRequest) authenticationContext.getIdentityRequest();
         String decodedRequest;
+
         try {
             if (identityRequest.isRedirect()) {
                 decodedRequest = SAMLSSOUtil.decode(identityRequest.getSamlRequest());
@@ -78,12 +80,18 @@ public class SPInitSAMLValidator extends SAMLValidator {
                     return FrameworkHandlerResponse.CONTINUE;
                 }
             }
-        } catch (IdentityException e) {
-            throw new RequestHandlerException("Error while validating saml request");
-        } catch (IOException e) {
-            throw new RequestHandlerException("Error while validating saml request");
+        } catch (SAMLServerException e) {
+            e.printStackTrace();
+        } catch (SAMLClientException e) {
+            e.printStackTrace();
         }
-        throw new RequestHandlerException("Error while validating saml request");
+        /*} catch (IdentityException e) {
+            throw new RequestValidatorException("Error while validating saml request");
+        } catch (IOException e) {
+            throw new RequestValidatorException("Error while validating saml request");
+        }
+        throw new RequestValidatorException("Error while validating saml request");*/
+        return null;
     }
 
     public String getName() {

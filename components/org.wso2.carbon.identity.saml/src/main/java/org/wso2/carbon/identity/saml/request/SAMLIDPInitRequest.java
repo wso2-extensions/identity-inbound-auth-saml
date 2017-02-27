@@ -22,8 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.msf4j.Request;
 
-public class SAMLIdpInitRequest extends SAMLGatewayRequest {
-    public SAMLIdpInitRequest(SAMLIdpInitRequestBuilder builder) {
+public class SAMLIDPInitRequest extends SAMLRequest {
+    public SAMLIDPInitRequest(SAMLIdpInitRequestBuilder builder) {
         super(builder);
     }
 
@@ -48,15 +48,11 @@ public class SAMLIdpInitRequest extends SAMLGatewayRequest {
     }
 
     public static class SAMLIdpInitRequestBuilder extends SAMLGatewayRequestBuilder {
-        public SAMLIdpInitRequestBuilder(Request request) {
-            super(request);
-        }
-
         public SAMLIdpInitRequestBuilder() {
         }
         @Override
-        public SAMLIdpInitRequest build() {
-            return new SAMLIdpInitRequest(this);
+        public SAMLIDPInitRequest build() {
+            return new SAMLIDPInitRequest(this);
         }
 
 

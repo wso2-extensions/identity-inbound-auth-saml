@@ -25,11 +25,11 @@ import org.wso2.msf4j.Request;
 
 import java.io.UnsupportedEncodingException;
 
-public class SAMLSpInitRequest extends SAMLGatewayRequest {
+public class SAMLSPInitRequest extends SAMLRequest {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLSpInitRequest.class);
+    private static Logger log = LoggerFactory.getLogger(SAMLSPInitRequest.class);
 
-    public SAMLSpInitRequest(SAMLSpInitRequestBuilder builder) {
+    public SAMLSPInitRequest(SAMLSpInitRequestBuilder builder) {
         super(builder);
     }
 
@@ -79,16 +79,13 @@ public class SAMLSpInitRequest extends SAMLGatewayRequest {
     }
 
     public static class SAMLSpInitRequestBuilder extends SAMLGatewayRequestBuilder {
-        public SAMLSpInitRequestBuilder(Request request) {
-            super(request);
-        }
 
         public SAMLSpInitRequestBuilder() {
         }
 
         @Override
-        public SAMLSpInitRequest build() {
-            return new SAMLSpInitRequest(this);
+        public SAMLSPInitRequest build() {
+            return new SAMLSPInitRequest(this);
         }
     }
 }

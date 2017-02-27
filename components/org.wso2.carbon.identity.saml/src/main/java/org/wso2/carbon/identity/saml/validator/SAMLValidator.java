@@ -19,21 +19,21 @@ package org.wso2.carbon.identity.saml.validator;
 
 import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
+import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLGatewayRequest;
+import org.wso2.carbon.identity.saml.request.SAMLRequest;
 
 import java.util.Properties;
 
-public abstract class SAMLValidator extends AbstractRequestHandler {
+public abstract class SAMLValidator extends AbstractRequestValidator {
 
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws RequestHandlerException {
-        SAMLMessageContext samlMessageContext = new SAMLMessageContext((SAMLGatewayRequest)authenticationContext
+    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
+                                                                                          RequestValidatorException {
+        SAMLMessageContext samlMessageContext = new SAMLMessageContext((SAMLRequest)authenticationContext
                 .getIdentityRequest(), null);
         authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, samlMessageContext);
         return FrameworkHandlerResponse.CONTINUE;
@@ -45,7 +45,7 @@ public abstract class SAMLValidator extends AbstractRequestHandler {
     }
 
     protected void validateServiceProvider (AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException, RequestHandlerException {
+                                                                                         RequestValidatorException {
         SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
         Properties samlValidatorProperties = getValidatorConfig(authenticationContext);
         SAMLValidatorConfig samlValidatorConfig = new SAMLValidatorConfig(samlValidatorProperties);

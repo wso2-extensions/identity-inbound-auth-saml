@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
-import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -103,7 +103,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * @return
      * @throws SecurityPolicyException
      */
-    protected static byte[] getSignedContent(SAMLSpInitRequest request) throws SecurityPolicyException {
+    protected static byte[] getSignedContent(SAMLSPInitRequest request) throws SecurityPolicyException {
         // We need the raw non-URL-decoded query string param values for
         // HTTP-Redirect DEFLATE simple signature
         // validation.
@@ -196,7 +196,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * @throws SecurityException
      * @throws SAMLServerException
      */
-    public boolean validateSignature(SAMLSpInitRequest request, String issuer, String alias,
+    public boolean validateSignature(SAMLSPInitRequest request, String issuer, String alias,
                                      String domainName) throws SecurityException,
                                                                SAMLServerException {
 
@@ -207,8 +207,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
 
         // creating the SAML2HTTPRedirectDeflateSignatureRule
         X509CredentialImpl credential =
-                SAMLSSOUtil.getX509CredentialImplForTenant(domainName,
-                        alias);
+                SAMLSSOUtil.getX509CredentialImplForTenant(alias);
         List<Credential> credentials =  new ArrayList<Credential>();
         credentials.add(credential);
         CollectionCredentialResolver credResolver = new CollectionCredentialResolver(credentials);

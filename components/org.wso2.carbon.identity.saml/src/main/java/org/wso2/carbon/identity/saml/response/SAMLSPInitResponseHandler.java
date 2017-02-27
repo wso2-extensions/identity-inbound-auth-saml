@@ -8,7 +8,7 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLSpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.util.ArrayList;
@@ -45,8 +45,6 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
                         .getAssertionConsumerURL());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setSubject(samlMessageContext.getSubject());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(null);
-                ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setTenantDomain(samlMessageContext
-                        .getTenantDomain());
                 response.setGatewayResponseBuilder(builder);
             } catch (IdentityException ex) {
                 ex.printStackTrace();
@@ -116,7 +114,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
-            return ((AuthenticationContext) messageContext).getInitialAuthenticationRequest() instanceof SAMLSpInitRequest;
+            return ((AuthenticationContext) messageContext).getInitialAuthenticationRequest() instanceof SAMLSPInitRequest;
         }
         return false;
     }

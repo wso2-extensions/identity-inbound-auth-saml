@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.request.SAMLIdpInitRequest;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class IdPInitSSOAuthnRequestValidator {
 
     public IdPInitSSOAuthnRequestValidator(SAMLMessageContext messageContext) throws IdentityException {
         this.messageContext = messageContext;
-        this.spEntityID = ((SAMLIdpInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
+        this.spEntityID = ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
     }
 
     /**
@@ -65,7 +65,7 @@ public class IdPInitSSOAuthnRequestValidator {
                                                                            "spEntityID parameter not found in request", null));
         }
 
-        if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+        if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID)) {
             String message = "A Service Provider with the Issuer '" + spEntityID + "' is not registered. Service " +
                     "Provider should be registered in advance";
             String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
