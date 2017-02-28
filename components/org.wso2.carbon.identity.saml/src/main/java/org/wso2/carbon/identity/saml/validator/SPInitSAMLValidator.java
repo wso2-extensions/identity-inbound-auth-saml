@@ -89,9 +89,9 @@ public class SPInitSAMLValidator extends SAMLValidator {
             throw new RequestValidatorException("Error while validating saml request");
         } catch (IOException e) {
             throw new RequestValidatorException("Error while validating saml request");
-        }
-        throw new RequestValidatorException("Error while validating saml request");*/
-        return null;
+        }*/
+        throw new RequestValidatorException("Error while validating saml request");
+
     }
 
     public String getName() {

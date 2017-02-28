@@ -8,6 +8,7 @@ import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
@@ -53,7 +54,8 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext) throws ResponseException {
+    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseException {
 
         super.buildResponse(authenticationContext);
         FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
@@ -61,7 +63,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
 
 
-        String relayState = authenticationContext.getIdentityRequest().getParameter(SAMLSSOConstants.RELAY_STATE);
+        String relayState = null ;
         if (StringUtils.isBlank(relayState)) {
             relayState = samlMessageContext.getRelayState();
         }

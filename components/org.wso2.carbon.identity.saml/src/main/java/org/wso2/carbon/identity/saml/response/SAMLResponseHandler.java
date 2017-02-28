@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.saml.builders.assertion.SAMLAssertionBuilder;
 import org.wso2.carbon.identity.saml.builders.encryption.DefaultSSOEncrypter;
 import org.wso2.carbon.identity.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 
@@ -49,7 +50,8 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext) throws ResponseException {
+    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseException {
         try {
             setSAMLResponseHandlerConfigs(authenticationContext);
         } catch (AuthenticationHandlerException e) {
