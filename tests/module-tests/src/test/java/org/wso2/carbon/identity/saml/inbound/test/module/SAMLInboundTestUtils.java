@@ -2,6 +2,11 @@ package org.wso2.carbon.identity.saml.inbound.test.module;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
+import org.opensaml.saml2.core.Response;
+import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.util.Base64;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -25,8 +30,19 @@ public class SAMLInboundTestUtils {
 
     }
 
+    public static String getContent(HttpURLConnection urlConn) throws IOException {
+        return new String(IOUtils.toByteArray(urlConn.getInputStream()), Charsets.UTF_8);
+    }
 
     public static String getResponseHeader(String headerName, HttpURLConnection urlConnection) {
         return ((HttpURLConnection) urlConnection).getHeaderField(headerName);
+    }
+
+
+    public static Response getSAMLResponse(String samlResponse) throws SAMLServerException {
+        String decodedResponse = new String(Base64.decode(samlResponse));
+        XMLObject xmlObject = SAMLSSOUtil.unmarshall(decodedResponse);
+
+        return (Response) xmlObject;
     }
 }
