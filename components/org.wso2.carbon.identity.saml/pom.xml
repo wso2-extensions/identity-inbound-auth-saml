@@ -27,7 +27,6 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.identity</groupId>
     <artifactId>org.wso2.carbon.identity.saml</artifactId>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Sample OSGi Bundle</name>
@@ -84,10 +83,13 @@
             org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
             org.apache.xerces.util.*,
             org.apache.commons.ssl.*,
+            org.opensaml.*,
+            javax.xml.parsers; version="${javax.xml.version}";resolution:=optional,
         </import.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
         <dynamic.import.package>*</dynamic.import.package>
+        <javax.xml.version>[1.0.0,2.0.0)</javax.xml.version>
     </properties>
 
 </project>
