@@ -54,7 +54,6 @@ public class SAMLInboundTests {
     @Test
     public void testFederatedAuthentication() {
         try {
-            Thread.sleep(100000);
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
                     SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" +SAMLInboundTestConstants.SAML_REQUEST, HttpMethod.GET,
                     false);
@@ -62,8 +61,6 @@ public class SAMLInboundTests {
             System.out.println("");
         } catch (IOException e) {
             log.error("Error while running federated authentication test case", e);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }
