@@ -13,32 +13,28 @@ public class SAMLResponseHandlerConfig implements Serializable {
         this.properties = properties;
     }
 
-    public String getDefaultAssertionConsumerUrl() {
-        return (String) properties.get("defaultAssertionConsumerUrl");
+    public String getAttributeConsumingServiceIndex() {
+        return (String) properties.get("attributeConsumingServiceIndex");
     }
 
     public String getCertAlias() {
         return (String) properties.get("certificateAlias");
     }
 
-    public boolean isDoSingleLogout() {
-        return Boolean.valueOf((String) properties.get("doSingleLogout"));
+    public String getDefaultAssertionConsumerUrl() {
+        return (String) properties.get("defaultAssertionConsumerUrl");
+    }
+
+    public String getDigestAlgorithmUri() {
+        return (String) properties.get("digestAlgorithmUri");
     }
 
     public String getLoginPageURL() {
         return (String) properties.get("loginPageURL");
     }
 
-    public boolean isDoSignResponse() {
-        return Boolean.valueOf((String) properties.get("doSignResponse"));
-    }
-
-    public boolean isDoSignAssertions() {
-        return Boolean.valueOf((String) properties.get("doSignAssertions"));
-    }
-
-    public String getAttributeConsumingServiceIndex() {
-        return (String) properties.get("attributeConsumingServiceIndex");
+    public String getNameIdFormat() {
+        return (String) properties.get("nameIDFormat");
     }
 
     public String[] getRequestedAudiences() {
@@ -55,24 +51,27 @@ public class SAMLResponseHandlerConfig implements Serializable {
         return requestedRecipientStringList.stream().toArray(size -> new String[size]);
     }
 
-    public boolean isEnableAttributesByDefault() {
-        return Boolean.parseBoolean((String) properties.get("enableAttributesByDefault"));
-    }
-
-    public String getNameIdFormat() {
-        return (String) properties.get("nameIDFormat");
+    public String getSigningAlgorithmUri() {
+        return (String) properties.get("signingAlgorithmUri");
     }
 
     public boolean isDoEnableEncryptedAssertion() {
         return Boolean.parseBoolean((String) properties.get("doEnableEncryptedAssertion"));
     }
 
-    public String getSigningAlgorithmUri() {
-        return (String) properties.get("signingAlgorithmUri");
+    public boolean isDoSignAssertions() {
+        return Boolean.valueOf((String) properties.get("doSignAssertions"));
     }
 
-    public String getDigestAlgorithmUri() {
-        return (String) properties.get("digestAlgorithmUri");
+    public boolean isDoSignResponse() {
+        return Boolean.valueOf((String) properties.get("doSignResponse"));
     }
 
+    public boolean isDoSingleLogout() {
+        return Boolean.valueOf((String) properties.get("doSingleLogout"));
+    }
+
+    public boolean isEnableAttributesByDefault() {
+        return Boolean.parseBoolean((String) properties.get("enableAttributesByDefault"));
+    }
 }

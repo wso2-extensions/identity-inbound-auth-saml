@@ -28,11 +28,14 @@ public class SAMLClientException extends GatewayClientException {
     private String exceptionMessage;
 
 
-    protected SAMLClientException(String errorDesciption){
+    protected SAMLClientException(String errorDesciption) {
         super(errorDesciption);
     }
 
-    protected SAMLClientException(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl) {
+    protected SAMLClientException(String errorDescription,
+                                  String exceptionStatus,
+                                  String exceptionMessage,
+                                  String acsUrl) {
         super(errorDescription);
         this.exceptionMessage = exceptionMessage;
         this.exceptionStatus = exceptionStatus;
@@ -43,27 +46,30 @@ public class SAMLClientException extends GatewayClientException {
         super(errorDescription, cause);
     }
 
-    public static SAMLClientException error(String errorDescription){
+    public static SAMLClientException error(String errorDescription) {
         return new SAMLClientException(errorDescription);
     }
 
-    public static SAMLClientException error(String errorDescription, Throwable cause){
+    public static SAMLClientException error(String errorDescription, Throwable cause) {
         return new SAMLClientException(errorDescription, cause);
     }
 
-    public static SAMLClientException error(String errorDescription, String exceptionStatus, String exceptionMessage, String acsUrl){
+    public static SAMLClientException error(String errorDescription,
+                                            String exceptionStatus,
+                                            String exceptionMessage,
+                                            String acsUrl) {
         return new SAMLClientException(errorDescription, exceptionStatus, exceptionMessage, acsUrl);
     }
 
-    public String getACSUrl(){
+    public String getACSUrl() {
         return this.acsUrl;
-    }
-
-    public String getExceptionStatus() {
-        return exceptionStatus;
     }
 
     public String getExceptionMessage() {
         return exceptionMessage;
+    }
+
+    public String getExceptionStatus() {
+        return exceptionStatus;
     }
 }

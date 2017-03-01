@@ -40,9 +40,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * SAMLRequestBuilderFactory is the factory that is build the SAML request.
+ */
 public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
 
     private static Logger log = LoggerFactory.getLogger(SAMLRequestBuilderFactory.class);
+
+    @Override
+    public boolean canHandle(Request request) throws GatewayClientException {
+        String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
+        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        if (StringUtils.isNotBlank(samlRequest) || StringUtils.isNotBlank(spEntityID)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
+
+        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        GatewayRequest.GatewayRequestBuilder builder = null;
+
+        if (spEntityID != null) {
+            builder = new SAMLIDPInitRequest.SAMLIdpInitRequestBuilder();
+        } else {
+            builder = new SAMLSPInitRequest.SAMLSpInitRequestBuilder();
+        }
+        super.create(builder, request);
+        return builder;
+    }
 
     @Override
     public String getName() {
@@ -50,38 +78,8 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
     }
 
     @Override
-    public boolean canHandle(Request request) throws GatewayClientException {
-        String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
-        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
-        String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
-        if (StringUtils.isNotBlank(samlRequest) || StringUtils.isNotBlank(spEntityID) || StringUtils.isNotBlank(slo)) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public int getPriority() {
         return 30;
-    }
-
-    @Override
-    public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
-
-        String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
-        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
-        String slo = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SLO.toString());
-        GatewayRequest.GatewayRequestBuilder builder = null;
-        if (spEntityID != null || slo != null) {
-            builder = new SAMLIDPInitRequest.SAMLIdpInitRequestBuilder();
-        } else if (samlRequest != null) {
-            builder = new SAMLSPInitRequest.SAMLSpInitRequestBuilder
-                    ();
-        } else {
-            throw new GatewayClientException("Invalid request message or single logout message");
-        }
-        super.create(builder, request);
-        return builder;
     }
 
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
@@ -91,17 +89,20 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
         Map<String, String[]> queryParams = new HashMap();
         //TODO Send status codes rather than full messages in the GET request
         try {
-            queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(((SAMLClientException)
-                    exception).getExceptionStatus(), StandardCharsets.UTF_8.name())});
-            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(((SAMLClientException)
-                    exception).getExceptionMessage(), StandardCharsets.UTF_8.name())});
+            queryParams.put(SAMLSSOConstants.STATUS, new String[] { URLEncoder.encode(((SAMLClientException)
+                    exception).getExceptionStatus(), StandardCharsets.UTF_8.name()) });
+            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[] { URLEncoder.encode(((SAMLClientException)
+                    exception).getExceptionMessage(), StandardCharsets.UTF_8.name()) });
             if (exception.getMessage() != null) {
-                queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(exception.getMessage()
-                        , StandardCharsets.UTF_8.name())});
+                queryParams.put(SAMLSSOConstants.SAML_RESP, new String[] { URLEncoder.encode(exception.getMessage()
+                        , StandardCharsets.UTF_8.name()) });
             }
             if (((SAMLClientException) exception).getACSUrl() != null) {
-                queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode((
-                        (SAMLClientException) exception).getACSUrl(), StandardCharsets.UTF_8.name())});
+                queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[] { URLEncoder.encode((
+                                                                                                               (SAMLClientException) exception)
+                                                                                                               .getACSUrl(),
+                                                                                                       StandardCharsets.UTF_8
+                                                                                                               .name()) });
             }
             //builder.setParameters(queryParams);
         } catch (UnsupportedEncodingException e) {

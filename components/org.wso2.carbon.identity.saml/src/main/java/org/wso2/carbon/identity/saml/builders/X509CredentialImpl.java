@@ -65,6 +65,48 @@ public class X509CredentialImpl implements X509Credential {
         signingCert = cert;
     }
 
+    public Collection<X509CRL> getCRLs() {
+        // TODO Auto-generated method stub
+        return Collections.emptyList();
+    }
+
+    public CredentialContextSet getCredentalContextSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    // ********** Not implemented **************************************************************
+
+    public Class<? extends Credential> getCredentialType() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public X509Certificate getEntityCertificate() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Collection<X509Certificate> getEntityCertificateChain() {
+        // TODO Auto-generated method stub
+        return Collections.emptyList();
+    }
+
+    public String getEntityId() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Collection<String> getKeyNames() {
+        // TODO Auto-generated method stub
+        return Collections.emptyList();
+    }
+
+    public PrivateKey getPrivateKey() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     /**
      * Retrieves the publicKey
      */
@@ -73,66 +115,14 @@ public class X509CredentialImpl implements X509Credential {
         return publicKey;
     }
 
-    public X509Certificate getSigningCert() {
-        return signingCert;
-    }
-
-    // ********** Not implemented **************************************************************
-
-
-    public X509Certificate getEntityCertificate() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public Collection<X509CRL> getCRLs() {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
-    }
-
-
-    public Collection<X509Certificate> getEntityCertificateChain() {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
-    }
-
-
-    public CredentialContextSet getCredentalContextSet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public Class<? extends Credential> getCredentialType() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public String getEntityId() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public Collection<String> getKeyNames() {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
-    }
-
-
-    public PrivateKey getPrivateKey() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
     public SecretKey getSecretKey() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    public X509Certificate getSigningCert() {
+        return signingCert;
+    }
 
     public UsageType getUsageType() {
         // TODO Auto-generated method stub

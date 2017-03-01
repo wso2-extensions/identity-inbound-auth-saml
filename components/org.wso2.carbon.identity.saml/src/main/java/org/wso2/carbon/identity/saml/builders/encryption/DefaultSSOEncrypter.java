@@ -31,11 +31,6 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 
 public class DefaultSSOEncrypter implements SSOEncrypter {
 
-    public void init() throws IdentityException {
-        //Overridden method, no need to implement the body
-    }
-
-
     public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String
             encryptionAlgorithm) throws IdentityException {
         try {
@@ -59,5 +54,9 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
         } catch (Exception e) {
             throw IdentityException.error("Error while Encrypting Assertion", e);
         }
+    }
+
+    public void init() throws IdentityException {
+        //Overridden method, no need to implement the body
     }
 }

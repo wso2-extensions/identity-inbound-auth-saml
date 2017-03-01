@@ -40,9 +40,8 @@ import java.util.Collections;
 
 public class SignKeyDataHolder implements X509Credential {
 
-    private static final String DSA_ENCRYPTION_ALGORITHM = "DSA";
     public static final String SECURITY_KEY_STORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
-
+    private static final String DSA_ENCRYPTION_ALGORITHM = "DSA";
     private String signatureAlgorithm = null;
     private X509Certificate[] issuerCerts = null;
 
@@ -71,31 +70,13 @@ public class SignKeyDataHolder implements X509Credential {
             if (DSA_ENCRYPTION_ALGORITHM.equalsIgnoreCase(pubKeyAlgo)) {
                 signatureAlgorithm = XMLSignature.ALGO_ID_SIGNATURE_DSA;
             }
-
         } catch (Exception e) {
             throw IdentityException.error("Failed to build the SignKeyDataHolder", e);
         }
-
-    }
-
-    public String getSignatureAlgorithm() {
-        return signatureAlgorithm;
-    }
-
-    public void setSignatureAlgorithm(String signatureAlgorithm) {
-        this.signatureAlgorithm = signatureAlgorithm;
     }
 
     public Collection<X509CRL> getCRLs() {
         return Collections.emptyList();
-    }
-
-    public X509Certificate getEntityCertificate() {
-        return issuerCerts[0];
-    }
-
-    public Collection<X509Certificate> getEntityCertificateChain() {
-        return Arrays.asList(issuerCerts);
     }
 
     public CredentialContextSet getCredentalContextSet() {
@@ -106,6 +87,14 @@ public class SignKeyDataHolder implements X509Credential {
     public Class<? extends Credential> getCredentialType() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public X509Certificate getEntityCertificate() {
+        return issuerCerts[0];
+    }
+
+    public Collection<X509Certificate> getEntityCertificateChain() {
+        return Arrays.asList(issuerCerts);
     }
 
     public String getEntityId() {
@@ -131,10 +120,17 @@ public class SignKeyDataHolder implements X509Credential {
         return null;
     }
 
+    public String getSignatureAlgorithm() {
+        return signatureAlgorithm;
+    }
+
+    public void setSignatureAlgorithm(String signatureAlgorithm) {
+        this.signatureAlgorithm = signatureAlgorithm;
+    }
+
     public UsageType getUsageType() {
         // TODO Auto-generated method stub
         return null;
     }
-
 }
 

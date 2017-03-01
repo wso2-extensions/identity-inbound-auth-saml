@@ -17,35 +17,35 @@ public class SAMLValidatorConfig implements Serializable {
     public List<String> getAssertionConsumerUrlList() {
         List assertionConsumerUrls = (List) this.properties.get("assertionConsumerUrls");
         List<String> assertionConsumerUrlStrings = new ArrayList<String>();
-        assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String)a));
+        assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
         return assertionConsumerUrlStrings;
     }
 
-    public String getIssuer() {
-        return (String) properties.get("issuer");
+    public String getAttributeConsumingServiceIndex() {
+        return (String) properties.get("attributeConsumingServiceIndex");
     }
 
     public String getCertAlias() {
         return (String) properties.get("certificateAlias");
     }
 
-    public boolean isEnableAttributesByDefault() {
-        return Boolean.parseBoolean((String) properties.get("enableAttributesByDefault"));
-    }
-
-    public boolean isIdPInitSSOEnabled(){
-        return Boolean.parseBoolean((String) properties.get("idPInitSSOEnabled"));
-    }
-
-    public boolean isDoValidateSignatureInRequests () {
-        return Boolean.parseBoolean((String) properties.get("doValidateSignatureInRequests"));
-    }
-
     public String getDefaultAssertionConsumerUrl() {
         return (String) properties.get("defaultAssertionConsumerUrl");
     }
 
-    public String getAttributeConsumingServiceIndex() {
-        return (String) properties.get("attributeConsumingServiceIndex");
+    public String getIssuer() {
+        return (String) properties.get("issuer");
+    }
+
+    public boolean isDoValidateSignatureInRequests() {
+        return Boolean.parseBoolean((String) properties.get("doValidateSignatureInRequests"));
+    }
+
+    public boolean isEnableAttributesByDefault() {
+        return Boolean.parseBoolean((String) properties.get("enableAttributesByDefault"));
+    }
+
+    public boolean isIdPInitSSOEnabled() {
+        return Boolean.parseBoolean((String) properties.get("idPInitSSOEnabled"));
     }
 }

@@ -50,25 +50,6 @@ public class DefaultSSOSigner implements SSOSigner {
         //Overridden method, no need to implement the body
     }
 
-
-    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
-                                        String alias) throws IdentityException {
-
-        boolean isSignatureValid = false;
-
-        if (request.getSignature() != null) {
-            try {
-                SignatureValidator validator = new SignatureValidator(cred);
-                validator.validate(request.getSignature());
-                isSignatureValid = true;
-            } catch (ValidationException e) {
-                throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
-                        "invalid.", e);
-            }
-        }
-        return isSignatureValid;
-    }
-
     public SignableXMLObject setSignature(SignableXMLObject signableXMLObject, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentityException {
 
@@ -118,11 +99,29 @@ public class DefaultSSOSigner implements SSOSigner {
         return signableXMLObject;
     }
 
+    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
+                                        String alias) throws IdentityException {
+
+        boolean isSignatureValid = false;
+
+        if (request.getSignature() != null) {
+            try {
+                SignatureValidator validator = new SignatureValidator(cred);
+                validator.validate(request.getSignature());
+                isSignatureValid = true;
+            } catch (ValidationException e) {
+                throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
+                                              "invalid.", e);
+            }
+        }
+        return isSignatureValid;
+    }
+
     /**
      * Builds SAML Elements
      *
      * @param objectQName
-     * @return                      getIdentity
+     * @return getIdentity
      * @throws IdentityException
      */
     private XMLObject buildXMLObject(QName objectQName) throws IdentityException {

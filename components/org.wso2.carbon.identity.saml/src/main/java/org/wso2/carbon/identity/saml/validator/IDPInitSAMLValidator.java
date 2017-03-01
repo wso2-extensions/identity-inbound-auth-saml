@@ -24,14 +24,14 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.validators.IdPInitSSOAuthnRequestValidator;
+import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
 
 import java.io.IOException;
 
@@ -51,6 +51,13 @@ public class IDPInitSAMLValidator extends SAMLValidator {
         return false;
     }
 
+    public String getName() {
+        return "IDPInitSAMLValidator";
+    }
+
+    public int getPriority(MessageContext messageContext) {
+        return 11;
+    }
 
     @Override
     public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
@@ -59,70 +66,66 @@ public class IDPInitSAMLValidator extends SAMLValidator {
         super.validate(authenticationContext);
         GatewayRequest gatewayRequest = authenticationContext.getIdentityRequest();
 
-        if (!((SAMLIDPInitRequest) gatewayRequest).isLogout()) {
-            try {
+        try {
 
-                SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
-                IdPInitSSOAuthnRequestValidator validator = new IdPInitSSOAuthnRequestValidator(messageContext);
-                String spEntityID = ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
-                authenticationContext.setUniqueId(spEntityID);
-                validateServiceProvider(authenticationContext);
-                if (validator.validate(null)) {
-                    SAMLValidatorConfig samlValidatorConfig = messageContext.getSamlValidatorConfig();
+            SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
+                    .getParameter(SAMLSSOConstants.SAMLContext);
+            IdPInitSSOAuthnRequestValidator validator = new IdPInitSSOAuthnRequestValidator(messageContext);
+            String spEntityID = ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
+            authenticationContext.setUniqueId(spEntityID);
+            validateServiceProvider(authenticationContext);
+            if (validator.validate(null)) {
+                SAMLValidatorConfig samlValidatorConfig = messageContext.getSamlValidatorConfig();
 
-                    if (samlValidatorConfig == null) {
-                        String msg = "A Service Provider with the Issuer '" + messageContext.getIssuer() + "' is not " +
-                                "registered." + " Service Provider should be registered in advance.";
-                        if (log.isDebugEnabled()) {
-                            log.debug(msg);
-                        }
-                        throw new RequestValidatorException(msg);
+                if (samlValidatorConfig == null) {
+                    String msg = "A Service Provider with the Issuer '" + messageContext.getIssuer() + "' is not " +
+                                 "registered." + " Service Provider should be registered in advance.";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
                     }
-
-                    if (!samlValidatorConfig.isIdPInitSSOEnabled()) {
-                        String msg = "IdP initiated SSO not enabled for service provider '" + messageContext.getIssuer() + "'.";
-                        if (log.isDebugEnabled()) {
-                            log.debug(msg);
-                        }
-                        throw new RequestValidatorException(msg);
-                    }
-
-                    if (samlValidatorConfig.isEnableAttributesByDefault() && samlValidatorConfig
-                            .getAttributeConsumingServiceIndex() != null) {
-                        messageContext.setAttributeConsumingServiceIndex(Integer.parseInt(samlValidatorConfig
-                                .getAttributeConsumingServiceIndex()));
-                    }
-
-
-                    String acsUrl = StringUtils.isNotBlank(((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getAcs()) ? (
-                            (SAMLIDPInitRequest) messageContext.getIdentityRequest()).getAcs() : samlValidatorConfig
-                            .getDefaultAssertionConsumerUrl();
-                    if (StringUtils.isBlank(acsUrl) || !samlValidatorConfig.getAssertionConsumerUrlList().contains
-                            (acsUrl)) {
-                        String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
-                                "AuthnRequest message from  the issuer '" + samlValidatorConfig.getIssuer() +
-                                "'. Possibly " + "an attempt for a spoofing attack";
-                        if (log.isDebugEnabled()) {
-                            log.debug(msg);
-                        }
-                        throw new RequestValidatorException(msg);
-                    }
-                    return FrameworkHandlerResponse.CONTINUE;
+                    throw new RequestValidatorException(msg);
                 }
-            } catch (IdentityException e) {
-                throw new RequestValidatorException("Error while validating SAML request");
-            } catch (IOException e) {
-                throw new RequestValidatorException("Error while validating SAML request");
+
+                if (!samlValidatorConfig.isIdPInitSSOEnabled()) {
+                    String msg = "IdP initiated SSO not enabled for service provider '" + messageContext.getIssuer()
+                                 + "'.";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    throw new RequestValidatorException(msg);
+                }
+
+                if (samlValidatorConfig.isEnableAttributesByDefault() && samlValidatorConfig
+                                                                                 .getAttributeConsumingServiceIndex()
+                                                                         != null) {
+                    messageContext.setAttributeConsumingServiceIndex(Integer.parseInt(samlValidatorConfig
+                                                                                              .getAttributeConsumingServiceIndex()));
+                }
+
+
+                String acsUrl = StringUtils.isNotBlank(
+                        ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getAcs()) ? (
+                                        (SAMLIDPInitRequest) messageContext.getIdentityRequest())
+                                        .getAcs() : samlValidatorConfig
+                                        .getDefaultAssertionConsumerUrl();
+                if (StringUtils.isBlank(acsUrl) || !samlValidatorConfig.getAssertionConsumerUrlList().contains
+                        (acsUrl)) {
+                    String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
+                                 "AuthnRequest message from  the issuer '" + samlValidatorConfig.getIssuer() +
+                                 "'. Possibly " + "an attempt for a spoofing attack";
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
+                    throw new RequestValidatorException(msg);
+                }
+                return FrameworkHandlerResponse.CONTINUE;
             }
+        } catch (IdentityException e) {
+            throw new RequestValidatorException("Error while validating SAML request");
+        } catch (IOException e) {
+            throw new RequestValidatorException("Error while validating SAML request");
         }
+
         throw new RequestValidatorException("Error while validating SAML request");
-    }
-
-    public String getName() {
-        return "IDPInitSAMLValidator";
-    }
-
-    public int getPriority(MessageContext messageContext) {
-        return 11;
     }
 }

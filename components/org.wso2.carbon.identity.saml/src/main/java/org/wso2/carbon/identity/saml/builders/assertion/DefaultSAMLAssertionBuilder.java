@@ -23,33 +23,8 @@ import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml1.core.NameIdentifier;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Attribute;
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.AttributeValue;
-import org.opensaml.saml2.core.Audience;
-import org.opensaml.saml2.core.AudienceRestriction;
-import org.opensaml.saml2.core.AuthnContext;
-import org.opensaml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.SubjectConfirmation;
-import org.opensaml.saml2.core.SubjectConfirmationData;
-import org.opensaml.saml2.core.impl.AssertionBuilder;
-import org.opensaml.saml2.core.impl.AttributeBuilder;
-import org.opensaml.saml2.core.impl.AttributeStatementBuilder;
-import org.opensaml.saml2.core.impl.AudienceBuilder;
-import org.opensaml.saml2.core.impl.AudienceRestrictionBuilder;
-import org.opensaml.saml2.core.impl.AuthnContextBuilder;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
-import org.opensaml.saml2.core.impl.AuthnStatementBuilder;
-import org.opensaml.saml2.core.impl.ConditionsBuilder;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.SubjectBuilder;
-import org.opensaml.saml2.core.impl.SubjectConfirmationBuilder;
-import org.opensaml.saml2.core.impl.SubjectConfirmationDataBuilder;
+import org.opensaml.saml2.core.*;
+import org.opensaml.saml2.core.impl.*;
 import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.slf4j.Logger;
@@ -57,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -68,25 +43,19 @@ import java.util.StringTokenizer;
 
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
-    private static Logger log = LoggerFactory.getLogger(DefaultSAMLAssertionBuilder.class);
-
     public static final String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     public static final String MULTI_ATTRIBUTE_SEPARATOR_DEFAULT = ",,,";
-
+    private static Logger log = LoggerFactory.getLogger(DefaultSAMLAssertionBuilder.class);
     private String userAttributeSeparator = MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
 
-
-    public void init() throws IdentityException {
-        //Overridden method, no need to implement the body
-    }
-
-
-    public Assertion buildAssertion(AuthenticationContext authenticationContext, DateTime notOnOrAfter, String sessionId) throws
-            IdentityException {
+    public Assertion buildAssertion(AuthenticationContext authenticationContext,
+                                    DateTime notOnOrAfter,
+                                    String sessionId) throws
+                                                      IdentityException {
 
         try {
             SAMLMessageContext context = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants
-                    .SAMLContext);
+                                                                                                         .SAMLContext);
             DateTime currentTime = new DateTime();
             Assertion samlAssertion = new AssertionBuilder().buildObject();
             SAMLResponseHandlerConfig samlResponseHandlerConfig = context.getResponseHandlerConfig();
@@ -120,7 +89,8 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             subject.getSubjectConfirmations().add(subjectConfirmation);
 
             if (samlResponseHandlerConfig.getRequestedRecipients() != null && samlResponseHandlerConfig
-                    .getRequestedRecipients().length > 0) {
+                                                                                      .getRequestedRecipients().length
+                                                                              > 0) {
                 for (String recipient : samlResponseHandlerConfig.getRequestedRecipients()) {
                     subjectConfirmation = new SubjectConfirmationBuilder()
                             .buildObject();
@@ -184,7 +154,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
             if (samlResponseHandlerConfig.isDoSignAssertions()) {
                 SAMLSSOUtil.setSignature(samlAssertion, samlResponseHandlerConfig.getSigningAlgorithmUri(),
-                        samlResponseHandlerConfig.getDigestAlgorithmUri(), new SignKeyDataHolder());
+                                         samlResponseHandlerConfig.getDigestAlgorithmUri(), new SignKeyDataHolder());
             }
 
             return samlAssertion;
@@ -193,6 +163,10 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             throw IdentityException.error(
                     "Error when reading claim values for generating SAML Response", e);
         }
+    }
+
+    public void init() throws IdentityException {
+        //Overridden method, no need to implement the body
     }
 
     private AttributeStatement buildAttributeStatement(Map<String, String> claims) {

@@ -22,18 +22,18 @@ import org.joda.time.DateTime;
 import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 
 public interface SAMLAssertionBuilder {
-
-    public void init() throws IdentityException;
 
     /**
      * Encrypt the SAML assertion
      *
-     * @param context      SAML assertion to be encrypted
-     * @param notOnOrAfter Encrypting credential
-     * @param sessionId    Certificate alias against which use to Encrypt the assertion.
+     * @param context
+     *         SAML assertion to be encrypted
+     * @param notOnOrAfter
+     *         Encrypting credential
+     * @param sessionId
+     *         Certificate alias against which use to Encrypt the assertion.
      * @return Assertion
      * @throws IdentityException
      */
@@ -41,4 +41,5 @@ public interface SAMLAssertionBuilder {
     public Assertion buildAssertion(AuthenticationContext context, DateTime notOnOrAfter,
                                     String sessionId) throws IdentityException;
 
+    public void init() throws IdentityException;
 }

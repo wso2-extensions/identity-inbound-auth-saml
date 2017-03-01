@@ -41,11 +41,6 @@ public class SAMLResponse extends GatewayResponse {
 
         private Response response;
 
-        //Do the bootstrap first
-        static {
-            SAMLSSOUtil.doBootstrap();
-        }
-
         public SAMLResponseBuilder(GatewayMessageContext context) {
             super(context);
             ResponseBuilder responseBuilder = new ResponseBuilder();
@@ -56,6 +51,10 @@ public class SAMLResponse extends GatewayResponse {
             this.response = response;
             return this;
         }
-    }
 
+        //Do the bootstrap first
+        static {
+            SAMLSSOUtil.doBootstrap();
+        }
+    }
 }
