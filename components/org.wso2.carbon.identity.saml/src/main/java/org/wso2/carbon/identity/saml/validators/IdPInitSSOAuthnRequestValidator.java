@@ -62,20 +62,21 @@ public class IdPInitSSOAuthnRequestValidator {
             }
             messageContext.setValid(false);
             throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                                                                           "spEntityID parameter not found in request", null));
+                                                                           "spEntityID parameter not found in request",
+                                                                           null));
         }
 
         if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID)) {
             String message = "A Service Provider with the Issuer '" + spEntityID + "' is not registered. Service " +
-                    "Provider should be registered in advance";
+                             "Provider should be registered in advance";
             String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                    message, null);
+                                                              message, null);
             if (log.isDebugEnabled()) {
                 log.debug(message);
             }
             messageContext.setValid(false);
             throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                    .REQUESTOR_ERROR, message, null));
+                                                                                   .REQUESTOR_ERROR, message, null));
         }
 
         messageContext.setValid(true);
@@ -85,5 +86,4 @@ public class IdPInitSSOAuthnRequestValidator {
         }
         return true;
     }
-
 }

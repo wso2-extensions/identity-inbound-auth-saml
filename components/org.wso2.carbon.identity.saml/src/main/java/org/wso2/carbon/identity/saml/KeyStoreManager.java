@@ -10,16 +10,32 @@ import java.security.KeyStore;
 
 public class KeyStoreManager {
 
-    private KeyStore primaryKeyStore = null;
     private static KeyStoreManager instance = new KeyStoreManager();
+    private KeyStore primaryKeyStore = null;
 
+
+    private KeyStoreManager() {
+        this.initKeyStore();
+    }
 
     public static KeyStoreManager getInstance() {
         return instance;
     }
 
-    private KeyStoreManager() {
-        this.initKeyStore();
+    public KeyStore getKeyStore() {
+        return this.primaryKeyStore;
+    }
+
+    public Key getPrivateKey() throws IdentityException {
+        KeyStore keyStore = getKeyStore();
+        String alias = SAMLConfigurations.getInstance().getKeyStoreAlias();
+        String keystorePassword = SAMLConfigurations.getInstance().getKeyStorePassword();
+        try {
+            return keyStore.getKey(alias, keystorePassword.toCharArray());
+        } catch (Exception e) {
+            String msg = "Error has encountered while loading the key for the given alias " + alias;
+            throw new IdentityException(msg);
+        }
     }
 
     public KeyStore initKeyStore() {
@@ -46,27 +62,9 @@ public class KeyStoreManager {
                         throw new SecurityException("Error while reading key store");
                     }
                 }
-
             }
         }
 
-        return this.primaryKeyStore;
-    }
-
-    public Key getPrivateKey() throws IdentityException {
-        KeyStore keyStore = getKeyStore();
-        String alias = SAMLConfigurations.getInstance().getKeyStoreAlias();
-        String keystorePassword = SAMLConfigurations.getInstance().getKeyStorePassword();
-        try {
-            return keyStore.getKey(alias, keystorePassword.toCharArray());
-        } catch (Exception e) {
-            String msg = "Error has encountered while loading the key for the given alias " + alias;
-            throw new IdentityException(msg);
-        }
-    }
-
-
-    public KeyStore getKeyStore() {
         return this.primaryKeyStore;
     }
 }

@@ -18,43 +18,28 @@
 
 package org.wso2.carbon.identity.saml.request;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
-import org.wso2.msf4j.Request;
 
 public class SAMLIDPInitRequest extends SAMLRequest {
     public SAMLIDPInitRequest(SAMLIdpInitRequestBuilder builder) {
         super(builder);
     }
 
-    public String getSpEntityID() {
-        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
-    }
-
-    public String getSLO() {
-        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
-    }
-
     public String getAcs() {
         return (String) this.getParameter(SAMLSSOConstants.QueryParameter.ACS.toString());
     }
 
-    public String getReturnTo() {
-        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.RETURN_TO.toString());
-    }
-
-    public boolean isLogout() {
-        return StringUtils.isNotBlank(getSLO()) && StringUtils.equals(getSLO(), "true");
+    public String getSpEntityID() {
+        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
     }
 
     public static class SAMLIdpInitRequestBuilder extends SAMLGatewayRequestBuilder {
         public SAMLIdpInitRequestBuilder() {
         }
+
         @Override
         public SAMLIDPInitRequest build() {
             return new SAMLIDPInitRequest(this);
         }
-
-
     }
 }

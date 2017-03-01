@@ -44,21 +44,6 @@ public class SAMLLoginResponse extends SAMLResponse {
         this.respString = ((SAMLLoginResponseBuilder) builder).respString;
         this.relayState = ((SAMLLoginResponseBuilder) builder).relayState;
         this.acsUrl = ((SAMLLoginResponseBuilder) builder).acsUrl;
-        this.authenticatedIdPs = ((SAMLLoginResponseBuilder) builder).authenticatedIdPs;
-        this.tenantDomain = ((SAMLLoginResponseBuilder) builder).tenantDomain;
-        this.subject = ((SAMLLoginResponseBuilder) builder).subject;
-    }
-
-    public String getRespString() {
-        return respString;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getRelayState() {
-        return relayState;
     }
 
     public String getAcsUrl() {
@@ -69,12 +54,24 @@ public class SAMLLoginResponse extends SAMLResponse {
         return authenticatedIdPs;
     }
 
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
-
     public SAMLMessageContext getContext() {
         return (SAMLMessageContext) this.context;
+    }
+
+    public String getRelayState() {
+        return relayState;
+    }
+
+    public String getRespString() {
+        return respString;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
     }
 
     public static class SAMLLoginResponseBuilder extends SAMLResponseBuilder {
@@ -92,19 +89,9 @@ public class SAMLLoginResponse extends SAMLResponse {
             super(context);
         }
 
-        public SAMLLoginResponseBuilder setRespString(String respString) {
-            this.respString = respString;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setSubject(String subject) {
-            this.subject = subject;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setRelayState(String relayState) {
-            this.relayState = relayState;
-            return this;
+        @Override
+        public GatewayResponse build() {
+            return new SAMLLoginResponse(this);
         }
 
         public SAMLLoginResponseBuilder setAcsUrl(String acsUrl) {
@@ -114,6 +101,21 @@ public class SAMLLoginResponse extends SAMLResponse {
 
         public SAMLLoginResponseBuilder setAuthenticatedIdPs(String authenticatedIdPs) {
             this.authenticatedIdPs = authenticatedIdPs;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setRelayState(String relayState) {
+            this.relayState = relayState;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setRespString(String respString) {
+            this.respString = respString;
+            return this;
+        }
+
+        public SAMLLoginResponseBuilder setSubject(String subject) {
+            this.subject = subject;
             return this;
         }
 
@@ -139,11 +141,6 @@ public class SAMLLoginResponse extends SAMLResponse {
             }
 
             return stat;
-        }
-
-        @Override
-        public GatewayResponse build() {
-            return new SAMLLoginResponse(this);
         }
     }
 }

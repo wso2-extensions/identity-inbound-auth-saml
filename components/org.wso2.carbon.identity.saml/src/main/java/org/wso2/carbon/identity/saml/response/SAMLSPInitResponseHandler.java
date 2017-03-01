@@ -3,8 +3,8 @@ package org.wso2.carbon.identity.saml.response;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
@@ -19,11 +19,13 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
 
     @Override
-    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e) throws
-                                                                                                     ResponseException {
+    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e)
+            throws
+            ResponseException {
 
         super.buildErrorResponse(authenticationContext, e);
-        SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
+        SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
+                .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLResponse.SAMLResponseBuilder builder;
         FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
 
@@ -35,14 +37,16 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
             String errorResponse = null;
             try {
                 errorResponse = SAMLSSOUtil.buildErrorResponse(samlMessageContext.getId(), statusCodes,
-                        "Cannot process response from framework Subject in Passive Mode", destination);
+                                                               "Cannot process response from framework Subject in "
+                                                               + "Passive Mode",
+                                                               destination);
 
                 builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(samlMessageContext);
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setRelayState(samlMessageContext.getRelayState
                         ());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setRespString(errorResponse);
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAcsUrl(samlMessageContext
-                        .getAssertionConsumerURL());
+                                                                                         .getAssertionConsumerURL());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setSubject(samlMessageContext.getSubject());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(null);
                 response.setGatewayResponseBuilder(builder);
@@ -54,34 +58,36 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 
         builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(authenticationContext);
         // TODO
-//            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
-//                    (122, SAMLSSOConstants.StatusCodes
-//                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
+        //            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+        //                    (122, SAMLSSOConstants.StatusCodes
+        //                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
         response.setGatewayResponseBuilder(builder);
         return response;
-
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext) throws ResponseException {
+    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseException {
         super.buildResponse(authenticationContext);
         // TODO
 
-//        if (identityMessageContext.getSubject() != null && messageContext.getUser() != null) {
-//            String authenticatedSubjectIdentifier = messageContext.getUser().getAuthenticatedSubjectIdentifier();
-//            if (authenticatedSubjectIdentifier != null && !authenticatedSubjectIdentifier.equals(messageContext
-//                    .getSubject())) {
-//                String msg = "Provided username does not match with the requested subject";
-//                if (log.isDebugEnabled()) {
-//                    log.debug(msg);
-//                }
-//                builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-//                ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
-//                        (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
-//                                serviceProviderConfigs.getDefaultAssertionConsumerUrl()));
-//                return builder;
-//            }
-//        }
+        //        if (identityMessageContext.getSubject() != null && messageContext.getUser() != null) {
+        //            String authenticatedSubjectIdentifier = messageContext.getUser()
+        // .getAuthenticatedSubjectIdentifier();
+        //            if (authenticatedSubjectIdentifier != null && !authenticatedSubjectIdentifier.equals
+        // (messageContext
+        //                    .getSubject())) {
+        //                String msg = "Provided username does not match with the requested subject";
+        //                if (log.isDebugEnabled()) {
+        //                    log.debug(msg);
+        //                }
+        //                builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
+        //                ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+        //                        (messageContext.getId(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
+        //                                serviceProviderConfigs.getDefaultAssertionConsumerUrl()));
+        //                return builder;
+        //            }
+        //        }
         // TODO persist the session
 
         SAMLResponse.SAMLResponseBuilder builder;
@@ -97,9 +103,10 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 
             builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(authenticationContext);
             // TODO
-//            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
-//                    (122, SAMLSSOConstants.StatusCodes
-//                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.", null));
+            //            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(buildErrorResponse
+            //                    (122, SAMLSSOConstants.StatusCodes
+            //                            .AUTHN_FAILURE, "Authentication Failure, invalid username or password.",
+            // null));
             response.setGatewayResponseBuilder(builder);
             return response;
         }
@@ -114,7 +121,8 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
-            return ((AuthenticationContext) messageContext).getInitialAuthenticationRequest() instanceof SAMLSPInitRequest;
+            return ((AuthenticationContext) messageContext)
+                    .getInitialAuthenticationRequest() instanceof SAMLSPInitRequest;
         }
         return false;
     }
@@ -126,5 +134,4 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
     public int getPriority(MessageContext messageContext) {
         return 15;
     }
-
 }

@@ -15,8 +15,8 @@ import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.saml.builders.assertion.SAMLAssertionBuilder;
 import org.wso2.carbon.identity.saml.builders.encryption.DefaultSSOEncrypter;
 import org.wso2.carbon.identity.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 
@@ -39,7 +38,8 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
 
     @Override
-    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e) throws
+    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e)
+            throws
             ResponseException {
         try {
             setSAMLResponseHandlerConfigs(authenticationContext);
@@ -60,6 +60,21 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
         return FrameworkHandlerResponse.REDIRECT;
     }
 
+    public Assertion buildSAMLAssertion(AuthenticationContext context, DateTime notOnOrAfter,
+                                        String sessionId) throws IdentityException {
+        SAMLSSOUtil.doBootstrap();
+        SAMLAssertionBuilder samlAssertionBuilder = new DefaultSAMLAssertionBuilder();
+        return samlAssertionBuilder.buildAssertion(context, notOnOrAfter, sessionId);
+    }
+
+    public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
+                                                    String alias) throws IdentityException {
+        SAMLSSOUtil.doBootstrap();
+
+        SSOEncrypter ssoEncrypter = new DefaultSSOEncrypter();
+        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
+        return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
+    }
 
     public String setResponse(AuthenticationContext context, SAMLLoginResponse.SAMLLoginResponseBuilder
             builder) throws IdentityException {
@@ -80,7 +95,8 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
-                + SAMLConfigurations.getInstance().getSamlResponseValidityPeriod() * 60 * 1000L);
+                                             + SAMLConfigurations.getInstance().getSamlResponseValidityPeriod() * 60
+                                               * 1000L);
         response.setIssueInstant(issueInstant);
         //@TODO sessionHandling
         String sessionId = "";
@@ -92,7 +108,9 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
             // TODO
             if (alias != null) {
                 EncryptedAssertion encryptedAssertion = setEncryptedAssertion(assertion,
-                        EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias);
+                                                                              EncryptionConstants
+                                                                                      .ALGO_ID_BLOCKCIPHER_AES256,
+                                                                              alias);
                 response.getEncryptedAssertions().add(encryptedAssertion);
             }
         } else {
@@ -110,7 +128,6 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
         addSessionKey(builder, context);
         return respString;
     }
-
 
     private Status buildStatus(String status, String statMsg) {
 
@@ -131,30 +148,14 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
         return stat;
     }
 
-    public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
-                                                    String alias) throws IdentityException {
-        SAMLSSOUtil.doBootstrap();
-
-        SSOEncrypter ssoEncrypter = new DefaultSSOEncrypter();
-        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
-        return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
-    }
-
-    public Assertion buildSAMLAssertion(AuthenticationContext context, DateTime notOnOrAfter,
-                                        String sessionId) throws IdentityException {
-        SAMLSSOUtil.doBootstrap();
-        SAMLAssertionBuilder samlAssertionBuilder = new DefaultSAMLAssertionBuilder();
-        return samlAssertionBuilder.buildAssertion(context, notOnOrAfter, sessionId);
-
-    }
-
     protected String getValidatorType() {
         return "SAML";
     }
 
     protected void setSAMLResponseHandlerConfigs(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
-        SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
+                                                                                              AuthenticationHandlerException {
+        SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
+                .getParameter(SAMLSSOConstants.SAMLContext);
         Properties samlValidatorProperties = getResponseBuilderConfigs(authenticationContext);
         SAMLResponseHandlerConfig samlResponseHandlerConfig = new SAMLResponseHandlerConfig(samlValidatorProperties);
         messageContext.setResponseHandlerConfig(samlResponseHandlerConfig);

@@ -19,11 +19,10 @@
 package org.wso2.carbon.identity.saml.context;
 
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.request.SAMLRequest;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
-import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -58,29 +57,20 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         super(request, parameters);
     }
 
-    @Override
-    public SAMLRequest getIdentityRequest() {
-        return (SAMLRequest) identityRequest;
+    public String getAssertionConsumerURL() {
+        if (!isIdpInitSSO()) {
+            return this.assertionConsumerUrl;
+        } else {
+            return getSamlValidatorConfig().getDefaultAssertionConsumerUrl();
+        }
     }
 
-    public void setDestination(String destination) {
-        this.destination = destination;
+    public int getAttributeConsumingServiceIndex() {
+        return attributeConsumingServiceIndex;
     }
 
-    public SAMLValidatorConfig getSamlValidatorConfig() {
-        return samlValidatorConfig;
-    }
-
-    public void setSamlValidatorConfig(SAMLValidatorConfig samlValidatorConfig) {
-        this.samlValidatorConfig = samlValidatorConfig;
-    }
-
-    public SAMLResponseHandlerConfig getResponseHandlerConfig() {
-        return responseHandlerConfig;
-    }
-
-    public void setResponseHandlerConfig(SAMLResponseHandlerConfig responseHandlerConfig) {
-        this.responseHandlerConfig = responseHandlerConfig;
+    public void setAttributeConsumingServiceIndex(int attributeConsumingServiceIndex) {
+        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
     }
 
     public String getDestination() {
@@ -92,20 +82,28 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         return null;
     }
 
-    public boolean isIdpInitSSO() {
-        return this.getIdentityRequest() instanceof SAMLIDPInitRequest;
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
-    public String getRelayState() {
-        return this.getIdentityRequest().getRelayState();
+    public String getId() {
+        if (!isIdpInitSSO()) {
+            return this.id;
+        }
+        return null;
     }
 
-    public boolean isValid() {
-        return isValid;
+    //    public String getRpSessionId() {
+    //        return this.request.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
+    //    }
+    //
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public void setValid(boolean isValid) {
-        this.isValid = isValid;
+    @Override
+    public SAMLRequest getIdentityRequest() {
+        return (SAMLRequest) identityRequest;
     }
 
     public String getIssuer() {
@@ -124,49 +122,25 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         return this.issuer;
     }
 
-    public int getAttributeConsumingServiceIndex() {
-        return attributeConsumingServiceIndex;
+    public String getRelayState() {
+        return this.getIdentityRequest().getRelayState();
     }
 
-    public void setAttributeConsumingServiceIndex(int attributeConsumingServiceIndex) {
-        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
+    public SAMLResponseHandlerConfig getResponseHandlerConfig() {
+        return responseHandlerConfig;
     }
 
-    //    public String getRpSessionId() {
-//        return this.request.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
-//    }
-//
-    public void setId(String id) {
-        this.id = id;
+    public void setResponseHandlerConfig(SAMLResponseHandlerConfig responseHandlerConfig) {
+        this.responseHandlerConfig = responseHandlerConfig;
     }
 
-    public String getId() {
-        if (!isIdpInitSSO()) {
-            return this.id;
-        }
-        return null;
+    public SAMLValidatorConfig getSamlValidatorConfig() {
+        return samlValidatorConfig;
     }
 
-    public void setAssertionConsumerUrl(String assertionConsumerUrl) {
-        this.assertionConsumerUrl = assertionConsumerUrl;
+    public void setSamlValidatorConfig(SAMLValidatorConfig samlValidatorConfig) {
+        this.samlValidatorConfig = samlValidatorConfig;
     }
-
-    public String getAssertionConsumerURL() {
-        if (!isIdpInitSSO()) {
-            return this.assertionConsumerUrl;
-        } else {
-            return getSamlValidatorConfig().getDefaultAssertionConsumerUrl();
-        }
-    }
-
-    public void setIsPassive(boolean isPassive) {
-        this.isPassive = isPassive;
-    }
-
-    public boolean isPassive() {
-        return this.isPassive;
-    }
-
 
     //TODO
    /* public AuthenticatedUser getUser() {
@@ -181,17 +155,39 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
         this.subject = subject;
     }
 
+    public boolean isIdpInitSSO() {
+        return this.getIdentityRequest() instanceof SAMLIDPInitRequest;
+    }
+
+    public boolean isPassive() {
+        return this.isPassive;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public void setValid(boolean isValid) {
+        this.isValid = isValid;
+    }
+
+    public void setAssertionConsumerUrl(String assertionConsumerUrl) {
+        this.assertionConsumerUrl = assertionConsumerUrl;
+    }
+
+    public void setIsPassive(boolean isPassive) {
+        this.isPassive = isPassive;
+    }
+
     /**
      * @return AuthenticationResult saved in the messageContext
      * while authenticating in the framework.
      */
     // TODO
-//    public AuthenticationResult getAuthenticationResult() {
-//        if (this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT) != null) {
-//            return (AuthenticationResult) this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT);
-//        }
-//        return new AuthenticationResult();
-//    }
-
-
+    //    public AuthenticationResult getAuthenticationResult() {
+    //        if (this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT) != null) {
+    //            return (AuthenticationResult) this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT);
+    //        }
+    //        return new AuthenticationResult();
+    //    }
 }

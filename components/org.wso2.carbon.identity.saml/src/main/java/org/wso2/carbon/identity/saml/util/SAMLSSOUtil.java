@@ -98,9 +98,11 @@ import java.util.zip.InflaterInputStream;
 
 public class SAMLSSOUtil {
 
+    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
+                                                            Constants.SECURITY_MANAGER_PROPERTY;
+    private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static int singleLogoutRetryCount = 5;
     private static long singleLogoutRetryInterval = 60000;
-
     //    private static RealmService realmService;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
     private static SAML2HTTPRedirectSignatureValidator samlHTTPRedirectSignatureValidator = null;
@@ -108,17 +110,15 @@ public class SAMLSSOUtil {
     private static SSOSigner ssoSigner = null;
     private static BundleContext bundleContext;
     //    private static RegistryService registryService;
-//    private static ConfigurationContextService configCtxService;
+    //    private static ConfigurationContextService configCtxService;
     private static Logger log = LoggerFactory.getLogger(SAMLSSOUtil.class);
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean isBootStrapped = false;
 
     /**
      * Constructing the AuthnRequest Object from a String
      *
-     * @param authReqStr Decoded AuthReq String
+     * @param authReqStr
+     *         Decoded AuthReq String
      * @return AuthnRequest Object
      * @throws
      */
@@ -170,8 +170,8 @@ public class SAMLSSOUtil {
         ByteArrayOutputStream byteArrayOutputStrm = null;
         try {
             doBootstrap();
-//            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
-//                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
+            //            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
+            //                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 
             MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
@@ -202,21 +202,23 @@ public class SAMLSSOUtil {
     /**
      * Encoding the response
      *
-     * @param xmlString String to be encoded
+     * @param xmlString
+     *         String to be encoded
      * @return encoded String
      */
     public static String encode(String xmlString) {
         // Encoding the message
         String encodedRequestMessage =
                 Base64.encodeBytes(xmlString.getBytes(StandardCharsets.UTF_8),
-                        Base64.DONT_BREAK_LINES);
+                                   Base64.DONT_BREAK_LINES);
         return encodedRequestMessage.trim();
     }
 
     /**
      * Decoding and deflating the encoded AuthReq
      *
-     * @param encodedStr encoded AuthReq
+     * @param encodedStr
+     *         encoded AuthReq
      * @return decoded AuthReq
      */
     public static String decode(String encodedStr) throws SAMLServerException {
@@ -242,7 +244,6 @@ public class SAMLSSOUtil {
                     log.debug("Request message " + decodedString);
                 }
                 return decodedString;
-
             } catch (DataFormatException e) {
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(base64DecodedByteArray);
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -263,7 +264,6 @@ public class SAMLSSOUtil {
         } catch (IOException e) {
             throw new SAMLServerException("Error when decoding the SAML Request.", e);
         }
-
     }
 
 
@@ -279,11 +279,9 @@ public class SAMLSSOUtil {
                 log.debug("Request message " + decodedString);
             }
             return decodedString;
-
         } catch (IOException e) {
             throw new SAMLServerException("Error when decoding the SAML Request.", e);
         }
-
     }
 
     public static void doBootstrap() {
@@ -298,7 +296,7 @@ public class SAMLSSOUtil {
     }
 
     public static String getParameterFromQueryString(String queryString, String paraName) throws
-            UnsupportedEncodingException {
+                                                                                          UnsupportedEncodingException {
         if (StringUtils.isNotBlank(queryString)) {
             String[] params = queryString.split("&");
             if (!ArrayUtils.isEmpty(params)) {
@@ -313,11 +311,11 @@ public class SAMLSSOUtil {
     }
 
     public static String getNotificationEndpoint() {
-//        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-//                .NOTIFICATION_ENDPOINT);
-//        if (StringUtils.isBlank(redirectURL)) {
-//            redirectURL = IdentityUtil.getServerURL(SAMLSSOConstants.NOTIFICATION_ENDPOINT, false, false);
-//        }
+        //        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+        //                .NOTIFICATION_ENDPOINT);
+        //        if (StringUtils.isBlank(redirectURL)) {
+        //            redirectURL = IdentityUtil.getServerURL(SAMLSSOConstants.NOTIFICATION_ENDPOINT, false, false);
+        //        }
         // TODO
         return "";
     }
@@ -330,22 +328,21 @@ public class SAMLSSOUtil {
      * @return decoded response
      * @throws org.wso2.carbon.identity
      */
-    public static String buildErrorResponse(String status, String message, String destination)
-              {
+    public static String buildErrorResponse(String status, String message, String destination) {
 
         List<String> statusCodeList = new ArrayList<String>();
         statusCodeList.add(status);
         //Do below in the response builder
-                  String errorResp = null;
-                  try {
-                      Response response = buildResponse(null, statusCodeList, message, destination);
-                      errorResp = compressResponse(SAMLSSOUtil.marshall(response));
-                  } catch (SAMLServerException e) {
-                      e.printStackTrace();
-                  } catch (IOException e) {
-                      e.printStackTrace();
-                  }
-                  return errorResp;
+        String errorResp = null;
+        try {
+            Response response = buildResponse(null, statusCodeList, message, destination);
+            errorResp = compressResponse(SAMLSSOUtil.marshall(response));
+        } catch (SAMLServerException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return errorResp;
     }
 
     public static String buildErrorResponse(String id, List<String> statusCodes, String statusMsg, String destination)
@@ -365,7 +362,7 @@ public class SAMLSSOUtil {
         Response response = new ResponseBuilder().buildObject();
 
         if (statusCodes == null || statusCodes.isEmpty()) {
-            throw  new SAMLServerException("No Status Values");
+            throw new SAMLServerException("No Status Values");
         }
         response.setIssuer(SAMLSSOUtil.getIssuer());
         Status status = new StatusBuilder().buildObject();
@@ -416,165 +413,177 @@ public class SAMLSSOUtil {
      * @throws IdentityException
      */
 
-//    public static List<String> getDestinationFromTenantDomain(String tenantDomain) throws IdentityException {
-//
-//        List<String> destinationURLs = new ArrayList<String>();
-//        IdentityProvider identityProvider;
-//
-//        try {
-//            identityProvider = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
-//        } catch (IdentityProviderManagementException e) {
-//            throw IdentityException.error(
-//                    "Error occurred while retrieving Resident Identity Provider information for tenant " +
-//                            tenantDomain, e);
-//        }
-//
-//        FederatedAuthenticatorConfig[] authnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
-//        for (String value: IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(authnConfigs,
-//                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants.Authenticator
-//                        .SAML2SSO.SSO_URL)) {
-//            destinationURLs.add(value);
-//        }
-//
-//        if (destinationURLs.size() == 0) {
-//            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_CLOUD_URL);
-//            if (StringUtils.isBlank(configDestination)) {
-//                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.IDENTITY_URL, true, true);
-//            }
-//            destinationURLs.add(configDestination);
-//        }
-//
-//        return destinationURLs;
-//    }
-    public static boolean validateACS(String issuerName, String requestedACSUrl)  {
+    //    public static List<String> getDestinationFromTenantDomain(String tenantDomain) throws IdentityException {
+    //
+    //        List<String> destinationURLs = new ArrayList<String>();
+    //        IdentityProvider identityProvider;
+    //
+    //        try {
+    //            identityProvider = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
+    //        } catch (IdentityProviderManagementException e) {
+    //            throw IdentityException.error(
+    //                    "Error occurred while retrieving Resident Identity Provider information for tenant " +
+    //                            tenantDomain, e);
+    //        }
+    //
+    //        FederatedAuthenticatorConfig[] authnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+    //        for (String value: IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(authnConfigs,
+    //                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants
+    // .Authenticator
+    //                        .SAML2SSO.SSO_URL)) {
+    //            destinationURLs.add(value);
+    //        }
+    //
+    //        if (destinationURLs.size() == 0) {
+    //            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_CLOUD_URL);
+    //            if (StringUtils.isBlank(configDestination)) {
+    //                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.IDENTITY_URL, true, true);
+    //            }
+    //            destinationURLs.add(configDestination);
+    //        }
+    //
+    //        return destinationURLs;
+    //    }
+    public static boolean validateACS(String issuerName, String requestedACSUrl) {
         // TODO
         return true;
-//        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
-//        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
-//        if (serviceProvider != null) {
-//            return true;
-//        }
-//
-//        int tenantId;
-//        if (StringUtils.isBlank(tenantDomain)) {
-//            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-//            tenantId = MultitenantConstants.SUPER_TENANT_ID;
-//        } else {
-//            try {
-//                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-//            } catch (UserStoreException e) {
-//                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
-//                        tenantDomain, e);
-//            }
-//        }
-//
-//        try {
-//            PrivilegedCarbonContext.startTenantFlow();
-//            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-//            privilegedCarbonContext.setTenantId(tenantId);
-//            privilegedCarbonContext.setTenantDomain(tenantDomain);
-//
-//            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-//            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
-//                    .SAMLFormFields.SAML_SSO, tenantDomain);
-//            Map<String, Property> properties = new HashMap();
-//            for (InboundAuthenticationRequestConfig authenticationRequestConfig : application
-//                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
-//                if (StringUtils.equals(authenticationRequestConfig.getInboundAuthType(), SAMLSSOConstants
-//                        .SAMLFormFields.SAML_SSO) && StringUtils.equals(authenticationRequestConfig
-//                        .getInboundAuthKey(), issuerName)) {
-//                    for (Property property : authenticationRequestConfig.getProperties()) {
-//                        properties.put(property.getName(), property);
-//                    }
-//                }
-//            }
-//
-//            if (StringUtils.isBlank(requestedACSUrl) || properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS) ==
-//                    null || properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue() == null || !Arrays
-//                    .asList(properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue().split
-//                            (SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR)).contains(requestedACSUrl)) {
-//                String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
-//                        "AuthnRequest message from  the issuer '" + issuerName + "'. Possibly " + "an attempt for a " +
-//                        "spoofing attack";
-//                log.error(msg);
-//                return false;
-//            } else {
-//                return true;
-//            }
-//        } catch (IdentityApplicationManagementException e) {
-//            throw new SAMLServerException("Error occurred while validating existence of SAML service provider " +
-//                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
-//        } finally {
-//            PrivilegedCarbonContext.endTenantFlow();
-//        }
+        //        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+        // .getInstance();
+        //        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
+        //        if (serviceProvider != null) {
+        //            return true;
+        //        }
+        //
+        //        int tenantId;
+        //        if (StringUtils.isBlank(tenantDomain)) {
+        //            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        //            tenantId = MultitenantConstants.SUPER_TENANT_ID;
+        //        } else {
+        //            try {
+        //                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        //            } catch (UserStoreException e) {
+        //                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
+        //                        tenantDomain, e);
+        //            }
+        //        }
+        //
+        //        try {
+        //            PrivilegedCarbonContext.startTenantFlow();
+        //            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+        // .getThreadLocalCarbonContext();
+        //            privilegedCarbonContext.setTenantId(tenantId);
+        //            privilegedCarbonContext.setTenantDomain(tenantDomain);
+        //
+        //            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+        //            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
+        //                    .SAMLFormFields.SAML_SSO, tenantDomain);
+        //            Map<String, Property> properties = new HashMap();
+        //            for (InboundAuthenticationRequestConfig authenticationRequestConfig : application
+        //                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
+        //                if (StringUtils.equals(authenticationRequestConfig.getInboundAuthType(), SAMLSSOConstants
+        //                        .SAMLFormFields.SAML_SSO) && StringUtils.equals(authenticationRequestConfig
+        //                        .getInboundAuthKey(), issuerName)) {
+        //                    for (Property property : authenticationRequestConfig.getProperties()) {
+        //                        properties.put(property.getName(), property);
+        //                    }
+        //                }
+        //            }
+        //
+        //            if (StringUtils.isBlank(requestedACSUrl) || properties.get(SAMLSSOConstants.SAMLFormFields
+        // .ACS_URLS) ==
+        //                    null || properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue() == null ||
+        // !Arrays
+        //                    .asList(properties.get(SAMLSSOConstants.SAMLFormFields.ACS_URLS).getValue().split
+        //                            (SAMLSSOConstants.SAMLFormFields.ACS_SEPERATE_CHAR)).contains(requestedACSUrl)) {
+        //                String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +
+        //                        "AuthnRequest message from  the issuer '" + issuerName + "'. Possibly " + "an
+        // attempt for a " +
+        //                        "spoofing attack";
+        //                log.error(msg);
+        //                return false;
+        //            } else {
+        //                return true;
+        //            }
+        //        } catch (IdentityApplicationManagementException e) {
+        //            throw new SAMLServerException("Error occurred while validating existence of SAML service
+        // provider " +
+        //                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
+        //        } finally {
+        //            PrivilegedCarbonContext.endTenantFlow();
+        //        }
 
     }
 
     public static boolean isSAMLIssuerExists(String issuerName) throws SAMLServerException {
         return true;
         // TODO
-//        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
-//        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
-//        if (serviceProvider != null) {
-//            return true;
-//        }
-//
-//        int tenantId;
-//        if (StringUtils.isBlank(tenantDomain)) {
-//            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-//            tenantId = MultitenantConstants.SUPER_TENANT_ID;
-//        } else {
-//            try {
-//                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-//            } catch (UserStoreException e) {
-//                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
-//                        tenantDomain, e);
-//            }
-//        }
-//
-//        try {
-//            PrivilegedCarbonContext.startTenantFlow();
-//            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-//            privilegedCarbonContext.setTenantId(tenantId);
-//            privilegedCarbonContext.setTenantDomain(tenantDomain);
-//
-//            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
-//            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
-//                    .SAMLFormFields.SAML_SSO, tenantDomain);
-//            if (application != null) {
-//                for (InboundAuthenticationRequestConfig config : application.getInboundAuthenticationConfig()
-//                        .getInboundAuthenticationRequestConfigs()) {
-//                    if (StringUtils.equals(config.getInboundAuthKey(), issuerName) && StringUtils.equals(config
-//                            .getInboundAuthType(), SAMLSSOConstants.SAMLFormFields.SAML_SSO)) {
-//                        return true;
-//                    }
-//                }
-//            }
-//            return false;
-//        } catch (IdentityApplicationManagementException e) {
-//            throw new SAMLServerException("Error occurred while validating existence of SAML service provider " +
-//                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
-//        } finally {
-//            PrivilegedCarbonContext.endTenantFlow();
-//        }
+        //        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+        // .getInstance();
+        //        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
+        //        if (serviceProvider != null) {
+        //            return true;
+        //        }
+        //
+        //        int tenantId;
+        //        if (StringUtils.isBlank(tenantDomain)) {
+        //            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        //            tenantId = MultitenantConstants.SUPER_TENANT_ID;
+        //        } else {
+        //            try {
+        //                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        //            } catch (UserStoreException e) {
+        //                throw new SAMLServerException("Error occurred while retrieving tenant id for the domain : " +
+        //                        tenantDomain, e);
+        //            }
+        //        }
+        //
+        //        try {
+        //            PrivilegedCarbonContext.startTenantFlow();
+        //            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+        // .getThreadLocalCarbonContext();
+        //            privilegedCarbonContext.setTenantId(tenantId);
+        //            privilegedCarbonContext.setTenantDomain(tenantDomain);
+        //
+        //            ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+        //            ServiceProvider application = appInfo.getServiceProviderByClientId(issuerName, SAMLSSOConstants
+        //                    .SAMLFormFields.SAML_SSO, tenantDomain);
+        //            if (application != null) {
+        //                for (InboundAuthenticationRequestConfig config : application.getInboundAuthenticationConfig()
+        //                        .getInboundAuthenticationRequestConfigs()) {
+        //                    if (StringUtils.equals(config.getInboundAuthKey(), issuerName) && StringUtils.equals
+        // (config
+        //                            .getInboundAuthType(), SAMLSSOConstants.SAMLFormFields.SAML_SSO)) {
+        //                        return true;
+        //                    }
+        //                }
+        //            }
+        //            return false;
+        //        } catch (IdentityApplicationManagementException e) {
+        //            throw new SAMLServerException("Error occurred while validating existence of SAML service
+        // provider " +
+        //                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
+        //        } finally {
+        //            PrivilegedCarbonContext.endTenantFlow();
+        //        }
     }
 
-//    public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
-//
-//        if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain.trim())) {
-//            int tenantID = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
-//            if (tenantID == -1) {
-//                String message = "Invalid tenant domain : " + tenantDomain;
-//                if (log.isDebugEnabled()) {
-//                    log.debug(message);
-//                }
-//                throw IdentityException.error(message);
-//            } else {
-//                return tenantDomain;
-//            }
-//        }
-//        return null;
-//    }
+    //    public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
+    //
+    //        if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain
+    // .trim())) {
+    //            int tenantID = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+    //            if (tenantID == -1) {
+    //                String message = "Invalid tenant domain : " + tenantDomain;
+    //                if (log.isDebugEnabled()) {
+    //                    log.debug(message);
+    //                }
+    //                throw IdentityException.error(message);
+    //            } else {
+    //                return tenantDomain;
+    //            }
+    //        }
+    //        return null;
+    //    }
 
     public static BundleContext getBundleContext() {
         return SAMLSSOUtil.bundleContext;
@@ -584,37 +593,37 @@ public class SAMLSSOUtil {
         SAMLSSOUtil.bundleContext = bundleContext;
     }
 
-//    public static RegistryService getRegistryService() {
-//        return registryService;
-//    }
-//
-//    public static void setRegistryService(RegistryService registryService) {
-//        SAMLSSOUtil.registryService = registryService;
-//    }
+    //    public static RegistryService getRegistryService() {
+    //        return registryService;
+    //    }
+    //
+    //    public static void setRegistryService(RegistryService registryService) {
+    //        SAMLSSOUtil.registryService = registryService;
+    //    }
 
-//    public static ConfigurationContextService getConfigCtxService() {
-//        return configCtxService;
-//    }
+    //    public static ConfigurationContextService getConfigCtxService() {
+    //        return configCtxService;
+    //    }
 
-//    public static void setConfigCtxService(ConfigurationContextService configCtxService) {
-//        SAMLSSOUtil.configCtxService = configCtxService;
-//    }
+    //    public static void setConfigCtxService(ConfigurationContextService configCtxService) {
+    //        SAMLSSOUtil.configCtxService = configCtxService;
+    //    }
 
-//    public static HttpService getHttpService() {
-//        return httpService;
-//    }
+    //    public static HttpService getHttpService() {
+    //        return httpService;
+    //    }
 
-//    public static void setHttpService(HttpService httpService) {
-//        SAMLSSOUtil.httpService = httpService;
-//    }
+    //    public static void setHttpService(HttpService httpService) {
+    //        SAMLSSOUtil.httpService = httpService;
+    //    }
 
-//    public static RealmService getRealmService() {
-//        return realmService;
-//    }
+    //    public static RealmService getRealmService() {
+    //        return realmService;
+    //    }
 
-//    public static void setRealmService(RealmService realmService) {
-//        SAMLSSOUtil.realmService = realmService;
-//    }
+    //    public static void setRealmService(RealmService realmService) {
+    //        SAMLSSOUtil.realmService = realmService;
+    //    }
 
 
     public static String getTenantDomainFromThreadLocal() {
@@ -631,13 +640,13 @@ public class SAMLSSOUtil {
      *
      * @return Issuer
      */
-    public static Issuer getIssuer()   {
+    public static Issuer getIssuer() {
 
         return getIssuerFromTenantDomain();
     }
 
 
-    public static Issuer getIssuerFromTenantDomain()  {
+    public static Issuer getIssuerFromTenantDomain() {
 
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = SAMLConfigurations.getInstance().getIdpEntityId();
@@ -659,13 +668,13 @@ public class SAMLSSOUtil {
             //TODO : throw exception and break the flow
         }
         return null;
-
     }
 
     /**
      * Generate the key store name from the domain name
      *
-     * @param tenantDomain tenant domain name
+     * @param tenantDomain
+     *         tenant domain name
      * @return key store file name
      */
     public static String generateKSNameFromDomainName(String tenantDomain) {
@@ -770,9 +779,9 @@ public class SAMLSSOUtil {
      * Get the X509CredentialImpl object for a particular tenant
      *
      * @param alias
-     * @return X509CredentialImpl object containing the public certificate of
-     * that tenant
-     * @throws SAMLServerException Error when creating X509CredentialImpl object
+     * @return X509CredentialImpl object containing the public certificate of that tenant
+     * @throws SAMLServerException
+     *         Error when creating X509CredentialImpl object
      */
     public static X509CredentialImpl getX509CredentialImplForTenant(String alias)
             throws SAMLServerException {
@@ -806,7 +815,8 @@ public class SAMLSSOUtil {
     ) throws IdentityException {
 
         int index = 0;
-        SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
+        SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
+                .getParameter(SAMLSSOConstants.SAMLContext);
 
         SAMLResponseHandlerConfig samlResponseHandlerConfig = samlMessageContext.getResponseHandlerConfig();
         if (!samlMessageContext.isIdpInitSSO()) {
@@ -814,7 +824,7 @@ public class SAMLSSOUtil {
             if (samlMessageContext.getAttributeConsumingServiceIndex() == 0) {
                 //SP has not provide a AttributeConsumingServiceIndex in the authnReqDTO
                 if (StringUtils.isNotBlank(samlResponseHandlerConfig.getAttributeConsumingServiceIndex()) &&
-                        samlResponseHandlerConfig.isEnableAttributesByDefault()) {
+                    samlResponseHandlerConfig.isEnableAttributesByDefault()) {
                     index = Integer.parseInt(samlResponseHandlerConfig.getAttributeConsumingServiceIndex());
                 } else {
                     return null;
@@ -825,12 +835,11 @@ public class SAMLSSOUtil {
             }
         } else {
             if (StringUtils.isNotBlank(samlResponseHandlerConfig.getAttributeConsumingServiceIndex()) &&
-                    samlResponseHandlerConfig.isEnableAttributesByDefault()) {
+                samlResponseHandlerConfig.isEnableAttributesByDefault()) {
                 index = Integer.parseInt(samlResponseHandlerConfig.getAttributeConsumingServiceIndex());
             } else {
                 return null;
             }
-
         }
 
 
@@ -839,8 +848,8 @@ public class SAMLSSOUtil {
 		 * given id to the SP
 		 */
         if (samlResponseHandlerConfig.getAttributeConsumingServiceIndex() == null ||
-                "".equals(samlResponseHandlerConfig.getAttributeConsumingServiceIndex()) ||
-                index != Integer.parseInt(samlResponseHandlerConfig.getAttributeConsumingServiceIndex())) {
+            "".equals(samlResponseHandlerConfig.getAttributeConsumingServiceIndex()) ||
+            index != Integer.parseInt(samlResponseHandlerConfig.getAttributeConsumingServiceIndex())) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid AttributeConsumingServiceIndex in AuthnRequest");
             }
@@ -883,8 +892,9 @@ public class SAMLSSOUtil {
     // TODO fix this to get proper subject
     public static String getSubject(AuthenticationContext authenticationContext) {
         if (authenticationContext.getSequenceContext() != null && authenticationContext.getSequenceContext()
-                .getStepContext(1) != null && authenticationContext.getSequenceContext().getStepContext(1).getUser()
-                != null) {
+                                                                          .getStepContext(1) != null
+            && authenticationContext.getSequenceContext().getStepContext(1).getUser()
+               != null) {
             return authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier();
         }
         return "testuser";

@@ -48,7 +48,8 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) throws Exception {
         try {
             bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLRequestBuilderFactory(), null);
-            bundleContext.registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);
+            bundleContext
+                    .registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);
 
             bundleContext.registerService(AbstractRequestValidator.class, new SPInitSAMLValidator(), null);
             bundleContext.registerService(AbstractRequestValidator.class, new IDPInitSAMLValidator(), null);
@@ -63,8 +64,10 @@ public class Activator implements BundleActivator {
     /**
      * This is called when the bundle is stopped.
      *
-     * @param bundleContext BundleContext of this bundle
-     * @throws Exception Could be thrown while bundle stopping
+     * @param bundleContext
+     *         BundleContext of this bundle
+     * @throws Exception
+     *         Could be thrown while bundle stopping
      */
     public void stop(BundleContext bundleContext) throws Exception {
     }

@@ -25,15 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
-import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -46,11 +43,6 @@ import java.util.Map;
 public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
     private static Logger log = LoggerFactory.getLogger(HttpSAMLResponseBuilderFactory.class);
-
-    @Override
-    public String getName() {
-        return "HttpSAMLResponseBuilderFactory";
-    }
 
     @Override
     public boolean canHandle(GatewayResponse gatewayResponse) {
@@ -80,30 +72,35 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
         }
     }
 
+    @Override
+    public String getName() {
+        return "HttpSAMLResponseBuilderFactory";
+    }
+
+    @Override
+    public int getPriority() {
+        return 31;
+    }
+
     private void sendResponse(Response.ResponseBuilder builder, GatewayResponse
             gatewayResponse) {
 
-            SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
+        SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
 
-            String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
-            String relayState = loginResponse.getRelayState();
-            String acUrl = loginResponse.getAcsUrl();
+        String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
+        String relayState = loginResponse.getRelayState();
+        String acUrl = loginResponse.getAcsUrl();
 
-            //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
-            builder.type(MediaType.TEXT_HTML);
+        //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
+        builder.type(MediaType.TEXT_HTML);
 
-            if (SAMLConfigurations.getInstance().getSsoResponseHtml() != null) {
-                builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-            } else {
-                builder.entity(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-            }
-            builder.status(200);
-
+        if (SAMLConfigurations.getInstance().getSsoResponseHtml() != null) {
+            builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+        } else {
+            builder.entity(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+        }
+        builder.status(200);
     }
-
-
-
-
 
     private String getRedirectHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
             loginResponse) {
@@ -111,13 +108,18 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
         String htmlPage = SAMLConfigurations.getInstance().getSsoResponseHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input " +
-                "type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse.getRespString
-                ()) + "'>");
+                                                                           "type='hidden' name='SAMLResponse' value='"
+                                                                           + Encode.forHtmlAttribute(
+                loginResponse.getRespString
+                        ()) + "'>");
         String pageWithAcsResponseRelay = pageWithAcsResponse;
 
         if (relayState != null) {
             pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input" +
-                    " type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
+                                                                                     " type='hidden' "
+                                                                                     + "name='RelayState' value='"
+                                                                                     + Encode.forHtmlAttribute(
+                    relayState) + "'>");
         }
 
         if (StringUtils.isBlank(authenticatedIdPs)) {
@@ -126,7 +128,7 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
             finalPage = pageWithAcsResponseRelay.replace(
                     "<!--$additionalParams-->",
                     "<input type='hidden' name='AuthenticatedIdPs' value='"
-                            + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+                    + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
         }
         if (log.isDebugEnabled()) {
             log.debug("samlsso_response.html " + finalPage);
@@ -144,16 +146,17 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
         out.append("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
         out.append("<p>");
         out.append("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse
-                .getRespString()) + "'>");
+                                                                                                        .getRespString())
+                   + "'>");
 
         if (relayState != null) {
             out.append("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) +
-                    "'>");
+                       "'>");
         }
 
         if (StringUtils.isBlank(authenticatedIdPs)) {
             out.append("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                    Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+                       Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
         }
 
         out.append("<button type='submit'>POST</button>");
@@ -176,19 +179,25 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
 
             //TODO Send status codes rather than full messages in the GET request
             try {
-                queryParams.put(SAMLSSOConstants.STATUS, new String[]{URLEncoder.encode(errorResponse.getStatus(),
-                                                                                        StandardCharsets.UTF_8.name())});
-                queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[]{URLEncoder.encode(errorResponse.getMessageLog()
-                        , StandardCharsets.UTF_8.name())});
+                queryParams.put(SAMLSSOConstants.STATUS, new String[] { URLEncoder.encode(errorResponse.getStatus(),
+                                                                                          StandardCharsets.UTF_8
+                                                                                                  .name()) });
+                queryParams
+                        .put(SAMLSSOConstants.STATUS_MSG, new String[] { URLEncoder.encode(errorResponse.getMessageLog()
+                                , StandardCharsets.UTF_8.name()) });
 
                 if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
-                    queryParams.put(SAMLSSOConstants.SAML_RESP, new String[]{URLEncoder.encode(errorResponse
-                                                                                                       .getErrorResponse(), StandardCharsets.UTF_8.name())});
+                    queryParams.put(SAMLSSOConstants.SAML_RESP, new String[] { URLEncoder.encode(errorResponse
+                                                                                                         .getErrorResponse(),
+                                                                                                 StandardCharsets.UTF_8
+                                                                                                         .name()) });
                 }
 
                 if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
-                    queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[]{URLEncoder.encode(errorResponse
-                                                                                                                 .getAcsUrl(), StandardCharsets.UTF_8.name())});
+                    queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[] { URLEncoder.encode(errorResponse
+                                                                                                                   .getAcsUrl(),
+                                                                                                           StandardCharsets.UTF_8
+                                                                                                                   .name()) });
                 }
             } catch (UnsupportedEncodingException e) {
 
@@ -202,15 +211,8 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
                 redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
             }
             builder.location(new URI(redirectURL));
-
-
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public int getPriority() {
-        return 31;
     }
 }

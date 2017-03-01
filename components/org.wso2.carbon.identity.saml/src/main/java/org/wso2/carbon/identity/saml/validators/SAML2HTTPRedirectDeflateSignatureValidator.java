@@ -138,15 +138,18 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * Extract the raw request parameters and build a string representation of
      * the content that was signed.
      *
-     * @param queryString the raw HTTP query string from the request
+     * @param queryString
+     *         the raw HTTP query string from the request
      * @return a string representation of the signed content
-     * @throws SecurityPolicyException thrown if there is an error during request processing
+     * @throws SecurityPolicyException
+     *         thrown if there is an error during request processing
      */
     private static String buildSignedContentString(String queryString) throws SecurityPolicyException {
         StringBuilder builder = new StringBuilder();
 
         // One of these two is mandatory
-        if (!appendParameter(builder, queryString, "SAMLRequest") && !appendParameter(builder, queryString, "SAMLResponse")) {
+        if (!appendParameter(builder, queryString, "SAMLRequest") && !appendParameter(builder, queryString,
+                                                                                      "SAMLResponse")) {
             throw new SecurityPolicyException(
                     "Extract of SAMLRequest or SAMLResponse from query string failed");
         }
@@ -165,9 +168,12 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * The appended value will be in the form 'paramName=paramValue' (minus the
      * quotes).
      *
-     * @param builder     string builder to which to append the parameter
-     * @param queryString the URL query string containing parameters
-     * @param paramName   the name of the parameter to append
+     * @param builder
+     *         string builder to which to append the parameter
+     * @param queryString
+     *         the URL query string containing parameters
+     * @param paramName
+     *         the name of the parameter to append
      * @return true if parameter was found, false otherwise
      */
     private static boolean appendParameter(StringBuilder builder, String queryString,
@@ -202,13 +208,13 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
 
         byte[] signature = getSignature(request.getSignature());
         byte[] signedContent = getSignedContent(request);
-        String algorithmUri = getSigAlg(request.getSigAlg());
+        String algorithmUri = getSigAlg(request.getSignatureAlgorithm());
         CriteriaSet criteriaSet = buildCriteriaSet(issuer);
 
         // creating the SAML2HTTPRedirectDeflateSignatureRule
         X509CredentialImpl credential =
                 SAMLSSOUtil.getX509CredentialImplForTenant(alias);
-        List<Credential> credentials =  new ArrayList<Credential>();
+        List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);
         CollectionCredentialResolver credResolver = new CollectionCredentialResolver(credentials);
         KeyInfoCredentialResolver kiResolver = SecurityHelper.buildBasicInlineKeyInfoResolver();

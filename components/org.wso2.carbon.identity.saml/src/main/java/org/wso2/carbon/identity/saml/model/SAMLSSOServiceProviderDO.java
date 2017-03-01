@@ -69,70 +69,20 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public SAMLSSOServiceProviderDO() {
         // TODO
-//        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
-//                .SSO_DEFAULT_SIGNING_ALGORITHM))) {
-//            signingAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-//                    .SSO_DEFAULT_SIGNING_ALGORITHM).trim();
-//        } else {
-//            signingAlgorithmUri = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
-//        }
-//        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
-//                .SSO_DEFAULT_DIGEST_ALGORITHM))) {
-//            digestAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-//                    .SSO_DEFAULT_DIGEST_ALGORITHM).trim();
-//        } else {
-//            digestAlgorithmUri = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
-//        }
-    }
-
-    public String getSigningCertificate() {
-        return signingCertificate;
-    }
-
-    public void setSigningCertificate(String signingCertificate) {
-        this.signingCertificate = signingCertificate;
-    }
-
-    public String getNameIDFormat() {
-        return nameIDFormat;
-    }
-
-    public void setNameIDFormat(String nameIDFormat) {
-        this.nameIDFormat = nameIDFormat;
-    }
-
-    public String getEncryptionCertificatee() {
-        return encryptionCertificate;
-    }
-
-    public void setEncryptionCertificate(String encryptionCertificate) {
-        this.encryptionCertificate = encryptionCertificate;
-    }
-
-    public String getNameIdClaimUri() {
-        return nameIdClaimUri;
-    }
-
-    public void setNameIdClaimUri(String nameIdClaimUri) {
-        this.nameIdClaimUri = nameIdClaimUri;
-    }
-
-    public boolean isEnableAttributesByDefault() {
-        return enableAttributesByDefault;
-    }
-
-    public void setEnableAttributesByDefault(boolean enableAttributesByDefault) {
-        this.enableAttributesByDefault = enableAttributesByDefault;
-    }
-
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        if (issuer != null) {
-            this.issuer = issuer.replaceAll("[\n\r]", "").trim();
-        }
+        //        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+        //                .SSO_DEFAULT_SIGNING_ALGORITHM))) {
+        //            signingAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+        //                    .SSO_DEFAULT_SIGNING_ALGORITHM).trim();
+        //        } else {
+        //            signingAlgorithmUri = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
+        //        }
+        //        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+        //                .SSO_DEFAULT_DIGEST_ALGORITHM))) {
+        //            digestAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
+        //                    .SSO_DEFAULT_DIGEST_ALGORITHM).trim();
+        //        } else {
+        //            digestAlgorithmUri = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
+        //        }
     }
 
     public String getAssertionConsumerUrl() {
@@ -145,20 +95,37 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public boolean isAssertionQueryRequestProfileEnabled() {
-        return isAssertionQueryRequestProfileEnabled;
+    public List<String> getAssertionConsumerUrlList() {
+        if (assertionConsumerUrlList != null) {
+            return assertionConsumerUrlList;
+        } else {
+            return Collections.emptyList();
+        }
     }
 
-    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
-        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    public String[] getAssertionConsumerUrls() {
+        if (assertionConsumerUrls != null) {
+            return assertionConsumerUrls.clone();
+        } else {
+            return ArrayUtils.EMPTY_STRING_ARRAY;
+        }
     }
 
-    public String getSupportedAssertionQueryRequestTypes() {
-        return supportedAssertionQueryRequestTypes;
+    public void setAssertionConsumerUrls(List<String> assertionConsumerUrlList) {
+        this.assertionConsumerUrlList = assertionConsumerUrlList;
+        if (assertionConsumerUrlList != null) {
+            this.assertionConsumerUrls = assertionConsumerUrlList.toArray(new String[assertionConsumerUrlList.size()]);
+        } else {
+            this.assertionConsumerUrls = null;
+        }
     }
 
-    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
-        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
+    public String getAttributeConsumingServiceIndex() {
+        return attributeConsumingServiceIndex;
+    }
+
+    public void setAttributeConsumingServiceIndex(String attributeConsumingServiceIndex) {
+        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
     }
 
     public String getCertAlias() {
@@ -169,22 +136,66 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.certAlias = certAlias;
     }
 
-    public String getSloResponseURL() {
-        return sloResponseURL;
+    public String getDefaultAssertionConsumerUrl() {
+        return defaultAssertionConsumerUrl;
     }
 
-    public void setSloResponseURL(String sloResponseURL) {
-        if (sloResponseURL != null) {
-            this.sloResponseURL = sloResponseURL.replaceAll("[\n\r]", "").trim();
+    public void setDefaultAssertionConsumerUrl(String defaultAssertionConsumerUrl) {
+        if (StringUtils.isNotBlank(defaultAssertionConsumerUrl)) {
+            this.defaultAssertionConsumerUrl = defaultAssertionConsumerUrl.replaceAll("[\n\r]", "").trim();
+        } else {
+            this.defaultAssertionConsumerUrl = null;
         }
     }
 
-    public boolean isDoSingleLogout() {
-        return doSingleLogout;
+    public String getDigestAlgorithmUri() {
+        return digestAlgorithmUri;
     }
 
-    public void setDoSingleLogout(boolean doSingleLogout) {
-        this.doSingleLogout = doSingleLogout;
+    public void setDigestAlgorithmUri(String digestAlgorithmUri) {
+        if (StringUtils.isNotEmpty(digestAlgorithmUri)) {
+            this.digestAlgorithmUri = digestAlgorithmUri;
+        }
+    }
+
+    public String getEncryptionCertificatee() {
+        return encryptionCertificate;
+    }
+
+    public List<String> getIdpInitSLOReturnToURLList() {
+        if (idpInitSLOReturnToURLList != null) {
+            return idpInitSLOReturnToURLList;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public String[] getIdpInitSLOReturnToURLs() {
+        if (idpInitSLOReturnToURLs != null) {
+            return idpInitSLOReturnToURLs.clone();
+        } else {
+            return ArrayUtils.EMPTY_STRING_ARRAY;
+        }
+    }
+
+    public void setIdpInitSLOReturnToURLs(List<String> idpInitSLOReturnToURLList) {
+        this.idpInitSLOReturnToURLList = idpInitSLOReturnToURLList;
+        if (idpInitSLOReturnToURLList != null) {
+            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList
+                    .toArray(new String[idpInitSLOReturnToURLList.size()]);
+        } else {
+            this.idpInitSLOReturnToURLs = null;
+        }
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        if (issuer != null) {
+            this.issuer = issuer.replaceAll("[\n\r]", "").trim();
+        }
     }
 
     public String getLoginPageURL() {
@@ -199,82 +210,20 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public boolean isDoSignAssertions() {
-        return doSignAssertions;
+    public String getNameIDFormat() {
+        return nameIDFormat;
     }
 
-    public void setDoSignAssertions(boolean doSignAssertions) {
-        this.doSignAssertions = doSignAssertions;
+    public void setNameIDFormat(String nameIDFormat) {
+        this.nameIDFormat = nameIDFormat;
     }
 
-    public String getAttributeConsumingServiceIndex() {
-        return attributeConsumingServiceIndex;
+    public String getNameIdClaimUri() {
+        return nameIdClaimUri;
     }
 
-    public void setAttributeConsumingServiceIndex(String attributeConsumingServiceIndex) {
-        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
-    }
-
-    public String getSigningAlgorithmUri() {
-        return signingAlgorithmUri;
-    }
-
-    public void setSigningAlgorithmUri(String signingAlgorithmUri) {
-        if (StringUtils.isNotEmpty(signingAlgorithmUri)) {
-            this.signingAlgorithmUri = signingAlgorithmUri;
-        }
-    }
-
-    public String getDigestAlgorithmUri() {
-        return digestAlgorithmUri;
-    }
-
-    public void setDigestAlgorithmUri(String digestAlgorithmUri) {
-        if (StringUtils.isNotEmpty(digestAlgorithmUri)) {
-            this.digestAlgorithmUri = digestAlgorithmUri;
-        }
-    }
-
-    /**
-     * @return the requestedClaims
-     */
-    public String[] getRequestedClaims() {
-        if (requestedClaims != null) {
-            return requestedClaims.clone();
-        } else {
-            return ArrayUtils.EMPTY_STRING_ARRAY;
-        }
-    }
-
-    /**
-     * @param requestedClaims the requestedClaims to set
-     */
-    public void setRequestedClaims(List<String> requestedClaims) {
-        if (requestedClaims != null) {
-            this.requestedClaimsList = requestedClaims;
-            this.requestedClaims = requestedClaims.toArray(new String[requestedClaims.size()]);
-        }
-    }
-
-    /**
-     * @param requestedClaims the requestedClaims to set
-     */
-    public void setRequestedClaims(String[] requestedClaims) {
-        if (requestedClaims != null) {
-            this.requestedClaims = requestedClaims.clone();
-            this.requestedClaimsList = Arrays.asList(requestedClaims);
-        }
-    }
-
-    /**
-     * @return the requestedClaims
-     */
-    public List<String> getRequestedClaimsList() {
-        if (requestedClaimsList != null) {
-            return requestedClaimsList;
-        } else {
-            return Collections.emptyList();
-        }
+    public void setNameIdClaimUri(String nameIdClaimUri) {
+        this.nameIdClaimUri = nameIdClaimUri;
     }
 
     /**
@@ -289,17 +238,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     /**
-     * @param requestedAudiences the requestedAudiences to set
-     */
-    public void setRequestedAudiences(List<String> requestedAudiences) {
-        if (requestedAudiences != null) {
-            this.requestedAudiencesList = requestedAudiences;
-            this.requestedAudiences = requestedAudiences.toArray(new String[requestedAudiencesList.size()]);
-        }
-    }
-
-    /**
-     * @param requestedAudiences the requestedAudiences to set
+     * @param requestedAudiences
+     *         the requestedAudiences to set
      */
     public void setRequestedAudiences(String[] requestedAudiences) {
         if (requestedAudiences != null) {
@@ -320,6 +260,39 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     /**
+     * @return the requestedClaims
+     */
+    public String[] getRequestedClaims() {
+        if (requestedClaims != null) {
+            return requestedClaims.clone();
+        } else {
+            return ArrayUtils.EMPTY_STRING_ARRAY;
+        }
+    }
+
+    /**
+     * @param requestedClaims
+     *         the requestedClaims to set
+     */
+    public void setRequestedClaims(String[] requestedClaims) {
+        if (requestedClaims != null) {
+            this.requestedClaims = requestedClaims.clone();
+            this.requestedClaimsList = Arrays.asList(requestedClaims);
+        }
+    }
+
+    /**
+     * @return the requestedClaims
+     */
+    public List<String> getRequestedClaimsList() {
+        if (requestedClaimsList != null) {
+            return requestedClaimsList;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * @return the requestedRecipients
      */
     public String[] getRequestedRecipients() {
@@ -331,19 +304,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     /**
-     * @param requestedRecipientsList the requestedRecipients to set
-     */
-    public void setRequestedRecipients(List<String> requestedRecipientsList) {
-        this.requestedRecipientsList = requestedRecipientsList;
-        if (requestedRecipientsList != null) {
-            this.requestedRecipients = requestedRecipientsList.toArray(new String[requestedRecipientsList.size()]);
-        } else {
-            this.requestedRecipients = null;
-        }
-    }
-
-    /**
-     * @param requestedRecipients the requestedRecipients to set
+     * @param requestedRecipients
+     *         the requestedRecipients to set
      */
     public void setRequestedRecipients(String[] requestedRecipients) {
         if (requestedRecipients != null) {
@@ -366,97 +328,22 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    /**
-     * @return the doSignResponse
-     */
-    public boolean isDoSignResponse() {
-        return doSignResponse;
+    public String getSigningAlgorithmUri() {
+        return signingAlgorithmUri;
     }
 
-    /**
-     * @param doSignResponse the doSignResponse to set
-     */
-    public void setDoSignResponse(boolean doSignResponse) {
-        this.doSignResponse = doSignResponse;
-    }
-
-    public boolean isIdPInitSSOEnabled() {
-        return isIdPInitSSOEnabled;
-    }
-
-    public void setIdPInitSSOEnabled(boolean idPInitSSOEnabled) {
-        isIdPInitSSOEnabled = idPInitSSOEnabled;
-    }
-
-    public boolean isDoEnableEncryptedAssertion() {
-        return doEnableEncryptedAssertion;
-    }
-
-    public void setDoEnableEncryptedAssertion(boolean doEnableEncryptedAssertion) {
-        this.doEnableEncryptedAssertion = doEnableEncryptedAssertion;
-    }
-
-    public boolean isDoValidateSignatureInRequests() {
-        return doValidateSignatureInRequests;
-    }
-
-    public void setDoValidateSignatureInRequests(boolean doValidateSignatureInRequests) {
-        this.doValidateSignatureInRequests = doValidateSignatureInRequests;
-    }
-
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
-
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
-    }
-
-    public String[] getAssertionConsumerUrls() {
-        if (assertionConsumerUrls != null) {
-            return assertionConsumerUrls.clone();
-        } else {
-            return ArrayUtils.EMPTY_STRING_ARRAY;
+    public void setSigningAlgorithmUri(String signingAlgorithmUri) {
+        if (StringUtils.isNotEmpty(signingAlgorithmUri)) {
+            this.signingAlgorithmUri = signingAlgorithmUri;
         }
     }
 
-    public List<String> getAssertionConsumerUrlList() {
-        if (assertionConsumerUrlList != null) {
-            return assertionConsumerUrlList;
-        } else {
-            return Collections.emptyList();
-        }
+    public String getSigningCertificate() {
+        return signingCertificate;
     }
 
-    public void setAssertionConsumerUrls(String[] assertionConsumerUrls) {
-        if (assertionConsumerUrls != null) {
-            this.assertionConsumerUrls = assertionConsumerUrls.clone();
-            this.assertionConsumerUrlList = Arrays.asList(assertionConsumerUrls);
-        } else {
-            this.assertionConsumerUrls = null;
-            this.assertionConsumerUrlList = null;
-        }
-    }
-
-    public void setAssertionConsumerUrls(List<String> assertionConsumerUrlList) {
-        this.assertionConsumerUrlList = assertionConsumerUrlList;
-        if (assertionConsumerUrlList != null) {
-            this.assertionConsumerUrls = assertionConsumerUrlList.toArray(new String[assertionConsumerUrlList.size()]);
-        } else {
-            this.assertionConsumerUrls = null;
-        }
-    }
-
-    public String getDefaultAssertionConsumerUrl() {
-        return defaultAssertionConsumerUrl;
-    }
-
-    public void setDefaultAssertionConsumerUrl(String defaultAssertionConsumerUrl) {
-        if (StringUtils.isNotBlank(defaultAssertionConsumerUrl)) {
-            this.defaultAssertionConsumerUrl = defaultAssertionConsumerUrl.replaceAll("[\n\r]", "").trim();
-        } else {
-            this.defaultAssertionConsumerUrl = null;
-        }
+    public void setSigningCertificate(String signingCertificate) {
+        this.signingCertificate = signingCertificate;
     }
 
     public String getSloRequestURL() {
@@ -471,6 +358,103 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
+    public String getSloResponseURL() {
+        return sloResponseURL;
+    }
+
+    public void setSloResponseURL(String sloResponseURL) {
+        if (sloResponseURL != null) {
+            this.sloResponseURL = sloResponseURL.replaceAll("[\n\r]", "").trim();
+        }
+    }
+
+    public String getSupportedAssertionQueryRequestTypes() {
+        return supportedAssertionQueryRequestTypes;
+    }
+
+    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
+        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
+    }
+
+    public X509Certificate getX509Certificate() {
+        return x509Certificate;
+    }
+
+    public void setX509Certificate(X509Certificate x509Certificate) {
+        this.x509Certificate = x509Certificate;
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    }
+
+    public boolean isDoEnableEncryptedAssertion() {
+        return doEnableEncryptedAssertion;
+    }
+
+    public void setDoEnableEncryptedAssertion(boolean doEnableEncryptedAssertion) {
+        this.doEnableEncryptedAssertion = doEnableEncryptedAssertion;
+    }
+
+    public boolean isDoSignAssertions() {
+        return doSignAssertions;
+    }
+
+    public void setDoSignAssertions(boolean doSignAssertions) {
+        this.doSignAssertions = doSignAssertions;
+    }
+
+    /**
+     * @return the doSignResponse
+     */
+    public boolean isDoSignResponse() {
+        return doSignResponse;
+    }
+
+    /**
+     * @param doSignResponse
+     *         the doSignResponse to set
+     */
+    public void setDoSignResponse(boolean doSignResponse) {
+        this.doSignResponse = doSignResponse;
+    }
+
+    public boolean isDoSingleLogout() {
+        return doSingleLogout;
+    }
+
+    public void setDoSingleLogout(boolean doSingleLogout) {
+        this.doSingleLogout = doSingleLogout;
+    }
+
+    public boolean isDoValidateSignatureInRequests() {
+        return doValidateSignatureInRequests;
+    }
+
+    public void setDoValidateSignatureInRequests(boolean doValidateSignatureInRequests) {
+        this.doValidateSignatureInRequests = doValidateSignatureInRequests;
+    }
+
+    public boolean isEnableAttributesByDefault() {
+        return enableAttributesByDefault;
+    }
+
+    public void setEnableAttributesByDefault(boolean enableAttributesByDefault) {
+        this.enableAttributesByDefault = enableAttributesByDefault;
+    }
+
     public boolean isIdPInitSLOEnabled() {
         return idPInitSLOEnabled;
     }
@@ -479,12 +463,26 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.idPInitSLOEnabled = idPInitSLOEnabled;
     }
 
-    public String[] getIdpInitSLOReturnToURLs() {
-        if (idpInitSLOReturnToURLs != null) {
-            return idpInitSLOReturnToURLs.clone();
+    public boolean isIdPInitSSOEnabled() {
+        return isIdPInitSSOEnabled;
+    }
+
+    public void setIdPInitSSOEnabled(boolean idPInitSSOEnabled) {
+        isIdPInitSSOEnabled = idPInitSSOEnabled;
+    }
+
+    public void setAssertionConsumerUrls(String[] assertionConsumerUrls) {
+        if (assertionConsumerUrls != null) {
+            this.assertionConsumerUrls = assertionConsumerUrls.clone();
+            this.assertionConsumerUrlList = Arrays.asList(assertionConsumerUrls);
         } else {
-            return ArrayUtils.EMPTY_STRING_ARRAY;
+            this.assertionConsumerUrls = null;
+            this.assertionConsumerUrlList = null;
         }
+    }
+
+    public void setEncryptionCertificate(String encryptionCertificate) {
+        this.encryptionCertificate = encryptionCertificate;
     }
 
     public void setIdpInitSLOReturnToURLs(String[] idpInitSLOReturnToURLs) {
@@ -497,28 +495,38 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public List<String> getIdpInitSLOReturnToURLList() {
-        if (idpInitSLOReturnToURLList != null) {
-            return idpInitSLOReturnToURLList;
-        } else {
-            return Collections.emptyList();
+    /**
+     * @param requestedAudiences
+     *         the requestedAudiences to set
+     */
+    public void setRequestedAudiences(List<String> requestedAudiences) {
+        if (requestedAudiences != null) {
+            this.requestedAudiencesList = requestedAudiences;
+            this.requestedAudiences = requestedAudiences.toArray(new String[requestedAudiencesList.size()]);
         }
     }
 
-    public void setIdpInitSLOReturnToURLs(List<String> idpInitSLOReturnToURLList) {
-        this.idpInitSLOReturnToURLList = idpInitSLOReturnToURLList;
-        if (idpInitSLOReturnToURLList != null) {
-            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList.toArray(new String[idpInitSLOReturnToURLList.size()]);
-        } else {
-            this.idpInitSLOReturnToURLs = null;
+    /**
+     * @param requestedClaims
+     *         the requestedClaims to set
+     */
+    public void setRequestedClaims(List<String> requestedClaims) {
+        if (requestedClaims != null) {
+            this.requestedClaimsList = requestedClaims;
+            this.requestedClaims = requestedClaims.toArray(new String[requestedClaims.size()]);
         }
     }
 
-    public X509Certificate getX509Certificate() {
-        return x509Certificate;
-    }
-
-    public void setX509Certificate(X509Certificate x509Certificate) {
-        this.x509Certificate = x509Certificate;
+    /**
+     * @param requestedRecipientsList
+     *         the requestedRecipients to set
+     */
+    public void setRequestedRecipients(List<String> requestedRecipientsList) {
+        this.requestedRecipientsList = requestedRecipientsList;
+        if (requestedRecipientsList != null) {
+            this.requestedRecipients = requestedRecipientsList.toArray(new String[requestedRecipientsList.size()]);
+        } else {
+            this.requestedRecipients = null;
+        }
     }
 }

@@ -23,13 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
@@ -51,6 +50,14 @@ public class SPInitSAMLValidator extends SAMLValidator {
         return false;
     }
 
+    public String getName() {
+        return "SPInitSAMLValidator";
+    }
+
+    public int getPriority(MessageContext messageContext) {
+        return 10;
+    }
+
     @Override
     public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
                                                                                           RequestValidatorException {
@@ -60,15 +67,16 @@ public class SPInitSAMLValidator extends SAMLValidator {
 
         try {
             if (identityRequest.isRedirect()) {
-                decodedRequest = SAMLSSOUtil.decode(identityRequest.getSamlRequest());
+                decodedRequest = SAMLSSOUtil.decode(identityRequest.getSAMLRequest());
             } else {
-                decodedRequest = SAMLSSOUtil.decodeForPost(identityRequest.getSamlRequest());
+                decodedRequest = SAMLSSOUtil.decodeForPost(identityRequest.getSAMLRequest());
             }
             XMLObject request = SAMLSSOUtil.unmarshall(decodedRequest);
 
             if (request instanceof AuthnRequest) {
                 authenticationContext.setUniqueId(((AuthnRequest) request).getIssuer().getValue());
-                SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext.getParameter(SAMLSSOConstants.SAMLContext);
+                SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
+                        .getParameter(SAMLSSOConstants.SAMLContext);
                 validateServiceProvider(authenticationContext);
                 messageContext.getSamlValidatorConfig().getAssertionConsumerUrlList();
                 messageContext.setDestination(((AuthnRequest) request).getDestination());
@@ -91,14 +99,5 @@ public class SPInitSAMLValidator extends SAMLValidator {
             throw new RequestValidatorException("Error while validating saml request");
         }*/
         throw new RequestValidatorException("Error while validating saml request");
-
-    }
-
-    public String getName() {
-        return "SPInitSAMLValidator";
-    }
-
-    public int getPriority(MessageContext messageContext) {
-        return 10;
     }
 }

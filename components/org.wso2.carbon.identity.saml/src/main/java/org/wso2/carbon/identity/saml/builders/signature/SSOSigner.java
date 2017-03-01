@@ -33,19 +33,6 @@ public interface SSOSigner {
     public void init() throws IdentityException;
 
     /**
-     * Validate the  Signature in the SAML Assertion
-     *
-     * @param request SAML Assertion, this could be either a SAML Request or a LogoutRequest
-     * @param cred    Signature signing credential
-     * @param alias   Certificate alias against which the signature is validated.
-     * @return true, if the signature is valid.
-     * @throws IdentityException
-     */
-
-    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred, String alias) throws
-            IdentityException;
-
-    /**
      * Set the signature to XML object
      *
      * @param signableXMLObject
@@ -57,5 +44,21 @@ public interface SSOSigner {
      */
     public SignableXMLObject setSignature(SignableXMLObject signableXMLObject, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentityException;
+
+    /**
+     * Validate the  Signature in the SAML Assertion
+     *
+     * @param request
+     *         SAML Assertion, this could be either a SAML Request or a LogoutRequest
+     * @param cred
+     *         Signature signing credential
+     * @param alias
+     *         Certificate alias against which the signature is validated.
+     * @return true, if the signature is valid.
+     * @throws IdentityException
+     */
+
+    public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred, String alias) throws
+                                                                                                        IdentityException;
 }
 

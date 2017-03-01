@@ -36,20 +36,20 @@ public class SAMLErrorResponse extends SAMLResponse {
         this.messageLog = ((SAMLErrorResponseBuilder) responsebuilder).messageLog;
     }
 
-    public String getErrorResponse() {
-        return errorResponse;
-    }
-
     public String getAcsUrl() {
         return acsUrl;
     }
 
-    public String getStatus() {
-        return status;
+    public String getErrorResponse() {
+        return errorResponse;
     }
 
     public String getMessageLog() {
         return messageLog;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public static class SAMLErrorResponseBuilder extends SAMLResponseBuilder {
@@ -67,18 +67,13 @@ public class SAMLErrorResponse extends SAMLResponse {
             return new SAMLErrorResponse(this);
         }
 
-        public SAMLErrorResponseBuilder setErrorResponse(String response) {
-            this.errorResponse = response;
-            return this;
-        }
-
         public SAMLErrorResponseBuilder setAcsUrl(String acsUrl) {
             this.acsUrl = acsUrl;
             return this;
         }
 
-        public SAMLErrorResponseBuilder setStatus(String status) {
-            this.status = status;
+        public SAMLErrorResponseBuilder setErrorResponse(String response) {
+            this.errorResponse = response;
             return this;
         }
 
@@ -87,5 +82,9 @@ public class SAMLErrorResponse extends SAMLResponse {
             return this;
         }
 
+        public SAMLErrorResponseBuilder setStatus(String status) {
+            this.status = status;
+            return this;
+        }
     }
 }

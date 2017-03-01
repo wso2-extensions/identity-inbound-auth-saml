@@ -59,12 +59,13 @@ public class SAMLSSOConstants {
     public static final String DEFAULT_LOGOUT_ENDPOINT = "/authenticationendpoint/samlsso_logout.do";
     public static final String SAMLSSO_URL = "/samlsso";
     public static final String IDENTITY_URL = "/identity";
-    public static final String NOTIFICATION_ENDPOINT ="/authenticationendpoint/samlsso_notification.do";
+    public static final String NOTIFICATION_ENDPOINT = "/authenticationendpoint/samlsso_notification.do";
     public static final String SLO_SAML_SOAP_BINDING_ENABLED = "SSOService.SLOSAMLSOAPBindingEnabled";
-    public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+    public static final String START_SOAP_BINDING =
+            "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
             "<SOAP-ENV:Body>";
     public static final String END_SOAP_BINDING = "</SOAP-ENV:Body>" +
-            "</SOAP-ENV:Envelope>";
+                                                  "</SOAP-ENV:Envelope>";
     public static final String SOAP_ACTION = "http://www.oasis-open.org/committees/security";
     public static final String XML_TAG_REGEX = "\\<\\?xml(.+?)\\?\\>";
     public static final String SAML_REQUEST_PARAM_KEY = "SAMLRequest";
@@ -81,7 +82,27 @@ public class SAMLSSOConstants {
     public static final String GET_METHOD = "GET";
     public static final String SP_INIT_SAML_VALIDATOR = "SPInitSAMLValidator";
     public static final String SAMLContext = "SAMLContext";
+
     private SAMLSSOConstants() {
+    }
+
+    public enum QueryParameter {
+
+        ACS("acs"),
+        SLO("slo"),
+        RETURN_TO("returnTo"),
+        SP_ENTITY_ID("spEntityID");
+
+        private final String parameterName;
+
+        QueryParameter(String parameterName) {
+            this.parameterName = parameterName;
+        }
+
+        @Override
+        public String toString() {
+            return parameterName;
+        }
     }
 
     public static class SAMLFormFields {
@@ -114,7 +135,6 @@ public class SAMLSSOConstants {
         public static final String ACS_SEPERATE_CHAR = ",";
         public static final String SAML_SSO = "samlssocloud";
         public static final String CUSTOM = "custom";
-
     }
 
     public static class FileBasedSPConfig {
@@ -124,7 +144,7 @@ public class SAMLSSOConstants {
         public static final String ISSUER = "Issuer";
         public static final String ASSERTION_CONSUMER_URL = "AssertionConsumerServiceURL";
         public static final String ACS_URLS = "AssertionConsumerServiceURLs";
-        public static final String DEFAULT_ACS_URL= "DefaultAssertionConsumerServiceURL";
+        public static final String DEFAULT_ACS_URL = "DefaultAssertionConsumerServiceURL";
         public static final String CUSTOM_LOGIN_PAGE = "CustomLoginPage";
         public static final String SIGN_RESPONSE = "SignResponse";
         public static final String SIGN_ASSERTION = "SignAssertion";
@@ -202,7 +222,8 @@ public class SAMLSSOConstants {
         public static final String NORELAY_STATUS = "RealyState is not present in the request!";
         public static final String NORELAY_MESSAGE = "This request will not be processed further.";
         public static final String INVALID_MESSAGE_STATUS = "Not a valid SAML 2.0 Request Message!";
-        public static final String INVALID_MESSAGE_MESSAGE = "The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details";
+        public static final String INVALID_MESSAGE_MESSAGE
+                = "The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details";
         public static final String INVALID_SESSION = "Server can not find any established sessions";
         public static final String SP_ENTITY_ID_NOT_AVAILABLE = "spEntityID must be mentioned in the IdP initiated "
                                                                 + "logout request";
@@ -224,25 +245,5 @@ public class SAMLSSOConstants {
         private Notification() {
         }
     }
-
-    public enum QueryParameter {
-
-        ACS("acs"),
-        SLO("slo"),
-        RETURN_TO("returnTo"),
-        SP_ENTITY_ID("spEntityID");
-
-        private final String parameterName;
-
-        QueryParameter(String parameterName) {
-            this.parameterName = parameterName;
-        }
-
-        @Override
-        public String toString() {
-            return parameterName;
-        }
-    }
-
 }
 

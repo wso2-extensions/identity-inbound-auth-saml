@@ -6,18 +6,14 @@ import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRe
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 
-import java.io.UnsupportedEncodingException;
-
 /**
  * SAMLRequest is based request for SAML protocol.
- *
  */
 public class SAMLRequest extends ClientAuthenticationRequest {
 
     private static Logger log = LoggerFactory.getLogger(SAMLRequest.class);
 
     /**
-     *
      * @param builder
      */
     public SAMLRequest(SAMLGatewayRequestBuilder builder) {
@@ -31,11 +27,12 @@ public class SAMLRequest extends ClientAuthenticationRequest {
      * @return String
      * @throws SAMLServerException
      */
-    public String getRelayState()  {
-        return  getParameter(SAMLSSOConstants.RELAY_STATE);
+    public String getRelayState() {
+        return getParameter(SAMLSSOConstants.RELAY_STATE);
     }
 
     /**
+     * Check whether the request is GET or not.
      *
      * @return
      */
