@@ -62,15 +62,12 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
 
     public Assertion buildSAMLAssertion(AuthenticationContext context, DateTime notOnOrAfter,
                                         String sessionId) throws IdentityException {
-        SAMLSSOUtil.doBootstrap();
         SAMLAssertionBuilder samlAssertionBuilder = new DefaultSAMLAssertionBuilder();
         return samlAssertionBuilder.buildAssertion(context, notOnOrAfter, sessionId);
     }
 
     public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
                                                     String alias) throws IdentityException {
-        SAMLSSOUtil.doBootstrap();
-
         SSOEncrypter ssoEncrypter = new DefaultSSOEncrypter();
         X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
         return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);

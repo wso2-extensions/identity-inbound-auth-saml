@@ -87,4 +87,8 @@ public class SAMLSPInitRequest extends SAMLRequest {
             return new SAMLSPInitRequest(this);
         }
     }
+
+    public boolean isRedirect() {
+        return this.getHttpMethod() == SAMLSSOConstants.GET_METHOD;
+    }
 }

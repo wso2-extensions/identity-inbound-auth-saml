@@ -52,9 +52,5 @@ public class SAMLResponse extends GatewayResponse {
             return this;
         }
 
-        //Do the bootstrap first
-        static {
-            SAMLSSOUtil.doBootstrap();
-        }
     }
 }

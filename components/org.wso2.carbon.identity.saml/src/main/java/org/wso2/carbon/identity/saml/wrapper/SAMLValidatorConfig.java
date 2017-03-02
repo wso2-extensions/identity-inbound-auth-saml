@@ -1,51 +1,52 @@
 package org.wso2.carbon.identity.saml.wrapper;
 
+import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class SAMLValidatorConfig implements Serializable {
 
     private static final long serialVersionUID = 1926448600042806841L;
-    private Properties properties;
+    private RequestValidatorConfig requestValidatorConfig;
 
-    public SAMLValidatorConfig(Properties properties) {
-        this.properties = properties;
+    public SAMLValidatorConfig(RequestValidatorConfig requestValidatorConfig) {
+        this.requestValidatorConfig = requestValidatorConfig;
     }
 
     public List<String> getAssertionConsumerUrlList() {
-        List assertionConsumerUrls = (List) this.properties.get("assertionConsumerUrls");
-        List<String> assertionConsumerUrlStrings = new ArrayList<String>();
+        List assertionConsumerUrls = (List) this.requestValidatorConfig.getProperties().get("assertionConsumerUrls");
+        List<String> assertionConsumerUrlStrings = new ArrayList<>();
         assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
         return assertionConsumerUrlStrings;
     }
 
     public String getAttributeConsumingServiceIndex() {
-        return (String) properties.get("attributeConsumingServiceIndex");
+        return (String) this.requestValidatorConfig.getProperties().get("attributeConsumingServiceIndex");
     }
 
     public String getCertAlias() {
-        return (String) properties.get("certificateAlias");
+        return (String) this.requestValidatorConfig.getProperties().get("certificateAlias");
     }
 
     public String getDefaultAssertionConsumerUrl() {
-        return (String) properties.get("defaultAssertionConsumerUrl");
+        return (String) this.requestValidatorConfig.getProperties().get("defaultAssertionConsumerUrl");
     }
 
     public String getIssuer() {
-        return (String) properties.get("issuer");
+        return (String) this.requestValidatorConfig.getProperties().get("issuer");
     }
 
     public boolean isDoValidateSignatureInRequests() {
-        return Boolean.parseBoolean((String) properties.get("doValidateSignatureInRequests"));
+        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("doValidateSignatureInRequests"));
     }
 
     public boolean isEnableAttributesByDefault() {
-        return Boolean.parseBoolean((String) properties.get("enableAttributesByDefault"));
+        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("enableAttributesByDefault"));
     }
 
     public boolean isIdPInitSSOEnabled() {
-        return Boolean.parseBoolean((String) properties.get("idPInitSSOEnabled"));
+        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("idPInitSSOEnabled"));
     }
 }

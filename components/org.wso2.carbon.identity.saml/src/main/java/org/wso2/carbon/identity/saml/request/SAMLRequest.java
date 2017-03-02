@@ -36,9 +36,7 @@ public class SAMLRequest extends ClientAuthenticationRequest {
      *
      * @return
      */
-    public boolean isRedirect() {
-        return this.getHttpMethod() == SAMLSSOConstants.GET_METHOD;
-    }
+
 
     public static class SAMLGatewayRequestBuilder
             extends ClientAuthenticationRequest.ClientAuthenticationRequestBuilder {

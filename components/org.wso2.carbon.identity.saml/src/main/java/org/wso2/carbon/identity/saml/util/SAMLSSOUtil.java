@@ -68,7 +68,6 @@ import org.wso2.carbon.identity.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceDataHolder;
-import org.wso2.carbon.identity.saml.validators.SAML2HTTPRedirectSignatureValidator;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 
 import javax.xml.XMLConstants;
@@ -105,7 +104,6 @@ public class SAMLSSOUtil {
     private static long singleLogoutRetryInterval = 60000;
     //    private static RealmService realmService;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
-    private static SAML2HTTPRedirectSignatureValidator samlHTTPRedirectSignatureValidator = null;
     private static String sPInitSSOAuthnRequestValidatorClassName = null;
     private static SSOSigner ssoSigner = null;
     private static BundleContext bundleContext;
@@ -125,7 +123,6 @@ public class SAMLSSOUtil {
     public static XMLObject unmarshall(String authReqStr) throws SAMLServerException {
         InputStream inputStream = null;
         try {
-            doBootstrap();
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
 
@@ -143,6 +140,7 @@ public class SAMLSSOUtil {
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
             return unmarshaller.unmarshall(element);
+
         } catch (Exception e) {
             log.error("Error in constructing AuthRequest from the encoded String", e);
             throw new SAMLServerException(
@@ -169,7 +167,6 @@ public class SAMLSSOUtil {
 
         ByteArrayOutputStream byteArrayOutputStrm = null;
         try {
-            doBootstrap();
             //            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
             //                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 
@@ -408,7 +405,7 @@ public class SAMLSSOUtil {
 
 
     /**
-     * @param tenantDomain
+     * @param
      * @return set of destination urls of resident identity provider
      * @throws IdentityException
      */
@@ -729,7 +726,6 @@ public class SAMLSSOUtil {
     private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentityException {
 
-        doBootstrap();
         SSOSigner ssoSigner = new DefaultSSOSigner();
 
         return ssoSigner.setSignature(request, signatureAlgorithm, digestAlgorithm, cred);

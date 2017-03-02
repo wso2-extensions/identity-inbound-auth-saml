@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.saml.validator;
 
+import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
@@ -25,8 +26,6 @@ import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLRequest;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
-
-import java.util.Properties;
 
 public abstract class SAMLValidator extends AbstractRequestValidator {
 
@@ -44,12 +43,12 @@ public abstract class SAMLValidator extends AbstractRequestValidator {
         return "SAML";
     }
 
-    protected void validateServiceProvider(AuthenticationContext authenticationContext) throws
-                                                                                        RequestValidatorException {
+    protected void updateValidatorConfig(RequestValidatorConfig validatorConfig, AuthenticationContext
+            authenticationContext) throws
+                                   RequestValidatorException {
         SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
-        Properties samlValidatorProperties = getValidatorConfig(authenticationContext);
-        SAMLValidatorConfig samlValidatorConfig = new SAMLValidatorConfig(samlValidatorProperties);
+        SAMLValidatorConfig samlValidatorConfig = new SAMLValidatorConfig(validatorConfig);
         messageContext.setSamlValidatorConfig(samlValidatorConfig);
     }
 }
