@@ -4,9 +4,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
@@ -21,19 +22,19 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
 
     @Override
-    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, GatewayException
             exx) throws
-                 ResponseException {
+                 ResponseHandlerException {
 
         super.buildErrorResponse(authenticationContext, exx);
-        FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLResponse.SAMLResponseBuilder builder;
         String destination = samlMessageContext.getDestination();
         String errorResp = null;
         //try {
-        errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
+        errorResp = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
                                                    "User authentication failed", destination);
         /*} catch (IOException e) {
             builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(authenticationContext);
@@ -53,11 +54,11 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws ResponseException {
+    public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseHandlerException {
 
         super.buildResponse(authenticationContext);
-        FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
         SAMLResponse.SAMLResponseBuilder builder;
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
@@ -111,6 +112,11 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
         }
     }
 
+    @Override
+    public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
+        return false;
+    }
+
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
             return ((AuthenticationContext) messageContext)
@@ -155,7 +161,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
                 log.debug("Error processing the authentication request.");
             }
             builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(SAMLSSOUtil.buildErrorResponse
+            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse
                     (null, statusCodes, "Authentication Failure, invalid username or password.", null));
             ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder)
                     .setAcsUrl(samlResponseHandlerConfig.getLoginPageURL());

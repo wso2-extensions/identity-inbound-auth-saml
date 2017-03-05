@@ -15,11 +15,13 @@ import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
@@ -33,31 +35,31 @@ import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
 
 import java.util.Properties;
 
-abstract public class SAMLResponseHandler extends AbstractResponseHandler {
+public abstract class SAMLResponseHandler extends AbstractResponseHandler {
 
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
 
     @Override
-    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e)
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, GatewayException e)
             throws
-            ResponseException {
+            ResponseHandlerException {
         try {
             setSAMLResponseHandlerConfigs(authenticationContext);
         } catch (AuthenticationHandlerException ex) {
-            throw new ResponseException("Error while getting response handler configurations");
+            throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return FrameworkHandlerResponse.REDIRECT;
+        return GatewayHandlerResponse.REDIRECT;
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws ResponseException {
+    public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseHandlerException {
         try {
             setSAMLResponseHandlerConfigs(authenticationContext);
         } catch (AuthenticationHandlerException e) {
-            throw new ResponseException("Error while getting response handler configurations");
+            throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return FrameworkHandlerResponse.REDIRECT;
+        return GatewayHandlerResponse.REDIRECT;
     }
 
     public Assertion buildSAMLAssertion(AuthenticationContext context, DateTime notOnOrAfter,
@@ -118,7 +120,7 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
                     .getDigestAlgorithmUri(), new SignKeyDataHolder());
         }
         builder.setResponse(response);
-        String respString = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response));
+        String respString = SAMLSSOUtil.SAMLAssertion.encode(SAMLSSOUtil.SAMLAssertion.marshall(response));
         builder.setRespString(respString);
         builder.setAcsUrl(messageContext.getAssertionConsumerURL());
         builder.setRelayState(messageContext.getRelayState());
@@ -153,8 +155,8 @@ abstract public class SAMLResponseHandler extends AbstractResponseHandler {
                                                                                               AuthenticationHandlerException {
         SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
-        Properties samlValidatorProperties = getResponseBuilderConfigs(authenticationContext);
-        SAMLResponseHandlerConfig samlResponseHandlerConfig = new SAMLResponseHandlerConfig(samlValidatorProperties);
+        ResponseBuilderConfig responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
+        SAMLResponseHandlerConfig samlResponseHandlerConfig = new SAMLResponseHandlerConfig(responseBuilderConfigs);
         messageContext.setResponseHandlerConfig(samlResponseHandlerConfig);
     }
 }

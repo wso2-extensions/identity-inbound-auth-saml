@@ -21,11 +21,24 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidat
 
 
 public class SAMLRequestValidatorException extends RequestValidatorException {
+
     public SAMLRequestValidatorException(String message) {
         super(message);
     }
 
+    public SAMLRequestValidatorException(Throwable cause) {
+        super(cause);
+    }
+
+    public SAMLRequestValidatorException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public SAMLRequestValidatorException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public SAMLRequestValidatorException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.wso2.carbon.identity.saml.internal;
 
+import org.opensaml.DefaultBootstrap;
+import org.opensaml.xml.ConfigurationException;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -48,7 +50,11 @@ public class Activator implements BundleActivator {
     @Activate
     public void start(BundleContext bundleContext) throws Exception {
         try {
-            SAMLSSOUtil.doBootstrap();
+            try {
+                DefaultBootstrap.bootstrap();
+            } catch (ConfigurationException e) {
+                log.error("Error in bootstrapping the OpenSAML2 library", e);
+            }
             bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLRequestBuilderFactory(), null);
             bundleContext
                     .registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);

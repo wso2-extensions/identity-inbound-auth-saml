@@ -45,16 +45,16 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
@@ -77,7 +77,6 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -90,52 +89,45 @@ public class SPInitSAMLValidator extends SAMLValidator {
     }
 
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
-                                                                                          RequestValidatorException {
-        super.validate(authenticationContext);
+    public GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
+            throws SAMLRequestValidatorException {
+
+        initSAMLMessageContext(authenticationContext);
         SAMLSPInitRequest identityRequest = (SAMLSPInitRequest) authenticationContext.getIdentityRequest();
         String decodedRequest;
 
-        try {
-            if (identityRequest.isRedirect()) {
-                decodedRequest = SAMLSSOUtil.decode(identityRequest.getSAMLRequest());
-            } else {
-                decodedRequest = SAMLSSOUtil.decodeForPost(identityRequest.getSAMLRequest());
-            }
-            XMLObject request = SAMLSSOUtil.unmarshall(decodedRequest);
 
-            if (request instanceof AuthnRequest) {
-
-                authenticationContext.setUniqueId(((AuthnRequest) request).getIssuer().getValue());
-                SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
-                        .getParameter(SAMLSSOConstants.SAMLContext);
-                RequestValidatorConfig validatorConfig = getValidatorConfig(authenticationContext);
-                updateValidatorConfig(validatorConfig, authenticationContext);
-                messageContext.getSamlValidatorConfig().getAssertionConsumerUrlList();
-                messageContext.setDestination(((AuthnRequest) request).getDestination());
-                messageContext.setId(((AuthnRequest) request).getID());
-                messageContext.setAssertionConsumerUrl(((AuthnRequest) request).getAssertionConsumerServiceURL());
-                messageContext.setIsPassive(((AuthnRequest) request).isPassive());
-                if (validate((AuthnRequest) request, messageContext)) {
-                    return FrameworkHandlerResponse.CONTINUE;
-                }
-            }
-        } catch (SAMLServerException e) {
-            e.printStackTrace();
-        } catch (SAMLClientException e) {
-            e.printStackTrace();
+        if (identityRequest.isRedirect()) {
+            decodedRequest = SAMLSSOUtil.SAMLAssertion.decode(identityRequest.getSAMLRequest());
+        } else {
+            decodedRequest = SAMLSSOUtil.SAMLAssertion.decodeForPost(identityRequest.getSAMLRequest());
         }
-        /*} catch (IdentityException e) {
-            throw new RequestValidatorException("Error while validating saml request");
-        } catch (IOException e) {
-            throw new RequestValidatorException("Error while validating saml request");
-        }*/
-        throw new RequestValidatorException("Error while validating saml request");
+        XMLObject request = SAMLSSOUtil.SAMLAssertion.unmarshall(decodedRequest);
+
+        if (request instanceof AuthnRequest) {
+
+            authenticationContext.setUniqueId(((AuthnRequest) request).getIssuer().getValue());
+            SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
+                    .getParameter(SAMLSSOConstants.SAMLContext);
+            RequestValidatorConfig validatorConfig = getValidatorConfig(authenticationContext);
+            updateValidatorConfig(validatorConfig, authenticationContext);
+            messageContext.getSamlValidatorConfig().getAssertionConsumerUrlList();
+            messageContext.setDestination(((AuthnRequest) request).getDestination());
+            messageContext.setId(((AuthnRequest) request).getID());
+            messageContext.setAssertionConsumerUrl(((AuthnRequest) request).getAssertionConsumerServiceURL());
+            messageContext.setIsPassive(((AuthnRequest) request).isPassive());
+            if (samlAssetionValidation((AuthnRequest) request, messageContext)) {
+                return GatewayHandlerResponse.CONTINUE;
+            }
+        }
+
+
+        throw new SAMLRequestValidatorException("Error while validating saml request");
     }
 
 
-    public boolean validate(AuthnRequest authnReq, SAMLMessageContext messageContext)
-            throws SAMLClientException, SAMLServerException {
+    private boolean samlAssetionValidation(AuthnRequest authnReq, SAMLMessageContext messageContext)
+            throws SAMLRequestValidatorException {
 
         Issuer issuer = authnReq.getIssuer();
         Subject subject = authnReq.getSubject();
@@ -147,17 +139,13 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 log.debug("Invalid version in the SAMLRequest" + authnReq.getVersion());
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .VERSION_MISMATCH,
-                                                                           "Invalid SAML Version "
-                                                                           + "in Authentication Request. SAML Version" +
-                                                                           " should " +
-                                                                           "be equal to 2.0",
-                                                                           messageContext.getAssertionConsumerURL()),
-                                            SAMLSSOConstants
-                                                    .Notification.EXCEPTION_STATUS,
-                                            SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
-                                            authnReq.getAssertionConsumerServiceURL());
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(
+                    SAMLSSOConstants.StatusCodes.VERSION_MISMATCH,
+                                                                    "Invalid SAML Version "
+                                                                    + "in Authentication Request. SAML Version" +
+                                                                    " should " +
+                                                                    "be equal to 2.0",
+                                                                    messageContext.getAssertionConsumerURL()));
         }
 
         // Issuer MUST NOT be null
@@ -170,26 +158,28 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 log.debug("SAML Request issuer validation failed. Issuer should not be empty");
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR,
-                                                                           "Issuer/ProviderName "
-                                                                           + "should not be empty in the "
-                                                                           + "Authentication Request"
-                                                                           +
-                                                                           ".",
-                                                                           authnReq.getAssertionConsumerServiceURL()));
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            "Issuer/ProviderName "
+                                                                                            + "should not be empty in"
+                                                                                            + " the "
+                                                                                            + "Authentication Request"
+                                                                                            +
+                                                                                            ".",
+                                                                                            authnReq.getAssertionConsumerServiceURL()));
         }
 
-        if (!SAMLSSOUtil.isSAMLIssuerExists(issuer.getValue())) {
+       /* if (!SAMLSSOUtil.isSAMLIssuerExists(issuer.getValue())) {
             String message = "A Service Provider with the Issuer '" + issuer.getValue() + "' is not " +
                              "registered. Service Provider should be registered in " + "advance";
             if (log.isDebugEnabled()) {
                 log.debug(message);
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR, message, null));
-        }
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            message, null));
+        }*/
 
         // Issuer Format attribute
         if ((StringUtils.isNotBlank(issuer.getFormat())) &&
@@ -198,11 +188,12 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 log.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR,
-                                                                           "Issuer Format attribute"
-                                                                           + " value is invalid", authnReq
-                                                                                   .getAssertionConsumerServiceURL()));
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            "Issuer Format attribute"
+                                                                                            + " value is invalid",
+                                                                                            authnReq
+                                                                                                    .getAssertionConsumerServiceURL()));
         }
 
         SAMLValidatorConfig samlValidatorConfig = messageContext.getSamlValidatorConfig();
@@ -219,13 +210,14 @@ public class SPInitSAMLValidator extends SAMLValidator {
                           authnReq.getIssuer().getValue());
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR,
-                                                                           "Invalid Assertion "
-                                                                           + "Consumer Service URL in the "
-                                                                           + "Authentication "
-                                                                           +
-                                                                           "Request" + ".", acsUrl));
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            "Invalid Assertion "
+                                                                                            + "Consumer Service URL "
+                                                                                            + "in the "
+                                                                                            + "Authentication "
+                                                                                            +
+                                                                                            "Request" + ".", acsUrl));
         }
 
 
@@ -242,12 +234,13 @@ public class SPInitSAMLValidator extends SAMLValidator {
                         .getSubjectConfirmations().get(0));
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR,
-                                                                           "Subject Confirmation "
-                                                                           + "methods should NOT be in the request.",
-                                                                           authnReq
-                                                                                   .getAssertionConsumerServiceURL()));
+            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            "Subject Confirmation "
+                                                                                            + "methods should NOT be "
+                                                                                            + "in the request.",
+                                                                                            authnReq
+                                                                                                    .getAssertionConsumerServiceURL()));
         }
         messageContext.addParameter("forceAuth", authnReq.isForceAuthn());
         messageContext.addParameter("passiveAuth", authnReq.isPassive());
@@ -271,12 +264,12 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 if (log.isDebugEnabled()) {
                     log.debug(msg);
                 }
-                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                                                                                        .REQUESTOR_ERROR, msg,
                                                                                authnReq.getAssertionConsumerServiceURL()));
             }
 
-            // validate the signature
+            // samlAssetionValidation the signature
             boolean isSignatureValid = validateAuthnRequestSignature(messageContext);
 
             if (!isSignatureValid) {
@@ -285,9 +278,11 @@ public class SPInitSAMLValidator extends SAMLValidator {
                     log.debug(msg);
                 }
                 messageContext.setValid(false);
-                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                       .REQUESTOR_ERROR, msg,
-                                                                               authnReq.getAssertionConsumerServiceURL()));
+                throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants
+                                                                                                        .StatusCodes
+                                                                                                        .REQUESTOR_ERROR,
+                                                                                                msg,
+                                                                                                authnReq.getAssertionConsumerServiceURL()));
             }
         } else {
             //Validate the assertion consumer url,  only if request is not signed.
@@ -302,7 +297,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
                     log.debug(msg);
                 }
                 messageContext.setValid(false);
-                throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                                                                                        .REQUESTOR_ERROR, msg,
                                                                                authnReq.getAssertionConsumerServiceURL()));
             }
@@ -322,23 +317,18 @@ public class SPInitSAMLValidator extends SAMLValidator {
         String alias = samlValidatorConfig.getCertAlias();
         RequestAbstractType request = null;
         SAMLSPInitRequest samlspInitRequest = (SAMLSPInitRequest) messageContext.getIdentityRequest();
-        try {
-            String decodedReq = null;
+        String decodedReq = null;
 
-            if (samlspInitRequest.isRedirect()) {
-                decodedReq = SAMLSSOUtil
-                        .decode(((SAMLSPInitRequest) messageContext.getIdentityRequest()).getSAMLRequest());
-            } else {
-                decodedReq = SAMLSSOUtil.decodeForPost(((SAMLSPInitRequest) messageContext.getIdentityRequest())
-                                                               .getSAMLRequest());
-            }
-            request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
-        } catch (IdentityException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Signature Validation failed for the SAMLRequest : Failed to unmarshall the SAML " +
-                          "Assertion", e);
-            }
+        if (samlspInitRequest.isRedirect()) {
+            decodedReq = SAMLSSOUtil
+                    .SAMLAssertion.decode(((SAMLSPInitRequest) messageContext.getIdentityRequest())
+                                                  .getSAMLRequest());
+        } else {
+            decodedReq = SAMLSSOUtil.SAMLAssertion
+                    .decodeForPost(((SAMLSPInitRequest) messageContext.getIdentityRequest())
+                                           .getSAMLRequest());
         }
+        request = (RequestAbstractType) SAMLSSOUtil.SAMLAssertion.unmarshall(decodedReq);
 
         try {
             if (samlspInitRequest.isRedirect()) {
@@ -351,7 +341,8 @@ public class SPInitSAMLValidator extends SAMLValidator {
             }
         } catch (IdentityException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion", e);
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to samlAssetionValidation the SAML Assertion",
+                          e);
             }
             return false;
         }

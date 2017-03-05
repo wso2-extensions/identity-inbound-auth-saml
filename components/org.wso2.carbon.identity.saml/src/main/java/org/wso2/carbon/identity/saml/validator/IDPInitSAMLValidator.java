@@ -25,11 +25,12 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
@@ -61,13 +62,9 @@ public class IDPInitSAMLValidator extends SAMLValidator {
     }
 
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
-                                                                                          RequestValidatorException {
-
-        super.validate(authenticationContext);
-
+    public GatewayHandlerResponse validate(AuthenticationContext authenticationContext) throws SAMLRequestValidatorException{
         try {
-
+            initSAMLMessageContext(authenticationContext);
             SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
                     .getParameter(SAMLSSOConstants.SAMLContext);
             String spEntityID = ((SAMLIDPInitRequest) messageContext.getIdentityRequest()).getSpEntityID();
@@ -120,15 +117,15 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                     }
                     throw new RequestValidatorException(msg);
                 }
-                return FrameworkHandlerResponse.CONTINUE;
+                return GatewayHandlerResponse.CONTINUE;
             }
         } catch (IdentityException e) {
-            throw new RequestValidatorException("Error while validating SAML request");
+            throw new SAMLRequestValidatorException("Error while validating SAML request");
         } catch (IOException e) {
-            throw new RequestValidatorException("Error while validating SAML request");
+            throw new SAMLRequestValidatorException("Error while validating SAML request");
         }
 
-        throw new RequestValidatorException("Error while validating SAML request");
+        throw new SAMLRequestValidatorException("Error while validating SAML request");
     }
 
 
@@ -151,7 +148,8 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                 log.debug("spEntityID parameter not found in request");
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+            throw SAMLClientException.error(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                                                                    .REQUESTOR_ERROR,
                                                                            "spEntityID parameter not found in request",
                                                                            null));
         }
@@ -159,13 +157,13 @@ public class IDPInitSAMLValidator extends SAMLValidator {
         if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID)) {
             String message = "A Service Provider with the Issuer '" + spEntityID + "' is not registered. Service " +
                              "Provider should be registered in advance";
-            String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+            String errorResp = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                                                               message, null);
             if (log.isDebugEnabled()) {
                 log.debug(message);
             }
             messageContext.setValid(false);
-            throw SAMLClientException.error(SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+            throw SAMLClientException.error(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
                                                                                    .REQUESTOR_ERROR, message, null));
         }
 

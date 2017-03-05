@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
+import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceDataHolder;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
@@ -102,210 +103,182 @@ public class SAMLSSOUtil {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static int singleLogoutRetryCount = 5;
     private static long singleLogoutRetryInterval = 60000;
-    //    private static RealmService realmService;
-    private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
-    private static String sPInitSSOAuthnRequestValidatorClassName = null;
-    private static SSOSigner ssoSigner = null;
-    private static BundleContext bundleContext;
-    //    private static RegistryService registryService;
-    //    private static ConfigurationContextService configCtxService;
     private static Logger log = LoggerFactory.getLogger(SAMLSSOUtil.class);
-    private static boolean isBootStrapped = false;
 
-    /**
-     * Constructing the AuthnRequest Object from a String
-     *
-     * @param authReqStr
-     *         Decoded AuthReq String
-     * @return AuthnRequest Object
-     * @throws
-     */
-    public static XMLObject unmarshall(String authReqStr) throws SAMLServerException {
-        InputStream inputStream = null;
-        try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            documentBuilderFactory.setNamespaceAware(true);
 
-            documentBuilderFactory.setExpandEntityReferences(false);
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            org.apache.xerces.util.SecurityManager securityManager = new SecurityManager();
-            securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-            documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
+    public static class SAMLAssertion{
 
-            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            docBuilder.setEntityResolver(new CarbonEntityResolver());
-            inputStream = new ByteArrayInputStream(authReqStr.trim().getBytes(StandardCharsets.UTF_8));
-            Document document = docBuilder.parse(inputStream);
-            Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
-            Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
-            return unmarshaller.unmarshall(element);
-
-        } catch (Exception e) {
-            log.error("Error in constructing AuthRequest from the encoded String", e);
-            throw new SAMLServerException(
-                    "Error in constructing AuthRequest from the encoded String ",
-                    e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    log.error("Error while closing the stream", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Serialize the Auth. Request
-     *
-     * @param xmlObject
-     * @return serialized auth. req
-     */
-    public static String marshall(XMLObject xmlObject) throws SAMLServerException {
-
-        ByteArrayOutputStream byteArrayOutputStrm = null;
-        try {
-            //            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
-            //                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
-            Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
-            Element element = marshaller.marshall(xmlObject);
-
-            byteArrayOutputStrm = new ByteArrayOutputStream();
-            DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-            DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
-            LSSerializer writer = impl.createLSSerializer();
-            LSOutput output = impl.createLSOutput();
-            output.setByteStream(byteArrayOutputStrm);
-            writer.write(element, output);
-            return byteArrayOutputStrm.toString(StandardCharsets.UTF_8.name());
-        } catch (Exception e) {
-            log.error("Error Serializing the SAML Response");
-            throw new SAMLServerException("Error Serializing the SAML Response", e);
-        } finally {
-            if (byteArrayOutputStrm != null) {
-                try {
-                    byteArrayOutputStrm.close();
-                } catch (IOException e) {
-                    log.error("Error while closing the stream", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Encoding the response
-     *
-     * @param xmlString
-     *         String to be encoded
-     * @return encoded String
-     */
-    public static String encode(String xmlString) {
-        // Encoding the message
-        String encodedRequestMessage =
-                Base64.encodeBytes(xmlString.getBytes(StandardCharsets.UTF_8),
-                                   Base64.DONT_BREAK_LINES);
-        return encodedRequestMessage.trim();
-    }
-
-    /**
-     * Decoding and deflating the encoded AuthReq
-     *
-     * @param encodedStr
-     *         encoded AuthReq
-     * @return decoded AuthReq
-     */
-    public static String decode(String encodedStr) throws SAMLServerException {
-        try {
-            org.apache.commons.codec.binary.Base64 base64Decoder =
-                    new org.apache.commons.codec.binary.Base64();
-            byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
-            byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
-
+        /**
+         * Constructing the AuthnRequest Object from a String
+         *
+         * @param authReqStr
+         *         Decoded AuthReq String
+         * @return AuthnRequest Object
+         * @throws
+         */
+        public static XMLObject unmarshall(String authReqStr)  {
+            InputStream inputStream = null;
             try {
-                Inflater inflater = new Inflater(true);
-                inflater.setInput(base64DecodedByteArray);
-                byte[] xmlMessageBytes = new byte[5000];
-                int resultLength = inflater.inflate(xmlMessageBytes);
+                DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                documentBuilderFactory.setNamespaceAware(true);
 
-                if (!inflater.finished()) {
-                    throw new RuntimeException("End of the compressed data stream has NOT been reached");
-                }
+                documentBuilderFactory.setExpandEntityReferences(false);
+                documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                org.apache.xerces.util.SecurityManager securityManager = new SecurityManager();
+                securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
+                documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
 
-                inflater.end();
-                String decodedString = new String(xmlMessageBytes, 0, resultLength, StandardCharsets.UTF_8.name());
-                if (log.isDebugEnabled()) {
-                    log.debug("Request message " + decodedString);
-                }
-                return decodedString;
-            } catch (DataFormatException e) {
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(base64DecodedByteArray);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                InflaterInputStream iis = new InflaterInputStream(byteArrayInputStream);
-                byte[] buf = new byte[1024];
-                int count = iis.read(buf);
-                while (count != -1) {
-                    byteArrayOutputStream.write(buf, 0, count);
-                    count = iis.read(buf);
-                }
-                iis.close();
-                String decodedStr = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
-                if (log.isDebugEnabled()) {
-                    log.debug("Request message " + decodedStr, e);
-                }
-                return decodedStr;
-            }
-        } catch (IOException e) {
-            throw new SAMLServerException("Error when decoding the SAML Request.", e);
-        }
-    }
+                DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+                docBuilder.setEntityResolver(new CarbonEntityResolver());
+                inputStream = new ByteArrayInputStream(authReqStr.trim().getBytes(StandardCharsets.UTF_8));
+                Document document = docBuilder.parse(inputStream);
+                Element element = document.getDocumentElement();
+                UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+                Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+                return unmarshaller.unmarshall(element);
 
-
-    public static String decodeForPost(String encodedStr)
-            throws SAMLServerException {
-        try {
-            org.apache.commons.codec.binary.Base64 base64Decoder = new org.apache.commons.codec.binary.Base64();
-            byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
-            byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
-
-            String decodedString = new String(base64DecodedByteArray, StandardCharsets.UTF_8.name());
-            if (log.isDebugEnabled()) {
-                log.debug("Request message " + decodedString);
-            }
-            return decodedString;
-        } catch (IOException e) {
-            throw new SAMLServerException("Error when decoding the SAML Request.", e);
-        }
-    }
-
-    public static void doBootstrap() {
-        if (!isBootStrapped) {
-            try {
-                DefaultBootstrap.bootstrap();
-                isBootStrapped = true;
-            } catch (ConfigurationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
-            }
-        }
-    }
-
-    public static String getParameterFromQueryString(String queryString, String paraName) throws
-                                                                                          UnsupportedEncodingException {
-        if (StringUtils.isNotBlank(queryString)) {
-            String[] params = queryString.split("&");
-            if (!ArrayUtils.isEmpty(params)) {
-                for (String param : params) {
-                    if (StringUtils.equals(param.split("=")[0], paraName)) {
-                        return URLDecoder.decode(param.split("=")[1], StandardCharsets.UTF_8.name());
+            } catch (Exception e) {
+                log.error("Error in constructing AuthRequest from the encoded String", e);
+                throw new SAMLRuntimeException(
+                        "Error in constructing AuthRequest from the encoded String ",
+                        e);
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        log.error("Error while closing the stream", e);
                     }
                 }
             }
         }
-        return null;
+
+        /**
+         * Serialize the Auth. Request
+         *
+         * @param xmlObject
+         * @return serialized auth. req
+         */
+        public static String marshall(XMLObject xmlObject) throws SAMLServerException {
+
+            ByteArrayOutputStream byteArrayOutputStrm = null;
+            try {
+                //            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
+                //                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
+
+                MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+                Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
+                Element element = marshaller.marshall(xmlObject);
+
+                byteArrayOutputStrm = new ByteArrayOutputStream();
+                DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+                DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
+                LSSerializer writer = impl.createLSSerializer();
+                LSOutput output = impl.createLSOutput();
+                output.setByteStream(byteArrayOutputStrm);
+                writer.write(element, output);
+                return byteArrayOutputStrm.toString(StandardCharsets.UTF_8.name());
+            } catch (Exception e) {
+                log.error("Error Serializing the SAML Response");
+                throw new SAMLServerException("Error Serializing the SAML Response", e);
+            } finally {
+                if (byteArrayOutputStrm != null) {
+                    try {
+                        byteArrayOutputStrm.close();
+                    } catch (IOException e) {
+                        log.error("Error while closing the stream", e);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Encoding the response
+         *
+         * @param xmlString
+         *         String to be encoded
+         * @return encoded String
+         */
+        public static String encode(String xmlString) {
+            // Encoding the message
+            String encodedRequestMessage =
+                    Base64.encodeBytes(xmlString.getBytes(StandardCharsets.UTF_8),
+                                       Base64.DONT_BREAK_LINES);
+            return encodedRequestMessage.trim();
+        }
+
+        /**
+         * Decoding and deflating the encoded AuthReq
+         *
+         * @param encodedStr
+         *         encoded AuthReq
+         * @return decoded AuthReq
+         */
+        public static String decode(String encodedStr)   {
+            try {
+                org.apache.commons.codec.binary.Base64 base64Decoder =
+                        new org.apache.commons.codec.binary.Base64();
+                byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
+                byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
+
+                try {
+                    Inflater inflater = new Inflater(true);
+                    inflater.setInput(base64DecodedByteArray);
+                    byte[] xmlMessageBytes = new byte[5000];
+                    int resultLength = inflater.inflate(xmlMessageBytes);
+
+                    if (!inflater.finished()) {
+                        throw new RuntimeException("End of the compressed data stream has NOT been reached");
+                    }
+
+                    inflater.end();
+                    String decodedString = new String(xmlMessageBytes, 0, resultLength, StandardCharsets.UTF_8.name());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Request message " + decodedString);
+                    }
+                    return decodedString;
+                } catch (DataFormatException e) {
+                    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(base64DecodedByteArray);
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    InflaterInputStream iis = new InflaterInputStream(byteArrayInputStream);
+                    byte[] buf = new byte[1024];
+                    int count = iis.read(buf);
+                    while (count != -1) {
+                        byteArrayOutputStream.write(buf, 0, count);
+                        count = iis.read(buf);
+                    }
+                    iis.close();
+                    String decodedStr = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Request message " + decodedStr, e);
+                    }
+                    return decodedStr;
+                }
+            } catch (IOException e) {
+                throw new SAMLRuntimeException("Error when decoding the SAML Request.", e);
+            }
+        }
+
+
+        public static String decodeForPost(String encodedStr)  {
+            try {
+                org.apache.commons.codec.binary.Base64 base64Decoder = new org.apache.commons.codec.binary.Base64();
+                byte[] xmlBytes = encodedStr.getBytes(StandardCharsets.UTF_8.name());
+                byte[] base64DecodedByteArray = base64Decoder.decode(xmlBytes);
+
+                String decodedString = new String(base64DecodedByteArray, StandardCharsets.UTF_8.name());
+                if (log.isDebugEnabled()) {
+                    log.debug("Request message " + decodedString);
+                }
+                return decodedString;
+            } catch (IOException e) {
+                throw new SAMLRuntimeException("Error when decoding the SAML Request.", e);
+            }
+        }
     }
+
+
+
 
     public static String getNotificationEndpoint() {
         //        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
@@ -317,91 +290,96 @@ public class SAMLSSOUtil {
         return "";
     }
 
-    /**
-     * build the error response
-     *
-     * @param status
-     * @param message
-     * @return decoded response
-     * @throws org.wso2.carbon.identity
-     */
-    public static String buildErrorResponse(String status, String message, String destination) {
+    public static class SAMLResponseUtil{
 
-        List<String> statusCodeList = new ArrayList<String>();
-        statusCodeList.add(status);
-        //Do below in the response builder
-        String errorResp = null;
-        try {
-            Response response = buildResponse(null, statusCodeList, message, destination);
-            errorResp = compressResponse(SAMLSSOUtil.marshall(response));
-        } catch (SAMLServerException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        /**
+         * build the error response
+         *
+         * @param status
+         * @param message
+         * @return decoded response
+         * @throws org.wso2.carbon.identity
+         */
+        public static String buildErrorResponse(String status, String message, String destination) {
+
+            List<String> statusCodeList = new ArrayList<String>();
+            statusCodeList.add(status);
+            //Do below in the response builder
+            String errorResp = null;
+            try {
+                Response response = buildResponse(null, statusCodeList, message, destination);
+                errorResp = compressResponse(SAMLAssertion.marshall(response));
+            } catch (SAMLServerException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return errorResp;
         }
-        return errorResp;
+
+        public static String buildErrorResponse(String id, List<String> statusCodes, String statusMsg, String destination)
+                throws IdentityException {
+            Response response = buildResponse(id, statusCodes, statusMsg, destination);
+            return SAMLAssertion.encode(SAMLAssertion.marshall(response));
+        }
+
+        /**
+         * Build the error response
+         *
+         * @return
+         */
+        public static Response buildResponse(String inResponseToID, List<String> statusCodes, String statusMsg, String
+                destination) throws SAMLServerException {
+
+            Response response = new ResponseBuilder().buildObject();
+
+            if (statusCodes == null || statusCodes.isEmpty()) {
+                throw new SAMLServerException("No Status Values");
+            }
+            response.setIssuer(SAMLSSOUtil.getIssuer());
+            Status status = new StatusBuilder().buildObject();
+            StatusCode statusCode = null;
+            for (String statCode : statusCodes) {
+                statusCode = buildStatusCode(statCode, statusCode);
+            }
+            status.setStatusCode(statusCode);
+            buildStatusMsg(status, statusMsg);
+            response.setStatus(status);
+            response.setVersion(SAMLVersion.VERSION_20);
+            response.setID(SAMLSSOUtil.createID());
+            if (inResponseToID != null) {
+                response.setInResponseTo(inResponseToID);
+            }
+            if (destination != null) {
+                response.setDestination(destination);
+            }
+            response.setIssueInstant(new DateTime());
+            return response;
+        }
+
+
+        /**
+         * Compresses the response String
+         *
+         * @param response
+         * @return
+         * @throws IOException
+         */
+        public static String compressResponse(String response) throws IOException {
+
+            Deflater deflater = new Deflater(Deflater.DEFLATED, true);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
+            try {
+                deflaterOutputStream.write(response.getBytes(StandardCharsets.UTF_8));
+            } finally {
+                deflaterOutputStream.close();
+            }
+            return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+        }
     }
 
-    public static String buildErrorResponse(String id, List<String> statusCodes, String statusMsg, String destination)
-            throws IdentityException {
-        Response response = buildResponse(id, statusCodes, statusMsg, destination);
-        return SAMLSSOUtil.encode(SAMLSSOUtil.marshall(response));
-    }
 
-    /**
-     * Build the error response
-     *
-     * @return
-     */
-    public static Response buildResponse(String inResponseToID, List<String> statusCodes, String statusMsg, String
-            destination) throws SAMLServerException {
-
-        Response response = new ResponseBuilder().buildObject();
-
-        if (statusCodes == null || statusCodes.isEmpty()) {
-            throw new SAMLServerException("No Status Values");
-        }
-        response.setIssuer(SAMLSSOUtil.getIssuer());
-        Status status = new StatusBuilder().buildObject();
-        StatusCode statusCode = null;
-        for (String statCode : statusCodes) {
-            statusCode = buildStatusCode(statCode, statusCode);
-        }
-        status.setStatusCode(statusCode);
-        buildStatusMsg(status, statusMsg);
-        response.setStatus(status);
-        response.setVersion(SAMLVersion.VERSION_20);
-        response.setID(SAMLSSOUtil.createID());
-        if (inResponseToID != null) {
-            response.setInResponseTo(inResponseToID);
-        }
-        if (destination != null) {
-            response.setDestination(destination);
-        }
-        response.setIssueInstant(new DateTime());
-        return response;
-    }
-
-
-    /**
-     * Compresses the response String
-     *
-     * @param response
-     * @return
-     * @throws IOException
-     */
-    public static String compressResponse(String response) throws IOException {
-
-        Deflater deflater = new Deflater(Deflater.DEFLATED, true);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
-        try {
-            deflaterOutputStream.write(response.getBytes(StandardCharsets.UTF_8));
-        } finally {
-            deflaterOutputStream.close();
-        }
-        return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
-    }
 
 
     /**
@@ -564,73 +542,7 @@ public class SAMLSSOUtil {
         //        }
     }
 
-    //    public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
-    //
-    //        if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain
-    // .trim())) {
-    //            int tenantID = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
-    //            if (tenantID == -1) {
-    //                String message = "Invalid tenant domain : " + tenantDomain;
-    //                if (log.isDebugEnabled()) {
-    //                    log.debug(message);
-    //                }
-    //                throw IdentityException.error(message);
-    //            } else {
-    //                return tenantDomain;
-    //            }
-    //        }
-    //        return null;
-    //    }
 
-    public static BundleContext getBundleContext() {
-        return SAMLSSOUtil.bundleContext;
-    }
-
-    public static void setBundleContext(BundleContext bundleContext) {
-        SAMLSSOUtil.bundleContext = bundleContext;
-    }
-
-    //    public static RegistryService getRegistryService() {
-    //        return registryService;
-    //    }
-    //
-    //    public static void setRegistryService(RegistryService registryService) {
-    //        SAMLSSOUtil.registryService = registryService;
-    //    }
-
-    //    public static ConfigurationContextService getConfigCtxService() {
-    //        return configCtxService;
-    //    }
-
-    //    public static void setConfigCtxService(ConfigurationContextService configCtxService) {
-    //        SAMLSSOUtil.configCtxService = configCtxService;
-    //    }
-
-    //    public static HttpService getHttpService() {
-    //        return httpService;
-    //    }
-
-    //    public static void setHttpService(HttpService httpService) {
-    //        SAMLSSOUtil.httpService = httpService;
-    //    }
-
-    //    public static RealmService getRealmService() {
-    //        return realmService;
-    //    }
-
-    //    public static void setRealmService(RealmService realmService) {
-    //        SAMLSSOUtil.realmService = realmService;
-    //    }
-
-
-    public static String getTenantDomainFromThreadLocal() {
-
-        if (SAMLSSOUtil.tenantDomainInThreadLocal == null) {
-            // this is the default behavior.
-            return null;
-        }
-        return (String) SAMLSSOUtil.tenantDomainInThreadLocal.get();
-    }
 
     /**
      * Get the Issuer
@@ -667,18 +579,7 @@ public class SAMLSSOUtil {
         return null;
     }
 
-    /**
-     * Generate the key store name from the domain name
-     *
-     * @param tenantDomain
-     *         tenant domain name
-     * @return key store file name
-     */
-    public static String generateKSNameFromDomainName(String tenantDomain) {
 
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return ksName + ".jks";
-    }
 
     /**
      * Sign the SAML Assertion

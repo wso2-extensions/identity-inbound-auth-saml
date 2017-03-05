@@ -3,9 +3,10 @@ package org.wso2.carbon.identity.saml.response;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
@@ -19,15 +20,16 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
 
     @Override
-    public FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, IdentityException e)
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, GatewayException
+            exception)
             throws
-            ResponseException {
+            ResponseHandlerException {
 
-        super.buildErrorResponse(authenticationContext, e);
+        super.buildErrorResponse(authenticationContext, exception);
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLResponse.SAMLResponseBuilder builder;
-        FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
 
         if (samlMessageContext.isPassive()) { //if passive
             String destination = samlMessageContext.getAssertionConsumerURL();
@@ -36,7 +38,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
             statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
             String errorResponse = null;
             try {
-                errorResponse = SAMLSSOUtil.buildErrorResponse(samlMessageContext.getId(), statusCodes,
+                errorResponse = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(samlMessageContext.getId(), statusCodes,
                                                                "Cannot process response from framework Subject in "
                                                                + "Passive Mode",
                                                                destination);
@@ -66,8 +68,8 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
     }
 
     @Override
-    public FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws ResponseException {
+    public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseHandlerException {
         super.buildResponse(authenticationContext);
         // TODO
 
@@ -91,7 +93,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         // TODO persist the session
 
         SAMLResponse.SAMLResponseBuilder builder;
-        FrameworkHandlerResponse response = FrameworkHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
 
         builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(authenticationContext);
         String respString = null;
@@ -116,6 +118,11 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         }
         response.setGatewayResponseBuilder(builder);
         return response;
+    }
+
+    @Override
+    public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
+        return false;
     }
 
 
