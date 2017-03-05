@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
-import org.wso2.carbon.identity.gateway.processor.util.Utility;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
@@ -49,8 +49,8 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
 
     @Override
     public boolean canHandle(Request request) throws GatewayClientException {
-        String samlRequest = Utility.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
-        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        String samlRequest = GatewayUtil.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
+        String spEntityID = GatewayUtil.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
         if (StringUtils.isNotBlank(samlRequest) || StringUtils.isNotBlank(spEntityID)) {
             return true;
         }
@@ -60,7 +60,7 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
     @Override
     public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
-        String spEntityID = Utility.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        String spEntityID = GatewayUtil.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
         GatewayRequest.GatewayRequestBuilder builder = null;
 
         if (spEntityID != null) {

@@ -19,9 +19,9 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
@@ -32,8 +32,6 @@ import org.wso2.carbon.identity.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
-
-import java.util.Properties;
 
 public abstract class SAMLResponseHandler extends AbstractResponseHandler {
 

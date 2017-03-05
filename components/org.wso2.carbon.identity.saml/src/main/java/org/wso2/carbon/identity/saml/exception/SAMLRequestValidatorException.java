@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.saml.exception;
 
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
+import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
 
 
 public class SAMLRequestValidatorException extends RequestValidatorException {

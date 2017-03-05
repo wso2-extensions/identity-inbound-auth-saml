@@ -46,6 +46,10 @@
             <artifactId>org.wso2.carbon.identity.gateway</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
@@ -81,6 +85,7 @@
         <import.package>
             org.osgi.framework.*;version="[1.8.0, 2.0.0)",
             org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
+            org.wso2.carbon.identity.gateway.common.*; version="${carbon.identity.gateway.import.version.range}",
             org.apache.xerces.util.*,
             org.apache.commons.ssl.*,
             org.opensaml.*,
