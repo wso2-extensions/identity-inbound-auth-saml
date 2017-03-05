@@ -7,14 +7,14 @@ public enum SAML2URI {
     STATUS_CODE_VERSION_MISMATCH("urn:oasis:names:tc:SAML:2.0:status:VersionMismatch"),
     STATUS_CODE_REQUESTER("urn:oasis:names:tc:SAML:2.0:status:Requester");
 
-    private String value ;
+    private String value;
 
-    SAML2URI(String value){
-        this.value = value ;
+    SAML2URI(String value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return this.value ;
+        return this.value;
     }
 }

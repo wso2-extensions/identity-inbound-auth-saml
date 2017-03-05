@@ -39,11 +39,13 @@ public class SAMLValidatorConfig implements Serializable {
     }
 
     public boolean isDoValidateSignatureInRequests() {
-        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("doValidateSignatureInRequests"));
+        return Boolean.parseBoolean(
+                (String) this.requestValidatorConfig.getProperties().get("doValidateSignatureInRequests"));
     }
 
     public boolean isEnableAttributesByDefault() {
-        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("enableAttributesByDefault"));
+        return Boolean
+                .parseBoolean((String) this.requestValidatorConfig.getProperties().get("enableAttributesByDefault"));
     }
 
     public boolean isIdPInitSSOEnabled() {

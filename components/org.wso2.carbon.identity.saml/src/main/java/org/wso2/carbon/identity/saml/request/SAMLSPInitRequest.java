@@ -47,21 +47,6 @@ public class SAMLSPInitRequest extends SAMLRequest {
         return null;
     }
 
-    public String getSignatureAlgorithm() {
-        if (this.getBodyParameter(SAMLSSOConstants.SIG_ALG) != null) {
-            return this.getBodyParameter(SAMLSSOConstants.SIG_ALG);
-        } else {
-            try {
-                return this.getQueryParameter(SAMLSSOConstants.SIG_ALG);
-            } catch (UnsupportedEncodingException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to decode the Signature Algorithm ", e);
-                }
-            }
-        }
-        return null;
-    }
-
     public String getSignature() {
         if (this.getBodyParameter(SAMLSSOConstants.SIGNATURE) != null) {
             return this.getBodyParameter(SAMLSSOConstants.SIGNATURE);
@@ -77,6 +62,25 @@ public class SAMLSPInitRequest extends SAMLRequest {
         return null;
     }
 
+    public String getSignatureAlgorithm() {
+        if (this.getBodyParameter(SAMLSSOConstants.SIG_ALG) != null) {
+            return this.getBodyParameter(SAMLSSOConstants.SIG_ALG);
+        } else {
+            try {
+                return this.getQueryParameter(SAMLSSOConstants.SIG_ALG);
+            } catch (UnsupportedEncodingException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to decode the Signature Algorithm ", e);
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isRedirect() {
+        return this.getHttpMethod() == SAMLSSOConstants.GET_METHOD;
+    }
+
     public static class SAMLSpInitRequestBuilder extends SAMLGatewayRequestBuilder {
 
         public SAMLSpInitRequestBuilder() {
@@ -86,9 +90,5 @@ public class SAMLSPInitRequest extends SAMLRequest {
         public SAMLSPInitRequest build() {
             return new SAMLSPInitRequest(this);
         }
-    }
-
-    public boolean isRedirect() {
-        return this.getHttpMethod() == SAMLSSOConstants.GET_METHOD;
     }
 }

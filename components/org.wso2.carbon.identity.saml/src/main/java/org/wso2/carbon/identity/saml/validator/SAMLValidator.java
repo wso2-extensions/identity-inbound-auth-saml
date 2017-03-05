@@ -21,23 +21,24 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
-import org.wso2.carbon.identity.saml.request.SAMLRequest;
+import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
 import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
+import org.wso2.carbon.identity.saml.request.SAMLRequest;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 
 public abstract class SAMLValidator extends AbstractRequestValidator {
 
-    @Override
-    public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws SAMLRequestValidatorException;
-
-    public void initSAMLMessageContext(AuthenticationContext authenticationContext){
+    public void initSAMLMessageContext(AuthenticationContext authenticationContext) {
         SAMLMessageContext samlMessageContext = new SAMLMessageContext((SAMLRequest) authenticationContext
                 .getIdentityRequest(), null);
         authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, samlMessageContext);
     }
+
+    @Override
+    public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
+            throws SAMLRequestValidatorException;
 
     @Override
     protected String getValidatorType() {
@@ -45,10 +46,23 @@ public abstract class SAMLValidator extends AbstractRequestValidator {
     }
 
     protected void updateValidatorConfig(RequestValidatorConfig validatorConfig, AuthenticationContext
-            authenticationContext)  {
+            authenticationContext) {
         SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLValidatorConfig samlValidatorConfig = new SAMLValidatorConfig(validatorConfig);
         messageContext.setSamlValidatorConfig(samlValidatorConfig);
+    }
+
+    protected boolean issuerValidate(AuthenticationContext authenticationContext) throws SAMLRequestValidatorException {
+        if (authenticationContext.getServiceProvider() == null) {
+            SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
+                    .getParameter(SAMLSSOConstants.SAMLContext);
+            messageContext.setValid(false);
+            String message = "A Service Provider with the Issuer '" + authenticationContext.getUniqueId() + "' is not "
+                             +
+                             "registered. Service Provider should be registered in " + "advance";
+            throw new SAMLRuntimeException(message);
+        }
+        return true;
     }
 }

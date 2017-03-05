@@ -5,12 +5,12 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.util.ArrayList;
@@ -40,9 +40,10 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
             String errorResponse = null;
             try {
                 errorResponse = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(samlMessageContext.getId(), statusCodes,
-                                                               "Cannot process response from framework Subject in "
-                                                               + "Passive Mode",
-                                                               destination);
+                                                                                "Cannot process response from "
+                                                                                + "framework Subject in "
+                                                                                + "Passive Mode",
+                                                                                destination);
 
                 builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(samlMessageContext);
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setRelayState(samlMessageContext.getRelayState
@@ -128,16 +129,6 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         return response;
     }
 
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
-        return false;
-    }
-
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
-        return false;
-    }
-
 
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
@@ -146,6 +137,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         }
         return false;
     }
+
 
     public String getName() {
         return "SPInitResponseHandler";

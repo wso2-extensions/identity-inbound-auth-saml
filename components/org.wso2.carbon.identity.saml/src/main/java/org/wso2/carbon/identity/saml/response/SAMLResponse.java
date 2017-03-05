@@ -22,7 +22,6 @@ import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 public abstract class SAMLResponse extends GatewayResponse {
 
@@ -51,6 +50,5 @@ public abstract class SAMLResponse extends GatewayResponse {
             this.response = response;
             return this;
         }
-
     }
 }

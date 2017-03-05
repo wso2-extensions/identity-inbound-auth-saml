@@ -5,11 +5,10 @@ import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class SAMLResponseHandlerConfig implements Serializable {
     private static final long serialVersionUID = 6508235825726363156L;
-    private ResponseBuilderConfig responseBuilderConfigs ;
+    private ResponseBuilderConfig responseBuilderConfigs;
 
     public SAMLResponseHandlerConfig(ResponseBuilderConfig responseBuilderConfigs) {
         this.responseBuilderConfigs = responseBuilderConfigs;

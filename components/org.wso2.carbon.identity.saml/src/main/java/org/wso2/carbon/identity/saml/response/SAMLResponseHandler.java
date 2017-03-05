@@ -15,23 +15,29 @@ import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
+import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.saml.builders.assertion.DefaultSAMLAssertionBuilder;
 import org.wso2.carbon.identity.saml.builders.assertion.SAMLAssertionBuilder;
 import org.wso2.carbon.identity.saml.builders.encryption.DefaultSSOEncrypter;
 import org.wso2.carbon.identity.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.exception.SAMLClientException;
+import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
+import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
+import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 public abstract class SAMLResponseHandler extends AbstractResponseHandler {
 
@@ -64,6 +70,27 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
                                         String sessionId) throws IdentityException {
         SAMLAssertionBuilder samlAssertionBuilder = new DefaultSAMLAssertionBuilder();
         return samlAssertionBuilder.buildAssertion(context, notOnOrAfter, sessionId);
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext, GatewayException exception) {
+        if (canHandle(messageContext)) {
+            if (exception instanceof SAMLRequestValidatorException || exception instanceof SAMLClientException ||
+                exception instanceof SAMLServerException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception) {
+        if (canHandle(messageContext)) {
+            if (exception instanceof SAMLRuntimeException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,

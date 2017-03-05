@@ -23,17 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
-import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.io.IOException;
 
@@ -62,7 +62,8 @@ public class IDPInitSAMLValidator extends SAMLValidator {
     }
 
     @Override
-    public GatewayHandlerResponse validate(AuthenticationContext authenticationContext) throws SAMLRequestValidatorException{
+    public GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
+            throws SAMLRequestValidatorException {
         try {
             initSAMLMessageContext(authenticationContext);
             SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
@@ -149,22 +150,25 @@ public class IDPInitSAMLValidator extends SAMLValidator {
             }
             messageContext.setValid(false);
             throw SAMLClientException.error(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                    .REQUESTOR_ERROR,
-                                                                           "spEntityID parameter not found in request",
-                                                                           null));
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            "spEntityID parameter not"
+                                                                                            + " found in request",
+                                                                                            null));
         }
 
         if (!SAMLSSOUtil.isSAMLIssuerExists(spEntityID)) {
             String message = "A Service Provider with the Issuer '" + spEntityID + "' is not registered. Service " +
                              "Provider should be registered in advance";
-            String errorResp = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                                                              message, null);
+            String errorResp = SAMLSSOUtil.SAMLResponseUtil
+                    .buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                                        message, null);
             if (log.isDebugEnabled()) {
                 log.debug(message);
             }
             messageContext.setValid(false);
             throw SAMLClientException.error(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
-                                                                                   .REQUESTOR_ERROR, message, null));
+                                                                                                    .REQUESTOR_ERROR,
+                                                                                            message, null));
         }
 
         messageContext.setValid(true);

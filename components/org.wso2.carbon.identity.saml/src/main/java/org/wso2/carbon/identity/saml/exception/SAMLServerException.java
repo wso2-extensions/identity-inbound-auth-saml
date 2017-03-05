@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.saml.exception;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
 /**
  * Exception implementation to be used inside SAML2 SSO Identity Provider impl.
  */
-public class SAMLServerException extends IdentityException {
+public class SAMLServerException extends GatewayServerException {
 
     private static final long serialVersionUID = 7027553884968546755L;
 

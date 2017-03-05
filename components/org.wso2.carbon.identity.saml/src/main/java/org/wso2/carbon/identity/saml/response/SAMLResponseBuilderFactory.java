@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import javax.ws.rs.core.MediaType;

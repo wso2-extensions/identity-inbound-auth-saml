@@ -37,7 +37,6 @@ public class SAMLLoginResponse extends SAMLResponse {
     private String acsUrl;
     private String subject;
     private String authenticatedIdPs;
-    private String tenantDomain;
 
     protected SAMLLoginResponse(GatewayResponseBuilder builder) {
         super(builder);
@@ -70,9 +69,6 @@ public class SAMLLoginResponse extends SAMLResponse {
         return subject;
     }
 
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
 
     public static class SAMLLoginResponseBuilder extends SAMLResponseBuilder {
 

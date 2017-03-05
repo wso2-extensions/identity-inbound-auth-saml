@@ -46,6 +46,18 @@ public class SAMLClientException extends GatewayClientException {
         super(errorDescription, cause);
     }
 
+    public SAMLClientException(Throwable cause) {
+        super(cause);
+    }
+
+    public SAMLClientException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    public SAMLClientException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
+
     public static SAMLClientException error(String errorDescription) {
         return new SAMLClientException(errorDescription);
     }
@@ -71,18 +83,5 @@ public class SAMLClientException extends GatewayClientException {
 
     public String getExceptionStatus() {
         return exceptionStatus;
-    }
-
-
-    public SAMLClientException(Throwable cause) {
-        super(cause);
-    }
-
-    public SAMLClientException(String errorCode, String message) {
-        super(errorCode, message);
-    }
-
-    public SAMLClientException(String errorCode, String message, Throwable cause) {
-        super(errorCode, message, cause);
     }
 }

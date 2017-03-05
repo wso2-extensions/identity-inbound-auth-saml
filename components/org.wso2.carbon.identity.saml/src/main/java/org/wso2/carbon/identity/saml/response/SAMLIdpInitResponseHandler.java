@@ -6,14 +6,14 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
+import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
         String errorResp = null;
         //try {
         errorResp = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE,
-                                                   "User authentication failed", destination);
+                                                                    "User authentication failed", destination);
         /*} catch (IOException e) {
             builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(authenticationContext);
             response.setGatewayResponseBuilder(builder);
@@ -120,16 +120,6 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
         }
     }
 
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
-        return false;
-    }
-
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
-        return false;
-    }
-
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
             return ((AuthenticationContext) messageContext)
@@ -137,6 +127,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
         }
         return false;
     }
+
 
     public String getName() {
         return "SAMLIdpInitResponseHandler";
@@ -174,8 +165,9 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
                 log.debug("Error processing the authentication request.");
             }
             builder = new SAMLErrorResponse.SAMLErrorResponseBuilder(messageContext);
-            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder).setErrorResponse(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse
-                    (null, statusCodes, "Authentication Failure, invalid username or password.", null));
+            ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder)
+                    .setErrorResponse(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse
+                            (null, statusCodes, "Authentication Failure, invalid username or password.", null));
             ((SAMLErrorResponse.SAMLErrorResponseBuilder) builder)
                     .setAcsUrl(samlResponseHandlerConfig.getLoginPageURL());
             return builder;
