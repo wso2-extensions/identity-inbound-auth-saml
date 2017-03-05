@@ -1,4 +1,4 @@
-package org.wso2.carbon.identity.saml.wrapper;
+package org.wso2.carbon.identity.saml.model;
 
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 

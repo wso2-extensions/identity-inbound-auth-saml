@@ -42,9 +42,9 @@ import org.wso2.carbon.identity.saml.validator.SPInitSAMLValidator;
         name = "org.wso2.carbon.identity.saml.component",
         immediate = true
 )
-public class Activator implements BundleActivator {
+public class SAMLInboundActivator implements BundleActivator {
 
-    private Logger log = LoggerFactory.getLogger(Activator.class);
+    private Logger log = LoggerFactory.getLogger(SAMLInboundActivator.class);
 
     @Activate
     public void start(BundleContext bundleContext) throws Exception {
@@ -88,7 +88,7 @@ public class Activator implements BundleActivator {
     )
     protected void addGatewayClaimResolverService(GatewayClaimResolverService gatewayClaimResolverService) {
 
-        SAMLInboundServiceDataHolder.getInstance().setGatewayClaimResolverService(gatewayClaimResolverService);
+        SAMLInboundServiceHolder.getInstance().setGatewayClaimResolverService(gatewayClaimResolverService);
 
         if (log.isDebugEnabled()) {
             log.debug("Binding GatewayClaimResolverService");
@@ -97,7 +97,7 @@ public class Activator implements BundleActivator {
 
     protected void unSetGatewayClaimResolverService(GatewayClaimResolverService gatewayClaimResolverService) {
 
-        SAMLInboundServiceDataHolder.getInstance().setGatewayClaimResolverService(null);
+        SAMLInboundServiceHolder.getInstance().setGatewayClaimResolverService(null);
 
         if (log.isDebugEnabled()) {
             log.debug("Un-Binding GatewayClaimResolverService");

@@ -27,13 +27,13 @@ import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
+import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
 
 import java.io.IOException;
 

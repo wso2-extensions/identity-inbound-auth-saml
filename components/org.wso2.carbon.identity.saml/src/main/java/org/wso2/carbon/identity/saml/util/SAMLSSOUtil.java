@@ -18,13 +18,11 @@
 
 package org.wso2.carbon.identity.saml.util;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
@@ -38,7 +36,6 @@ import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
-import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallerFactory;
@@ -47,7 +44,6 @@ import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
-import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -59,17 +55,15 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.saml.KeyStoreManager;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.bean.SAMLConfigurations;
+import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
-import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceDataHolder;
-import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
+import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceHolder;
+import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -78,8 +72,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -762,7 +754,7 @@ public class SAMLSSOUtil {
             dialect = "defaultDialect";
         }
 
-        aggregatedClaims = SAMLInboundServiceDataHolder.getInstance()
+        aggregatedClaims = SAMLInboundServiceHolder.getInstance()
                 .getGatewayClaimResolverService().transformToOtherDialect(aggregatedClaims, dialect, Optional
                         .ofNullable(profileName));
 

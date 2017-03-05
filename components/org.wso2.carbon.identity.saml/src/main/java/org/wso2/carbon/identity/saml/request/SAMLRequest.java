@@ -3,13 +3,13 @@ package org.wso2.carbon.identity.saml.request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 
 /**
  * SAMLRequest is based request for SAML protocol.
  */
-public class SAMLRequest extends ClientAuthenticationRequest {
+public abstract class SAMLRequest extends ClientAuthenticationRequest {
 
     private static Logger log = LoggerFactory.getLogger(SAMLRequest.class);
 

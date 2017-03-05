@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.exception.SAMLClientException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.msf4j.Request;

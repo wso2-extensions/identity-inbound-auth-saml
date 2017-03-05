@@ -21,11 +21,11 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.request.SAMLRequest;
-import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
+import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
 
 public abstract class SAMLValidator extends AbstractRequestValidator {
 

@@ -31,11 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
+import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
 
 import java.util.Iterator;
 import java.util.Map;

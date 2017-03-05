@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
-public class SAMLResponse extends GatewayResponse {
+public abstract class SAMLResponse extends GatewayResponse {
 
     private Response response;
 

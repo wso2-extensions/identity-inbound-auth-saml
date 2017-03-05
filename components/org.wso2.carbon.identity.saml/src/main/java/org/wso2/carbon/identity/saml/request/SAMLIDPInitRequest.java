@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.saml.request;
 
-import org.wso2.carbon.identity.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 
 public class SAMLIDPInitRequest extends SAMLRequest {
     public SAMLIDPInitRequest(SAMLIdpInitRequestBuilder builder) {

@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.saml.context;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
 import org.wso2.carbon.identity.saml.request.SAMLRequest;
-import org.wso2.carbon.identity.saml.wrapper.SAMLResponseHandlerConfig;
-import org.wso2.carbon.identity.saml.wrapper.SAMLValidatorConfig;
+import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
+import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
 
 import java.io.Serializable;
 import java.util.Map;
