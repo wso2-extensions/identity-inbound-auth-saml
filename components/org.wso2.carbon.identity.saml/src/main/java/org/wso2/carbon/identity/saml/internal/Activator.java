@@ -32,10 +32,9 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractReques
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.saml.request.SAMLRequestBuilderFactory;
-import org.wso2.carbon.identity.saml.response.HttpSAMLResponseBuilderFactory;
+import org.wso2.carbon.identity.saml.response.SAMLResponseBuilderFactory;
 import org.wso2.carbon.identity.saml.response.SAMLIdpInitResponseHandler;
 import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.saml.validator.IDPInitSAMLValidator;
 import org.wso2.carbon.identity.saml.validator.SPInitSAMLValidator;
 
@@ -57,7 +56,7 @@ public class Activator implements BundleActivator {
             }
             bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLRequestBuilderFactory(), null);
             bundleContext
-                    .registerService(GatewayResponseBuilderFactory.class, new HttpSAMLResponseBuilderFactory(), null);
+                    .registerService(GatewayResponseBuilderFactory.class, new SAMLResponseBuilderFactory(), null);
 
             bundleContext.registerService(AbstractRequestValidator.class, new SPInitSAMLValidator(), null);
             bundleContext.registerService(AbstractRequestValidator.class, new IDPInitSAMLValidator(), null);

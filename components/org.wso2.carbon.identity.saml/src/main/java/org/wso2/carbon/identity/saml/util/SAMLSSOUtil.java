@@ -224,7 +224,7 @@ public class SAMLSSOUtil {
                 try {
                     Inflater inflater = new Inflater(true);
                     inflater.setInput(base64DecodedByteArray);
-                    byte[] xmlMessageBytes = new byte[5000];
+                    byte[] xmlMessageBytes = new byte[10000];
                     int resultLength = inflater.inflate(xmlMessageBytes);
 
                     if (!inflater.finished()) {

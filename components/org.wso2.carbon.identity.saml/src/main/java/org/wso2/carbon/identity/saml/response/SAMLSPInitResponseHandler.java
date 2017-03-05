@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
@@ -68,6 +69,13 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
     }
 
     @Override
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
+                                                     GatewayRuntimeException exception)
+            throws ResponseHandlerException {
+        return null;
+    }
+
+    @Override
     public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
             throws ResponseHandlerException {
         super.buildResponse(authenticationContext);
@@ -122,6 +130,11 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
 
     @Override
     public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
+        return false;
+    }
+
+    @Override
+    public boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
         return false;
     }
 

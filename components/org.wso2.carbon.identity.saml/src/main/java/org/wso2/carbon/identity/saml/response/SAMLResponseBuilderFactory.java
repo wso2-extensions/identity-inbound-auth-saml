@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.common.util.Utils;
@@ -40,9 +39,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
+public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(HttpSAMLResponseBuilderFactory.class);
+    private static Logger log = LoggerFactory.getLogger(SAMLResponseBuilderFactory.class);
 
     @Override
     public boolean canHandle(GatewayResponse gatewayResponse) {
@@ -52,10 +51,6 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
         return false;
     }
 
-    @Override
-    public boolean canHandle(GatewayServerException exception) {
-        return super.canHandle(exception);
-    }
 
     public Response.ResponseBuilder createBuilder(GatewayResponse gatewayResponse) {
         Response.ResponseBuilder builder = Response.noContent();
@@ -74,7 +69,7 @@ public class HttpSAMLResponseBuilderFactory extends GatewayResponseBuilderFactor
 
     @Override
     public String getName() {
-        return "HttpSAMLResponseBuilderFactory";
+        return "SAMLResponseBuilderFactory";
     }
 
     @Override
