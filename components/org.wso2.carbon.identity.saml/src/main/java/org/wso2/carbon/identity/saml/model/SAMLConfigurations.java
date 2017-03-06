@@ -26,32 +26,33 @@ public class SAMLConfigurations {
     private static SAMLConfigurations instance = new SAMLConfigurations();
     ;
     private String keyStoreLocation = System.getProperty("carbon.home") + File.separator + "resources" + File.separator
-                                      +
-                                      "security" + File
-                                              .separator + "wso2carbon.jks";
+            +
+            "security" + File
+            .separator + "wso2carbon.jks";
     private String keyStoreType = "JKS";
     private String keyStorePassword = "wso2carbon";
     private String keyStoreAlias = "wso2carbon";
     private long samlResponseValidityPeriod = 5;
     private String ssoResponseHtml = "<html>\n" +
-                                     "\t<body>\n" +
-                                     "        \t<p>You are now redirected back to $acUrl \n" +
-                                     "        \tIf the redirection fails, please click the post button.</p>\n" +
-                                     "\n" +
-                                     "        \t<form method='post' action='$acUrl'>\n" +
-                                     "       \t\t\t<p>\n" +
-                                     "\t\t\t\t\t<!--$params-->\n" +
-                                     "                    <!--$additionalParams-->\n" +
-                                     "        \t\t\t<button type='submit'>POST</button>\n" +
-                                     "       \t\t\t</p>\n" +
-                                     "       \t\t</form>\n" +
-                                     "       \t\t<script type='text/javascript'>\n" +
-                                     "        \t\tdocument.forms[0].submit();\n" +
-                                     "        \t</script>\n" +
-                                     "        </body>\n" +
-                                     "</html>";
+            "\t<body>\n" +
+            "        \t<p>You are now redirected back to $acUrl \n" +
+            "        \tIf the redirection fails, please click the post button.</p>\n" +
+            "\n" +
+            "        \t<form method='post' action='$acUrl'>\n" +
+            "       \t\t\t<p>\n" +
+            "\t\t\t\t\t<!--$params-->\n" +
+            "                    <!--$additionalParams-->\n" +
+            "        \t\t\t<button type='submit'>POST</button>\n" +
+            "       \t\t\t</p>\n" +
+            "       \t\t</form>\n" +
+            "       \t\t<script type='text/javascript'>\n" +
+            "        \t\tdocument.forms[0].submit();\n" +
+            "        \t</script>\n" +
+            "        </body>\n" +
+            "</html>";
     private String idpEntityId = "localhost";
     private List<String> destinationUrls = new ArrayList<>();
+    private String notificationEndpoint = "https://localhost:2929/notifications";
 
 
     private SAMLConfigurations() {
@@ -124,5 +125,13 @@ public class SAMLConfigurations {
 
     public void setSsoResponseHtml(String ssoResponseHtml) {
         this.ssoResponseHtml = ssoResponseHtml;
+    }
+
+    public String getNotificationEndpoint() {
+        return this.notificationEndpoint;
+    }
+
+    public void setNotificationEndpoint(String notificationEndpoint) {
+        this.notificationEndpoint = notificationEndpoint;
     }
 }

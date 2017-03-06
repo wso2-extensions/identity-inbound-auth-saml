@@ -25,9 +25,9 @@ serviceProviderConfig:
               secret : "ssdf232f23f32f32f32f32f32f"
 
   claimConfig:
-   profile : "sdsd"
-   dialectUri : "dfdf"
-   subjectClaimUri : "SdsD"
+   profile : "default"
+   dialectUri : "http://org.harsha/claims"
+   subjectClaimUri : "http://wso2.org/claims/fullname"
 
   authenticationConfig:
     authenticationStepConfigs :
@@ -51,7 +51,7 @@ serviceProviderConfig:
           doSingleLogout : "false"
           doSignAssertions : "true"
           attributeConsumingServiceIndex : "2342342"
-          enableAttributesByDefault : ""
+          enableAttributesByDefault : "true"
           doEnableEncryptedAssertion : "false"
           signingAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
           digestAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#sha1"

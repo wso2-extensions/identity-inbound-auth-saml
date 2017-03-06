@@ -14,11 +14,10 @@ limitations under the License.
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Identity-Mgt-Test-Suite">
-    <test name="identity-store-tests" preserve-order="true" parallel="false">
+<suite name="Carbon-Security-Test-Suite">
+    <test name="carbon-security-tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLInboundTests"/>
-            <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLIDPInitiatedTests"/>
+            <class name="org.wso2.carbon.identity.saml.inbound.SAMLInboundUnitTests"/>
         </classes>
     </test>
 </suite>
