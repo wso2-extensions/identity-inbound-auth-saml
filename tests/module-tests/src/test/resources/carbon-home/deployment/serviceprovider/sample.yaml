@@ -15,6 +15,7 @@ serviceProviderConfig:
             enableAttributesByDefault : "true"
             idPInitSSOEnabled : "true"
             attributeConsumingServiceIndex : "2342342"
+            doValidateSignatureInRequests : "true"
       -
           type: "oidc"
           uniquePropertyName : "key"

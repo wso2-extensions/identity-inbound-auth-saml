@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.saml.response;
 
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
@@ -88,11 +89,8 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
         //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
         builder.type(MediaType.TEXT_HTML);
 
-        if (SAMLConfigurations.getInstance().getSsoResponseHtml() != null) {
-            builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-        } else {
-            builder.entity(getPostHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
-        }
+        builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+
         builder.status(200);
     }
 
@@ -130,43 +128,9 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
         return finalPage;
     }
 
-    private String getPostHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
-            loginResponse) {
-        StringBuilder out = new StringBuilder();
-        out.append("<html>");
-        out.append("<body>");
-        out.append("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-        out.append(" If the redirection fails, please click the post button.</p>");
-        out.append("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-        out.append("<p>");
-        out.append("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(loginResponse
-                                                                                                        .getRespString())
-                   + "'>");
-
-        if (relayState != null) {
-            out.append("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) +
-                       "'>");
-        }
-
-        if (StringUtils.isBlank(authenticatedIdPs)) {
-            out.append("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                       Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
-        }
-
-        out.append("<button type='submit'>POST</button>");
-        out.append("</p>");
-        out.append("</form>");
-        out.append("<script type='text/javascript'>");
-        out.append("document.forms[0].submit();");
-        out.append("</script>");
-        out.append("</body>");
-        out.append("</html>");
-        return out.toString();
-    }
-
     private void sendNotification(Response.ResponseBuilder builder, GatewayResponse
             gatewayResponse) {
-        try {
+
             SAMLErrorResponse errorResponse = ((SAMLErrorResponse) gatewayResponse);
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
             Map<String, String[]> queryParams = new HashMap();
@@ -204,9 +168,6 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
             } else {
                 redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
             }
-            builder.location(new URI(redirectURL));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+            builder.header(HttpHeaders.LOCATION, redirectURL);
     }
 }

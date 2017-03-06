@@ -532,7 +532,6 @@ public class SAMLSSOUtil {
             try {
                 //            System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 //                    "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-
                 MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
                 Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
                 Element element = marshaller.marshall(xmlObject);
@@ -661,7 +660,7 @@ public class SAMLSSOUtil {
             //Do below in the response builder
             String errorResp = null;
             try {
-                Response response = buildResponse(null, statusCodeList, message, destination);
+                Response response = buildResponse("asdfasd", statusCodeList, message, destination);
                 errorResp = compressResponse(SAMLAssertion.marshall(response));
             } catch (SAMLServerException e) {
                 e.printStackTrace();

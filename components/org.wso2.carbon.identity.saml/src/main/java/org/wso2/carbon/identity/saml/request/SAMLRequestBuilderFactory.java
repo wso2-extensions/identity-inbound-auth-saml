@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.saml.request;
 
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
+import org.json.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
@@ -117,11 +119,8 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
         } else {
             redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
         }
-        try {
-            builder.location(new URI(redirectURL));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+
+        builder.header(HttpHeaders.LOCATION, redirectURL);
         builder.status(301);
         return builder;
     }
