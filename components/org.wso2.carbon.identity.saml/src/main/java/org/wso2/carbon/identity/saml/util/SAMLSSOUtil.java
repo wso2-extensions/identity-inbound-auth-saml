@@ -479,7 +479,7 @@ public class SAMLSSOUtil {
         String dialect = authenticationContext.getServiceProvider().getClaimConfig().getDialectUri();
 
         if (StringUtils.isEmpty(dialect)) {
-            dialect = "defaultDialect";
+            dialect = "default";
         }
 
         aggregatedClaims = SAMLInboundServiceHolder.getInstance()
@@ -514,7 +514,7 @@ public class SAMLSSOUtil {
                != null) {
             return authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier();
         }
-        return "testuser";
+        return null;
     }
 
     public static class SAMLAssertion {
