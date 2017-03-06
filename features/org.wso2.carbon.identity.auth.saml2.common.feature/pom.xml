@@ -63,7 +63,7 @@
             <artifactId>wss4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces.wso2</groupId>
+            <groupId>org.wso2.orbit.xerces</groupId>
             <artifactId>xercesImpl</artifactId>
         </dependency>
         <dependency>
@@ -157,7 +157,7 @@
                                 </bundle>
                                 <bundle>
                                     <symbolicName>xercesImpl</symbolicName>
-                                    <version>${xerces.version}</version>
+                                    <version>${wso2.xerces.version}</version>
                                 </bundle>
                                 <bundle>
                                     <symbolicName>bcprov-jdk15on</symbolicName>
