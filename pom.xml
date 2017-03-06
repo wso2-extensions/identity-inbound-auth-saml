@@ -408,7 +408,9 @@
 
 
     <modules>
+        <module>components/org.wso2.carbon.identity.auth.saml2.common</module>
         <module>components/org.wso2.carbon.identity.saml</module>
+        <module>features/org.wso2.carbon.identity.auth.saml2.common.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.server.feature</module>
         <module>tests</module>
     </modules>
@@ -508,7 +510,7 @@
         <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
         <wss4j.wso2.version>1.5.11.wso2v16</wss4j.wso2.version>
         <wso2.xerces.version>2.8.1.wso2v3</wso2.xerces.version>
-        <xerces.version>2.11.0</xerces.version>
+        <xerces.version>2.8.1</xerces.version>
         <bouncycastle.version>1.52.0.wso2v1</bouncycastle.version>
         <msf4j.core.version>2.1.0</msf4j.core.version>
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
