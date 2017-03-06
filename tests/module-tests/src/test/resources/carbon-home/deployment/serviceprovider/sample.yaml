@@ -33,6 +33,7 @@ serviceProviderConfig:
   authenticationConfig:
     authenticationStepConfigs :
       -
+        step : 1
         useLocalSubjectIdentifier : "true"
         useDomainInLocalSubjectIdentifier : "true"
         authStrategy : ""
