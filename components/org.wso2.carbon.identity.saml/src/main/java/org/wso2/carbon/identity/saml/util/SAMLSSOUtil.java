@@ -1,12 +1,12 @@
 /*
- *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -98,52 +98,9 @@ public class SAMLSSOUtil {
     private static Logger log = LoggerFactory.getLogger(SAMLSSOUtil.class);
 
     public static String getNotificationEndpoint() {
-        //        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-        //                .NOTIFICATION_ENDPOINT);
-        //        if (StringUtils.isBlank(redirectURL)) {
-        //            redirectURL = IdentityUtil.getServerURL(SAMLSSOConstants.NOTIFICATION_ENDPOINT, false, false);
-        //        }
-        // TODO
-        return "";
+       return SAMLConfigurations.getInstance().getNotificationEndpoint();
     }
 
-    /**
-     * @param
-     * @return set of destination urls of resident identity provider
-     * @throws IdentityException
-     */
-
-    //    public static List<String> getDestinationFromTenantDomain(String tenantDomain) throws IdentityException {
-    //
-    //        List<String> destinationURLs = new ArrayList<String>();
-    //        IdentityProvider identityProvider;
-    //
-    //        try {
-    //            identityProvider = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
-    //        } catch (IdentityProviderManagementException e) {
-    //            throw IdentityException.error(
-    //                    "Error occurred while retrieving Resident Identity Provider information for tenant " +
-    //                            tenantDomain, e);
-    //        }
-    //
-    //        FederatedAuthenticatorConfig[] authnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
-    //        for (String value: IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(authnConfigs,
-    //                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants
-    // .Authenticator
-    //                        .SAML2SSO.SSO_URL)) {
-    //            destinationURLs.add(value);
-    //        }
-    //
-    //        if (destinationURLs.size() == 0) {
-    //            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_CLOUD_URL);
-    //            if (StringUtils.isBlank(configDestination)) {
-    //                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.IDENTITY_URL, true, true);
-    //            }
-    //            destinationURLs.add(configDestination);
-    //        }
-    //
-    //        return destinationURLs;
-    //    }
     public static boolean validateACS(String issuerName, String requestedACSUrl) {
         // TODO
         return true;
@@ -479,7 +436,7 @@ public class SAMLSSOUtil {
         String dialect = authenticationContext.getServiceProvider().getClaimConfig().getDialectUri();
 
         if (StringUtils.isEmpty(dialect)) {
-            dialect = "defaultDialect";
+            dialect = "default";
         }
 
         aggregatedClaims = SAMLInboundServiceHolder.getInstance()
@@ -514,7 +471,7 @@ public class SAMLSSOUtil {
                != null) {
             return authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier();
         }
-        return "testuser";
+        return null;
     }
 
     public static class SAMLAssertion {

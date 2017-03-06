@@ -41,7 +41,7 @@ public class SAMLInboundTestUtils {
 
     public static Response getSAMLResponse(String samlResponse) throws SAMLServerException {
         String decodedResponse = new String(Base64.decode(samlResponse));
-        XMLObject xmlObject = SAMLSSOUtil.unmarshall(decodedResponse);
+        XMLObject xmlObject = SAMLSSOUtil.SAMLAssertion.unmarshall(decodedResponse);
 
         return (Response) xmlObject;
     }

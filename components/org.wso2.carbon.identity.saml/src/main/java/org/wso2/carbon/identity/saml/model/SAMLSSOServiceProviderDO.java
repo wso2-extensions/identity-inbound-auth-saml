@@ -1,17 +1,19 @@
 /*
- * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.saml.model;
@@ -111,13 +113,12 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public void setAssertionConsumerUrls(String[] assertionConsumerUrls) {
-        if (assertionConsumerUrls != null) {
-            this.assertionConsumerUrls = assertionConsumerUrls.clone();
-            this.assertionConsumerUrlList = Arrays.asList(assertionConsumerUrls);
+    public void setAssertionConsumerUrls(List<String> assertionConsumerUrlList) {
+        this.assertionConsumerUrlList = assertionConsumerUrlList;
+        if (assertionConsumerUrlList != null) {
+            this.assertionConsumerUrls = assertionConsumerUrlList.toArray(new String[assertionConsumerUrlList.size()]);
         } else {
             this.assertionConsumerUrls = null;
-            this.assertionConsumerUrlList = null;
         }
     }
 
@@ -179,13 +180,13 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
-    public void setIdpInitSLOReturnToURLs(String[] idpInitSLOReturnToURLs) {
-        if (idpInitSLOReturnToURLs != null) {
-            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLs.clone();
-            this.idpInitSLOReturnToURLList = Arrays.asList(idpInitSLOReturnToURLs);
+    public void setIdpInitSLOReturnToURLs(List<String> idpInitSLOReturnToURLList) {
+        this.idpInitSLOReturnToURLList = idpInitSLOReturnToURLList;
+        if (idpInitSLOReturnToURLList != null) {
+            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList
+                    .toArray(new String[idpInitSLOReturnToURLList.size()]);
         } else {
             this.idpInitSLOReturnToURLs = null;
-            this.idpInitSLOReturnToURLList = null;
         }
     }
 
@@ -242,10 +243,10 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param requestedAudiences
      *         the requestedAudiences to set
      */
-    public void setRequestedAudiences(List<String> requestedAudiences) {
+    public void setRequestedAudiences(String[] requestedAudiences) {
         if (requestedAudiences != null) {
-            this.requestedAudiencesList = requestedAudiences;
-            this.requestedAudiences = requestedAudiences.toArray(new String[requestedAudiencesList.size()]);
+            this.requestedAudiences = requestedAudiences.clone();
+            this.requestedAudiencesList = Arrays.asList(requestedAudiences);
         }
     }
 
@@ -275,10 +276,10 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param requestedClaims
      *         the requestedClaims to set
      */
-    public void setRequestedClaims(List<String> requestedClaims) {
+    public void setRequestedClaims(String[] requestedClaims) {
         if (requestedClaims != null) {
-            this.requestedClaimsList = requestedClaims;
-            this.requestedClaims = requestedClaims.toArray(new String[requestedClaims.size()]);
+            this.requestedClaims = requestedClaims.clone();
+            this.requestedClaimsList = Arrays.asList(requestedClaims);
         }
     }
 
@@ -305,15 +306,16 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     /**
-     * @param requestedRecipientsList
+     * @param requestedRecipients
      *         the requestedRecipients to set
      */
-    public void setRequestedRecipients(List<String> requestedRecipientsList) {
-        this.requestedRecipientsList = requestedRecipientsList;
-        if (requestedRecipientsList != null) {
-            this.requestedRecipients = requestedRecipientsList.toArray(new String[requestedRecipientsList.size()]);
+    public void setRequestedRecipients(String[] requestedRecipients) {
+        if (requestedRecipients != null) {
+            this.requestedRecipients = requestedRecipients.clone();
+            this.requestedRecipientsList = Arrays.asList(requestedRecipients);
         } else {
             this.requestedRecipients = null;
+            this.requestedRecipientsList = null;
         }
     }
 
@@ -471,12 +473,13 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         isIdPInitSSOEnabled = idPInitSSOEnabled;
     }
 
-    public void setAssertionConsumerUrls(List<String> assertionConsumerUrlList) {
-        this.assertionConsumerUrlList = assertionConsumerUrlList;
-        if (assertionConsumerUrlList != null) {
-            this.assertionConsumerUrls = assertionConsumerUrlList.toArray(new String[assertionConsumerUrlList.size()]);
+    public void setAssertionConsumerUrls(String[] assertionConsumerUrls) {
+        if (assertionConsumerUrls != null) {
+            this.assertionConsumerUrls = assertionConsumerUrls.clone();
+            this.assertionConsumerUrlList = Arrays.asList(assertionConsumerUrls);
         } else {
             this.assertionConsumerUrls = null;
+            this.assertionConsumerUrlList = null;
         }
     }
 
@@ -484,13 +487,13 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.encryptionCertificate = encryptionCertificate;
     }
 
-    public void setIdpInitSLOReturnToURLs(List<String> idpInitSLOReturnToURLList) {
-        this.idpInitSLOReturnToURLList = idpInitSLOReturnToURLList;
-        if (idpInitSLOReturnToURLList != null) {
-            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLList
-                    .toArray(new String[idpInitSLOReturnToURLList.size()]);
+    public void setIdpInitSLOReturnToURLs(String[] idpInitSLOReturnToURLs) {
+        if (idpInitSLOReturnToURLs != null) {
+            this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLs.clone();
+            this.idpInitSLOReturnToURLList = Arrays.asList(idpInitSLOReturnToURLs);
         } else {
             this.idpInitSLOReturnToURLs = null;
+            this.idpInitSLOReturnToURLList = null;
         }
     }
 
@@ -498,10 +501,10 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param requestedAudiences
      *         the requestedAudiences to set
      */
-    public void setRequestedAudiences(String[] requestedAudiences) {
+    public void setRequestedAudiences(List<String> requestedAudiences) {
         if (requestedAudiences != null) {
-            this.requestedAudiences = requestedAudiences.clone();
-            this.requestedAudiencesList = Arrays.asList(requestedAudiences);
+            this.requestedAudiencesList = requestedAudiences;
+            this.requestedAudiences = requestedAudiences.toArray(new String[requestedAudiencesList.size()]);
         }
     }
 
@@ -509,24 +512,23 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param requestedClaims
      *         the requestedClaims to set
      */
-    public void setRequestedClaims(String[] requestedClaims) {
+    public void setRequestedClaims(List<String> requestedClaims) {
         if (requestedClaims != null) {
-            this.requestedClaims = requestedClaims.clone();
-            this.requestedClaimsList = Arrays.asList(requestedClaims);
+            this.requestedClaimsList = requestedClaims;
+            this.requestedClaims = requestedClaims.toArray(new String[requestedClaims.size()]);
         }
     }
 
     /**
-     * @param requestedRecipients
+     * @param requestedRecipientsList
      *         the requestedRecipients to set
      */
-    public void setRequestedRecipients(String[] requestedRecipients) {
-        if (requestedRecipients != null) {
-            this.requestedRecipients = requestedRecipients.clone();
-            this.requestedRecipientsList = Arrays.asList(requestedRecipients);
+    public void setRequestedRecipients(List<String> requestedRecipientsList) {
+        this.requestedRecipientsList = requestedRecipientsList;
+        if (requestedRecipientsList != null) {
+            this.requestedRecipients = requestedRecipientsList.toArray(new String[requestedRecipientsList.size()]);
         } else {
             this.requestedRecipients = null;
-            this.requestedRecipientsList = null;
         }
     }
 }
