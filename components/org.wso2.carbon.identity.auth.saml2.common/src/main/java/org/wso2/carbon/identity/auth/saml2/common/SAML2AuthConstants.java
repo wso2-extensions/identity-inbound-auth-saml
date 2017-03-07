@@ -61,6 +61,7 @@ public class SAML2AuthConstants {
         public static class Value {
             public static final String AS_REQUEST = "AS_REQUEST";
             public static final String POST = "POST";
+            public static final String REDIRECT = "REDIRECT";
             public static final String GET = "GET";
         }
 
