@@ -112,7 +112,7 @@
                                             <html destdir="${project.build.directory}/site/jacoco"/>
                                             <check>
                                                 <rule element="PACKAGE">
-                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.50"/>
+                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.65"/>
                                                 </rule>
                                             </check>
                                         </jacoco:report>

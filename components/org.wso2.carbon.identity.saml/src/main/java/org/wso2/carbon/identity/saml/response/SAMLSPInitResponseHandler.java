@@ -71,6 +71,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setSubject(samlMessageContext.getSubject());
                 ((SAMLLoginResponse.SAMLLoginResponseBuilder) builder).setAuthenticatedIdPs(null);
                 response.setGatewayResponseBuilder(builder);
+                return response;
             } catch (IdentityException ex) {
                 ex.printStackTrace();
             }

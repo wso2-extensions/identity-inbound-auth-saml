@@ -5,6 +5,9 @@ import org.apache.commons.io.IOUtils;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.util.Base64;
+import org.osgi.framework.BundleContext;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
@@ -44,5 +47,11 @@ public class SAMLInboundTestUtils {
         XMLObject xmlObject = SAMLSSOUtil.SAMLAssertion.unmarshall(decodedResponse);
 
         return (Response) xmlObject;
+    }
+
+    public static ServiceProviderConfig getServiceProviderConfigs(String uniqueId, BundleContext bundleContext) {
+        ServiceProviderConfigStore serviceProviderConfigStore = bundleContext.getService(bundleContext
+                .getServiceReference(ServiceProviderConfigStore.class));
+        return serviceProviderConfigStore.getServiceProvider(uniqueId);
     }
 }

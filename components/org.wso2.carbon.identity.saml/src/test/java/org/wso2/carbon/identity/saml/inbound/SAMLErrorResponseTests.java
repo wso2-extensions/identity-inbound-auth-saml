@@ -80,20 +80,5 @@ public class SAMLErrorResponseTests {
         Mockito.reset(identityMgtDataHolder);
     }
 
-//    @Test
-//    public void testSAMLResponseBuilderFactory() {
-//        SAMLSPInitResponseHandler responseHandler = new SAMLSPInitResponseHandler();
-//        AuthenticationContext authenticationContext = new AuthenticationContext(null);
-//        authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, new SAMLMessageContext<>(null, null));
-//        authenticationContext.setUniqueId("travelocity.com");
-//        try {
-//            GatewayHandlerResponse response = responseHandler.buildErrorResponse(authenticationContext, new
-//                    GatewayException("GatewayException"));
-//            System.out.println("");
-//        } catch (ResponseHandlerException e) {
-//            Assert.fail("Error while building error response", e);
-//        }
-//    }
-
 }
 

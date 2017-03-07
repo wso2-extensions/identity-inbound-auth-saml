@@ -296,8 +296,11 @@ public class SPInitSAMLValidator extends SAMLValidator {
         return engine.validate(signature, signedContent, algorithmUri, criteriaSet, null);
     }
 
-    private boolean samlAssetionValidation(AuthnRequest authnReq, SAMLMessageContext messageContext)
+    protected boolean samlAssetionValidation(AuthnRequest authnReq, SAMLMessageContext messageContext)
             throws SAMLRequestValidatorException {
+
+        // When this method is called, A SAML service provider with the given issuer should exist.Otherwise this
+        // method is not getting called.
 
         if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
             messageContext.setValid(false);
@@ -311,25 +314,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
             messageContext.setIssuer(issuer.getValue());
         } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
             messageContext.setIssuer(issuer.getSPProvidedID());
-        } else {
-            messageContext.setValid(false);
-            String message = "SAML Request issuer validation failed. Issuer should not be empty.";
-            throw new SAMLRequestValidatorException(new SAMLRequestValidatorException.SAMLErrorInfo(
-                    SAML2URI.STATUS_CODE_REQUESTER, message, messageContext.getAssertionConsumerURL()));
         }
-
-       /* if (!SAMLSSOUtil.isSAMLIssuerExists(issuer.getValue())) {
-            String message = "A Service Provider with the Issuer '" + issuer.getValue() + "' is not " +
-                             "registered. Service Provider should be registered in " + "advance";
-            if (log.isDebugEnabled()) {
-                log.debug(message);
-            }
-            messageContext.setValid(false);
-            throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants
-            .StatusCodes
-                                                                                                    .REQUESTOR_ERROR,
-                                                                                            message, null));
-        }*/
 
         // Issuer Format attribute
         if ((StringUtils.isNotBlank(issuer.getFormat())) &&
@@ -435,8 +420,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
                 messageContext.setValid(false);
                 throw new SAMLRequestValidatorException(SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse(SAMLSSOConstants
                                                                                                                 .StatusCodes
-                                                                                                                .REQUESTOR_ERROR,
-                                                                                                        msg,
+                                                                                                                .REQUESTOR_ERROR, msg,
                                                                                                         authnReq.getAssertionConsumerServiceURL()));
             }
         } else {
@@ -462,7 +446,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
         return true;
     }
 
-    private boolean validateAuthnRequestSignature(SAMLMessageContext messageContext) {
+    protected boolean validateAuthnRequestSignature(SAMLMessageContext messageContext) {
 
         if (log.isDebugEnabled()) {
             log.debug("Validating SAML Request signature");
@@ -506,7 +490,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
         }
     }
 
-    private boolean validateDeflateSignature(SAMLSPInitRequest request, String issuer,
+    protected boolean validateDeflateSignature(SAMLSPInitRequest request, String issuer,
                                              String alias, String domainName) throws IdentityException {
         try {
             return validateSignature(request, issuer,
@@ -535,7 +519,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
      *         domain name of the subject
      * @return true, if the signature is valid.
      */
-    private boolean validateXMLSignature(RequestAbstractType request, String alias,
+    protected boolean validateXMLSignature(RequestAbstractType request, String alias,
                                          String domainName) throws IdentityException {
 
         if (request.getSignature() != null) {

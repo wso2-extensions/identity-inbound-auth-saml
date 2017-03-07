@@ -17,10 +17,19 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
+import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.request.SAMLRequest;
+import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
+import org.wso2.carbon.identity.saml.response.SAMLLoginResponse;
+import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
+import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
@@ -82,7 +91,7 @@ public class SAMLInboundTests {
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
         }
     }
 
@@ -123,7 +132,7 @@ public class SAMLInboundTests {
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLInboundAuthenticationPostn test case", e);
         }
     }
 
@@ -158,19 +167,63 @@ public class SAMLInboundTests {
                         Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                                 .getAssertions().get(0).getSubject().getNameID().getValue());
                     } catch (SAMLServerException e) {
-                       Assert.fail("Error while building response object" , e);
+                        Assert.fail("Error while building response object", e);
                     }
                 }
             }
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLResponsen test case", e);
+        }
+    }
+
+    @Test
+    public void testSAMLResponseWithWrongSignature() {
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants.SAML_REQUEST_INVALID_SIGNATURE,
+                    HttpMethod.GET,
+                    false);
+            //TODO : get proper error response after fixing error handling and then assert
+            urlConnection.getResponseCode();
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLResponseWithWrongSignature test case", e);
+        }
+    }
+
+    @Test
+    public void testSAMLResponseWithEmptyIssuer() {
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants.SAML_REDIRECT_WITH_EMPTY_ISSUER,
+                    HttpMethod.GET,
+                    false);
+            //TODO : get proper error response after fixing error handling and then assert
+            Assert.assertEquals(urlConnection.getResponseCode(), 500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLResponseWithWrongSignature test case", e);
+        }
+    }
+
+    @Test
+    public void testSAMLResponseWithWrongIssuer() {
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants.SAML_REDIRECT_REQUEST_WRONG_ISSUER,
+                    HttpMethod.GET,
+                    false);
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLResponseWithWrongIssuer test case", e);
         }
     }
 
     @Test
     public void testEnableAssertionEncryption() {
-        ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                .SAMPLE_ISSUER_NAME);
+        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         try {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doEnableEncryptedAssertion", "true");
@@ -217,8 +270,8 @@ public class SAMLInboundTests {
     @Test
     public void testSAMLResponseSigningDisabled() {
         try {
-            ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                    .SAMPLE_ISSUER_NAME);
+            ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                    (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignResponse", "false");
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
@@ -249,7 +302,7 @@ public class SAMLInboundTests {
                                 .getAssertions().get(0).getSubject().getNameID().getValue());
                         Assert.assertNull(samlResponseObject.getSignature());
                     } catch (SAMLServerException e) {
-                       Assert.fail("Error while building response object", e);
+                        Assert.fail("Error while building response object", e);
                     }
                 }
             }
@@ -261,8 +314,8 @@ public class SAMLInboundTests {
     @Test
     public void testSAMLResponseSigningEnabled() {
         try {
-            ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                    .SAMPLE_ISSUER_NAME);
+            ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                    (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignResponse", "true");
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
@@ -305,8 +358,8 @@ public class SAMLInboundTests {
 
     @Test
     public void testSAMLAssertionSigningEnabled() {
-        ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                .SAMPLE_ISSUER_NAME);
+        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         try {
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
@@ -344,7 +397,7 @@ public class SAMLInboundTests {
                 }
             }
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLAssertionSigningEnabled test case", e);
         } finally {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignAssertions", "false");
@@ -354,8 +407,8 @@ public class SAMLInboundTests {
 
     @Test
     public void testSAMLAssertionSigningDisabled() {
-        ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                .SAMPLE_ISSUER_NAME);
+        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         try {
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
@@ -393,18 +446,11 @@ public class SAMLInboundTests {
                 }
             }
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLAssertionSigningDisabled test case", e);
         } finally {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignAssertions", "true");
         }
-    }
-
-
-    private ServiceProviderConfig getServiceProviderConfigs(String uniqueId) {
-        ServiceProviderConfigStore serviceProviderConfigStore = this.bundleContext.getService(bundleContext
-                .getServiceReference(ServiceProviderConfigStore.class));
-        return serviceProviderConfigStore.getServiceProvider(uniqueId);
     }
 
 
@@ -424,8 +470,8 @@ public class SAMLInboundTests {
 
     @Test
     public void testSAMLAssertionWithoutRequestValidation() {
-        ServiceProviderConfig serviceProviderConfig = getServiceProviderConfigs(SAMLInboundTestConstants
-                .SAMPLE_ISSUER_NAME);
+        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         try {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doValidateSignatureInRequests", "false");
@@ -462,10 +508,37 @@ public class SAMLInboundTests {
                 }
             }
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case");
+            Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
         } finally {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doValidateSignatureInRequests", "true");
+        }
+    }
+
+    @Test
+    public void testSAMLResponseBuilderFactory() {
+        SAMLSPInitResponseHandler responseHandler = new SAMLSPInitResponseHandler();
+        AuthenticationContext authenticationContext = new AuthenticationContext(null);
+        SAMLMessageContext samlMessageContext = new SAMLMessageContext(null, null);
+        SAMLSPInitRequest.SAMLSpInitRequestBuilder spInitRequestBuilder = new SAMLSPInitRequest
+                .SAMLSpInitRequestBuilder();
+
+        SAMLRequest samlRequest = new SAMLSPInitRequest(spInitRequestBuilder);
+        samlMessageContext.setIdentityRequest(samlRequest);
+        samlMessageContext.setIsPassive(true);
+        authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, samlMessageContext);
+        authenticationContext.setUniqueId("travelocity.com");
+        try {
+            GatewayHandlerResponse response = responseHandler.buildErrorResponse(authenticationContext, new
+                    GatewayException("GatewayException"));
+            Assert.assertNotNull(response);
+            Assert.assertNotNull(response.getGatewayResponseBuilder());
+            SAMLLoginResponse.SAMLLoginResponseBuilder samlLoginResponseBuilder = (SAMLLoginResponse
+                    .SAMLLoginResponseBuilder) response
+                    .getGatewayResponseBuilder();
+            Assert.assertNotNull(samlLoginResponseBuilder.build());
+        } catch (ResponseHandlerException e) {
+            Assert.fail("Error while building error response", e);
         }
     }
 }

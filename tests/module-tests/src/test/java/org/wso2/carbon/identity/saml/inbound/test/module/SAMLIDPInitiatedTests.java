@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
@@ -75,7 +76,6 @@ public class SAMLIDPInitiatedTests {
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
             Assert.fail("Error while running federated authentication test case");
         }
     }
@@ -115,9 +115,62 @@ public class SAMLIDPInitiatedTests {
                 }
             }
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case with response decoding", e);
             Assert.fail("Error while running federated authentication test case with response decoding");
         }
     }
+
+    @Test
+    public void testInvalidIssuer() {
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+                            .SAMPLE_ISSUER_NAME + "dummy", HttpMethod.GET,
+                    false);
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case with response decoding");
+        }
+    }
+
+    @Test
+    public void testIDPInitSSODisabled() {
+        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
+                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty("idPInitSSOEnabled", "false");
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+                            .SAMPLE_ISSUER_NAME, HttpMethod.GET,
+                    false);
+            Assert.assertEquals(302, urlConnection.getResponseCode());
+            String location = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(location.contains("notification"));
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case with response decoding");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty("idPInitSSOEnabled", "true");
+        }
+    }
+
+    @Test
+    public void testIDPInitSSOWrongACS() {
+        try {
+            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
+                            SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+                            .SAMPLE_ISSUER_NAME + SAMLInboundTestConstants.QUERY_PARAM_SEPARATOR +
+                    "acs=http://localhost:9092/invalidACS", HttpMethod.GET, false);
+            Assert.assertEquals(302, urlConnection.getResponseCode());
+            String location = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(location.contains("notification"));
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case with response decoding");
+        }
+    }
+
 
 }
