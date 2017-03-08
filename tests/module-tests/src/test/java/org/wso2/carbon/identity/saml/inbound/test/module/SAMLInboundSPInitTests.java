@@ -515,7 +515,7 @@ public class SAMLInboundSPInitTests {
         ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
                 (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         try {
-            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                     .setProperty("doValidateSignatureInRequests", "false");
 
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
@@ -554,7 +554,7 @@ public class SAMLInboundSPInitTests {
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
         } finally {
-            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                     .setProperty("doValidateSignatureInRequests", "true");
         }
     }
