@@ -18,8 +18,8 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Identity-Mgt-Test-Suite">
-    <test name="identity-store-tests" preserve-order="true" parallel="false">
+<suite name="identity-inbound-authentication-saml-tests">
+    <test name="identity-inbound-authentication-saml-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLInboundSPInitTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLIDPInitiatedTests"/>

@@ -18,8 +18,8 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Carbon-Security-Test-Suite">
-    <test name="carbon-security-tests" preserve-order="true" parallel="false">
+<suite name="identity-inbound-authentication-saml-unit-tests">
+    <test name="identity-inbound-authentication-samltests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.saml.inbound.SAMLInboundUnitTests"/>
         </classes>
