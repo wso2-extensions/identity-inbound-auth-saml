@@ -22,6 +22,7 @@ import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.RequestAbstractType;
+import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.Subject;
 import org.opensaml.ws.security.SecurityPolicyException;
 import org.opensaml.ws.transport.http.HTTPTransportUtils;
@@ -42,6 +43,7 @@ import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.DatatypeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
@@ -56,7 +58,6 @@ import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
 import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
-import org.wso2.carbon.identity.saml.util.SAML2URI;
 import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
@@ -237,11 +238,11 @@ public class SPInitSAMLValidator extends SAMLValidator {
 
 
         if (identityRequest.isRedirect()) {
-            decodedRequest = SAMLSSOUtil.SAMLAssertion.decode(identityRequest.getSAMLRequest());
+            decodedRequest = SAML2AuthUtils.decodeForRedirect(identityRequest.getSAMLRequest());
         } else {
-            decodedRequest = SAMLSSOUtil.SAMLAssertion.decodeForPost(identityRequest.getSAMLRequest());
+            decodedRequest = SAML2AuthUtils.decodeForPost(identityRequest.getSAMLRequest());
         }
-        XMLObject request = SAMLSSOUtil.SAMLAssertion.unmarshall(decodedRequest);
+        XMLObject request = SAML2AuthUtils.unmarshall(decodedRequest);
 
         if (request instanceof AuthnRequest) {
 
@@ -306,7 +307,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
             messageContext.setValid(false);
             String message = "Invalid SAML Version in Authentication Request. SAML Version should be equal to 2.0";
             throw new SAMLRequestValidatorException(new SAMLRequestValidatorException.SAMLErrorInfo(
-                    SAML2URI.STATUS_CODE_VERSION_MISMATCH, message, messageContext.getAssertionConsumerURL()));
+                    StatusCode.VERSION_MISMATCH_URI, message, messageContext.getAssertionConsumerURL()));
         }
 
         Issuer issuer = authnReq.getIssuer();
@@ -460,15 +461,13 @@ public class SPInitSAMLValidator extends SAMLValidator {
         String decodedReq = null;
 
         if (samlspInitRequest.isRedirect()) {
-            decodedReq = SAMLSSOUtil
-                    .SAMLAssertion.decode(((SAMLSPInitRequest) messageContext.getIdentityRequest())
+            decodedReq = SAML2AuthUtils.decodeForRedirect(((SAMLSPInitRequest) messageContext.getIdentityRequest())
                                                   .getSAMLRequest());
         } else {
-            decodedReq = SAMLSSOUtil.SAMLAssertion
-                    .decodeForPost(((SAMLSPInitRequest) messageContext.getIdentityRequest())
+            decodedReq = SAML2AuthUtils.decodeForPost(((SAMLSPInitRequest) messageContext.getIdentityRequest())
                                            .getSAMLRequest());
         }
-        request = (RequestAbstractType) SAMLSSOUtil.SAMLAssertion.unmarshall(decodedReq);
+        request = (RequestAbstractType) SAML2AuthUtils.unmarshall(decodedReq);
 
         try {
             if (samlspInitRequest.isRedirect()) {

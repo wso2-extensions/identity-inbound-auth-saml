@@ -305,6 +305,11 @@ public class SAMLInboundOSGiTestUtils {
                 .artifactId("org.wso2.carbon.identity.saml")
                 .versionAsInProject());
 
+        defaultOptionList.add(mavenBundle()
+                                      .groupId("org.wso2.carbon.identity.inbound.auth.saml2")
+                                      .artifactId("org.wso2.carbon.identity.auth.saml2.common")
+                                      .versionAsInProject());
+
         CarbonSysPropConfiguration sysPropConfiguration = new CarbonSysPropConfiguration();
         sysPropConfiguration.setCarbonHome(getCarbonHome());
         sysPropConfiguration.setServerKey("carbon-security");

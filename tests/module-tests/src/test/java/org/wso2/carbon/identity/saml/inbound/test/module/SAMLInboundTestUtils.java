@@ -6,6 +6,7 @@ import org.opensaml.saml2.core.Response;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.util.Base64;
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
@@ -44,7 +45,7 @@ public class SAMLInboundTestUtils {
 
     public static Response getSAMLResponse(String samlResponse) throws SAMLServerException {
         String decodedResponse = new String(Base64.decode(samlResponse));
-        XMLObject xmlObject = SAMLSSOUtil.SAMLAssertion.unmarshall(decodedResponse);
+        XMLObject xmlObject = SAML2AuthUtils.unmarshall(decodedResponse);
 
         return (Response) xmlObject;
     }

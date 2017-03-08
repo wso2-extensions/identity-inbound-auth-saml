@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.saml.exception;
 
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
-import org.wso2.carbon.identity.saml.util.SAML2URI;
 
 
 public class SAMLRequestValidatorException extends RequestValidatorException {
@@ -63,11 +62,11 @@ public class SAMLRequestValidatorException extends RequestValidatorException {
     }
 
     public static class SAMLErrorInfo {
-        private SAML2URI saml2URI;
+        private String saml2URI;
         private String message;
         private String destination;
 
-        public SAMLErrorInfo(SAML2URI saml2URI, String message, String destination) {
+        public SAMLErrorInfo(String saml2URI, String message, String destination) {
             this.saml2URI = saml2URI;
             this.message = message;
             this.destination = destination;
@@ -89,11 +88,11 @@ public class SAMLRequestValidatorException extends RequestValidatorException {
             this.message = message;
         }
 
-        public SAML2URI getSaml2URI() {
+        public String getSaml2URI() {
             return saml2URI;
         }
 
-        public void setSaml2URI(SAML2URI saml2URI) {
+        public void setSaml2URI(String saml2URI) {
             this.saml2URI = saml2URI;
         }
     }

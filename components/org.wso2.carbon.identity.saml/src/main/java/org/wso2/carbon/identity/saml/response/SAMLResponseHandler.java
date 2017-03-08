@@ -32,6 +32,7 @@ import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.slf4j.Logger;
 import org.testng.Assert;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
@@ -128,7 +129,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         }
         Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
-        response.setID(SAMLSSOUtil.createID());
+        response.setID(SAML2AuthUtils.createID());
         if (!messageContext.isIdpInitSSO()) {
             response.setInResponseTo(messageContext.getId());
         }
@@ -163,7 +164,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
                     .getDigestAlgorithmUri(), new SignKeyDataHolder());
         }
         builder.setResponse(response);
-        String respString = SAMLSSOUtil.SAMLAssertion.encode(SAMLSSOUtil.SAMLAssertion.marshall(response));
+        String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(response));
         builder.setRespString(respString);
         builder.setAcsUrl(messageContext.getAssertionConsumerURL());
         builder.setRelayState(messageContext.getRelayState());

@@ -36,6 +36,7 @@ import org.opensaml.xml.io.UnmarshallingException;
 import org.opensaml.xml.security.SigningUtil;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.KeyInfo;
+import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureException;
 import org.opensaml.xml.signature.Signer;
@@ -108,7 +109,7 @@ public class SAML2AuthUtils {
         }
     }
 
-    public static void setSignature(RequestAbstractType request, String signatureAlgorithm,
+    public static void setSignature(SignableXMLObject request, String signatureAlgorithm,
                                     String digestAlgorithm, boolean includeCert, X509Credential x509Credential)
             throws IdentityRuntimeException {
 
@@ -267,7 +268,8 @@ public class SAML2AuthUtils {
     }
 
     public static String encodeForPost(String xmlString) {
-        String encodedRequestMessage = Base64.encodeBytes(xmlString.getBytes(), Base64.DONT_BREAK_LINES);
+        String encodedRequestMessage = Base64.encodeBytes(xmlString.getBytes(StandardCharsets.UTF_8),
+                                                          Base64.DONT_BREAK_LINES);
         return encodedRequestMessage.trim();
     }
 

@@ -28,6 +28,7 @@ import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.builders.SignKeyDataHolder;
@@ -58,7 +59,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             DateTime currentTime = new DateTime();
             Assertion samlAssertion = new AssertionBuilder().buildObject();
             SAMLResponseHandlerConfig samlResponseHandlerConfig = context.getResponseHandlerConfig();
-            samlAssertion.setID(SAMLSSOUtil.createID());
+            samlAssertion.setID(SAML2AuthUtils.createID());
             samlAssertion.setVersion(SAMLVersion.VERSION_20);
             samlAssertion.setIssuer(SAMLSSOUtil.getIssuer());
             samlAssertion.setIssueInstant(currentTime);
