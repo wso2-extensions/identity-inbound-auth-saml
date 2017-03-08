@@ -170,9 +170,28 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 if (sessionDTO != null) {
                     SAMLSSOUtil.setTenantDomainInThreadLocal(sessionDTO.getTenantDomain());
                     if (sessionDTO.isInvalidLogout()) {
+                        String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.
+                                encode(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                                        "UTF-8") + "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode
+                                ("Invalid Logout Request", "UTF-8");
+
+                        String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes
+                                .REQUESTOR_ERROR, "Invalid Logout Request", null);
+                        String acsUrl = sessionDTO.getAssertionConsumerURL();//sessionDTO.getValidationRespDTO()
+
+                        if (errorResp != null) {
+                            queryParams += "&" + SAMLSSOConstants.LOGOUT_RESP + "=" + URLEncoder.encode(errorResp,
+                                    "UTF-8");
+                        }
+
+                        if (acsUrl != null) {
+                            queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" + URLEncoder.encode
+                                    (acsUrl, "UTF-8");
+                        }
+                        
                         log.warn("Redirecting to default logout page due to an invalid logout request");
                         String defaultLogoutLocation = SAMLSSOUtil.getDefaultLogoutEndpoint();
-                        resp.sendRedirect(defaultLogoutLocation);
+                        resp.sendRedirect(defaultLogoutLocation + queryParams);
                     } else if (sessionDTO.isLogoutReq()) {
                         handleLogoutResponseFromFramework(req, resp, sessionDTO);
                     } else {
@@ -379,7 +398,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     log.debug("Invalid SAML SSO Logout Request : " + samlRequest);
                 }
                 if (signInRespDTO.isLogoutFromAuthFramework()) {
-                    sendToFrameworkForLogout(req, resp, null, null, sessionId, true, isPost);
+                    sendToFrameworkForLogout(req, resp, signInRespDTO, null, sessionId, true, isPost);
                 } else {
                     //TODO send invalid response to SP
                     String errorResp = signInRespDTO.getResponse();
