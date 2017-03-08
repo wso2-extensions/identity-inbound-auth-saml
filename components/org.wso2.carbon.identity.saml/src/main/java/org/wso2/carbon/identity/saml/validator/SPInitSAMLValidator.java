@@ -287,8 +287,8 @@ public class SPInitSAMLValidator extends SAMLValidator {
         CriteriaSet criteriaSet = buildCriteriaSet(issuer);
 
         // creating the SAML2HTTPRedirectDeflateSignatureRule
-        X509CredentialImpl credential =
-                SAMLSSOUtil.getX509CredentialImplForTenant(alias);
+        X509Credential credential =
+                SAML2AuthUtils.getServerCredentials();
         List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);
         CollectionCredentialResolver credResolver = new CollectionCredentialResolver(credentials);
@@ -523,7 +523,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
 
         if (request.getSignature() != null) {
             try {
-                X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
+                X509Credential cred = SAML2AuthUtils.getServerCredentials();
                 return new DefaultSSOSigner().validateXMLSignature(request, cred, alias);
             } catch (SAMLServerException e) {
                 if (log.isDebugEnabled()) {

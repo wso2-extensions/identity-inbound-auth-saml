@@ -23,9 +23,9 @@ import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.credential.CredentialContextSet;
 import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.wso2.carbon.identity.auth.saml2.common.KeyStoreManager;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
-import org.wso2.carbon.identity.saml.util.KeyStoreManager;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
@@ -49,15 +49,14 @@ public class SignKeyDataHolder implements X509Credential {
 
     public SignKeyDataHolder() throws IdentityException {
 
-        String keyAlias = SAMLConfigurations.getInstance().getKeyStoreAlias();
         KeyStoreManager keyMan;
-        Certificate[] certificates;
+        Collection<X509Certificate> certificates;
 
         try {
             keyMan = KeyStoreManager.getInstance();
-            issuerPK = (PrivateKey) keyMan.getPrivateKey();
-            certificates = keyMan.getKeyStore().getCertificateChain(keyAlias);
-            issuerCerts = new X509Certificate[certificates.length];
+            issuerPK = keyMan.getPrivateKey();
+            certificates = keyMan.getX509Credential().getEntityCertificateChain();
+            issuerCerts = new X509Certificate[certificates.size()];
 
             int i = 0;
             for (Certificate certificate : certificates) {

@@ -339,35 +339,6 @@ public class SAMLSSOUtil {
     }
 
     /**
-     * Get the X509CredentialImpl object for a particular tenant
-     *
-     * @param alias
-     * @return X509CredentialImpl object containing the public certificate of that tenant
-     * @throws SAMLServerException
-     *         Error when creating X509CredentialImpl object
-     */
-    public static X509CredentialImpl getX509CredentialImplForTenant(String alias)
-            throws SAMLServerException {
-
-
-        KeyStoreManager keyStoreManager;
-        // get an instance of the corresponding Key Store Manager instance
-        try {
-            keyStoreManager = KeyStoreManager.getInstance();
-            X509CredentialImpl credentialImpl = null;
-            KeyStore keyStore;
-            keyStore = keyStoreManager.getKeyStore();
-
-            java.security.cert.X509Certificate cert =
-                    (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
-            credentialImpl = new X509CredentialImpl(cert);
-            return credentialImpl;
-        } catch (Exception e) {
-            throw new SAMLServerException("Error while initializing keystore");
-        }
-    }
-
-    /**
      * Return a Array of Claims containing requested attributes and values
      *
      * @param authenticationContext

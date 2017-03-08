@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import javax.crypto.SecretKey;
@@ -77,7 +78,9 @@ public class X509CredentialImpl implements X509Credential {
 
     @Override
     public Collection<X509Certificate> getEntityCertificateChain() {
-        return Collections.emptySet();
+        Collection<X509Certificate> certificates = new ArrayList();
+        certificates.add(entityCertificate);
+        return certificates;
     }
 
     @Override

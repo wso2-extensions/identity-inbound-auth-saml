@@ -115,7 +115,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
     public EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
                                                     String alias) throws IdentityException {
         SSOEncrypter ssoEncrypter = new DefaultSSOEncrypter();
-        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(alias);
+        X509Credential cred = SAML2AuthUtils.getServerCredentials();
         return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, encryptionAlgorithm);
     }
 
