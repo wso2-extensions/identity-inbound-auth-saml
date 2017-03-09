@@ -81,7 +81,7 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
 
     @Override
     public int getPriority() {
-        return 30;
+        return 75;
     }
 
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
