@@ -124,7 +124,7 @@
                             </adviceFileContents>
                             <bundles>
                                 <bundle>
-                                    <symbolicName>org.wso2.carbon.identity.saml</symbolicName>
+                                    <symbolicName>org.wso2.carbon.identity.auth.saml2.common</symbolicName>
                                     <version>${project.version}</version>
                                 </bundle>
                                 <bundle>
