@@ -197,21 +197,4 @@ public class SAMLInboundTestUtils {
             authnRequest.setRequestedAuthnContext(requestedAuthnContext);
         }
     }
-
-    public static String buildPostPage(String saml2SSOUrl, String samlRequest, String relayState) {
-
-        String postPage  = SAMLInboundTestConstants.authnRequestPage;
-
-        postPage = postPage.replace("$url", Encode.forHtmlAttribute(saml2SSOUrl));
-        StringBuilder hiddenInputBuilder = new StringBuilder("");
-        hiddenInputBuilder.append("<input type='hidden' name='" + SAML2AuthConstants.SAML_REQUEST + "' value='")
-                .append(samlRequest).append("'>");
-        if (relayState != null) {
-            hiddenInputBuilder.append("<input type='hidden' name='" + SAML2AuthConstants.RELAY_STATE + "' value='")
-                    .append(relayState).append("'>");
-        }
-        postPage = postPage.replace("<!--$params-->", hiddenInputBuilder.toString());
-        return postPage;
-    }
-
 }

@@ -39,23 +39,5 @@ public class SAMLInboundTestConstants {
     public static final String SAMPLE_IDP_NAME = "myidp";
     public static final String SAML_REQUEST_PARAM = "SAMLRequest";
     public static final String SP_ENTITY_ID = "spEntityID";
-
-    public static final String authnRequestPage = "<html>\n" +
-            "\t<body>\n" +
-            "        \t<p>You are now redirected to $url \n" +
-            "        \tIf the redirection fails, please click the post button.</p>\n" +
-            "\n" +
-            "        \t<form method='post' action='$url'>\n" +
-            "       \t\t\t<p>\n" +
-            "                    <!--$params-->\n" +
-            "        \t\t\t<button type='submit'>POST</button>\n" +
-            "       \t\t\t</p>\n" +
-            "       \t\t</form>\n" +
-            "       \t\t<script type='text/javascript'>\n" +
-            "        \t\tdocument.forms[0].submit();\n" +
-            "        \t</script>\n" +
-            "        </body>\n" +
-            "</html>";
-
 }
 
