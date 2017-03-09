@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.saml.inbound.test.module;
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.io.Charsets;
 import org.opensaml.DefaultBootstrap;
+import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.xml.ConfigurationException;
 import org.ops4j.pax.exam.Configuration;
@@ -35,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
@@ -56,6 +59,7 @@ import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -93,9 +97,19 @@ public class SAMLInboundSPInitTests {
     @Test
     public void testSAMLInboundAuthentication() {
         try {
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -124,8 +138,16 @@ public class SAMLInboundSPInitTests {
         try {
 
             String requestRelayState = "6c72a926-119d-4b4d-b236-f7594a037b0e";
-            String postBody = SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + URLEncoder.encode
-                    (SAMLInboundTestConstants.SAML_POST_REQUEST) + SAMLInboundTestConstants
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+
+            SAML2AuthUtils.setSignature(samlRequest, "http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3" +
+                    ".org/2000/09/xmldsig#sha1", true, SAML2AuthUtils.getServerCredentials());
+
+            String authnRequest = SAML2AuthUtils.encodeForPost((SAML2AuthUtils.marshall(samlRequest)));
+            authnRequest = URLEncoder.encode(authnRequest);
+            String postBody = SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + authnRequest + SAMLInboundTestConstants
                     .QUERY_PARAM_SEPARATOR + SAMLInboundTestConstants
                     .RELAY_STATE + "=" + requestRelayState;
 
@@ -159,9 +181,20 @@ public class SAMLInboundSPInitTests {
     @Test
     public void testSAMLResponse() {
         try {
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -218,9 +251,19 @@ public class SAMLInboundSPInitTests {
     @Test
     public void testSAMLResponseWithEmptyIssuer() {
         try {
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, "");
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REDIRECT_WITH_EMPTY_ISSUER, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             //TODO : get proper error response after fixing error handling and then assert
             Assert.assertEquals(urlConnection.getResponseCode(), 500);
 
@@ -235,9 +278,20 @@ public class SAMLInboundSPInitTests {
     @Test
     public void testSAMLResponseWithWrongIssuer() {
         try {
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, "NonExistingIssuer");
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REDIRECT_REQUEST_WRONG_ISSUER, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             Assert.assertEquals(500, urlConnection.getResponseCode());
 
         } catch (IOException e) {
@@ -252,12 +306,23 @@ public class SAMLInboundSPInitTests {
     public void testEnableAssertionEncryption() {
         ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
                 (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                .setProperty("doEnableEncryptedAssertion", "true");
         try {
-            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                    .setProperty("doEnableEncryptedAssertion", "true");
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -304,9 +369,20 @@ public class SAMLInboundSPInitTests {
                     (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignResponse", "false");
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -351,8 +427,20 @@ public class SAMLInboundSPInitTests {
                     (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignResponse", "true");
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" +
-                            SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants.SAML_REQUEST, HttpMethod.GET,
+                            httpQueryString.toString(), HttpMethod.GET,
                     false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
@@ -399,9 +487,20 @@ public class SAMLInboundSPInitTests {
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignAssertions", "true");
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -450,9 +549,20 @@ public class SAMLInboundSPInitTests {
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                     .setProperty("doSignAssertions", "false");
+
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
@@ -518,9 +628,19 @@ public class SAMLInboundSPInitTests {
             serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                     .setProperty("doValidateSignatureInRequests", "false");
 
+            AuthnRequest samlRequest = SAMLInboundTestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SAML_REQUEST_PARAM + "=" + SAMLInboundTestConstants
-                    .SAML_REQUEST, HttpMethod.GET, false);
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
 
             String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));

@@ -104,16 +104,16 @@
                                                         <!-- majority of the code are due to abstract implementations. No usages of those implementations -->
                                                         <exclude name="**/org/wso2/carbon/identity/saml/builders/*"/>
                                                     </fileset>
-                                                    <!--<fileset-->
-                                                            <!--dir="../../components/org.wso2.carbon.identity.auth.saml2.common/target/classes">-->
-                                                        <!--<exclude name="**/*Constants.class" />-->
-                                                        <!--<exclude name="**/*Constants*" />-->
-                                                        <!--<exclude name="**/*Exception.class" />-->
-                                                    <!--</fileset>-->
+                                                    <fileset
+                                                            dir="../../components/org.wso2.carbon.identity.auth.saml2.common/target/classes">
+                                                        <exclude name="**/*Constants.class" />
+                                                        <exclude name="**/*Constants*" />
+                                                        <exclude name="**/*Exception.class" />
+                                                    </fileset>
                                                 </classfiles>
                                                 <sourcefiles encoding="UTF-8">
                                                     <fileset dir="../../components/org.wso2.carbon.identity.saml/src" />
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.auth.saml2.common/src" />-->
+                                                    <fileset dir="../../components/org.wso2.carbon.identity.auth.saml2.common/src" />
                                                 </sourcefiles>
                                             </structure>
                                             <html destdir="${project.build.directory}/site/jacoco"/>

@@ -177,7 +177,7 @@ public class SAML2AuthUtils {
     public static void addSignatureToHTTPQueryString(StringBuilder httpQueryString, String signatureAlgorithmURI,
                                                      X509Credential x509Credential) throws IdentityRuntimeException {
 
-        if (httpQueryString != null) {
+        if (httpQueryString == null) {
             throw new IllegalArgumentException("Request cannot be null.");
         }
         if (x509Credential == null) {
