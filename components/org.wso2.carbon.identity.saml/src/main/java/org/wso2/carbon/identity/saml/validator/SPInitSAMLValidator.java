@@ -50,8 +50,6 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
-import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
 import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
@@ -522,19 +520,8 @@ public class SPInitSAMLValidator extends SAMLValidator {
                                          String domainName) throws IdentityException {
 
         if (request.getSignature() != null) {
-            try {
-                X509Credential cred = SAML2AuthUtils.getServerCredentials();
-                return new DefaultSSOSigner().validateXMLSignature(request, cred, alias);
-            } catch (SAMLServerException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Signature validation failed for the SAML Message : Failed to construct the " +
-                              "X509CredentialImpl for the alias " + alias, e);
-                }
-            } catch (IdentityException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Signature Validation Failed for the SAML Assertion : Signature is invalid.", e);
-                }
-            }
+            X509Credential cred = SAML2AuthUtils.getServerCredentials();
+            return SAML2AuthUtils.validateXMLSignature(request, cred, alias);
         }
         return false;
     }

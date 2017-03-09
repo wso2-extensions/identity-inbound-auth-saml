@@ -39,10 +39,12 @@ import org.opensaml.xml.signature.KeyInfo;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureException;
+import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.signature.Signer;
 import org.opensaml.xml.signature.X509Data;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -51,6 +53,7 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
+import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.xml.sax.SAXException;
 
@@ -216,6 +219,25 @@ public class SAML2AuthUtils {
             throw new IdentityRuntimeException("Unsupported encoding algorithm. UTF-8 encoding is required to " +
                                                "be supported by all JVMs", e);
         }
+    }
+
+    public static boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
+                                        String alias) {
+
+        boolean isSignatureValid = false;
+
+        if (request.getSignature() != null) {
+            try {
+                SignatureValidator validator = new SignatureValidator(cred);
+                validator.validate(request.getSignature());
+                isSignatureValid = true;
+            } catch (ValidationException e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Invalid signature.", e);
+                }
+            }
+        }
+        return isSignatureValid;
     }
 
     public static XMLObject buildXMLObject(QName objectQName) throws IdentityRuntimeException {

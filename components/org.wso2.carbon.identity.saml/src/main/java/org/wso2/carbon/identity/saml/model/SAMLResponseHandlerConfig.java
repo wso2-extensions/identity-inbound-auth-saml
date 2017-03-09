@@ -85,10 +85,6 @@ public class SAMLResponseHandlerConfig implements Serializable {
         return Boolean.valueOf((String) responseBuilderConfigs.getProperties().get("doSignResponse"));
     }
 
-    public boolean isDoSingleLogout() {
-        return Boolean.valueOf((String) responseBuilderConfigs.getProperties().get("doSingleLogout"));
-    }
-
     public boolean isEnableAttributesByDefault() {
         return Boolean.parseBoolean((String) responseBuilderConfigs.getProperties().get("enableAttributesByDefault"));
     }

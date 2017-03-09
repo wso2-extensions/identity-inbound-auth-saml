@@ -70,17 +70,17 @@ public class X509CredentialImpl implements X509Credential {
         return entityCertificate;
     }
 
-    // ********** Not implemented **************************************************************
-    @Override
-    public Collection<X509CRL> getCRLs() {
-        return CollectionUtils.EMPTY_COLLECTION;
-    }
-
     @Override
     public Collection<X509Certificate> getEntityCertificateChain() {
         Collection<X509Certificate> certificates = new ArrayList();
         certificates.add(entityCertificate);
         return certificates;
+    }
+
+    // ********** Not implemented **************************************************************
+    @Override
+    public Collection<X509CRL> getCRLs() {
+        return CollectionUtils.EMPTY_COLLECTION;
     }
 
     @Override

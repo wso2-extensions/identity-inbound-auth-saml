@@ -20,11 +20,8 @@ package org.wso2.carbon.identity.saml.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.joda.time.DateTime;
-import org.opensaml.Configuration;
 import org.opensaml.common.SAMLVersion;
-import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Response;
@@ -36,46 +33,24 @@ import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallerFactory;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSOutput;
-import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.saml.builders.X509CredentialImpl;
-import org.wso2.carbon.identity.saml.builders.signature.DefaultSSOSigner;
-import org.wso2.carbon.identity.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAMLServerException;
 import org.wso2.carbon.identity.saml.internal.SAMLInboundServiceHolder;
 import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,11 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
 public class SAMLSSOUtil {
 
@@ -293,9 +265,8 @@ public class SAMLSSOUtil {
     private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentityException {
 
-        SSOSigner ssoSigner = new DefaultSSOSigner();
-
-        return ssoSigner.setSignature(request, signatureAlgorithm, digestAlgorithm, cred);
+        SAML2AuthUtils.setSignature(request, signatureAlgorithm, digestAlgorithm, true, cred);
+        return request;
     }
 
     /**
@@ -345,8 +316,7 @@ public class SAMLSSOUtil {
      * @return Map with attributes and values
      * @throws IdentityException
      */
-    public static Map<String, String> getAttributes(AuthenticationContext authenticationContext
-    ) throws IdentityException {
+    public static Map<String, String> getAttributes(AuthenticationContext authenticationContext) {
 
         int index = 0;
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
