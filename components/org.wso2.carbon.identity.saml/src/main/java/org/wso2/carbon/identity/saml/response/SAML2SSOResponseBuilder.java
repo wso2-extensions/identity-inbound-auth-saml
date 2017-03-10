@@ -68,6 +68,7 @@ import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
@@ -83,10 +84,12 @@ import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
 import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
+import java.io.ByteArrayInputStream;
 import java.security.KeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.Map;
@@ -252,13 +255,13 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
 
         } else {
 
-            String encodedCert = config.getCertAlias();
+            String encodedCert = config.getEncryptionCertificate();
             if (StringUtils.isBlank(encodedCert)) {
                 throw new SAMLServerException("Encryption certificate is not configured.");
             }
             Certificate certificate;
             try {
-                certificate = KeyStoreUtils.getInstance().decodeCertificate(encodedCert);
+                certificate = decodeCertificate(encodedCert);
             } catch (CertificateException e) {
                 throw new SAMLServerException("Invalid encoded certificate: " + encodedCert);
             }
@@ -323,6 +326,31 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
             return attStmt;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * TODO: ideally this method must be in identity.commons. However the one in identity.commons uses
+     * TODO: java.util.Base64 which doesn't work here. Only the OpenSAML Base64 decoder works. Until then duplicating
+     * TODO: this method.
+     * Decode X509 certificate.
+     *
+     * @param encodedCert Base64 encoded certificate
+     * @return Decoded <code>Certificate</code>
+     * @throws java.security.cert.CertificateException Error when decoding certificate
+     */
+    public Certificate decodeCertificate(String encodedCert) throws CertificateException {
+
+        if (encodedCert != null) {
+            byte[] bytes = Base64.decode(encodedCert);
+            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) factory
+                    .generateCertificate(new ByteArrayInputStream(bytes));
+            return cert;
+        } else {
+            String errorMsg = "Invalid encoded certificate: \'NULL\'";
+            logger.debug(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
         }
     }
 }

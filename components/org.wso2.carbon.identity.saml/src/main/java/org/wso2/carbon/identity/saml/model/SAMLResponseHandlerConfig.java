@@ -35,8 +35,8 @@ public class SAMLResponseHandlerConfig implements Serializable {
         return (String) responseBuilderConfigs.getProperties().get("attributeConsumingServiceIndex");
     }
 
-    public String getCertAlias() {
-        return (String) responseBuilderConfigs.getProperties().get("certificateAlias");
+    public String getEncryptionCertificate() {
+        return (String) responseBuilderConfigs.getProperties().get("certificate");
     }
 
     public String getDefaultAssertionConsumerUrl() {
