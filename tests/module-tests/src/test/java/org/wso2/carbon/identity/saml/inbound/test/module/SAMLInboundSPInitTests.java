@@ -208,21 +208,20 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while building response object", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while building response object", e);
             }
+
+
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLResponse test case", e);
         }
@@ -336,20 +335,19 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertTrue(samlResponseObject.getAssertions().isEmpty());
-                        Assert.assertTrue(samlResponseObject.getEncryptedAssertions().size() > 0);
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while asserting on encrypted assertions test case", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertTrue(samlResponseObject.getAssertions().isEmpty());
+                Assert.assertTrue(samlResponseObject.getEncryptedAssertions().size() > 0);
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while asserting on encrypted assertions test case", e);
+
             }
         } catch (IOException e) {
             Assert.fail("Error while asserting on encrypted assertions test case", e);
@@ -396,22 +394,20 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                        Assert.assertNull(samlResponseObject.getSignature());
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while building response object", e);
-                    }
-                }
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+                Assert.assertNull(samlResponseObject.getSignature());
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while building response object", e);
             }
+
+
         } catch (IOException e) {
             Assert.fail("Error while running federated authentication test case", e);
         }
@@ -455,22 +451,22 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                        Assert.assertNotNull(samlResponseObject.getSignature());
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while building response object from SAML response string", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+                Assert.assertNotNull(samlResponseObject.getSignature());
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while building response object from SAML response string", e);
             }
+
+
         } catch (IOException e) {
             Assert.fail("Error while running federated authentication test case", e);
         }
@@ -514,22 +510,21 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                        Assert.assertNotNull(samlResponseObject.getAssertions().get(0).getSignature());
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while building response object from SAML response string", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+                Assert.assertNotNull(samlResponseObject.getAssertions().get(0).getSignature());
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while building response object from SAML response string", e);
             }
+
+
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLAssertionSigningEnabled test case", e);
         } finally {
@@ -576,22 +571,20 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                        Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
-                    } catch (SAMLServerException e) {
-                        Assert.fail("Error while building response object from SAML response string", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+                Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
+            } catch (SAMLServerException e) {
+                Assert.fail("Error while building response object from SAML response string", e);
             }
+
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLAssertionSigningDisabled test case", e);
         } finally {
@@ -655,22 +648,20 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            if (cookie != null) {
-                cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
-                Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
-                if (response != null) {
-                    String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-                    try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
-                        Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
-                    } catch (SAMLServerException e) {
-                        log.error("Error while building response object from SAML response string", e);
-                    }
-                }
+
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+                Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
+            } catch (SAMLServerException e) {
+                log.error("Error while building response object from SAML response string", e);
             }
+
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
         } finally {
