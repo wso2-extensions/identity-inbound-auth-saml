@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.saml.request;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
 import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 
 import java.io.UnsupportedEncodingException;
@@ -39,12 +40,11 @@ public class SAMLSPInitRequest extends SAMLRequest {
             try {
                 return this.getQueryParameter(SAMLSSOConstants.SAML_REQUEST);
             } catch (UnsupportedEncodingException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to decode the SAML Request ", e);
-                }
+                String errorMessage = "Failed to decode the SAML Request " + e.getMessage() ;
+                log.debug(errorMessage , e);
+                throw new SAMLRuntimeException(errorMessage, e);
             }
         }
-        return null;
     }
 
     public String getSignature() {
@@ -54,12 +54,11 @@ public class SAMLSPInitRequest extends SAMLRequest {
             try {
                 return this.getQueryParameter(SAMLSSOConstants.SIGNATURE);
             } catch (UnsupportedEncodingException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to decode the Signature ", e);
-                }
+                String errorMessage = "Failed to decode the Signature " + e.getMessage() ;
+                log.debug(errorMessage , e);
+                throw new SAMLRuntimeException(errorMessage, e);
             }
         }
-        return null;
     }
 
     public String getSignatureAlgorithm() {
@@ -69,12 +68,11 @@ public class SAMLSPInitRequest extends SAMLRequest {
             try {
                 return this.getQueryParameter(SAMLSSOConstants.SIG_ALG);
             } catch (UnsupportedEncodingException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to decode the Signature Algorithm ", e);
-                }
+                String errorMessage = "Failed to decode the Signature Algorithm " + e.getMessage() ;
+                log.debug(errorMessage , e);
+                throw new SAMLRuntimeException(errorMessage, e);
             }
         }
-        return null;
     }
 
     public boolean isRedirect() {
