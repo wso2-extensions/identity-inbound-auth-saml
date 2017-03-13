@@ -258,7 +258,7 @@ public class SPInitSAMLValidator extends SAMLValidator {
             messageContext.setAssertionConsumerUrl(((AuthnRequest) request).getAssertionConsumerServiceURL());
             messageContext.setIsPassive(((AuthnRequest) request).isPassive());
             if (samlAssetionValidation((AuthnRequest) request, messageContext)) {
-                return GatewayHandlerResponse.CONTINUE;
+                return new GatewayHandlerResponse();
             }
         }
 

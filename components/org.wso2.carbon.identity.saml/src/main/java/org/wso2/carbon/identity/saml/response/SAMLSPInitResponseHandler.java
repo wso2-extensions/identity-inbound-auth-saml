@@ -47,7 +47,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLResponse.SAMLResponseBuilder builder;
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
 
         if (samlMessageContext.isPassive()) { //if passive
             String destination = samlMessageContext.getAssertionConsumerURL();
@@ -120,7 +120,7 @@ public class SAMLSPInitResponseHandler extends SAMLResponseHandler {
         // TODO persist the session
 
         SAMLResponse.SAMLResponseBuilder builder;
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
 
         builder = new SAMLLoginResponse.SAMLLoginResponseBuilder(authenticationContext);
         String respString = null;

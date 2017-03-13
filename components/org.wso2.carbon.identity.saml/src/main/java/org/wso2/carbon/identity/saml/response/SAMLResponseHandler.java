@@ -51,7 +51,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         } catch (AuthenticationHandlerException ex) {
             throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return GatewayHandlerResponse.REDIRECT;
+        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
     }
 
     @Override
@@ -62,7 +62,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         } catch (AuthenticationHandlerException e) {
             throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return GatewayHandlerResponse.REDIRECT;
+        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
     }
 
     @Override

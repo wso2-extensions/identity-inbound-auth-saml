@@ -45,7 +45,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
                  ResponseHandlerException {
 
         super.buildErrorResponse(authenticationContext, exx);
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);
         SAMLResponse.SAMLResponseBuilder builder;
@@ -83,7 +83,7 @@ public class SAMLIdpInitResponseHandler extends SAMLResponseHandler {
             throws ResponseHandlerException {
 
         super.buildResponse(authenticationContext);
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
         SAMLResponse.SAMLResponseBuilder builder;
         SAMLMessageContext samlMessageContext = (SAMLMessageContext) authenticationContext
                 .getParameter(SAMLSSOConstants.SAMLContext);

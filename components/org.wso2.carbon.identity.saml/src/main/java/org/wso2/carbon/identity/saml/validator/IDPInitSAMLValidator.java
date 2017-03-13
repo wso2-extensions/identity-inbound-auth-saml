@@ -124,7 +124,7 @@ public class IDPInitSAMLValidator extends SAMLValidator {
                 }
                 throw new RequestValidatorException(msg);
             }
-            return GatewayHandlerResponse.CONTINUE;
+            return new GatewayHandlerResponse();
 
         } catch (IdentityException e) {
             throw new SAMLRequestValidatorException("Error while validating SAML request");
