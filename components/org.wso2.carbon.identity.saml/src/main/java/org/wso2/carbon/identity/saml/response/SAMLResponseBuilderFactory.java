@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.common.util.Utils;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
 import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
 import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
@@ -32,8 +32,6 @@ import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -162,7 +160,7 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
             }
             builder.status(302);
             //builder.setParameters(queryParams);
-            String httpQueryString = Utils.buildQueryString(queryParams);
+            String httpQueryString = GatewayUtil.buildQueryString(queryParams);
             if (redirectURL.indexOf("?") > -1) {
                 redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
             } else {
