@@ -22,11 +22,14 @@ import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-public abstract class SAMLResponse extends GatewayResponse {
+/**
+ * Abstract model for SAML2 SSO Response.
+ */
+public abstract class SAML2SSOResponse extends GatewayResponse {
 
     private Response response;
 
-    protected SAMLResponse(GatewayResponseBuilder builder) {
+    protected SAML2SSOResponse(GatewayResponseBuilder builder) {
         super(builder);
         this.response = ((SAMLResponseBuilder) builder).response;
     }

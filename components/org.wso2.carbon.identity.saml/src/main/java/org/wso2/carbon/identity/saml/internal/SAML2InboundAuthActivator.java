@@ -16,7 +16,6 @@
  * under the License.
  */
 
-
 package org.wso2.carbon.identity.saml.internal;
 
 import org.opensaml.DefaultBootstrap;
@@ -35,20 +34,23 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFacto
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
-import org.wso2.carbon.identity.saml.request.SAMLRequestBuilderFactory;
-import org.wso2.carbon.identity.saml.response.SAMLIdpInitResponseHandler;
-import org.wso2.carbon.identity.saml.response.SAMLResponseBuilderFactory;
-import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
-import org.wso2.carbon.identity.saml.validator.IDPInitSAMLValidator;
-import org.wso2.carbon.identity.saml.validator.SPInitSAMLValidator;
+import org.wso2.carbon.identity.saml.request.SAML2SSORequestBuilderFactory;
+import org.wso2.carbon.identity.saml.response.IdPInitResponseHandler;
+import org.wso2.carbon.identity.saml.response.SAML2SSOResponseBuilderFactory;
+import org.wso2.carbon.identity.saml.response.SPInitResponseHandler;
+import org.wso2.carbon.identity.saml.validator.IdPInitValidator;
+import org.wso2.carbon.identity.saml.validator.SPInitValidator;
 
+/**
+ * SAML2 SSO Inbound Authenticator Service Component.
+ */
 @Component(
-        name = "org.wso2.carbon.identity.saml.component",
+        name = "inbound.saml2sso.dscomponent",
         immediate = true
 )
-public class SAMLInboundActivator implements BundleActivator {
+public class SAML2InboundAuthActivator implements BundleActivator {
 
-    private Logger log = LoggerFactory.getLogger(SAMLInboundActivator.class);
+    private Logger log = LoggerFactory.getLogger(SAML2InboundAuthActivator.class);
 
     @Activate
     public void start(BundleContext bundleContext) throws Exception {
@@ -56,43 +58,32 @@ public class SAMLInboundActivator implements BundleActivator {
             try {
                 DefaultBootstrap.bootstrap();
             } catch (ConfigurationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
+                log.error("Error in bootstrapping the OpenSAML2 library.", e);
             }
-            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAMLRequestBuilderFactory(), null);
-            bundleContext
-                    .registerService(GatewayResponseBuilderFactory.class, new SAMLResponseBuilderFactory(), null);
-
-            bundleContext.registerService(AbstractRequestValidator.class, new SPInitSAMLValidator(), null);
-            bundleContext.registerService(AbstractRequestValidator.class, new IDPInitSAMLValidator(), null);
-
-            bundleContext.registerService(AbstractResponseHandler.class, new SAMLSPInitResponseHandler(), null);
-            bundleContext.registerService(AbstractResponseHandler.class, new SAMLIdpInitResponseHandler(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAML2SSORequestBuilderFactory(), null);
+            bundleContext.registerService(GatewayResponseBuilderFactory.class, new SAML2SSOResponseBuilderFactory(), null);
+            bundleContext.registerService(AbstractRequestValidator.class, new SPInitValidator(), null);
+            bundleContext.registerService(AbstractRequestValidator.class, new IdPInitValidator(), null);
+            bundleContext.registerService(AbstractResponseHandler.class, new SPInitResponseHandler(), null);
+            bundleContext.registerService(AbstractResponseHandler.class, new IdPInitResponseHandler(), null);
         } catch (Throwable e) {
-            System.out.println("Error while activating saml inbound component");
+            log.error("Error while activating SAML2 inbound authenticator component.");
         }
     }
 
-    /**
-     * This is called when the bundle is stopped.
-     *
-     * @param bundleContext
-     *         BundleContext of this bundle
-     * @throws Exception
-     *         Could be thrown while bundle stopping
-     */
     public void stop(BundleContext bundleContext) throws Exception {
     }
 
     @Reference(
             name = "gateway.claim.resolver",
             service = GatewayClaimResolverService.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
+            cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unSetGatewayClaimResolverService"
     )
     protected void addGatewayClaimResolverService(GatewayClaimResolverService gatewayClaimResolverService) {
 
-        SAMLInboundServiceHolder.getInstance().setGatewayClaimResolverService(gatewayClaimResolverService);
+        SAML2InboundAuthDataHolder.getInstance().setGatewayClaimResolverService(gatewayClaimResolverService);
 
         if (log.isDebugEnabled()) {
             log.debug("Binding GatewayClaimResolverService");
@@ -101,10 +92,10 @@ public class SAMLInboundActivator implements BundleActivator {
 
     protected void unSetGatewayClaimResolverService(GatewayClaimResolverService gatewayClaimResolverService) {
 
-        SAMLInboundServiceHolder.getInstance().setGatewayClaimResolverService(null);
+        SAML2InboundAuthDataHolder.getInstance().setGatewayClaimResolverService(null);
 
         if (log.isDebugEnabled()) {
-            log.debug("Un-Binding GatewayClaimResolverService");
+            log.debug("Unbinding GatewayClaimResolverService");
         }
     }
 }

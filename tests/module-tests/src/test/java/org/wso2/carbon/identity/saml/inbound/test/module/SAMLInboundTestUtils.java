@@ -41,14 +41,12 @@ import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.util.Base64;
 import org.osgi.framework.BundleContext;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -86,7 +84,7 @@ public class SAMLInboundTestUtils {
     }
 
 
-    public static Response getSAMLResponse(String samlResponse) throws SAMLServerException {
+    public static Response getSAMLResponse(String samlResponse) throws SAML2SSOServerException {
         String decodedResponse = new String(Base64.decode(samlResponse));
         XMLObject xmlObject = SAML2AuthUtils.unmarshall(decodedResponse);
 

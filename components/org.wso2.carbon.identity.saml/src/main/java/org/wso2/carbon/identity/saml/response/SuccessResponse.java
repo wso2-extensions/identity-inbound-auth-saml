@@ -23,21 +23,17 @@ import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
+import org.wso2.carbon.identity.saml.bean.MessageContext;
 
-public class SAMLLoginResponse extends SAMLResponse {
+public class SuccessResponse extends SAML2SSOResponse {
 
     private String respString;
     private String relayState;
     private String acsUrl;
-    private String subject;
-    private String authenticatedIdPs;
 
-    protected SAMLLoginResponse(GatewayResponseBuilder builder) {
+    protected SuccessResponse(GatewayResponseBuilder builder) {
         super(builder);
         this.respString = ((SAMLLoginResponseBuilder) builder).respString;
         this.relayState = ((SAMLLoginResponseBuilder) builder).relayState;
@@ -48,14 +44,6 @@ public class SAMLLoginResponse extends SAMLResponse {
         return acsUrl;
     }
 
-    public String getAuthenticatedIdPs() {
-        return authenticatedIdPs;
-    }
-
-    public SAMLMessageContext getContext() {
-        return (SAMLMessageContext) this.context;
-    }
-
     public String getRelayState() {
         return relayState;
     }
@@ -64,21 +52,15 @@ public class SAMLLoginResponse extends SAMLResponse {
         return respString;
     }
 
-    public String getSubject() {
-        return subject;
+    public MessageContext getContext() {
+        return (MessageContext) this.context;
     }
 
-
     public static class SAMLLoginResponseBuilder extends SAMLResponseBuilder {
-
-        private static Logger log = LoggerFactory.getLogger(SAMLLoginResponseBuilder.class);
 
         private String respString;
         private String relayState;
         private String acsUrl;
-        private String subject;
-        private String authenticatedIdPs;
-        private String tenantDomain;
 
         public SAMLLoginResponseBuilder(GatewayMessageContext context) {
             super(context);
@@ -86,16 +68,11 @@ public class SAMLLoginResponse extends SAMLResponse {
 
         @Override
         public GatewayResponse build() {
-            return new SAMLLoginResponse(this);
+            return new SuccessResponse(this);
         }
 
         public SAMLLoginResponseBuilder setAcsUrl(String acsUrl) {
             this.acsUrl = acsUrl;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setAuthenticatedIdPs(String authenticatedIdPs) {
-            this.authenticatedIdPs = authenticatedIdPs;
             return this;
         }
 
@@ -106,16 +83,6 @@ public class SAMLLoginResponse extends SAMLResponse {
 
         public SAMLLoginResponseBuilder setRespString(String respString) {
             this.respString = respString;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setSubject(String subject) {
-            this.subject = subject;
-            return this;
-        }
-
-        public SAMLLoginResponseBuilder setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
             return this;
         }
 

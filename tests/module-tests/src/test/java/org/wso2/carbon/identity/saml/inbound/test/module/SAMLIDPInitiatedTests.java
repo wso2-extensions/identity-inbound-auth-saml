@@ -34,7 +34,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import javax.inject.Inject;
@@ -135,7 +135,7 @@ public class SAMLIDPInitiatedTests {
                         Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
                         Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                                 .getAssertions().get(0).getSubject().getNameID().getValue());
-                    } catch (SAMLServerException e) {
+                    } catch (SAML2SSOServerException e) {
                         Assert.fail("Error while building SAML response from the response");
                     }
                 }

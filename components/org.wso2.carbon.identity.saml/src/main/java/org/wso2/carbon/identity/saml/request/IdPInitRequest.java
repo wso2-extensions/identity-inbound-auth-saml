@@ -18,19 +18,23 @@
 
 package org.wso2.carbon.identity.saml.request;
 
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 
-public class SAMLIDPInitRequest extends SAMLRequest {
-    public SAMLIDPInitRequest(SAMLIdpInitRequestBuilder builder) {
+/**
+ * IdP Initiated SAML2 SSO Request.
+ */
+public class IdPInitRequest extends SAML2SSORequest {
+
+    public IdPInitRequest(SAMLIdpInitRequestBuilder builder) {
         super(builder);
     }
 
     public String getAcs() {
-        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.ACS.toString());
+        return this.getParameter(SAML2AuthConstants.ACS);
     }
 
-    public String getSpEntityID() {
-        return (String) this.getParameter(SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+    public String getSPEntityId() {
+        return this.getParameter(SAML2AuthConstants.SP_ENTITY_ID.toString());
     }
 
     public static class SAMLIdpInitRequestBuilder extends SAMLGatewayRequestBuilder {
@@ -38,8 +42,8 @@ public class SAMLIDPInitRequest extends SAMLRequest {
         }
 
         @Override
-        public SAMLIDPInitRequest build() {
-            return new SAMLIDPInitRequest(this);
+        public IdPInitRequest build() {
+            return new IdPInitRequest(this);
         }
     }
 }

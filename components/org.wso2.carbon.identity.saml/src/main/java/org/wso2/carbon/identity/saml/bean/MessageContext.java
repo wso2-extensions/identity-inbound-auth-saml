@@ -16,53 +16,46 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.saml.context;
+package org.wso2.carbon.identity.saml.bean;
 
+import org.opensaml.saml2.core.AuthnRequest;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
-import org.wso2.carbon.identity.saml.model.SAMLValidatorConfig;
-import org.wso2.carbon.identity.saml.request.SAMLIDPInitRequest;
-import org.wso2.carbon.identity.saml.request.SAMLRequest;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
+import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
+import org.wso2.carbon.identity.saml.request.IdPInitRequest;
+import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
 import java.io.Serializable;
 import java.util.Map;
 
-public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable> extends GatewayMessageContext {
+/**
+ * MessageContext specific to Inbound SAML2 SSO.
+ * @param <T1> T1 extends Serializable
+ * @param <T2> T2 extends Serializable
+ */
+// Can't we extend this class from AuthenticationContext
+public class MessageContext<T1 extends Serializable, T2 extends Serializable> extends AuthenticationContext {
 
     private static final long serialVersionUID = 104634801939285909L;
-    /**
-     * The unmarshelled SAML Request
-     */
-    private String destination;
     private String id;
-    private String assertionConsumerUrl;
-    private boolean isPassive;
-
-    /**
-     * Should be set in validateAuthnRequest
-     */
-    private boolean isValid;
-    private String issuer;
-    /**
-     * Subject should be validated before set.
-     * Validation is done in the request validation.
-     */
+    private String spEntityId;
+    private String destination;
     private String subject;
+    private String assertionConsumerUrl;
     private int attributeConsumingServiceIndex;
+    private boolean isPassive;
+    private boolean isForce;
 
-    private SAMLValidatorConfig samlValidatorConfig;
-    private SAMLResponseHandlerConfig responseHandlerConfig;
+    private RequestValidatorConfig requestValidatorConfig;
+    private ResponseBuilderConfig responseBuilderConfig;
 
-    public SAMLMessageContext(SAMLRequest request, Map<T1, T2> parameters) {
+    public MessageContext(SAML2SSORequest request, Map<T1, T2> parameters) {
         super(request, parameters);
     }
 
     public String getAssertionConsumerURL() {
-        if (!isIdpInitSSO()) {
-            return this.assertionConsumerUrl;
-        } else {
-            return getSamlValidatorConfig().getDefaultAssertionConsumerUrl();
-        }
+        return this.assertionConsumerUrl;
     }
 
     public int getAttributeConsumingServiceIndex() {
@@ -74,12 +67,7 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public String getDestination() {
-        if (!isIdpInitSSO()) {
-            return this.destination;
-        } else if (isIdpInitSSO()) {
-            return ((SAMLIDPInitRequest) this.getIdentityRequest()).getAcs();
-        }
-        return null;
+        return this.destination;
     }
 
     public void setDestination(String destination) {
@@ -102,44 +90,49 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     @Override
-    public SAMLRequest getIdentityRequest() {
-        return (SAMLRequest) identityRequest;
+    public SAML2SSORequest getIdentityRequest() {
+        return (SAML2SSORequest) identityRequest;
     }
 
-    public String getIssuer() {
-        if (issuer.contains("@")) {
-            String[] splitIssuer = issuer.split("@");
+    @Override
+    public SAML2SSORequest getInitialAuthenticationRequest() {
+        return (SAML2SSORequest) initialAuthenticationRequest;
+    }
+
+    public String getSPEntityId() {
+        if (spEntityId.contains("@")) {
+            String[] splitIssuer = spEntityId.split("@");
             return splitIssuer[0];
         }
-        return issuer;
+        return spEntityId;
     }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
+    public void setSPEntityId(String spEntityId) {
+        this.spEntityId = spEntityId;
     }
 
     public String getIssuerWithDomain() {
-        return this.issuer;
+        return this.spEntityId;
     }
 
     public String getRelayState() {
         return this.getIdentityRequest().getRelayState();
     }
 
-    public SAMLResponseHandlerConfig getResponseHandlerConfig() {
-        return responseHandlerConfig;
+    public ResponseBuilderConfig getResponseBuilderConfig() {
+        return responseBuilderConfig;
     }
 
-    public void setResponseHandlerConfig(SAMLResponseHandlerConfig responseHandlerConfig) {
-        this.responseHandlerConfig = responseHandlerConfig;
+    public void setResponseBuilderConfig(ResponseBuilderConfig responseBuilderConfig) {
+        this.responseBuilderConfig = responseBuilderConfig;
     }
 
-    public SAMLValidatorConfig getSamlValidatorConfig() {
-        return samlValidatorConfig;
+    public RequestValidatorConfig getRequestValidatorConfig() {
+        return requestValidatorConfig;
     }
 
-    public void setSamlValidatorConfig(SAMLValidatorConfig samlValidatorConfig) {
-        this.samlValidatorConfig = samlValidatorConfig;
+    public void setRequestValidatorConfig(RequestValidatorConfig requestValidatorConfig) {
+        this.requestValidatorConfig = requestValidatorConfig;
     }
 
     //TODO
@@ -156,27 +149,27 @@ public class SAMLMessageContext<T1 extends Serializable, T2 extends Serializable
     }
 
     public boolean isIdpInitSSO() {
-        return this.getIdentityRequest() instanceof SAMLIDPInitRequest;
+        return this.getIdentityRequest() instanceof IdPInitRequest;
     }
 
     public boolean isPassive() {
         return this.isPassive;
     }
 
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public void setValid(boolean isValid) {
-        this.isValid = isValid;
+    public boolean isForce() {
+        return this.isForce;
     }
 
     public void setAssertionConsumerUrl(String assertionConsumerUrl) {
         this.assertionConsumerUrl = assertionConsumerUrl;
     }
 
-    public void setIsPassive(boolean isPassive) {
+    public void setPassive(boolean isPassive) {
         this.isPassive = isPassive;
+    }
+
+    public void setForce(boolean isForce) {
+        this.isForce = isForce;
     }
 
     /**

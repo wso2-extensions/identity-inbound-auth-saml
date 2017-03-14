@@ -19,33 +19,31 @@ package org.wso2.carbon.identity.saml.response;
 
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusMessage;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.common.util.Utils;
-import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.model.Config;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
+public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLResponseBuilderFactory.class);
+    private static Logger log = LoggerFactory.getLogger(SAML2SSOResponseBuilderFactory.class);
 
     @Override
     public boolean canHandle(GatewayResponse gatewayResponse) {
-        if (gatewayResponse instanceof SAMLLoginResponse || gatewayResponse instanceof SAMLErrorResponse) {
+        if (gatewayResponse instanceof SuccessResponse || gatewayResponse instanceof ErrorResponse) {
             return true;
         }
         return false;
@@ -60,7 +58,7 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
         super.createBuilder(builder, gatewayResponse);
-        if (gatewayResponse instanceof SAMLLoginResponse) {
+        if (gatewayResponse instanceof SuccessResponse) {
             sendResponse(builder, gatewayResponse);
         } else {
             sendNotification(builder, gatewayResponse);
@@ -80,24 +78,23 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
     private void sendResponse(Response.ResponseBuilder builder, GatewayResponse
             gatewayResponse) {
 
-        SAMLLoginResponse loginResponse = ((SAMLLoginResponse) gatewayResponse);
+        SuccessResponse loginResponse = ((SuccessResponse) gatewayResponse);
 
-        String authenticatedIdPs = loginResponse.getAuthenticatedIdPs();
         String relayState = loginResponse.getRelayState();
         String acUrl = loginResponse.getAcsUrl();
 
         //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
         builder.type(MediaType.TEXT_HTML);
 
-        builder.entity(getRedirectHtml(acUrl, relayState, authenticatedIdPs, loginResponse));
+        builder.entity(getRedirectHtml(acUrl, relayState, loginResponse));
 
         builder.status(200);
     }
 
-    private String getRedirectHtml(String acUrl, String relayState, String authenticatedIdPs, SAMLLoginResponse
+    private String getRedirectHtml(String acUrl, String relayState, SuccessResponse
             loginResponse) {
-        String finalPage = null;
-        String htmlPage = SAMLConfigurations.getInstance().getSsoResponseHtml();
+
+        String htmlPage = Config.getInstance().getSsoResponseHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input " +
                                                                            "type='hidden' name='SAMLResponse' value='"
@@ -114,47 +111,39 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
                     relayState) + "'>");
         }
 
-        if (StringUtils.isBlank(authenticatedIdPs)) {
-            finalPage = pageWithAcsResponseRelay;
-        } else {
-            finalPage = pageWithAcsResponseRelay.replace(
-                    "<!--$additionalParams-->",
-                    "<input type='hidden' name='AuthenticatedIdPs' value='"
-                    + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
-        }
         if (log.isDebugEnabled()) {
-            log.debug("samlsso_response.html " + finalPage);
+            log.debug("samlsso_response.html " + pageWithAcsResponseRelay);
         }
-        return finalPage;
+        return pageWithAcsResponseRelay;
     }
 
     private void sendNotification(Response.ResponseBuilder builder, GatewayResponse
             gatewayResponse) {
 
-            SAMLErrorResponse errorResponse = ((SAMLErrorResponse) gatewayResponse);
-            String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
+            ErrorResponse errorResponse = ((ErrorResponse) gatewayResponse);
+            String redirectURL = Config.getInstance().getErrorPageUrl();
             Map<String, String[]> queryParams = new HashMap();
 
             //TODO Send status codes rather than full messages in the GET request
             try {
-                queryParams.put(SAMLSSOConstants.STATUS, new String[] { URLEncoder.encode(errorResponse.getStatus(),
-                                                                                          StandardCharsets.UTF_8
+                queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(errorResponse.getStatus(),
+                                                                         StandardCharsets.UTF_8
                                                                                                   .name()) });
                 queryParams
-                        .put(SAMLSSOConstants.STATUS_MSG, new String[] { URLEncoder.encode(errorResponse.getMessageLog()
+                        .put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(errorResponse.getMessageLog()
                                 , StandardCharsets.UTF_8.name()) });
 
                 if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
-                    queryParams.put(SAMLSSOConstants.SAML_RESP, new String[] { URLEncoder.encode(errorResponse
+                    queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(errorResponse
                                                                                                          .getErrorResponse(),
-                                                                                                 StandardCharsets.UTF_8
+                                                                                        StandardCharsets.UTF_8
                                                                                                          .name()) });
                 }
 
                 if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
-                    queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[] { URLEncoder.encode(errorResponse
+                    queryParams.put(SAML2AuthConstants.ASSRTN_CONSUMER_URL, new String[] {URLEncoder.encode(errorResponse
                                                                                                                    .getAcsUrl(),
-                                                                                                           StandardCharsets.UTF_8
+                                                                                                   StandardCharsets.UTF_8
                                                                                                                    .name()) });
                 }
             } catch (UnsupportedEncodingException e) {
@@ -162,7 +151,7 @@ public class SAMLResponseBuilderFactory extends GatewayResponseBuilderFactory {
             }
             builder.status(302);
             //builder.setParameters(queryParams);
-            String httpQueryString = Utils.buildQueryString(queryParams);
+            String httpQueryString = org.wso2.carbon.identity.gateway.common.util.Utils.buildQueryString(queryParams);
             if (redirectURL.indexOf("?") > -1) {
                 redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
             } else {

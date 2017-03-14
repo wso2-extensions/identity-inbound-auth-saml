@@ -20,39 +20,38 @@ package org.wso2.carbon.identity.saml.request;
 
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
-import org.json.HTTP;
+import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
-import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
+import org.wso2.carbon.identity.saml.model.Config;
+import org.wso2.carbon.identity.saml.util.Utils;
 import org.wso2.msf4j.Request;
 
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
 /**
- * SAMLRequestBuilderFactory is the factory that is build the SAML request.
+ * The factory responsible of building the SAML2SSORequest sent by service provider.
  */
-public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
+public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(SAMLRequestBuilderFactory.class);
+    private static Logger log = LoggerFactory.getLogger(SAML2SSORequestBuilderFactory.class);
 
     @Override
     public boolean canHandle(Request request) throws GatewayClientException {
-        String samlRequest = GatewayUtil.getParameter(request, SAMLSSOConstants.SAML_REQUEST);
-        String spEntityID = GatewayUtil.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        String samlRequest = GatewayUtil.getParameter(request, SAML2AuthConstants.SAML_REQUEST);
+        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID.toString());
         if (StringUtils.isNotBlank(samlRequest) || StringUtils.isNotBlank(spEntityID)) {
             return true;
         }
@@ -62,21 +61,16 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
     @Override
     public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
-        String spEntityID = GatewayUtil.getParameter(request, SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString());
+        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID.toString());
         GatewayRequest.GatewayRequestBuilder builder = null;
 
         if (spEntityID != null) {
-            builder = new SAMLIDPInitRequest.SAMLIdpInitRequestBuilder();
+            builder = new IdPInitRequest.SAMLIdpInitRequestBuilder();
         } else {
-            builder = new SAMLSPInitRequest.SAMLSpInitRequestBuilder();
+            builder = new SPInitRequest.SAMLSpInitRequestBuilder();
         }
         super.create(builder, request);
         return builder;
-    }
-
-    @Override
-    public String getName() {
-        return "SAMLRequestBuilderFactory";
     }
 
     @Override
@@ -87,23 +81,23 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
 
         javax.ws.rs.core.Response.ResponseBuilder builder = javax.ws.rs.core.Response.noContent();
-        String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
+        String redirectURL = Config.getInstance().getErrorPageUrl();
         Map<String, String[]> queryParams = new HashMap();
         //TODO Send status codes rather than full messages in the GET request
         try {
-            queryParams.put(SAMLSSOConstants.STATUS, new String[] { URLEncoder.encode(((SAMLClientException)
-                    exception).getExceptionStatus(), StandardCharsets.UTF_8.name()) });
-            queryParams.put(SAMLSSOConstants.STATUS_MSG, new String[] { URLEncoder.encode(((SAMLClientException)
-                    exception).getExceptionMessage(), StandardCharsets.UTF_8.name()) });
+            queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(((SAML2SSOClientException)
+                    exception).getErrorCode(), StandardCharsets.UTF_8.name()) });
+            queryParams.put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(((SAML2SSOClientException)
+                    exception).getErrorCode(), StandardCharsets.UTF_8.name()) });
             if (exception.getMessage() != null) {
-                queryParams.put(SAMLSSOConstants.SAML_RESP, new String[] { URLEncoder.encode(exception.getMessage()
+                queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(exception.getMessage()
                         , StandardCharsets.UTF_8.name()) });
             }
-            if (((SAMLClientException) exception).getACSUrl() != null) {
-                queryParams.put(SAMLSSOConstants.ASSRTN_CONSUMER_URL, new String[] { URLEncoder.encode((
-                                                                                                               (SAMLClientException) exception)
+            if (((SAML2SSOClientException) exception).getACSUrl() != null) {
+                queryParams.put(SAML2AuthConstants.ASSRTN_CONSUMER_URL, new String[] {URLEncoder.encode((
+                                                                                                               (SAML2SSOClientException) exception)
                                                                                                                .getACSUrl(),
-                                                                                                       StandardCharsets.UTF_8
+                                                                                               StandardCharsets.UTF_8
                                                                                                                .name()) });
             }
             //builder.setParameters(queryParams);
@@ -113,7 +107,7 @@ public class SAMLRequestBuilderFactory extends GatewayRequestBuilderFactory {
             }
         }
 
-        String httpQueryString = Utils.buildQueryString(queryParams);
+        String httpQueryString = org.wso2.carbon.identity.gateway.common.util.Utils.buildQueryString(queryParams);
         if (redirectURL.indexOf("?") > -1) {
             redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
         } else {

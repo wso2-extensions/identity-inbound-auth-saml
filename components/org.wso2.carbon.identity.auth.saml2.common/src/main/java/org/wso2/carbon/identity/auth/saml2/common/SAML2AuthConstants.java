@@ -23,9 +23,22 @@ package org.wso2.carbon.identity.auth.saml2.common;
  */
 public class SAML2AuthConstants {
 
+    /**
+     * Standard constants
+     */
     public static final String SAML_REQUEST = "SAMLRequest";
     public static final String SAML_RESPONSE = "SAMLResponse";
     public static final String RELAY_STATE = "RelayState";
+    public static final String SIG_ALG = "SigAlg";
+    public static final String SIGNATURE = "Signature";
+    public static final String SP_ENTITY_ID = "spEntityId";
+    public static final String ACS = "acs";
+
+    /**
+     * Non-standard constants
+     */
+    public static final String SAML_CONTEXT = "SAML2SSOContext";
+    public static final String ASSRTN_CONSUMER_URL = "ACSUrl";
 
     /**
      * Constants used for inbound and outbound configurations.
@@ -62,7 +75,6 @@ public class SAML2AuthConstants {
             public static final String AS_REQUEST = "AS_REQUEST";
             public static final String POST = "POST";
             public static final String REDIRECT = "REDIRECT";
-            public static final String GET = "GET";
         }
 
     }

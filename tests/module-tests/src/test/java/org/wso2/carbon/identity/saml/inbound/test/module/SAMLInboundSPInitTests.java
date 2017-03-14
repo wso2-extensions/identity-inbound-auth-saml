@@ -40,18 +40,16 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
-import org.wso2.carbon.identity.saml.request.SAMLRequest;
-import org.wso2.carbon.identity.saml.request.SAMLSPInitRequest;
-import org.wso2.carbon.identity.saml.response.SAMLLoginResponse;
-import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
+import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
+import org.wso2.carbon.identity.saml.request.SPInitRequest;
+import org.wso2.carbon.identity.saml.response.SuccessResponse;
+import org.wso2.carbon.identity.saml.response.SPInitResponseHandler;
+import org.wso2.carbon.identity.saml.util.Utils;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import javax.inject.Inject;
@@ -123,7 +121,7 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
@@ -168,7 +166,7 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
             Assert.fail("Error while running testSAMLInboundAuthenticationPost test case", e);
@@ -209,7 +207,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
@@ -217,7 +215,7 @@ public class SAMLInboundSPInitTests {
                 Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object", e);
             }
 
@@ -336,7 +334,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
 
@@ -345,7 +343,7 @@ public class SAMLInboundSPInitTests {
                 Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
                 Assert.assertTrue(samlResponseObject.getAssertions().isEmpty());
                 Assert.assertTrue(samlResponseObject.getEncryptedAssertions().size() > 0);
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while asserting on encrypted assertions test case", e);
 
             }
@@ -394,7 +392,7 @@ public class SAMLInboundSPInitTests {
                             SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
@@ -403,7 +401,7 @@ public class SAMLInboundSPInitTests {
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertNull(samlResponseObject.getSignature());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object", e);
             }
 
@@ -452,7 +450,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
 
@@ -462,7 +460,7 @@ public class SAMLInboundSPInitTests {
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertNotNull(samlResponseObject.getSignature());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object from SAML response string", e);
             }
 
@@ -511,7 +509,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
@@ -520,7 +518,7 @@ public class SAMLInboundSPInitTests {
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertNotNull(samlResponseObject.getAssertions().get(0).getSignature());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object from SAML response string", e);
             }
 
@@ -572,7 +570,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
@@ -581,7 +579,7 @@ public class SAMLInboundSPInitTests {
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object from SAML response string", e);
             }
 
@@ -601,8 +599,8 @@ public class SAMLInboundSPInitTests {
     public void testHandleException() {
         try {
             DefaultBootstrap.bootstrap();
-            String errorResponse = SAMLSSOUtil.SAMLResponseUtil.buildErrorResponse("ErrorStatus", "ErrorMessage",
-                    "https://localhost:9292/error");
+            String errorResponse = Utils.SAMLResponseUtil.buildErrorResponse("ErrorStatus", "ErrorMessage",
+                                                                             "https://localhost:9292/error");
             Assert.assertNotNull(errorResponse);
         } catch (ConfigurationException e) {
             Assert.fail("Error while bootstrapping opensaml");
@@ -649,7 +647,7 @@ public class SAMLInboundSPInitTests {
 
             String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
 
-            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = SAMLInboundTestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
@@ -658,7 +656,7 @@ public class SAMLInboundSPInitTests {
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
-            } catch (SAMLServerException e) {
+            } catch (SAML2SSOServerException e) {
                 log.error("Error while building response object from SAML response string", e);
             }
 
@@ -675,23 +673,23 @@ public class SAMLInboundSPInitTests {
      */
     @Test
     public void testSAMLResponseBuilderFactory() {
-        SAMLSPInitResponseHandler responseHandler = new SAMLSPInitResponseHandler();
+        SPInitResponseHandler responseHandler = new SPInitResponseHandler();
         AuthenticationContext authenticationContext = new AuthenticationContext(null);
-        SAMLMessageContext samlMessageContext = new SAMLMessageContext(null, null);
-        SAMLSPInitRequest.SAMLSpInitRequestBuilder spInitRequestBuilder = new SAMLSPInitRequest
+        MessageContext messageContext = new MessageContext(null, null);
+        SPInitRequest.SAMLSpInitRequestBuilder spInitRequestBuilder = new SPInitRequest
                 .SAMLSpInitRequestBuilder();
 
-        SAMLRequest samlRequest = new SAMLSPInitRequest(spInitRequestBuilder);
-        samlMessageContext.setIdentityRequest(samlRequest);
-        samlMessageContext.setIsPassive(true);
-        authenticationContext.addParameter(SAMLSSOConstants.SAMLContext, samlMessageContext);
+        SAML2SSORequest samlRequest = new SPInitRequest(spInitRequestBuilder);
+        messageContext.setIdentityRequest(samlRequest);
+        messageContext.setPassive(true);
+        authenticationContext.addParameter(SAML2AuthConstants.SAML_CONTEXT, messageContext);
         authenticationContext.setUniqueId(SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
         try {
             GatewayHandlerResponse response = responseHandler.buildErrorResponse(authenticationContext, new
                     GatewayException("GatewayException"));
             Assert.assertNotNull(response);
             Assert.assertNotNull(response.getGatewayResponseBuilder());
-            SAMLLoginResponse.SAMLLoginResponseBuilder samlLoginResponseBuilder = (SAMLLoginResponse
+            SuccessResponse.SAMLLoginResponseBuilder samlLoginResponseBuilder = (SuccessResponse
                     .SAMLLoginResponseBuilder) response
                     .getGatewayResponseBuilder();
             Assert.assertNotNull(samlLoginResponseBuilder.build());

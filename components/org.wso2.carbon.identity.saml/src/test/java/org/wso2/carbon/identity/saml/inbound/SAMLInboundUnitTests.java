@@ -34,10 +34,10 @@ import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.exception.DomainException;
 import org.wso2.carbon.identity.mgt.impl.Domain;
 import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
-import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.request.SAMLRequestBuilderFactory;
-import org.wso2.carbon.identity.saml.response.SAMLErrorResponse;
-import org.wso2.carbon.identity.saml.response.SAMLResponseBuilderFactory;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
+import org.wso2.carbon.identity.saml.request.SAML2SSORequestBuilderFactory;
+import org.wso2.carbon.identity.saml.response.ErrorResponse;
+import org.wso2.carbon.identity.saml.response.SAML2SSOResponseBuilderFactory;
 
 import javax.ws.rs.core.Response;
 
@@ -82,10 +82,10 @@ public class SAMLInboundUnitTests {
 
     @Test
     public void testHandleException() {
-        SAMLRequestBuilderFactory factory = new SAMLRequestBuilderFactory();
+        SAML2SSORequestBuilderFactory factory = new SAML2SSORequestBuilderFactory();
         Assert.assertEquals(factory.getName(), "SAMLRequestBuilderFactory");
-        SAMLClientException exception = SAMLClientException.error("ErrorCode", "ErrorMessage",
-                "ExceptionMessage", "http://8080/gateway?notificationendpoint");
+        SAML2SSOClientException exception = new SAML2SSOClientException("ErrorCode", "ErrorMessage");
+        exception.setAcsUrl("http://8080/gateway?notificationendpoint");
 
         Response.ResponseBuilder responseBuilder = factory.handleException(exception);
         Response response = responseBuilder.build();
@@ -95,17 +95,17 @@ public class SAMLInboundUnitTests {
 
     @Test
     public void testSAMLResponseBuilderFactory() {
-        SAMLResponseBuilderFactory builderFactory = new SAMLResponseBuilderFactory();
+        SAML2SSOResponseBuilderFactory builderFactory = new SAML2SSOResponseBuilderFactory();
         GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = new GatewayResponse.GatewayResponseBuilder
                 (null);
-        SAMLErrorResponse.SAMLErrorResponseBuilder samlErrorResponseBuilder = new SAMLErrorResponse
+        ErrorResponse.SAMLErrorResponseBuilder samlErrorResponseBuilder = new ErrorResponse
                 .SAMLErrorResponseBuilder(null);
         samlErrorResponseBuilder.setErrorResponse("Error Response");
         samlErrorResponseBuilder.setAcsUrl("http://localhost:8080/acs");
         samlErrorResponseBuilder.setMessageLog("MessageLog");
         samlErrorResponseBuilder.setStatus("Status");
 
-        SAMLErrorResponse samlErrorResponse = new SAMLErrorResponse(samlErrorResponseBuilder);
+        ErrorResponse samlErrorResponse = new ErrorResponse(samlErrorResponseBuilder);
         Response.ResponseBuilder responseBuilder = builderFactory.createBuilder(samlErrorResponse);
         Response response = responseBuilder.build();
         //  We cannot access content in ms4j response. or builder. Hence there is no way of asserting content

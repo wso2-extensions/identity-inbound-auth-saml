@@ -221,25 +221,6 @@ public class SAML2AuthUtils {
         }
     }
 
-    public static boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
-                                        String alias) {
-
-        boolean isSignatureValid = false;
-
-        if (request.getSignature() != null) {
-            try {
-                SignatureValidator validator = new SignatureValidator(cred);
-                validator.validate(request.getSignature());
-                isSignatureValid = true;
-            } catch (ValidationException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Invalid signature.", e);
-                }
-            }
-        }
-        return isSignatureValid;
-    }
-
     public static XMLObject buildXMLObject(QName objectQName) throws IdentityRuntimeException {
 
         XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);

@@ -19,28 +19,26 @@ package org.wso2.carbon.identity.saml.response;
 
 import org.opensaml.saml2.core.Response;
 import org.slf4j.Logger;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLClientException;
-import org.wso2.carbon.identity.saml.exception.SAMLRequestValidatorException;
-import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
-import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
+import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
+import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 
 public abstract class SAMLResponseHandler extends AbstractResponseHandler {
 
-    private static Logger log = org.slf4j.LoggerFactory.getLogger(SAMLSPInitResponseHandler.class);
+    private static Logger log = org.slf4j.LoggerFactory.getLogger(SPInitResponseHandler.class);
 
     @Override
     public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, GatewayException e)
@@ -66,10 +64,10 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext, GatewayException exception) {
+    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext, GatewayException exception) {
         if (canHandle(messageContext)) {
-            if (exception instanceof SAMLRequestValidatorException || exception instanceof SAMLClientException ||
-                exception instanceof SAMLServerException) {
+            if (exception instanceof SAML2SSORequestValidationException || exception instanceof SAML2SSOClientException ||
+                exception instanceof SAML2SSOServerException) {
                 return true;
             }
         }
@@ -77,20 +75,20 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception) {
+    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext, GatewayRuntimeException exception) {
         if (canHandle(messageContext)) {
-            if (exception instanceof SAMLRuntimeException) {
+            if (exception instanceof SAML2SSORuntimeException) {
                 return true;
             }
         }
         return false;
     }
 
-    public String setResponse(AuthenticationContext context, SAMLLoginResponse.SAMLLoginResponseBuilder
+    public String setResponse(AuthenticationContext context, SuccessResponse.SAMLLoginResponseBuilder
             builder) throws IdentityException {
 
-        SAMLMessageContext messageContext = (SAMLMessageContext) context.getParameter(SAMLSSOConstants.SAMLContext);
-        SAMLResponseHandlerConfig config = messageContext.getResponseHandlerConfig();
+        MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
+        ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
 
         SAML2SSOResponseBuilder saml2SSOResponseBuilder = new SAML2SSOResponseBuilder();
         Response response = saml2SSOResponseBuilder.buildSAMLResponse(messageContext, config, context);
@@ -108,15 +106,16 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
     }
 
     protected String getValidatorType() {
+        // change to "SAML2SSO"
         return "SAML";
     }
 
     protected void setSAMLResponseHandlerConfigs(AuthenticationContext authenticationContext) throws
                                                                                               AuthenticationHandlerException {
-        SAMLMessageContext messageContext = (SAMLMessageContext) authenticationContext
-                .getParameter(SAMLSSOConstants.SAMLContext);
-        ResponseBuilderConfig responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
-        SAMLResponseHandlerConfig samlResponseHandlerConfig = new SAMLResponseHandlerConfig(responseBuilderConfigs);
-        messageContext.setResponseHandlerConfig(samlResponseHandlerConfig);
+        MessageContext messageContext = (MessageContext) authenticationContext
+                .getParameter(SAML2AuthConstants.SAML_CONTEXT);
+        org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
+        ResponseBuilderConfig responseBuilderConfig = new ResponseBuilderConfig(responseBuilderConfigs);
+        messageContext.setResponseBuilderConfig(responseBuilderConfig);
     }
 }

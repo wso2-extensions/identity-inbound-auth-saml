@@ -20,14 +20,14 @@ package org.wso2.carbon.identity.saml.response;
 
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
-public class SAMLErrorResponse extends SAMLResponse {
+public class ErrorResponse extends SAML2SSOResponse {
 
     private String errorResponse;
     private String acsUrl;
     private String status;
     private String messageLog;
 
-    public SAMLErrorResponse(GatewayResponseBuilder responsebuilder) {
+    public ErrorResponse(GatewayResponseBuilder responsebuilder) {
 
         super(responsebuilder);
         this.errorResponse = ((SAMLErrorResponseBuilder) responsebuilder).errorResponse;
@@ -63,8 +63,8 @@ public class SAMLErrorResponse extends SAMLResponse {
             super(context);
         }
 
-        public SAMLErrorResponse build() {
-            return new SAMLErrorResponse(this);
+        public ErrorResponse build() {
+            return new ErrorResponse(this);
         }
 
         public SAMLErrorResponseBuilder setAcsUrl(String acsUrl) {
