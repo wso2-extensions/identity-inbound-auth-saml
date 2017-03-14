@@ -107,7 +107,7 @@ public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory 
             }
         }
 
-        String httpQueryString = org.wso2.carbon.identity.gateway.common.util.Utils.buildQueryString(queryParams);
+        String httpQueryString = GatewayUtil.buildQueryString(queryParams);
         if (redirectURL.indexOf("?") > -1) {
             redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
         } else {

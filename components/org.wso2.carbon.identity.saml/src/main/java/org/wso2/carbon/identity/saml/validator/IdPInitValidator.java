@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
 import org.wso2.carbon.identity.saml.request.IdPInitRequest;
@@ -104,7 +103,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
                     Integer.parseInt(requestValidatorConfig.getAttributeConsumingServiceIndex()));
         }
 
-        return GatewayHandlerResponse.CONTINUE;
+        return new GatewayHandlerResponse();
 
     }
 }

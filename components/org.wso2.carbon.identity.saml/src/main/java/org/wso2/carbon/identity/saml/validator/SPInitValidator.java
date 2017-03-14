@@ -107,7 +107,7 @@ public class SPInitValidator extends SAML2SSOValidator {
             // not throw server exception
         }
 
-        return GatewayHandlerResponse.CONTINUE;
+        return new GatewayHandlerResponse();
 
     }
 

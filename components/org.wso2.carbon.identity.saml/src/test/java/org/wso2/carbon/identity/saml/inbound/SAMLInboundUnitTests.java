@@ -83,7 +83,7 @@ public class SAMLInboundUnitTests {
     @Test
     public void testHandleException() {
         SAML2SSORequestBuilderFactory factory = new SAML2SSORequestBuilderFactory();
-        Assert.assertEquals(factory.getName(), "SAMLRequestBuilderFactory");
+        Assert.assertEquals(factory.getName(), "SAML2SSORequestBuilderFactory");
         SAML2SSOClientException exception = new SAML2SSOClientException("ErrorCode", "ErrorMessage");
         exception.setAcsUrl("http://8080/gateway?notificationendpoint");
 

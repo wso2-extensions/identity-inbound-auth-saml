@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 
-public abstract class SAMLResponseHandler extends AbstractResponseHandler {
+public abstract class SAML2SSOResponseHandler extends AbstractResponseHandler {
 
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SPInitResponseHandler.class);
 
@@ -49,7 +49,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         } catch (AuthenticationHandlerException ex) {
             throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return GatewayHandlerResponse.REDIRECT;
+        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
     }
 
     @Override
@@ -60,7 +60,7 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         } catch (AuthenticationHandlerException e) {
             throw new ResponseHandlerException("Error while getting response handler configurations");
         }
-        return GatewayHandlerResponse.REDIRECT;
+        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
     }
 
     @Override
@@ -90,8 +90,8 @@ public abstract class SAMLResponseHandler extends AbstractResponseHandler {
         MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
         ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
 
-        SAML2SSOResponseBuilder saml2SSOResponseBuilder = new SAML2SSOResponseBuilder();
-        Response response = saml2SSOResponseBuilder.buildSAMLResponse(messageContext, config, context);
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
+        Response response = samlResponseBuilder.buildSAMLResponse(messageContext, config, context);
         builder.setResponse(response);
 
         String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(response));

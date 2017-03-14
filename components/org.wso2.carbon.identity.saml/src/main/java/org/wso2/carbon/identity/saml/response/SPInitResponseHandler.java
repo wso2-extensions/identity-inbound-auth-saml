@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.saml.util.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SPInitResponseHandler extends SAMLResponseHandler {
+public class SPInitResponseHandler extends SAML2SSOResponseHandler {
 
     private static Logger log = org.slf4j.LoggerFactory.getLogger(SPInitResponseHandler.class);
 
@@ -46,7 +46,7 @@ public class SPInitResponseHandler extends SAMLResponseHandler {
         MessageContext messageContext = (MessageContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);
         SAML2SSOResponse.SAMLResponseBuilder builder;
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
 
         if (messageContext.isPassive()) { //if passive
             String destination = messageContext.getAssertionConsumerURL();
@@ -117,7 +117,7 @@ public class SPInitResponseHandler extends SAMLResponseHandler {
         // TODO persist the session
 
         SAML2SSOResponse.SAMLResponseBuilder builder;
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
 
         builder = new SuccessResponse.SAMLLoginResponseBuilder(authenticationContext);
         String respString = null;

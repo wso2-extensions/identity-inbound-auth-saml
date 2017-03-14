@@ -18,14 +18,12 @@
 
 package org.wso2.carbon.identity.saml.request;
 
-import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.xml.XMLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 
 import java.io.UnsupportedEncodingException;
@@ -49,7 +47,7 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SAML_REQUEST);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("Failed to URL-decode the SAMLRequest.");
+                throw new SAML2SSORuntimeException("Failed to URL-decode the SAMLRequest.", e);
             }
         }
     }
@@ -61,12 +59,9 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIGNATURE);
             } catch (UnsupportedEncodingException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to decode the Signature ", e);
-                }
+                throw new SAML2SSORuntimeException("Failed to decode the Signature.", e);
             }
         }
-        return null;
     }
 
     public String getSignatureAlgorithm() {
@@ -76,12 +71,9 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIG_ALG);
             } catch (UnsupportedEncodingException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to decode the Signature Algorithm ", e);
-                }
+                throw new SAML2SSORuntimeException("Failed to decode the Signature Algorithm.", e);
             }
         }
-        return null;
     }
 
     public boolean isRedirect() {

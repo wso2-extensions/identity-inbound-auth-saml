@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.saml.bean;
 
-import org.opensaml.saml2.core.AuthnRequest;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
@@ -31,13 +30,11 @@ import java.util.Map;
 
 /**
  * MessageContext specific to Inbound SAML2 SSO.
- * @param <T1> T1 extends Serializable
- * @param <T2> T2 extends Serializable
  */
-// Can't we extend this class from AuthenticationContext
-public class MessageContext<T1 extends Serializable, T2 extends Serializable> extends AuthenticationContext {
+public class MessageContext extends AuthenticationContext {
 
     private static final long serialVersionUID = 104634801939285909L;
+
     private String id;
     private String spEntityId;
     private String destination;
@@ -50,7 +47,7 @@ public class MessageContext<T1 extends Serializable, T2 extends Serializable> ex
     private RequestValidatorConfig requestValidatorConfig;
     private ResponseBuilderConfig responseBuilderConfig;
 
-    public MessageContext(SAML2SSORequest request, Map<T1, T2> parameters) {
+    public MessageContext(SAML2SSORequest request, Map<Serializable, Serializable> parameters) {
         super(request, parameters);
     }
 

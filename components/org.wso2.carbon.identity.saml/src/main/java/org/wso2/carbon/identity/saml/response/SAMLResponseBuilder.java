@@ -94,9 +94,9 @@ import java.util.Map;
 /**
  * SPI to build a SAML2 Response.
  */
-public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
+public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(SAML2SSOResponseBuilder.class);
+    private static Logger logger = LoggerFactory.getLogger(SAMLResponseBuilder.class);
 
     protected Response buildSAMLResponse(MessageContext messageContext, ResponseBuilderConfig config,
                                          AuthenticationContext context) throws SAML2SSOServerException {

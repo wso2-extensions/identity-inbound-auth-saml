@@ -40,7 +40,7 @@ import java.util.List;
 /**
  *
  */
-public class IdPInitResponseHandler extends SAMLResponseHandler {
+public class IdPInitResponseHandler extends SAML2SSOResponseHandler {
 
     private static Logger log = LoggerFactory.getLogger(SPInitResponseHandler.class);
 
@@ -50,7 +50,7 @@ public class IdPInitResponseHandler extends SAMLResponseHandler {
                  ResponseHandlerException {
 
         super.buildErrorResponse(authenticationContext, exx);
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
         MessageContext messageContext = (MessageContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);
         SAML2SSOResponse.SAMLResponseBuilder builder;
@@ -84,7 +84,7 @@ public class IdPInitResponseHandler extends SAMLResponseHandler {
             throws ResponseHandlerException {
 
         super.buildResponse(authenticationContext);
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
         SAML2SSOResponse.SAMLResponseBuilder builder;
         MessageContext messageContext = (MessageContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);

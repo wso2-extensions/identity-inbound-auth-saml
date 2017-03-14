@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.saml.model.Config;
 
 import java.io.UnsupportedEncodingException;
@@ -151,7 +152,7 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
             }
             builder.status(302);
             //builder.setParameters(queryParams);
-            String httpQueryString = org.wso2.carbon.identity.gateway.common.util.Utils.buildQueryString(queryParams);
+            String httpQueryString = GatewayUtil.buildQueryString(queryParams);
             if (redirectURL.indexOf("?") > -1) {
                 redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
             } else {
