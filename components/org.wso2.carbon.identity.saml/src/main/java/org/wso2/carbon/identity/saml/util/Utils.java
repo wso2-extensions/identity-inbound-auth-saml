@@ -29,7 +29,9 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.internal.SAML2InboundAuthDataHolder;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 
@@ -113,7 +115,9 @@ public class Utils {
     }
 
     // Move to SequenceContext/AuthenticationContext in Gateway
-    public static String getSubject(AuthenticationContext authenticationContext) {
+    public static String getSubject(AuthenticationContext authenticationContext, String inResponseTo,
+                                    String acsUrl)
+            throws SAML2SSOResponseBuilderException {
 
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         int lastStep = sequenceContext.getCurrentStep();
@@ -123,8 +127,12 @@ public class Utils {
             AuthenticationStepConfig stepConfig = authenticationContext.getSequence().getAuthenticationStepConfig(i);
             // update isSubjectStep using stepConfig
             if (isSubjectStep && isUserIdStepFound) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Invalid subject step configuration. Multiple subject steps found.");
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Invalid subject step configuration. Multiple subject steps found.");
+                ex.setInResponseTo(inResponseTo);
+                ex.setAcsUrl(acsUrl);
+                throw ex;
             } else {
                 isUserIdStepFound = true;
                 SequenceContext.StepContext stepContext = sequenceContext.getStepContext(i);

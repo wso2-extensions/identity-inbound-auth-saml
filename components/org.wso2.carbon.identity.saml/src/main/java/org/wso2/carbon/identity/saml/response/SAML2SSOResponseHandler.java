@@ -86,20 +86,13 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public GatewayHandlerResponse buildResponse(AuthenticationContext context)
-            throws SAML2SSOResponseBuilderException {
+    public GatewayHandlerResponse buildResponse(AuthenticationContext context) throws SAML2SSOResponseBuilderException {
 
-        try {
-            setSAMLResponseHandlerConfigs(context);
-        } catch (AuthenticationHandlerException e) {
-            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                       "Error while getting response handler configurations");
-        }
-
-        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+        decorateResponseConfigWithSAML2(context);
 
         SAML2SSOResponse.SAML2SSOResponseBuilder builder =
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
         MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
         ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
@@ -119,29 +112,20 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         try {
             addSessionKey(builder, context);
         } catch (ResponseHandlerException e) {
-            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, "Error while writing session key", e);
+            // TODO: ignore for now. Remove exception thrown from addSessionKey method
         }
-
-        response.setGatewayResponseBuilder(builder);
 
         return response;
     }
 
     @Override
-    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayException e)
-            throws SAML2SSOResponseBuilderException {
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayException e) {
 
-        try {
-            setSAMLResponseHandlerConfigs(context);
-        } catch (AuthenticationHandlerException e1) {
-            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                       "Error while getting response handler configurations");
-        }
-
-        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+        decorateResponseConfigWithSAML2(context);
 
         SAML2SSOResponse.SAML2SSOResponseBuilder builder =
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         Response samlResponse;
@@ -163,25 +147,24 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayRuntimeException e)
-            throws SAML2SSOResponseBuilderException {
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayRuntimeException e) {
 
-        try {
-            setSAMLResponseHandlerConfigs(context);
-        } catch (AuthenticationHandlerException e1) {
-            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                       "Error while getting response handler configurations");
-        }
-
-        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+        decorateResponseConfigWithSAML2(context);
 
         SAML2SSOResponse.SAML2SSOResponseBuilder builder =
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         SAML2SSORuntimeException e1 = ((SAML2SSORuntimeException) e);
-        Response samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
-                                                                       "Server Error", e1.getACSUrl());
+        Response samlResponse;
+        if (StatusCode.REQUESTER_URI.equals(e1.getErrorCode())) {
+            samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
+                                                                  e1.getMessage(), e1.getACSUrl());
+        } else {
+            samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
+                                                                  "Server Error", e1.getACSUrl());
+        }
         builder.setResponse(samlResponse);
         builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
         builder.setAcsUrl(e1.getACSUrl());
@@ -189,11 +172,16 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         return response;
     }
 
-    protected void setSAMLResponseHandlerConfigs(AuthenticationContext authenticationContext) throws
-                                                                                              AuthenticationHandlerException {
+    protected void decorateResponseConfigWithSAML2(AuthenticationContext authenticationContext) {
+
         MessageContext messageContext = (MessageContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);
-        org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
+        org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs = null;
+        try {
+            responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
+        } catch (AuthenticationHandlerException e) {
+            // TODO: ignoring for now. This cannot happen once we validate service provider while setting unique SP ID
+        }
         ResponseBuilderConfig responseBuilderConfig = new ResponseBuilderConfig(responseBuilderConfigs);
         messageContext.setResponseBuilderConfig(responseBuilderConfig);
     }

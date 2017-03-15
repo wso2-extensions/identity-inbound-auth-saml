@@ -100,23 +100,8 @@ public class SAML2SSOResponse extends GatewayResponse {
             return this;
         }
 
-        private Status buildStatus(String status, String statMsg) {
-
-            Status stat = new StatusBuilder().buildObject();
-
-            // Set the status code
-            StatusCode statCode = new StatusCodeBuilder().buildObject();
-            statCode.setValue(status);
-            stat.setStatusCode(statCode);
-
-            // Set the status Message
-            if (statMsg != null) {
-                StatusMessage statMesssage = new StatusMessageBuilder().buildObject();
-                statMesssage.setMessage(statMsg);
-                stat.setStatusMessage(statMesssage);
-            }
-
-            return stat;
+        public SAML2SSOResponse build() {
+            return new SAML2SSOResponse(this);
         }
     }
 }

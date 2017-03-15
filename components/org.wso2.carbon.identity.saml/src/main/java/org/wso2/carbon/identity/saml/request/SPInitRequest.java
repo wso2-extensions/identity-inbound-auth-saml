@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
+import org.wso2.carbon.identity.saml.model.Config;
 
 import java.io.UnsupportedEncodingException;
 
@@ -48,8 +49,11 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SAML_REQUEST);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Failed to URL-decode the SAMLRequest.", e);
+                // throwing a unchecked here to avoid handling checked exception in all the places
+                SAML2SSORuntimeException ex =
+                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "Failed to URL-decode the SAMLRequest.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
             }
         }
     }
@@ -61,8 +65,11 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIGNATURE);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Failed to decode the Signature.", e);
+                // throwing a unchecked here to avoid handling checked exception in all the places
+                SAML2SSORuntimeException ex =
+                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "Failed to decode the Signature.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
             }
         }
     }
@@ -74,8 +81,11 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIG_ALG);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Failed to decode the Signature Algorithm.", e);
+                // throwing a unchecked here to avoid handling checked exception in all the places
+                SAML2SSORuntimeException ex =
+                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "Failed to decode the Signature Algorithm.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
             }
         }
     }
@@ -84,7 +94,7 @@ public class SPInitRequest extends SAML2SSORequest {
         return !SAML2AuthConstants.Config.Value.POST.equalsIgnoreCase(this.httpMethod);
     }
 
-    public AuthnRequest getAuthnRequest() throws SAML2SSORuntimeException {
+    public AuthnRequest getAuthnRequest() {
 
         if (authnRequest == null) {
             String decodedRequest;
@@ -98,8 +108,11 @@ public class SPInitRequest extends SAML2SSORequest {
                 AuthnRequest authnRequest = (AuthnRequest) request;
                 this.authnRequest = authnRequest;
             } else {
-                // throwing a RuntimeException here to avoid handling SAML2SSOClientException in all the places
-                throw new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "SAMLRequest not an AuthnRequest.");
+                // throwing a unchecked here to avoid handling checked exception in all the places
+                SAML2SSORuntimeException ex =
+                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "SAMLRequest not an AuthnRequest.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
             }
         }
         return authnRequest;

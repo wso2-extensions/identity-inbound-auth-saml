@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.saml.response;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.utils.EncryptionConstants;
 import org.joda.time.DateTime;
@@ -144,7 +146,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         Subject subject = new SubjectBuilder().buildObject();
 
         NameID nameId = new NameIDBuilder().buildObject();
-        nameId.setValue(Utils.getSubject(context));
+        nameId.setValue(Utils.getSubject(context, messageContext.getId(), messageContext.getAssertionConsumerURL()));
         if (config.getNameIdFormat() != null) {
             nameId.setFormat(config.getNameIdFormat());
         } else {
@@ -259,15 +261,23 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
 
             String encodedCert = config.getEncryptionCertificate();
             if (StringUtils.isBlank(encodedCert)) {
-                throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                           "Encryption certificate is not configured.");
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Encryption certificate is not configured.");
+                ex.setInResponseTo(response.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
             Certificate certificate;
             try {
                 certificate = Utils.decodeCertificate(encodedCert);
             } catch (CertificateException e) {
-                throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                           "Invalid encoded certificate: " + encodedCert);
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Invalid encoded certificate: " + encodedCert);
+                ex.setInResponseTo(response.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             Credential symmetricCredential = null;
@@ -275,8 +285,12 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
                 symmetricCredential = SecurityHelper.getSimpleCredential(
                         SecurityHelper.generateSymmetricKey(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256));
             } catch (NoSuchAlgorithmException | KeyException e) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Error occurred while encrypting assertion.", e);
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Error occurred while encrypting assertion.", e);
+                ex.setInResponseTo(assertion.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             EncryptionParameters encParams = new EncryptionParameters();
@@ -294,8 +308,12 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             try {
                 encryptedAssertion = encrypter.encrypt(assertion);
             } catch (EncryptionException e) {
-                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
-                                                   "Error occurred while encrypting assertion.", e);
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Error occurred while encrypting assertion.", e);
+                ex.setInResponseTo(assertion.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             response.getEncryptedAssertions().add(encryptedAssertion);
@@ -345,11 +363,10 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
     protected Response buildErrorResponse(String inResponseToId, List<String> statusCodes, String statusMsg,
                                           String destination) {
 
-        Response response = new ResponseBuilder().buildObject();
-
         if (statusCodes == null || statusCodes.isEmpty()) {
-            throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI, "No Status Values");
+            return null;
         }
+        Response response = new ResponseBuilder().buildObject();
         response.setIssuer(getIssuer());
         Status status = new StatusBuilder().buildObject();
         StatusCode statusCode = null;

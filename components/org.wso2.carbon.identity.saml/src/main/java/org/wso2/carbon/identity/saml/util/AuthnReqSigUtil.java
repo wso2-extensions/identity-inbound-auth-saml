@@ -72,37 +72,51 @@ public class AuthnReqSigUtil {
         try {
             certificate = (X509Certificate) Utils.decodeCertificate(encodedCert);
         } catch (CertificateException e) {
-            throw new SAML2SSOServerException(StatusCode.RESPONDER_URI,
-                                              "Error occurred while decoding signing certificate.");
+            SAML2SSOServerException ex =
+                    new SAML2SSOServerException(StatusCode.RESPONDER_URI,
+                                                "Error occurred while decoding signing certificate.", e);
+            ex.setInResponseTo(authnRequest.getID());
+            ex.setAcsUrl(authnRequest.getDestination());
+            throw ex;
         }
 
         SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
         if (spInitRequest.isRedirect()) {
             return validateDeflateSignature(spInitRequest.getQueryString(), spInitRequest.getSignature(),
-                                            spInitRequest.getSignatureAlgorithm(), certificate, config);
+                                            spInitRequest.getSignatureAlgorithm(), certificate, messageContext.getId(),
+                                            messageContext.getAssertionConsumerURL(), messageContext.getSPEntityId());
         } else {
-            return validateXMLSignature(authnRequest, certificate, config);
+            return validateXMLSignature(authnRequest, certificate, messageContext.getId(),
+                                        messageContext.getAssertionConsumerURL());
         }
     }
 
     public static boolean validateDeflateSignature(String queryString, String signature,
                                                    String sigAlg, X509Certificate certificate,
-                                                   RequestValidatorConfig config)
+                                                   String inResponseTo, String acsUrl, String spEntityId)
             throws SAML2SSOServerException, SAML2SSORequestValidationException {
 
         if (StringUtils.isBlank(signature)) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Could not extract the Signature from query string.");
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "Could not extract the Signature from query string.");
+            ex.setInResponseTo(inResponseTo);
+            ex.setAcsUrl(acsUrl);
+            throw ex;
         }
         byte[] sigBytes = Base64.decode(signature);
-        byte[] signedContent = getSignedContent(queryString);
+        byte[] signedContent = getSignedContent(queryString, inResponseTo, acsUrl);
 
         if (StringUtils.isBlank(sigAlg)) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Could not extract signature algorithm from query string.");
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "Could not extract signature algorithm from query string.");
+            ex.setInResponseTo(inResponseTo);
+            ex.setAcsUrl(acsUrl);
+            throw ex;
         }
 
-        CriteriaSet criteriaSet = buildCriteriaSet(config.getSPEntityId());
+        CriteriaSet criteriaSet = buildCriteriaSet(spEntityId);
 
         X509Credential credential = new X509CredentialImpl(certificate);
         List<Credential> credentials = new ArrayList();
@@ -120,7 +134,8 @@ public class AuthnReqSigUtil {
         }
     }
 
-    protected static byte[] getSignedContent(String queryString) throws SAML2SSORequestValidationException {
+    protected static byte[] getSignedContent(String queryString, String inResponseTo, String acsUrl)
+            throws SAML2SSORequestValidationException {
 
         // We need the raw non-URL-decoded query string param values for
         // HTTP-Redirect DEFLATE simple signature
@@ -133,10 +148,14 @@ public class AuthnReqSigUtil {
         if (logger.isDebugEnabled()) {
             logger.debug("Constructing signed content string from URL query string " + queryString);
         }
-        String constructed = buildSignedContentString(queryString);
+        String constructed = buildSignedContentString(queryString, inResponseTo, acsUrl);
         if (DatatypeHelper.isEmpty(constructed)) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Could not extract signed content string from query string");
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "Could not extract signed content string from query string");
+            ex.setInResponseTo(inResponseTo);
+            ex.setAcsUrl(acsUrl);
+            throw ex;
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Constructed signed content string for HTTP-Redirect DEFLATE " + constructed);
@@ -162,15 +181,21 @@ public class AuthnReqSigUtil {
      * @throws SecurityPolicyException
      *         thrown if there is an error during request processing
      */
-    public static String buildSignedContentString(String queryString) throws SAML2SSORequestValidationException {
+    public static String buildSignedContentString(String queryString, String inResponseTo, String acsUrl)
+            throws SAML2SSORequestValidationException {
+
         StringBuilder builder = new StringBuilder();
 
         // One of these two is mandatory
         if (!appendParameter(builder, queryString, "SAMLRequest") && !appendParameter(builder, queryString,
                                                                                       "SAMLResponse")) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Extract of SAMLRequest or SAMLResponse from query string " +
-                                                         "failed.");
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "Extract of SAMLRequest or SAMLResponse from query string " +
+                                                           "failed.");
+            ex.setInResponseTo(inResponseTo);
+            ex.setAcsUrl(acsUrl);
+            throw ex;
         }
         // This is optional
         appendParameter(builder, queryString, "RelayState");
@@ -218,12 +243,16 @@ public class AuthnReqSigUtil {
     }
 
     public static boolean validateXMLSignature(AuthnRequest authnRequest, X509Certificate certificate,
-                                               RequestValidatorConfig config)
+                                               String inResponseTo, String acsUrl)
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
         if (authnRequest.getSignature() == null) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Cannot find Signature element in AuthnRequest.");
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "Cannot find Signature element in AuthnRequest.");
+            ex.setInResponseTo(inResponseTo);
+            ex.setAcsUrl(acsUrl);
+            throw ex;
         }
 
         X509Credential credential = new X509CredentialImpl(certificate);

@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
+import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
 import org.wso2.carbon.identity.saml.request.IdPInitRequest;
 
@@ -75,22 +76,29 @@ public class IdPInitValidator extends SAML2SSOValidator {
 
         messageContext.setSPEntityId(messageContext.getUniqueId());
 
-        if (!requestValidatorConfig.isIdPInitSSOEnabled()) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "IdP-initiated SSO not enabled for service provider '" + spName + "'.");
-        }
-
         String acs = ((IdPInitRequest) messageContext.getInitialAuthenticationRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {
             if (requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
-                throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                             "Invalid Assertion Consumer Service URL value '" + acs +
-                                                             "' in the request from '" + spName + "'.");
+                SAML2SSORequestValidationException ex =
+                        new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                               "Invalid Assertion Consumer Service URL value '" + acs +
+                                                               "' in the request from '" + spName + "'.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
             }
         } else {
             acs = requestValidatorConfig.getDefaultAssertionConsumerUrl();
         }
         messageContext.setAssertionConsumerUrl(acs);
+
+        if (!requestValidatorConfig.isIdPInitSSOEnabled()) {
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                           "IdP-initiated SSO not enabled for service provider '" +
+                                                           spName + "'.");
+            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            throw ex;
+        }
 
         if (requestValidatorConfig.sendBackClaimsAlways() && requestValidatorConfig
                                                                      .getAttributeConsumingServiceIndex() != null) {
