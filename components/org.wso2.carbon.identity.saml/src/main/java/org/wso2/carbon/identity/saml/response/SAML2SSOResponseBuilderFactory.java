@@ -27,6 +27,9 @@ import org.wso2.carbon.identity.saml.model.Config;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * The factory responsible of building the MSS4J Response from SAML2SSOResponse.
+ */
 public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
     private static Logger log = LoggerFactory.getLogger(SAML2SSOResponseBuilderFactory.class);
