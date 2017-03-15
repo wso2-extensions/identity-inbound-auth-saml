@@ -19,11 +19,7 @@
 package org.wso2.carbon.identity.saml.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.StatusMessage;
-import org.opensaml.saml2.core.impl.StatusCodeBuilder;
-import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +30,6 @@ import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.internal.SAML2InboundAuthDataHolder;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 

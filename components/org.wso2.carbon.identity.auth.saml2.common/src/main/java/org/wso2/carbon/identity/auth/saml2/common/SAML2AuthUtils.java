@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.auth.saml2.common;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import org.apache.commons.lang.StringUtils;
-import org.apache.xml.security.c14n.Canonicalizer;
 import org.opensaml.common.impl.SAMLObjectContentReference;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.RequestAbstractType;
@@ -39,12 +38,10 @@ import org.opensaml.xml.signature.KeyInfo;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureException;
-import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.signature.Signer;
 import org.opensaml.xml.signature.X509Data;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -53,7 +50,6 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.xml.sax.SAXException;
 
@@ -135,7 +131,8 @@ public class SAML2AuthUtils {
         Signature signature = (Signature) buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
         signature.setSigningCredential(x509Credential);
         signature.setSignatureAlgorithm(signatureAlgorithm);
-        signature.setCanonicalizationAlgorithm(Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
+        signature.setCanonicalizationAlgorithm(SAML2AuthConstants.XML.CanonicalizationAlgorithm
+                                                       .ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 
         if (includeCert) {
             KeyInfo keyInfo = (KeyInfo) buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);

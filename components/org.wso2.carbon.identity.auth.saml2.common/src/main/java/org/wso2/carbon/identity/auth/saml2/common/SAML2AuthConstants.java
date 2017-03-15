@@ -78,4 +78,79 @@ public class SAML2AuthConstants {
         }
 
     }
+
+    /**
+     * XML.
+     */
+    public static class XML {
+
+        /**
+         * Signature algorithms.
+         */
+        public static class SignatureAlgorithm {
+            public static final String DSA_SHA1 = "DSA with SHA1";
+            public static final String ECDSA_SHA1 = "ECDSA with SHA1";
+            public static final String ECDSA_SHA256 = "ECDSA with SHA256";
+            public static final String ECDSA_SHA384 = "ECDSA with SHA384";
+            public static final String ECDSA_SHA512 = "ECDSA with SHA512";
+            public static final String RSA_MD5 = "RSA with MD5";
+            public static final String RSA_RIPEMD160 = "RSA with RIPEMD160";
+            public static final String RSA_SHA1 = "RSA with SHA1";
+            public static final String RSA_SHA256 = "RSA with SHA256";
+            public static final String RSA_SHA384 = "RSA with SHA384";
+            public static final String RSA_SHA512 = "RSA with SHA512";
+        }
+
+        /**
+         * Signature algorithm URIs.
+         */
+        public static class SignatureAlgorithmURI {
+            public static final String DSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#dsa-sha1";
+            public static final String ECDSA_SHA1 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1";
+            public static final String ECDSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
+            public static final String ECDSA_SHA384 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384";
+            public static final String ECDSA_SHA512 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512";
+            public static final String RSA_MD5 = "http://www.w3.org/2001/04/xmldsig-more#rsa-md5";
+            public static final String RSA_RIPEMD160 = "http://www.w3.org/2001/04/xmldsig-more#rsa-ripemd160";
+            public static final String RSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+            public static final String RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+            public static final String RSA_SHA384 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384";
+            public static final String RSA_SHA512 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512";
+        }
+
+        /**
+         * Digest algorithm.
+         */
+        public static class DigestAlgorithm {
+            public static final String MD5 = "MD5";
+            public static final String RIPEMD160 = "RIPEMD160";
+            public static final String SHA1 = "SHA1";
+            public static final String SHA256 = "SHA256";
+            public static final String SHA384 = "SHA384";
+            public static final String SHA512 = "SHA512";
+        }
+
+        /**
+         * Digest algorithm URIs.
+         */
+        public static class DigestAlgorithmURI {
+            public static final String MD5 = "http://www.w3.org/2001/04/xmldsig-more#md5";
+            public static final String RIPEMD160 = "http://www.w3.org/2001/04/xmlenc#ripemd160";
+            public static final String SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
+            public static final String SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
+            public static final String SHA384 = "http://www.w3.org/2001/04/xmldsig-more#sha384";
+            public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
+        }
+
+
+        public static class CanonicalizationAlgorithm {
+            public static final String ALGO_ID_C14N_OMIT_COMMENTS = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
+            public static final String ALGO_ID_C14N_WITH_COMMENTS = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments";
+            public static final String ALGO_ID_C14N_EXCL_OMIT_COMMENTS = "http://www.w3.org/2001/10/xml-exc-c14n#";
+            public static final String ALGO_ID_C14N_EXCL_WITH_COMMENTS = "http://www.w3.org/2001/10/xml-exc-c14n#WithComments";
+            public static final String ALGO_ID_C14N11_OMIT_COMMENTS = "http://www.w3.org/2006/12/xml-c14n11";
+            public static final String ALGO_ID_C14N11_WITH_COMMENTS = "http://www.w3.org/2006/12/xml-c14n11#WithComments";
+            public static final String ALGO_ID_C14N_PHYSICAL = "http://santuario.apache.org/c14n/physical";
+        }
+    }
 }

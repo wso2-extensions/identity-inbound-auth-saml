@@ -23,21 +23,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.mgt.IdentityStore;
 import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.exception.DomainException;
 import org.wso2.carbon.identity.mgt.impl.Domain;
 import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
-import org.wso2.carbon.identity.saml.request.SAML2SSORequestBuilderFactory;
-import org.wso2.carbon.identity.saml.response.SAML2SSOResponseBuilderFactory;
-
-import javax.ws.rs.core.Response;
 
 /**
  * SAML inbound unit tests.
@@ -87,26 +81,7 @@ public class SAMLInboundUnitTests {
 //
 //        Response.ResponseBuilder responseBuilder = factory.handleException(exception);
 //        Response response = responseBuilder.build();
-//        //  We cannot access content in ms4j response. or builder. Hence there is no way of asserting content
-//        Assert.assertNotNull(response);
-    }
-
-    @Test
-    public void testSAMLResponseBuilderFactory() {
-//        SAML2SSOResponseBuilderFactory builderFactory = new SAML2SSOResponseBuilderFactory();
-//        GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = new GatewayResponse.GatewayResponseBuilder
-//                (null);
-//        ErrorResponse.SAMLErrorResponseBuilder samlErrorResponseBuilder = new ErrorResponse
-//                .SAMLErrorResponseBuilder(null);
-//        samlErrorResponseBuilder.setErrorResponse("Error Response");
-//        samlErrorResponseBuilder.setAcsUrl("http://localhost:8080/acs");
-//        samlErrorResponseBuilder.setMessageLog("MessageLog");
-//        samlErrorResponseBuilder.setStatus("Status");
-//
-//        ErrorResponse samlErrorResponse = new ErrorResponse(samlErrorResponseBuilder);
-//        Response.ResponseBuilder responseBuilder = builderFactory.createBuilder(samlErrorResponse);
-//        Response response = responseBuilder.build();
-//        //  We cannot access content in ms4j response. or builder. Hence there is no way of asserting content
+//        //  We cannot access content in mss4j response. or builder. Hence there is no way of asserting content
 //        Assert.assertNotNull(response);
     }
 }
