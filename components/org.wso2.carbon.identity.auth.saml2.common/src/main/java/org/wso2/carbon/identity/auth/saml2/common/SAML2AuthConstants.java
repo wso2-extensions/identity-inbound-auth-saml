@@ -63,6 +63,9 @@ public class SAML2AuthConstants {
             public static final String POST = "POST";
             public static final String REDIRECT = "REDIRECT";
             public static final String GET = "GET";
+            public static final String RSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+            public static final String SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
+
         }
 
     }
