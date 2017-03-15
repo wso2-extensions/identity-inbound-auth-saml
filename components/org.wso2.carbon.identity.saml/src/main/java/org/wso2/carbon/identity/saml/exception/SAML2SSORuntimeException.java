@@ -25,19 +25,42 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
  */
 public class SAML2SSORuntimeException extends GatewayRuntimeException {
 
+    // Need to add getter for errorCode in IdentityRuntimeException
+    private String errorCode;
+    private String inResponseTo;
+    private String acsUrl;
+
     public SAML2SSORuntimeException(String message) {
         super(message);
     }
 
     public SAML2SSORuntimeException(String errorCode, String message) {
         super(errorCode, message);
+        this.errorCode = errorCode;
     }
 
     public SAML2SSORuntimeException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
+        this.errorCode = errorCode;
     }
 
-    public SAML2SSORuntimeException(String errorCode, Throwable cause) {
-        super(errorCode, cause);
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public String getInResponseTo() {
+        return this.inResponseTo;
+    }
+
+    public void setInResponseTo(String inResponseTo) {
+        this.inResponseTo = inResponseTo;
+    }
+
+    public String getACSUrl() {
+        return this.acsUrl;
+    }
+
+    public void setAcsUrl(String acsUrl) {
+        this.acsUrl = acsUrl;
     }
 }

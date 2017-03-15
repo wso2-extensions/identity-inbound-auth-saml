@@ -27,11 +27,34 @@ public class SAML2SSOServerException extends GatewayServerException {
 
     private static final long serialVersionUID = 7027553884968546755L;
 
+    private String inResponseTo;
+    private String acsUrl;
+
+    public SAML2SSOServerException(String message) {
+        super(message);
+    }
+
     public SAML2SSOServerException(String errorCode, String message) {
         super(errorCode, message);
     }
 
     public SAML2SSOServerException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
+    }
+
+    public String getInResponseTo() {
+        return this.inResponseTo;
+    }
+
+    public void setInResponseTo(String inResponseTo) {
+        this.inResponseTo = inResponseTo;
+    }
+
+    public String getACSUrl() {
+        return this.acsUrl;
+    }
+
+    public void setAcsUrl(String acsUrl) {
+        this.acsUrl = acsUrl;
     }
 }

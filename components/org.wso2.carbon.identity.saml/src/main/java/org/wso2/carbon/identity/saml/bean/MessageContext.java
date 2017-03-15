@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.saml.bean;
 
-import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
@@ -37,9 +36,9 @@ public class MessageContext extends AuthenticationContext {
 
     private String id;
     private String spEntityId;
+    private String assertionConsumerUrl;
     private String destination;
     private String subject;
-    private String assertionConsumerUrl;
     private int attributeConsumingServiceIndex;
     private boolean isPassive;
     private boolean isForce;
@@ -49,41 +48,6 @@ public class MessageContext extends AuthenticationContext {
 
     public MessageContext(SAML2SSORequest request, Map<Serializable, Serializable> parameters) {
         super(request, parameters);
-    }
-
-    public String getAssertionConsumerURL() {
-        return this.assertionConsumerUrl;
-    }
-
-    public int getAttributeConsumingServiceIndex() {
-        return attributeConsumingServiceIndex;
-    }
-
-    public void setAttributeConsumingServiceIndex(int attributeConsumingServiceIndex) {
-        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
-    }
-
-    public String getDestination() {
-        return this.destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public String getId() {
-        if (!isIdpInitSSO()) {
-            return this.id;
-        }
-        return null;
-    }
-
-    //    public String getRpSessionId() {
-    //        return this.request.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
-    //    }
-    //
-    public void setId(String id) {
-        this.id = id;
     }
 
     @Override
@@ -96,11 +60,18 @@ public class MessageContext extends AuthenticationContext {
         return (SAML2SSORequest) initialAuthenticationRequest;
     }
 
-    public String getSPEntityId() {
-        if (spEntityId.contains("@")) {
-            String[] splitIssuer = spEntityId.split("@");
-            return splitIssuer[0];
+    public String getId() {
+        if (!isIdpInitSSO()) {
+            return this.id;
         }
+        return null;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSPEntityId() {
         return spEntityId;
     }
 
@@ -108,12 +79,64 @@ public class MessageContext extends AuthenticationContext {
         this.spEntityId = spEntityId;
     }
 
-    public String getIssuerWithDomain() {
-        return this.spEntityId;
+    public String getAssertionConsumerURL() {
+        return this.assertionConsumerUrl;
+    }
+
+    public void setAssertionConsumerUrl(String assertionConsumerUrl) {
+        this.assertionConsumerUrl = assertionConsumerUrl;
+    }
+
+    public String getDestination() {
+        return this.destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public int getAttributeConsumingServiceIndex() {
+        return attributeConsumingServiceIndex;
+    }
+
+    public void setAttributeConsumingServiceIndex(int attributeConsumingServiceIndex) {
+        this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
+    }
+
+    public boolean isPassive() {
+        return this.isPassive;
+    }
+
+    public void setPassive(boolean isPassive) {
+        this.isPassive = isPassive;
+    }
+
+    public boolean isForce() {
+        return this.isForce;
+    }
+
+    public void setForce(boolean isForce) {
+        this.isForce = isForce;
     }
 
     public String getRelayState() {
         return this.getIdentityRequest().getRelayState();
+    }
+
+    public boolean isIdpInitSSO() {
+        return this.getIdentityRequest() instanceof IdPInitRequest;
+    }
+
+    public String getIssuerWithDomain() {
+        return this.spEntityId;
     }
 
     public ResponseBuilderConfig getResponseBuilderConfig() {
@@ -131,53 +154,4 @@ public class MessageContext extends AuthenticationContext {
     public void setRequestValidatorConfig(RequestValidatorConfig requestValidatorConfig) {
         this.requestValidatorConfig = requestValidatorConfig;
     }
-
-    //TODO
-   /* public AuthenticatedUser getUser() {
-        return this.getAuthenticationResult().getSubject();
-    }
-*/
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public boolean isIdpInitSSO() {
-        return this.getIdentityRequest() instanceof IdPInitRequest;
-    }
-
-    public boolean isPassive() {
-        return this.isPassive;
-    }
-
-    public boolean isForce() {
-        return this.isForce;
-    }
-
-    public void setAssertionConsumerUrl(String assertionConsumerUrl) {
-        this.assertionConsumerUrl = assertionConsumerUrl;
-    }
-
-    public void setPassive(boolean isPassive) {
-        this.isPassive = isPassive;
-    }
-
-    public void setForce(boolean isForce) {
-        this.isForce = isForce;
-    }
-
-    /**
-     * @return AuthenticationResult saved in the messageContext
-     * while authenticating in the framework.
-     */
-    // TODO
-    //    public AuthenticationResult getAuthenticationResult() {
-    //        if (this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT) != null) {
-    //            return (AuthenticationResult) this.getParameter(SAMLSSOConstants.AUTHENTICATION_RESULT);
-    //        }
-    //        return new AuthenticationResult();
-    //    }
 }

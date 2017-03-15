@@ -29,9 +29,8 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.model.Config;
-import org.wso2.carbon.identity.saml.util.Utils;
 import org.wso2.msf4j.Request;
 
 import java.io.UnsupportedEncodingException;
@@ -85,20 +84,17 @@ public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory 
         Map<String, String[]> queryParams = new HashMap();
         //TODO Send status codes rather than full messages in the GET request
         try {
-            queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(((SAML2SSOClientException)
-                    exception).getErrorCode(), StandardCharsets.UTF_8.name()) });
-            queryParams.put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(((SAML2SSOClientException)
-                    exception).getErrorCode(), StandardCharsets.UTF_8.name()) });
+            queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(
+                    exception.getErrorCode(), StandardCharsets.UTF_8.name()) });
+            queryParams.put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(
+                    exception.getErrorCode(), StandardCharsets.UTF_8.name()) });
             if (exception.getMessage() != null) {
-                queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(exception.getMessage()
-                        , StandardCharsets.UTF_8.name()) });
+                queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(
+                        exception.getMessage(), StandardCharsets.UTF_8.name()) });
             }
-            if (((SAML2SSOClientException) exception).getACSUrl() != null) {
+            if (((SAML2SSORequestValidationException) exception).getACSUrl() != null) {
                 queryParams.put(SAML2AuthConstants.ASSRTN_CONSUMER_URL, new String[] {URLEncoder.encode((
-                                                                                                               (SAML2SSOClientException) exception)
-                                                                                                               .getACSUrl(),
-                                                                                               StandardCharsets.UTF_8
-                                                                                                               .name()) });
+                        (SAML2SSORequestValidationException) exception).getACSUrl(), StandardCharsets.UTF_8.name()) });
             }
             //builder.setParameters(queryParams);
         } catch (UnsupportedEncodingException e) {

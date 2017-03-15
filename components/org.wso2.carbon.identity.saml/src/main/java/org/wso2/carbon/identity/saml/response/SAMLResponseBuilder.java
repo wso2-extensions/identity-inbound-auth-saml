@@ -70,15 +70,13 @@ import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.auth.saml2.common.X509CredentialImpl;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.saml.util.Utils;
@@ -88,18 +86,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
- * SPI to build a SAML2 Response.
+ * SPI to build a SAMLResponse.
  */
 public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(SAMLResponseBuilder.class);
-
     protected Response buildSAMLResponse(MessageContext messageContext, ResponseBuilderConfig config,
-                                         AuthenticationContext context) throws SAML2SSOServerException {
+                                         AuthenticationContext context) throws SAML2SSOResponseBuilderException {
 
         Response response = new ResponseBuilder().buildObject();
         response.setIssuer(getIssuer());
@@ -123,7 +121,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         return response;
     }
 
-    public Issuer getIssuer() {
+    protected Issuer getIssuer() {
 
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setFormat(NameID.ENTITY);
@@ -134,7 +132,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
 
     protected void buildAssertion(Response response, DateTime issueInstant, MessageContext messageContext,
                                   ResponseBuilderConfig config, AuthenticationContext context)
-            throws SAML2SSOServerException {
+            throws SAML2SSOResponseBuilderException {
 
         DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + config.getNotOnOrAfterPeriod() * 60 * 1000L);
         DateTime currentTime = new DateTime();
@@ -225,6 +223,8 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         conditions.getAudienceRestrictions().add(audienceRestriction);
         assertion.setConditions(conditions);
 
+        // signing has to be ideally done at transport binding level. encryption also will have to move there.
+
         SAML2AuthUtils.setSignature(assertion, config.getSigningAlgorithmUri(), config.getDigestAlgorithmUri(),
                                         true, SAML2AuthUtils.getServerCredentials());
 
@@ -248,8 +248,8 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         response.setStatus(status);
     }
 
-    public void encryptAssertion(Response response, Assertion assertion, ResponseBuilderConfig config)
-            throws SAML2SSOServerException {
+    protected void encryptAssertion(Response response, Assertion assertion, ResponseBuilderConfig config)
+            throws SAML2SSOResponseBuilderException {
 
         if (!config.encryptAssertion()) {
 
@@ -259,13 +259,13 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
 
             String encodedCert = config.getEncryptionCertificate();
             if (StringUtils.isBlank(encodedCert)) {
-                throw new SAML2SSOServerException("", "Encryption certificate is not configured.");
+                throw new SAML2SSOResponseBuilderException("", "Encryption certificate is not configured.");
             }
             Certificate certificate;
             try {
                 certificate = Utils.decodeCertificate(encodedCert);
             } catch (CertificateException e) {
-                throw new SAML2SSOServerException("", "Invalid encoded certificate: " + encodedCert);
+                throw new SAML2SSOResponseBuilderException("", "Invalid encoded certificate: " + encodedCert);
             }
 
             Credential symmetricCredential = null;
@@ -298,7 +298,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         }
     }
 
-    private AttributeStatement buildAttributeStatement(Map<String, String> claims) {
+    protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
 
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();
         Iterator<Map.Entry<String, String>> iterator = claims.entrySet().iterator();
@@ -329,5 +329,64 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         } else {
             return null;
         }
+    }
+
+    protected Response buildErrorResponse(String inResponseTo, String status, String message, String destination) {
+
+        List<String> statusCodeList = new ArrayList();
+        statusCodeList.add(status);
+        return buildErrorResponse(inResponseTo, statusCodeList, message, destination);
+    }
+
+    protected Response buildErrorResponse(String inResponseToId, List<String> statusCodes, String statusMsg,
+                                          String destination) {
+
+        Response response = new ResponseBuilder().buildObject();
+
+        if (statusCodes == null || statusCodes.isEmpty()) {
+            throw new SAML2SSORuntimeException("", "No Status Values");
+        }
+        response.setIssuer(getIssuer());
+        Status status = new StatusBuilder().buildObject();
+        StatusCode statusCode = null;
+        for (String statCode : statusCodes) {
+            statusCode = buildStatusCode(statCode, statusCode);
+        }
+        status.setStatusCode(statusCode);
+        buildStatusMsg(status, statusMsg);
+        response.setStatus(status);
+        response.setVersion(SAMLVersion.VERSION_20);
+        response.setID(SAML2AuthUtils.createID());
+        if (StringUtils.isNotBlank(inResponseToId)) {
+            response.setInResponseTo(inResponseToId);
+        }
+        if (destination != null) {
+            response.setDestination(destination);
+        }
+        response.setIssueInstant(new DateTime());
+        return response;
+    }
+
+    private StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) {
+
+        StatusCode statusCode = new StatusCodeBuilder().buildObject();
+        statusCode.setValue(parentStatusCode);
+
+        if (childStatusCode != null) {
+            statusCode.setStatusCode(childStatusCode);
+            return statusCode;
+        } else {
+            return statusCode;
+        }
+    }
+
+    private Status buildStatusMsg(Status status, String statusMsg) {
+
+        if (statusMsg != null) {
+            StatusMessage statusMesssage = new StatusMessageBuilder().buildObject();
+            statusMesssage.setMessage(statusMsg);
+            status.setStatusMessage(statusMesssage);
+        }
+        return status;
     }
 }

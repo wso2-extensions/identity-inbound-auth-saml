@@ -19,25 +19,15 @@
 package org.wso2.carbon.identity.saml.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
-import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
@@ -46,26 +36,18 @@ import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.internal.SAML2InboundAuthDataHolder;
-import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
 
 /**
  * Utilities needed for SAML2 SSO Inbound Authenticator.
@@ -166,13 +148,6 @@ public class Utils {
     // Move to SequenceContext/AuthenticationContext in Gateway
     public static String getSubject(AuthenticationContext authenticationContext) {
 
-//        if (authenticationContext.getSequenceContext() != null && authenticationContext.getSequenceContext()
-//                                                                          .getStepContext(1) != null
-//            && authenticationContext.getSequenceContext().getStepContext(1).getUser()
-//               != null) {
-//            return authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier();
-//        }
-
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         int lastStep = sequenceContext.getCurrentStep();
         boolean isUserIdStepFound = false;
@@ -189,106 +164,6 @@ public class Utils {
             }
         }
         return null;
-    }
-
-    public static class SAMLResponseUtil {
-
-        /**
-         * build the error response.
-         *
-         * @param status
-         * @param message
-         * @return decoded response
-         * @throws org.wso2.carbon.identity
-         */
-        public static String buildErrorResponse(String status, String message, String destination) {
-
-            List<String> statusCodeList = new ArrayList<String>();
-            statusCodeList.add(status);
-            //Do below in the response builder
-            String errorResp = null;
-            try {
-                Response response = buildResponse("asdfasd", statusCodeList, message, destination);
-                errorResp = compressResponse(SAML2AuthUtils.marshall(response));
-            } catch (SAML2SSOServerException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return errorResp;
-        }
-
-        public static String buildErrorResponse(String id,
-                                                List<String> statusCodes,
-                                                String statusMsg,
-                                                String destination)
-                throws IdentityException {
-            Response response = buildResponse(id, statusCodes, statusMsg, destination);
-            return SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(response));
-        }
-
-        /**
-         * Build the error response.
-         *
-         * @return
-         */
-        public static Response buildResponse(String inResponseToID, List<String> statusCodes, String statusMsg, String
-                destination) throws SAML2SSOServerException {
-
-            Response response = new ResponseBuilder().buildObject();
-
-            if (statusCodes == null || statusCodes.isEmpty()) {
-                throw new SAML2SSOServerException("", "No Status Values");
-            }
-            response.setIssuer(getIssuer());
-            Status status = new StatusBuilder().buildObject();
-            StatusCode statusCode = null;
-            for (String statCode : statusCodes) {
-                statusCode = buildStatusCode(statCode, statusCode);
-            }
-            status.setStatusCode(statusCode);
-            buildStatusMsg(status, statusMsg);
-            response.setStatus(status);
-            response.setVersion(SAMLVersion.VERSION_20);
-            response.setID(SAML2AuthUtils.createID());
-            if (inResponseToID != null) {
-                response.setInResponseTo(inResponseToID);
-            }
-            if (destination != null) {
-                response.setDestination(destination);
-            }
-            response.setIssueInstant(new DateTime());
-            return response;
-        }
-
-        public static Issuer getIssuer() {
-
-            Issuer issuer = new IssuerBuilder().buildObject();
-            issuer.setFormat(NameID.ENTITY);
-            String idPEntityId = Config.getInstance().getIdpEntityId();
-            issuer.setValue(idPEntityId);
-            return issuer;
-        }
-
-        /**
-         * Compresses the response String.
-         *
-         * @param response
-         * @return
-         * @throws IOException
-         */
-        public static String compressResponse(String response) throws IOException {
-
-            Deflater deflater = new Deflater(Deflater.DEFLATED, true);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
-            try {
-                deflaterOutputStream.write(response.getBytes(StandardCharsets.UTF_8));
-            } finally {
-                deflaterOutputStream.close();
-            }
-            return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
-        }
     }
 
     /**

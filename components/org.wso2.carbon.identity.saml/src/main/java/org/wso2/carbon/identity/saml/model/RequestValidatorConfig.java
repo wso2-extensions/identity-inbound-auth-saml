@@ -57,7 +57,7 @@ public class RequestValidatorConfig implements Serializable {
     }
 
     public String getSigningCertificate() {
-        return (String) this.requestValidatorConfig.getProperties().get("certificateAlias");
+        return (String) this.requestValidatorConfig.getProperties().get("certificate");
     }
 
     public boolean sendBackClaimsAlways() {

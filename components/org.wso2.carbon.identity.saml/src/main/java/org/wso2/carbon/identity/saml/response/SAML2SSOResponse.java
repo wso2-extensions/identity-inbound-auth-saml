@@ -18,39 +18,105 @@
 package org.wso2.carbon.identity.saml.response;
 
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
+import org.opensaml.saml2.core.impl.StatusBuilder;
+import org.opensaml.saml2.core.impl.StatusCodeBuilder;
+import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
+import org.wso2.carbon.identity.saml.bean.MessageContext;
 
 /**
- * Abstract model for SAML2 SSO Response.
+ * The SAML2 SSO Response returned to the service provider.
  */
-public abstract class SAML2SSOResponse extends GatewayResponse {
+public class SAML2SSOResponse extends GatewayResponse {
 
     private Response response;
+    private String respString;
+    private String relayState;
+    private String acsUrl;
 
     protected SAML2SSOResponse(GatewayResponseBuilder builder) {
         super(builder);
-        this.response = ((SAMLResponseBuilder) builder).response;
+        this.response = ((SAML2SSOResponseBuilder) builder).response;
+        this.respString = ((SAML2SSOResponseBuilder) builder).respString;
+        this.relayState = ((SAML2SSOResponseBuilder) builder).relayState;
+        this.acsUrl = ((SAML2SSOResponseBuilder) builder).acsUrl;
     }
 
     public Response getResponse() {
         return this.response;
     }
 
-    public static class SAMLResponseBuilder extends GatewayResponseBuilder {
+    public String getAcsUrl() {
+        return acsUrl;
+    }
+
+    public String getRelayState() {
+        return relayState;
+    }
+
+    public String getRespString() {
+        return respString;
+    }
+
+    public MessageContext getContext() {
+        return (MessageContext) this.context;
+    }
+
+    public static class SAML2SSOResponseBuilder extends GatewayResponseBuilder {
 
         private Response response;
+        private String respString;
+        private String relayState;
+        private String acsUrl;
 
-        public SAMLResponseBuilder(GatewayMessageContext context) {
+        public SAML2SSOResponseBuilder(GatewayMessageContext context) {
             super(context);
             ResponseBuilder responseBuilder = new ResponseBuilder();
             this.response = responseBuilder.buildObject();
         }
 
-        public SAMLResponseBuilder setResponse(Response response) {
+        public SAML2SSOResponseBuilder setResponse(Response response) {
             this.response = response;
             return this;
+        }
+
+        public SAML2SSOResponseBuilder setAcsUrl(String acsUrl) {
+            this.acsUrl = acsUrl;
+            return this;
+        }
+
+        public SAML2SSOResponseBuilder setRelayState(String relayState) {
+            this.relayState = relayState;
+            return this;
+        }
+
+        public SAML2SSOResponseBuilder setRespString(String respString) {
+            this.respString = respString;
+            return this;
+        }
+
+        private Status buildStatus(String status, String statMsg) {
+
+            Status stat = new StatusBuilder().buildObject();
+
+            // Set the status code
+            StatusCode statCode = new StatusCodeBuilder().buildObject();
+            statCode.setValue(status);
+            stat.setStatusCode(statCode);
+
+            // Set the status Message
+            if (statMsg != null) {
+                StatusMessage statMesssage = new StatusMessageBuilder().buildObject();
+                statMesssage.setMessage(statMsg);
+                stat.setStatusMessage(statMesssage);
+            }
+
+            return stat;
         }
     }
 }

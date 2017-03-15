@@ -17,11 +17,11 @@
  */
 package org.wso2.carbon.identity.saml.response;
 
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.Response;
-import org.slf4j.Logger;
+import org.opensaml.saml2.core.StatusCode;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -30,43 +30,42 @@ import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
+import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
-public abstract class SAML2SSOResponseHandler extends AbstractResponseHandler {
+/**
+ * SAML2 SSO Response Handler.
+ */
+public class SAML2SSOResponseHandler extends AbstractResponseHandler {
 
-    private static Logger log = org.slf4j.LoggerFactory.getLogger(SPInitResponseHandler.class);
+    protected String getValidatorType() {
+        // change to "SAML2SSO"
+        return "SAML";
+    }
 
-    @Override
-    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext, GatewayException e)
-            throws
-            ResponseHandlerException {
-        try {
-            setSAMLResponseHandlerConfigs(authenticationContext);
-        } catch (AuthenticationHandlerException ex) {
-            throw new ResponseHandlerException("Error while getting response handler configurations");
+    public int getPriority(org.wso2.carbon.identity.common.base.message.MessageContext messageContext) {
+        return 16;
+    }
+
+    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext) {
+
+        if (messageContext instanceof AuthenticationContext) {
+            return ((AuthenticationContext) messageContext).getInitialAuthenticationRequest() instanceof
+                    SAML2SSORequest;
         }
-        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+        return false;
     }
 
     @Override
-    public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws ResponseHandlerException {
-        try {
-            setSAMLResponseHandlerConfigs(authenticationContext);
-        } catch (AuthenticationHandlerException e) {
-            throw new ResponseHandlerException("Error while getting response handler configurations");
-        }
-        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
-    }
+    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext,
+                             GatewayException exception) {
 
-    @Override
-    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext, GatewayException exception) {
         if (canHandle(messageContext)) {
-            if (exception instanceof SAML2SSORequestValidationException || exception instanceof SAML2SSOClientException ||
+            if (exception instanceof SAML2SSORequestValidationException ||
                 exception instanceof SAML2SSOServerException) {
                 return true;
             }
@@ -75,7 +74,9 @@ public abstract class SAML2SSOResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext, GatewayRuntimeException exception) {
+    public boolean canHandle(org.wso2.carbon.identity.common.base.message.MessageContext messageContext,
+                             GatewayRuntimeException exception) {
+
         if (canHandle(messageContext)) {
             if (exception instanceof SAML2SSORuntimeException) {
                 return true;
@@ -84,30 +85,108 @@ public abstract class SAML2SSOResponseHandler extends AbstractResponseHandler {
         return false;
     }
 
-    public String setResponse(AuthenticationContext context, SuccessResponse.SAMLLoginResponseBuilder
-            builder) throws IdentityException {
+    @Override
+    public GatewayHandlerResponse buildResponse(AuthenticationContext context)
+            throws SAML2SSOResponseBuilderException {
+
+        try {
+            setSAMLResponseHandlerConfigs(context);
+        } catch (AuthenticationHandlerException e) {
+            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                       "Error while getting response handler configurations");
+        }
+
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+
+        SAML2SSOResponse.SAML2SSOResponseBuilder builder =
+                new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
 
         MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
         ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
 
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
-        Response response = samlResponseBuilder.buildSAMLResponse(messageContext, config, context);
-        builder.setResponse(response);
+        Response samlResponse = samlResponseBuilder.buildSAMLResponse(messageContext, config, context);
+        builder.setResponse(samlResponse);
 
-        String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(response));
+        String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse));
         builder.setRespString(respString);
 
         builder.setAcsUrl(messageContext.getAssertionConsumerURL());
-        builder.setRelayState(messageContext.getRelayState());
+        if (StringUtils.isNotBlank(messageContext.getRelayState())) {
+            builder.setRelayState(messageContext.getRelayState());
+        }
 
-        addSessionKey(builder, context);
+        try {
+            addSessionKey(builder, context);
+        } catch (ResponseHandlerException e) {
+            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, "Server Error", e);
+        }
 
-        return respString;
+        response.setGatewayResponseBuilder(builder);
+
+        return response;
     }
 
-    protected String getValidatorType() {
-        // change to "SAML2SSO"
-        return "SAML";
+    @Override
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayException e)
+            throws SAML2SSOResponseBuilderException {
+
+        try {
+            setSAMLResponseHandlerConfigs(context);
+        } catch (AuthenticationHandlerException e1) {
+            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                       "Error while getting response handler configurations");
+        }
+
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+
+        SAML2SSOResponse.SAML2SSOResponseBuilder builder =
+                new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
+
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
+        Response samlResponse;
+        if (e instanceof SAML2SSORequestValidationException) {
+            SAML2SSORequestValidationException e2 = ((SAML2SSORequestValidationException) e);
+            samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
+                                                                  e2.getMessage(), e2.getACSUrl());
+            builder.setAcsUrl(e2.getACSUrl());
+        } else {
+            SAML2SSOServerException e2 = ((SAML2SSOServerException) e);
+            samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
+                                                                  e2.getMessage(), e2.getACSUrl());
+            builder.setAcsUrl(e2.getACSUrl());
+        }
+        builder.setResponse(samlResponse);
+        builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
+
+        return response;
+    }
+
+    @Override
+    public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayRuntimeException e)
+            throws SAML2SSOResponseBuilderException {
+
+        try {
+            setSAMLResponseHandlerConfigs(context);
+        } catch (AuthenticationHandlerException e1) {
+            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                       "Error while getting response handler configurations");
+        }
+
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+
+        SAML2SSOResponse.SAML2SSOResponseBuilder builder =
+                new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
+
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
+        SAML2SSORuntimeException e1 = ((SAML2SSORuntimeException) e);
+        Response samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
+                                                                       e1.getMessage(), e1.getACSUrl());
+        builder.setResponse(samlResponse);
+        builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
+        builder.setAcsUrl(e1.getACSUrl());
+
+        return response;
     }
 
     protected void setSAMLResponseHandlerConfigs(AuthenticationContext authenticationContext) throws

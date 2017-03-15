@@ -396,4 +396,17 @@ public class SAML2AuthUtils {
         X509Credential credential = new X509CredentialImpl(certificate, privateKey);
         return credential;
     }
+
+    public static String compressResponse(String response) throws IOException {
+
+        Deflater deflater = new Deflater(Deflater.DEFLATED, true);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
+        try {
+            deflaterOutputStream.write(response.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            deflaterOutputStream.close();
+        }
+        return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+    }
 }

@@ -18,21 +18,33 @@
 
 package org.wso2.carbon.identity.saml.exception;
 
-import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 
 /**
- * SAML2 SSO Inbound Authenticator Client Exception.
+ * SAML2 SSO Inbound Authenticator Response Builder Exception.
  */
-public class SAML2SSOClientException extends GatewayClientException {
+public class SAML2SSOResponseBuilderException extends ResponseHandlerException {
 
+    private String inResponseTo;
     private String acsUrl;
+    private String errorCode;
 
-    public SAML2SSOClientException(String errorCode, String message) {
-        super(errorCode, message);
+    public SAML2SSOResponseBuilderException(String errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
     }
 
-    public SAML2SSOClientException(String errorCode, String message, Throwable cause) {
-        super(errorCode, message, cause);
+    public SAML2SSOResponseBuilderException(String errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    public String getInResponseTo() {
+        return this.inResponseTo;
+    }
+
+    public void setInResponseTo(String inResponseTo) {
+        this.inResponseTo = inResponseTo;
     }
 
     public String getACSUrl() {
@@ -42,4 +54,9 @@ public class SAML2SSOClientException extends GatewayClientException {
     public void setAcsUrl(String acsUrl) {
         this.acsUrl = acsUrl;
     }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
 }

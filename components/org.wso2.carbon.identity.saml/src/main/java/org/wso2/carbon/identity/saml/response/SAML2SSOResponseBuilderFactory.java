@@ -17,24 +17,13 @@
  */
 package org.wso2.carbon.identity.saml.response;
 
-import com.google.common.net.HttpHeaders;
-import org.apache.commons.lang.StringUtils;
-import org.opensaml.saml2.core.Status;
-import org.opensaml.saml2.core.StatusMessage;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.saml.model.Config;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -44,7 +33,7 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
 
     @Override
     public boolean canHandle(GatewayResponse gatewayResponse) {
-        if (gatewayResponse instanceof SuccessResponse || gatewayResponse instanceof ErrorResponse) {
+        if (gatewayResponse instanceof SAML2SSOResponse) {
             return true;
         }
         return false;
@@ -59,16 +48,8 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
 
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
         super.createBuilder(builder, gatewayResponse);
-        if (gatewayResponse instanceof SuccessResponse) {
-            sendResponse(builder, gatewayResponse);
-        } else {
-            sendNotification(builder, gatewayResponse);
-        }
-    }
+        sendResponse(builder, (SAML2SSOResponse) gatewayResponse);
 
-    @Override
-    public String getName() {
-        return "SAMLResponseBuilderFactory";
     }
 
     @Override
@@ -76,31 +57,27 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
         return 31;
     }
 
-    private void sendResponse(Response.ResponseBuilder builder, GatewayResponse
-            gatewayResponse) {
+    private void sendResponse(Response.ResponseBuilder builder, SAML2SSOResponse saml2SSOResponse) {
 
-        SuccessResponse loginResponse = ((SuccessResponse) gatewayResponse);
-
-        String relayState = loginResponse.getRelayState();
-        String acUrl = loginResponse.getAcsUrl();
+        String relayState = saml2SSOResponse.getRelayState();
+        String acUrl = saml2SSOResponse.getAcsUrl();
 
         //builder.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(acUrl));
         builder.type(MediaType.TEXT_HTML);
 
-        builder.entity(getRedirectHtml(acUrl, relayState, loginResponse));
+        builder.entity(getRedirectHtml(acUrl, relayState, saml2SSOResponse));
 
         builder.status(200);
     }
 
-    private String getRedirectHtml(String acUrl, String relayState, SuccessResponse
-            loginResponse) {
+    private String getRedirectHtml(String acUrl, String relayState, SAML2SSOResponse saml2SSOResponse) {
 
         String htmlPage = Config.getInstance().getSsoResponseHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input " +
                                                                            "type='hidden' name='SAMLResponse' value='"
                                                                            + Encode.forHtmlAttribute(
-                loginResponse.getRespString
+                saml2SSOResponse.getRespString
                         ()) + "'>");
         String pageWithAcsResponseRelay = pageWithAcsResponse;
 
@@ -116,48 +93,5 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
             log.debug("samlsso_response.html " + pageWithAcsResponseRelay);
         }
         return pageWithAcsResponseRelay;
-    }
-
-    private void sendNotification(Response.ResponseBuilder builder, GatewayResponse
-            gatewayResponse) {
-
-            ErrorResponse errorResponse = ((ErrorResponse) gatewayResponse);
-            String redirectURL = Config.getInstance().getErrorPageUrl();
-            Map<String, String[]> queryParams = new HashMap();
-
-            //TODO Send status codes rather than full messages in the GET request
-            try {
-                queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(errorResponse.getStatus(),
-                                                                         StandardCharsets.UTF_8
-                                                                                                  .name()) });
-                queryParams
-                        .put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(errorResponse.getMessageLog()
-                                , StandardCharsets.UTF_8.name()) });
-
-                if (StringUtils.isNotEmpty(errorResponse.getErrorResponse())) {
-                    queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(errorResponse
-                                                                                                         .getErrorResponse(),
-                                                                                        StandardCharsets.UTF_8
-                                                                                                         .name()) });
-                }
-
-                if (StringUtils.isNotEmpty(errorResponse.getAcsUrl())) {
-                    queryParams.put(SAML2AuthConstants.ASSRTN_CONSUMER_URL, new String[] {URLEncoder.encode(errorResponse
-                                                                                                                   .getAcsUrl(),
-                                                                                                   StandardCharsets.UTF_8
-                                                                                                                   .name()) });
-                }
-            } catch (UnsupportedEncodingException e) {
-
-            }
-            builder.status(302);
-            //builder.setParameters(queryParams);
-            String httpQueryString = GatewayUtil.buildQueryString(queryParams);
-            if (redirectURL.indexOf("?") > -1) {
-                redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
-            } else {
-                redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
-            }
-            builder.header(HttpHeaders.LOCATION, redirectURL);
     }
 }

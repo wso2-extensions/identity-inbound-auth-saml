@@ -21,7 +21,7 @@
 <suite name="identity-inbound-authentication-saml-tests">
     <test name="identity-inbound-authentication-saml-tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLInboundSPInitTests"/>
+            <!--class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLInboundSPInitTests"/-->
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.SAMLIDPInitiatedTests"/>
         </classes>
     </test>

@@ -76,15 +76,16 @@ public class AuthnReqSigUtil {
 
         SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
         if (spInitRequest.isRedirect()) {
-            return validateDeflateSignature(authnRequest, spInitRequest.getQueryString(), spInitRequest.getSignature(),
-                                            spInitRequest.getSignatureAlgorithm(), config);
+            return validateDeflateSignature(spInitRequest.getQueryString(), spInitRequest.getSignature(),
+                                            spInitRequest.getSignatureAlgorithm(), certificate, config);
         } else {
-            return validateXMLSignature(authnRequest, config);
+            return validateXMLSignature(authnRequest, certificate, config);
         }
     }
 
-    public static boolean validateDeflateSignature(AuthnRequest authnRequest, String queryString, String signature,
-                                                   String sigAlg, RequestValidatorConfig config)
+    public static boolean validateDeflateSignature(String queryString, String signature,
+                                                   String sigAlg, X509Certificate certificate,
+                                                   RequestValidatorConfig config)
             throws SAML2SSOServerException, SAML2SSORequestValidationException {
 
         if (StringUtils.isBlank(signature)) {
@@ -100,12 +101,6 @@ public class AuthnReqSigUtil {
 
         CriteriaSet criteriaSet = buildCriteriaSet(config.getSPEntityId());
 
-        X509Certificate certificate;
-        try {
-            certificate = (X509Certificate) Utils.decodeCertificate(config.getSigningCertificate());
-        } catch (CertificateException e) {
-            throw new SAML2SSORequestValidationException("", "");
-        }
         X509Credential credential = new X509CredentialImpl(certificate);
         List<Credential> credentials = new ArrayList();
         credentials.add(credential);
@@ -218,19 +213,14 @@ public class AuthnReqSigUtil {
         return criteriaSet;
     }
 
-    public static boolean validateXMLSignature(AuthnRequest authnRequest, RequestValidatorConfig config)
+    public static boolean validateXMLSignature(AuthnRequest authnRequest, X509Certificate certificate,
+                                               RequestValidatorConfig config)
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
         if (authnRequest.getSignature() == null) {
             throw new SAML2SSORequestValidationException("", "Cannot find Signature element in AuthnRequest.");
         }
 
-        X509Certificate certificate = null;
-        try {
-            certificate = (X509Certificate) Utils.decodeCertificate(config.getSigningCertificate());
-        } catch (CertificateException e) {
-            throw new SAML2SSOServerException("", "");
-        }
         X509Credential credential = new X509CredentialImpl(certificate);
         return validateXMLSignature(authnRequest, credential);
     }

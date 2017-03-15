@@ -35,9 +35,8 @@ import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.saml.request.SAML2SSORequestBuilderFactory;
-import org.wso2.carbon.identity.saml.response.IdPInitResponseHandler;
 import org.wso2.carbon.identity.saml.response.SAML2SSOResponseBuilderFactory;
-import org.wso2.carbon.identity.saml.response.SPInitResponseHandler;
+import org.wso2.carbon.identity.saml.response.SAML2SSOResponseHandler;
 import org.wso2.carbon.identity.saml.validator.IdPInitValidator;
 import org.wso2.carbon.identity.saml.validator.SPInitValidator;
 
@@ -64,8 +63,7 @@ public class SAML2InboundAuthActivator implements BundleActivator {
             bundleContext.registerService(GatewayResponseBuilderFactory.class, new SAML2SSOResponseBuilderFactory(), null);
             bundleContext.registerService(AbstractRequestValidator.class, new SPInitValidator(), null);
             bundleContext.registerService(AbstractRequestValidator.class, new IdPInitValidator(), null);
-            bundleContext.registerService(AbstractResponseHandler.class, new SPInitResponseHandler(), null);
-            bundleContext.registerService(AbstractResponseHandler.class, new IdPInitResponseHandler(), null);
+            bundleContext.registerService(AbstractResponseHandler.class, new SAML2SSOResponseHandler(), null);
         } catch (Throwable e) {
             log.error("Error while activating SAML2 inbound authenticator component.");
         }

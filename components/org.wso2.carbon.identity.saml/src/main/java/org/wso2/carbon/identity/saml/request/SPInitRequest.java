@@ -47,7 +47,7 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SAML_REQUEST);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("Failed to URL-decode the SAMLRequest.", e);
+                throw new SAML2SSORuntimeException("", "Failed to URL-decode the SAMLRequest.", e);
             }
         }
     }
@@ -59,7 +59,7 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIGNATURE);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("Failed to decode the Signature.", e);
+                throw new SAML2SSORuntimeException("", "Failed to decode the Signature.", e);
             }
         }
     }
@@ -71,7 +71,7 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIG_ALG);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("Failed to decode the Signature Algorithm.", e);
+                throw new SAML2SSORuntimeException("", "Failed to decode the Signature Algorithm.", e);
             }
         }
     }

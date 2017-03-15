@@ -20,14 +20,9 @@ package org.wso2.carbon.identity.saml.validator;
 
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOClientException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
-import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
-import org.wso2.carbon.identity.saml.request.IdPInitRequest;
 import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
 import java.util.HashMap;
