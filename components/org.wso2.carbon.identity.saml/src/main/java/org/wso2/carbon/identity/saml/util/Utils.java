@@ -56,34 +56,6 @@ public class Utils {
 
     private static Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    private static StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode)
-            throws SAML2SSOServerException {
-
-        if (parentStatusCode == null) {
-            throw new SAML2SSOServerException("", "Invalid SAML Response Status Code.");
-        }
-
-        StatusCode statusCode = new StatusCodeBuilder().buildObject();
-        statusCode.setValue(parentStatusCode);
-
-        //Set the status Message
-        if (childStatusCode != null) {
-            statusCode.setStatusCode(childStatusCode);
-            return statusCode;
-        } else {
-            return statusCode;
-        }
-    }
-
-    private static Status buildStatusMsg(Status status, String statusMsg) {
-        if (statusMsg != null) {
-            StatusMessage statusMesssage = new StatusMessageBuilder().buildObject();
-            statusMesssage.setMessage(statusMsg);
-            status.setStatusMessage(statusMesssage);
-        }
-        return status;
-    }
-
     public static Map<String, String> getAttributes(AuthenticationContext authenticationContext) {
 
         int index = 0;
@@ -156,7 +128,8 @@ public class Utils {
             AuthenticationStepConfig stepConfig = authenticationContext.getSequence().getAuthenticationStepConfig(i);
             // update isSubjectStep using stepConfig
             if (isSubjectStep && isUserIdStepFound) {
-                throw new SAML2SSORuntimeException("Invalid subject step configuration. Multiple subject steps found.");
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Invalid subject step configuration. Multiple subject steps found.");
             } else {
                 isUserIdStepFound = true;
                 SequenceContext.StepContext stepContext = sequenceContext.getStepContext(i);

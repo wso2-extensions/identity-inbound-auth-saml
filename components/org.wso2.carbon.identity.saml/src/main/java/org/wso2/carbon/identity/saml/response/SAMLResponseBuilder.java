@@ -259,13 +259,15 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
 
             String encodedCert = config.getEncryptionCertificate();
             if (StringUtils.isBlank(encodedCert)) {
-                throw new SAML2SSOResponseBuilderException("", "Encryption certificate is not configured.");
+                throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                           "Encryption certificate is not configured.");
             }
             Certificate certificate;
             try {
                 certificate = Utils.decodeCertificate(encodedCert);
             } catch (CertificateException e) {
-                throw new SAML2SSOResponseBuilderException("", "Invalid encoded certificate: " + encodedCert);
+                throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                           "Invalid encoded certificate: " + encodedCert);
             }
 
             Credential symmetricCredential = null;
@@ -273,7 +275,8 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
                 symmetricCredential = SecurityHelper.getSimpleCredential(
                         SecurityHelper.generateSymmetricKey(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256));
             } catch (NoSuchAlgorithmException | KeyException e) {
-                throw new SAML2SSORuntimeException("Error occurred while encrypting Assertion.");
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Error occurred while encrypting assertion.", e);
             }
 
             EncryptionParameters encParams = new EncryptionParameters();
@@ -291,7 +294,8 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             try {
                 encryptedAssertion = encrypter.encrypt(assertion);
             } catch (EncryptionException e) {
-                throw new SAML2SSORuntimeException("Error occurred while encrypting Assertion.");
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Error occurred while encrypting assertion.", e);
             }
 
             response.getEncryptedAssertions().add(encryptedAssertion);
@@ -344,7 +348,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         Response response = new ResponseBuilder().buildObject();
 
         if (statusCodes == null || statusCodes.isEmpty()) {
-            throw new SAML2SSORuntimeException("", "No Status Values");
+            throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI, "No Status Values");
         }
         response.setIssuer(getIssuer());
         Status status = new StatusBuilder().buildObject();
@@ -368,6 +372,10 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
     }
 
     private StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) {
+
+        if (StringUtils.isBlank(parentStatusCode)) {
+            return childStatusCode;
+        }
 
         StatusCode statusCode = new StatusCodeBuilder().buildObject();
         statusCode.setValue(parentStatusCode);

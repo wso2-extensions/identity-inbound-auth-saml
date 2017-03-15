@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.saml.util;
 import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.RequestAbstractType;
+import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.ws.security.SecurityPolicyException;
 import org.opensaml.ws.transport.http.HTTPTransportUtils;
 import org.opensaml.xml.security.CriteriaSet;
@@ -71,7 +72,8 @@ public class AuthnReqSigUtil {
         try {
             certificate = (X509Certificate) Utils.decodeCertificate(encodedCert);
         } catch (CertificateException e) {
-            throw new SAML2SSOServerException("", "Error occurred while decoding signing certificate.");
+            throw new SAML2SSOServerException(StatusCode.RESPONDER_URI,
+                                              "Error occurred while decoding signing certificate.");
         }
 
         SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
@@ -89,14 +91,15 @@ public class AuthnReqSigUtil {
             throws SAML2SSOServerException, SAML2SSORequestValidationException {
 
         if (StringUtils.isBlank(signature)) {
-            throw new SAML2SSORequestValidationException("", "Could not extract the Signature from query string.");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Could not extract the Signature from query string.");
         }
         byte[] sigBytes = Base64.decode(signature);
         byte[] signedContent = getSignedContent(queryString);
 
         if (StringUtils.isBlank(sigAlg)) {
-            throw new SAML2SSORequestValidationException("", "Could not extract signature algorithm from query string" +
-                                                             ".");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Could not extract signature algorithm from query string.");
         }
 
         CriteriaSet criteriaSet = buildCriteriaSet(config.getSPEntityId());
@@ -132,8 +135,8 @@ public class AuthnReqSigUtil {
         }
         String constructed = buildSignedContentString(queryString);
         if (DatatypeHelper.isEmpty(constructed)) {
-            throw new SAML2SSORequestValidationException("",
-                    "Could not extract signed content string from query string");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Could not extract signed content string from query string");
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Constructed signed content string for HTTP-Redirect DEFLATE " + constructed);
@@ -165,8 +168,9 @@ public class AuthnReqSigUtil {
         // One of these two is mandatory
         if (!appendParameter(builder, queryString, "SAMLRequest") && !appendParameter(builder, queryString,
                                                                                       "SAMLResponse")) {
-            throw new SAML2SSORequestValidationException("",
-                    "Extract of SAMLRequest or SAMLResponse from query string failed");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Extract of SAMLRequest or SAMLResponse from query string " +
+                                                         "failed.");
         }
         // This is optional
         appendParameter(builder, queryString, "RelayState");
@@ -218,7 +222,8 @@ public class AuthnReqSigUtil {
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
         if (authnRequest.getSignature() == null) {
-            throw new SAML2SSORequestValidationException("", "Cannot find Signature element in AuthnRequest.");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Cannot find Signature element in AuthnRequest.");
         }
 
         X509Credential credential = new X509CredentialImpl(certificate);

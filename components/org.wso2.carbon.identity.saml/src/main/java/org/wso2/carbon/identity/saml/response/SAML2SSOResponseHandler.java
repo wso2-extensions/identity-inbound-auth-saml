@@ -119,7 +119,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         try {
             addSessionKey(builder, context);
         } catch (ResponseHandlerException e) {
-            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, "Server Error", e);
+            throw new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, "Error while writing session key", e);
         }
 
         response.setGatewayResponseBuilder(builder);
@@ -153,7 +153,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         } else {
             SAML2SSOServerException e2 = ((SAML2SSOServerException) e);
             samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
-                                                                  e2.getMessage(), e2.getACSUrl());
+                                                                  "Server Error", e2.getACSUrl());
             builder.setAcsUrl(e2.getACSUrl());
         }
         builder.setResponse(samlResponse);
@@ -181,7 +181,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         SAML2SSORuntimeException e1 = ((SAML2SSORuntimeException) e);
         Response samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
-                                                                       e1.getMessage(), e1.getACSUrl());
+                                                                       "Server Error", e1.getACSUrl());
         builder.setResponse(samlResponse);
         builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
         builder.setAcsUrl(e1.getACSUrl());

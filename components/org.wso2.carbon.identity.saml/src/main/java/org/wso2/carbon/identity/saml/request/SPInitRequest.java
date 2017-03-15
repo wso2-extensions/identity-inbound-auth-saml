@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.saml.request;
 
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.XMLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,8 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SAML_REQUEST);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("", "Failed to URL-decode the SAMLRequest.", e);
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Failed to URL-decode the SAMLRequest.", e);
             }
         }
     }
@@ -59,7 +61,8 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIGNATURE);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("", "Failed to decode the Signature.", e);
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Failed to decode the Signature.", e);
             }
         }
     }
@@ -71,7 +74,8 @@ public class SPInitRequest extends SAML2SSORequest {
             try {
                 return this.getQueryParameter(SAML2AuthConstants.SIG_ALG);
             } catch (UnsupportedEncodingException e) {
-                throw new SAML2SSORuntimeException("", "Failed to decode the Signature Algorithm.", e);
+                throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI,
+                                                   "Failed to decode the Signature Algorithm.", e);
             }
         }
     }
@@ -95,7 +99,7 @@ public class SPInitRequest extends SAML2SSORequest {
                 this.authnRequest = authnRequest;
             } else {
                 // throwing a RuntimeException here to avoid handling SAML2SSOClientException in all the places
-                throw new SAML2SSORuntimeException("", "");
+                throw new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "SAMLRequest not an AuthnRequest.");
             }
         }
         return authnRequest;

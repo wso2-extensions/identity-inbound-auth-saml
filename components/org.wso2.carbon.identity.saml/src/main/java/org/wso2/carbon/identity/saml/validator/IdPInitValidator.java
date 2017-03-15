@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.saml.validator;
 
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.saml2.core.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -75,22 +76,16 @@ public class IdPInitValidator extends SAML2SSOValidator {
         messageContext.setSPEntityId(messageContext.getUniqueId());
 
         if (!requestValidatorConfig.isIdPInitSSOEnabled()) {
-            String msg = "IdP-initiated SSO not enabled for service provider '" + spName + "'.";
-            if (logger.isDebugEnabled()) {
-                logger.debug(msg);
-            }
-            throw new SAML2SSORequestValidationException("", msg);
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "IdP-initiated SSO not enabled for service provider '" + spName + "'.");
         }
 
         String acs = ((IdPInitRequest) messageContext.getInitialAuthenticationRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {
             if (requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
-                String msg = "Invalid Assertion Consumer Service URL value '" + acs + "' in the " +
-                             "request from '" + spName + "'. Possibly an attempt for a spoofing attack";
-                if (logger.isDebugEnabled()) {
-                    logger.debug(msg);
-                }
-                throw new SAML2SSORequestValidationException("", msg);
+                throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                             "Invalid Assertion Consumer Service URL value '" + acs +
+                                                             "' in the request from '" + spName + "'.");
             }
         } else {
             acs = requestValidatorConfig.getDefaultAssertionConsumerUrl();

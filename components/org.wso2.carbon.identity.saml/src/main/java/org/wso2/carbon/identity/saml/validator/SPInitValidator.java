@@ -70,7 +70,7 @@ public class SPInitValidator extends SAML2SSOValidator {
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
         Issuer issuer = authnRequest.getIssuer();
         if (issuer == null) {
-            throw new SAML2SSORequestValidationException("", "");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, "Cannot find issuer.");
         }
         if (StringUtils.isNotBlank(issuer.getValue())) {
             authenticationContext.setUniqueId(issuer.getValue());
@@ -125,11 +125,8 @@ public class SPInitValidator extends SAML2SSOValidator {
         Issuer issuer = authnReq.getIssuer();
 
         if (StringUtils.isNotBlank(issuer.getFormat()) && !NameID.ENTITY.equals(issuer.getFormat())) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
-            }
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, "Invalid Issuer Format attribute " +
-                                                                                   "value.");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Invalid Issuer Format attribute value " + issuer.getFormat());
         }
 
         RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
@@ -148,13 +145,9 @@ public class SPInitValidator extends SAML2SSOValidator {
         // subject confirmation should not exist
         if (subject != null && subject.getSubjectConfirmations() != null &&
             !subject.getSubjectConfirmations().isEmpty()) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Invalid Request message. A Subject confirmation method found " + subject
-                        .getSubjectConfirmations().get(0));
-            }
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
-                                                         "Invalid Request message. A Subject confirmation method " +
-                                                         "found " + subject.getSubjectConfirmations().get(0));
+            String message = "Invalid Request message. A Subject confirmation method " +
+                             "found " + subject.getSubjectConfirmations().get(0);
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, message);
         }
 
         Integer index = authnReq.getAttributeConsumingServiceIndex();
@@ -181,8 +174,8 @@ public class SPInitValidator extends SAML2SSOValidator {
                                                                                      requestValidatorConfig);
 
             if (!isSignatureValid) {
-                String msg = "Signature validation for AuthnRequest failed.";
-                throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, msg);
+                throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                             "Signature validation for AuthnRequest failed.");
             }
 
         } else {
@@ -202,9 +195,9 @@ public class SPInitValidator extends SAML2SSOValidator {
             throws SAML2SSORequestValidationException {
 
         if (!requestValidatorConfig.getAssertionConsumerUrlList().contains(requestedACSUrl)) {
-            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, "Invalid Assertion Consumer " +
-                                                                                    "Service URL in the AuthnRequest " +
-                                                                                    "message.");
+            throw new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
+                                                         "Invalid Assertion Consumer Service URL in the AuthnRequest " +
+                                                         "message.");
         }
     }
 }
