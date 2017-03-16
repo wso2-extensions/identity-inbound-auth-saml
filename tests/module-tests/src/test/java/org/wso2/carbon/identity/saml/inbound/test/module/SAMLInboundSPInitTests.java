@@ -283,7 +283,7 @@ public class SAMLInboundSPInitTests {
     /**
      * Sending out a request with non existing issuer
      */
-//    @Test
+    @Test
     public void testSAMLResponseWithWrongIssuer() {
         try {
 
@@ -572,7 +572,7 @@ public class SAMLInboundSPInitTests {
     /**
      * SAML request without signature validation turned on.
      */
-//    @Test
+    @Test
     public void testSAMLAssertionWithoutRequestSignatureValidation() {
         ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
                 (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
@@ -616,7 +616,6 @@ public class SAMLInboundSPInitTests {
                 Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
                 Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
                         .getAssertions().get(0).getSubject().getNameID().getValue());
-                Assert.assertNull(samlResponseObject.getAssertions().get(0).getSignature());
             } catch (SAML2SSOServerException e) {
                 log.error("Error while building response object from SAML response string", e);
             }

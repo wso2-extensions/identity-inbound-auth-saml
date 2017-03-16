@@ -149,7 +149,7 @@ public class SAMLIDPInitiatedTests {
     /**
      * Send a request with an invalid issuer and assert on response.
      */
-//    @Test
+    @Test
     public void testInvalidIssuer() {
 
         try {

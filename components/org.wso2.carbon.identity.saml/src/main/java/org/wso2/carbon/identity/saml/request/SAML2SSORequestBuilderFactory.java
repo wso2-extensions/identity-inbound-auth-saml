@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.saml.request;
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.msf4j.Request;
 
@@ -78,40 +80,8 @@ public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory 
     }
 
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
-
-        javax.ws.rs.core.Response.ResponseBuilder builder = javax.ws.rs.core.Response.noContent();
-        String redirectURL = Config.getInstance().getErrorPageUrl();
-        Map<String, String[]> queryParams = new HashMap();
-        //TODO Send status codes rather than full messages in the GET request
-        try {
-            queryParams.put(Status.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(
-                    exception.getErrorCode(), StandardCharsets.UTF_8.name()) });
-            queryParams.put(StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME, new String[] {URLEncoder.encode(
-                    exception.getErrorCode(), StandardCharsets.UTF_8.name()) });
-            if (exception.getMessage() != null) {
-                queryParams.put(SAML2AuthConstants.SAML_RESPONSE, new String[] {URLEncoder.encode(
-                        exception.getMessage(), StandardCharsets.UTF_8.name()) });
-            }
-            if (((SAML2SSORequestValidationException) exception).getACSUrl() != null) {
-                queryParams.put(SAML2AuthConstants.ASSRTN_CONSUMER_URL, new String[] {URLEncoder.encode((
-                        (SAML2SSORequestValidationException) exception).getACSUrl(), StandardCharsets.UTF_8.name()) });
-            }
-            //builder.setParameters(queryParams);
-        } catch (UnsupportedEncodingException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error while encoding query parameters.", e);
-            }
-        }
-
-        String httpQueryString = GatewayUtil.buildQueryString(queryParams);
-        if (redirectURL.indexOf("?") > -1) {
-            redirectURL = redirectURL.concat("&").concat(httpQueryString.toString());
-        } else {
-            redirectURL = redirectURL.concat("?").concat(httpQueryString.toString());
-        }
-
-        builder.header(HttpHeaders.LOCATION, redirectURL);
-        builder.status(301);
-        return builder;
+        // This method will never be reached.
+        throw new SAML2SSORuntimeException(StatusCode.RESPONDER_URI, "Method not implemented.",
+                                           new UnsupportedOperationException("Method not implemented."));
     }
 }

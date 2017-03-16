@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
@@ -57,7 +58,14 @@ public class IdPInitValidator extends SAML2SSOValidator {
 
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
         String spEntityId = ((IdPInitRequest) messageContext.getIdentityRequest()).getSPEntityId();
-        authenticationContext.setServiceProviderId(spEntityId);
+        try {
+            authenticationContext.setServiceProviderId(spEntityId);
+        } catch (GatewayClientException e) {
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, e.getMessage());
+            ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+            throw ex;
+        }
         messageContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =

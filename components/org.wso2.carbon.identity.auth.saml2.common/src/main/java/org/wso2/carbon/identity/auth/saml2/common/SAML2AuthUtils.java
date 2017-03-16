@@ -394,7 +394,11 @@ public class SAML2AuthUtils {
         return credential;
     }
 
-    public static String compressResponse(String response) throws IOException {
+    /**
+     * Unused method.
+     *
+     */
+    /*public static String compressResponse(String response) throws IOException {
 
         Deflater deflater = new Deflater(Deflater.DEFLATED, true);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -405,5 +409,5 @@ public class SAML2AuthUtils {
             deflaterOutputStream.close();
         }
         return Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
-    }
+    }*/
 }

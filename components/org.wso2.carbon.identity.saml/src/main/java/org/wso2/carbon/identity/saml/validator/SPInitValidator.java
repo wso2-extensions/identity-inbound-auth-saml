@@ -27,6 +27,7 @@ import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
@@ -78,10 +79,18 @@ public class SPInitValidator extends SAML2SSOValidator {
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
         }
-        if (StringUtils.isNotBlank(issuer.getValue())) {
-            authenticationContext.setServiceProviderId(issuer.getValue());
-        } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
-            authenticationContext.setServiceProviderId(issuer.getValue());
+        try {
+            if (StringUtils.isNotBlank(issuer.getValue())) {
+                authenticationContext.setServiceProviderId(issuer.getValue());
+            } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
+                authenticationContext.setServiceProviderId(issuer.getValue());
+            }
+        } catch (GatewayClientException e) {
+            SAML2SSORequestValidationException ex =
+                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, e.getMessage());
+            ex.setInResponseTo(authnRequest.getID());
+            ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+            throw ex;
         }
         messageContext.setName(authenticationContext.getServiceProvider().getName());
 
