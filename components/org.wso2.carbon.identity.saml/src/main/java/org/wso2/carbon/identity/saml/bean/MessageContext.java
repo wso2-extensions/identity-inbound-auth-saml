@@ -34,6 +34,7 @@ public class MessageContext extends AuthenticationContext {
 
     private static final long serialVersionUID = 104634801939285909L;
 
+    private String name;
     private String id;
     private String spEntityId;
     private String assertionConsumerUrl;
@@ -58,6 +59,14 @@ public class MessageContext extends AuthenticationContext {
     @Override
     public SAML2SSORequest getInitialAuthenticationRequest() {
         return (SAML2SSORequest) initialAuthenticationRequest;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getId() {

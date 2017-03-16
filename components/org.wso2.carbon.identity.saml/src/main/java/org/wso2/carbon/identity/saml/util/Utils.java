@@ -122,10 +122,10 @@ public class Utils {
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         int lastStep = sequenceContext.getCurrentStep();
         boolean isUserIdStepFound = false;
-        for (int i = 1; i < lastStep - 1; i++) {
+        for (int i = 1; i < lastStep + 1; i++) {
             boolean isSubjectStep = false;
             AuthenticationStepConfig stepConfig = authenticationContext.getSequence().getAuthenticationStepConfig(i);
-            // update isSubjectStep using stepConfig
+            isSubjectStep = true; // update isSubjectStep using stepConfig
             if (isSubjectStep && isUserIdStepFound) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,

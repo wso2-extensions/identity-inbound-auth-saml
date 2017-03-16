@@ -70,7 +70,8 @@ public class SPInitValidator extends SAML2SSOValidator {
         SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
         Issuer issuer = authnRequest.getIssuer();
-        if (issuer == null) {
+        if (issuer == null || (StringUtils.isBlank(issuer.getValue()) &&
+                               StringUtils.isBlank(issuer.getSPProvidedID()))) {
             SAML2SSORequestValidationException ex =
                     new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, "Cannot find issuer.");
             ex.setInResponseTo(authnRequest.getID());
@@ -82,6 +83,7 @@ public class SPInitValidator extends SAML2SSOValidator {
         } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
             authenticationContext.setUniqueId(issuer.getValue());
         }
+        messageContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =
                 getValidatorConfig(authenticationContext);
@@ -111,14 +113,14 @@ public class SPInitValidator extends SAML2SSOValidator {
             throw ex;
         }
 
-        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT);
+        return new GatewayHandlerResponse();
 
     }
 
     protected void validateAuthnRequest(AuthnRequest authnReq, MessageContext messageContext)
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
-        String appName = messageContext.getServiceProvider().getName();
+        String appName = messageContext.getName();
 
         RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
         validateACS(authnReq.getAssertionConsumerServiceURL(), messageContext.getId(), messageContext,
@@ -179,7 +181,7 @@ public class SPInitValidator extends SAML2SSOValidator {
 
             List<String> idpUrlSet = Config.getInstance().getDestinationUrls();
 
-            if (messageContext.getDestination() == null || !idpUrlSet.contains(messageContext.getDestination())) {
+            if (authnReq.getDestination() == null || !idpUrlSet.contains(authnReq.getDestination())) {
                 String msg = "Destination validation for AuthnRequest failed. " + "Received: [" +
                              messageContext.getDestination() + "]." + " Expected one in the list: [" + StringUtils
                                      .join(idpUrlSet, ',') + "]";

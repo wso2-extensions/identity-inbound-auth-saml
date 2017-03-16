@@ -35,6 +35,7 @@ public class RequestValidatorConfig implements Serializable {
         this.requestValidatorConfig = requestValidatorConfig;
     }
 
+
     public String getSPEntityId() {
         return (String) this.requestValidatorConfig.getProperties().get("issuer");
     }

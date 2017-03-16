@@ -58,6 +58,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
         String spEntityId = ((IdPInitRequest) messageContext.getIdentityRequest()).getSPEntityId();
         authenticationContext.setUniqueId(spEntityId);
+        messageContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =
                 getValidatorConfig(authenticationContext);
@@ -78,7 +79,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
 
         String acs = ((IdPInitRequest) messageContext.getInitialAuthenticationRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {
-            if (requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
+            if (!requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
                 SAML2SSORequestValidationException ex =
                         new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
                                                                "Invalid Assertion Consumer Service URL value '" + acs +

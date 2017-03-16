@@ -75,7 +75,7 @@ public class SAMLIDPInitiatedTests {
     /**
      * Testing successful authentication using idp initiated sso
      */
-//    @Test
+    @Test
     public void testSAMLInboundAuthenticationIDPinit() {
         try {
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
@@ -105,7 +105,7 @@ public class SAMLIDPInitiatedTests {
     /**
      * Test the content of successful authentication of idp init sso
      */
-//    @Test
+    @Test
     public void testSAMLResponse() {
         try {
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
@@ -133,8 +133,9 @@ public class SAMLIDPInitiatedTests {
                     String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
                     try {
                         Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
-                        Assert.assertEquals(SAMLInboundTestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                                .getAssertions().get(0).getSubject().getNameID().getValue());
+                        Assert.assertEquals(samlResponseObject.getAssertions().get(0)
+                                                    .getSubject().getNameID().getValue(),
+                                            SAMLInboundTestConstants.AUTHENTICATED_USER_NAME);
                     } catch (SAML2SSOServerException e) {
                         Assert.fail("Error while building SAML response from the response");
                     }
@@ -150,14 +151,23 @@ public class SAMLIDPInitiatedTests {
      */
 //    @Test
     public void testInvalidIssuer() {
+
         try {
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
                     + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
                     .SAMPLE_ISSUER_NAME + "dummy", HttpMethod.GET, false);
-            Assert.assertEquals(500, urlConnection.getResponseCode());
-
+            Assert.assertEquals(urlConnection.getResponseCode(), 200);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            Assert.assertNotNull(response);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
+            String location = response.split("post' action='")[1].split("'>")[0];
+            Assert.assertTrue(location.contains("notifications"));
         } catch (IOException e) {
             Assert.fail("Error while running federated authentication test case with response decoding");
+        } catch (SAML2SSOServerException e) {
+            Assert.fail("Error while building Response object from SAMLResponse message.");
         }
     }
 
@@ -175,12 +185,17 @@ public class SAMLIDPInitiatedTests {
                     + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
                     .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
 
-            Assert.assertEquals(302, urlConnection.getResponseCode());
-            String location = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
-            Assert.assertTrue(location.contains("STATUS"));
+            Assert.assertEquals(urlConnection.getResponseCode(), 200);
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            Assert.assertNotNull(response);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
 
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case with response decoding");
+            Assert.fail("Error while running federated authentication test case with response decoding.");
+        } catch (SAML2SSOServerException e) {
+            Assert.fail("Error while building Response object from SAMLResponse message.");
         } finally {
             serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                     .setProperty("idPInitSSOEnabled", "true");
@@ -190,19 +205,26 @@ public class SAMLIDPInitiatedTests {
     /**
      * Send a wrong ACS with IDP init request.
      */
-//    @Test
+    @Test
     public void testIDPInitSSOWrongACS() {
+
         try {
             HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
                     + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
                     .SAMPLE_ISSUER_NAME + SAMLInboundTestConstants.QUERY_PARAM_SEPARATOR +
                     "acs=http://localhost:9092/invalidACS", HttpMethod.GET, false);
-            Assert.assertEquals(302, urlConnection.getResponseCode());
-            String location = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
-            Assert.assertTrue(location.contains("notification"));
-
+            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            Assert.assertEquals(urlConnection.getResponseCode(), 200);
+            Assert.assertNotNull(response);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
+            String location = response.split("post' action='")[1].split("'>")[0];
+            Assert.assertTrue(location.contains("notifications"));
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case with response decoding");
+            Assert.fail("Error while running federated authentication test case with response decoding.");
+        } catch (SAML2SSOServerException e) {
+            Assert.fail("Error while building Response object from SAMLResponse message.");
         }
     }
 
