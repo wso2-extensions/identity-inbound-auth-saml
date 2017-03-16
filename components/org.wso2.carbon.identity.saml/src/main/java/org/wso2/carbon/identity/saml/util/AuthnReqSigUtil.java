@@ -80,7 +80,7 @@ public class AuthnReqSigUtil {
             throw ex;
         }
 
-        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
+        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getRequest());
         if (spInitRequest.isRedirect()) {
             return validateDeflateSignature(spInitRequest.getQueryString(), spInitRequest.getSignature(),
                                             spInitRequest.getSignatureAlgorithm(), certificate, messageContext.getId(),

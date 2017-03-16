@@ -68,7 +68,7 @@ public class SPInitValidator extends SAML2SSOValidator {
             throws SAML2SSORequestValidationException {
 
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
-        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getInitialAuthenticationRequest());
+        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getRequest());
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
         Issuer issuer = authnRequest.getIssuer();
         if (issuer == null || (StringUtils.isBlank(issuer.getValue()) &&
@@ -106,10 +106,10 @@ public class SPInitValidator extends SAML2SSOValidator {
             throws SAML2SSORequestValidationException {
 
         MessageContext messageContext = createInboundMessageContext(authenticationContext);
-        SPInitRequest spInitRequest = (SPInitRequest) messageContext.getInitialAuthenticationRequest();
+        SPInitRequest spInitRequest = (SPInitRequest) messageContext.getRequest();
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
 
-        messageContext.setSPEntityId(messageContext.getServiceProviderId());
+        messageContext.setSPEntityId(authenticationContext.getServiceProviderId());
         messageContext.setId((authnRequest).getID());
 
         try {

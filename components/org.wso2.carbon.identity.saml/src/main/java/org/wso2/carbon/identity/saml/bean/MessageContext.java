@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.saml.bean;
 
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.saml.request.IdPInitRequest;
@@ -30,7 +29,7 @@ import java.util.Map;
 /**
  * MessageContext specific to Inbound SAML2 SSO.
  */
-public class MessageContext extends AuthenticationContext {
+public class MessageContext extends org.wso2.carbon.identity.common.base.message.MessageContext {
 
     private static final long serialVersionUID = 104634801939285909L;
 
@@ -43,22 +42,21 @@ public class MessageContext extends AuthenticationContext {
     private int attributeConsumingServiceIndex;
     private boolean isPassive;
     private boolean isForce;
+    private SAML2SSORequest request;
 
     private RequestValidatorConfig requestValidatorConfig;
     private ResponseBuilderConfig responseBuilderConfig;
 
-    public MessageContext(SAML2SSORequest request, Map<Serializable, Serializable> parameters) {
-        super(request, parameters);
+    public MessageContext(Map<Serializable, Serializable> parameters) {
+        super(parameters);
     }
 
-    @Override
-    public SAML2SSORequest getIdentityRequest() {
-        return (SAML2SSORequest) identityRequest;
+    public SAML2SSORequest getRequest() {
+        return request;
     }
 
-    @Override
-    public SAML2SSORequest getInitialAuthenticationRequest() {
-        return (SAML2SSORequest) initialAuthenticationRequest;
+    public void setRequest(SAML2SSORequest request) {
+        this.request = request;
     }
 
     public String getName() {
@@ -137,11 +135,11 @@ public class MessageContext extends AuthenticationContext {
     }
 
     public String getRelayState() {
-        return this.getIdentityRequest().getRelayState();
+        return this.getRequest().getRelayState();
     }
 
     public boolean isIdpInitSSO() {
-        return this.getIdentityRequest() instanceof IdPInitRequest;
+        return this.getRequest() instanceof IdPInitRequest;
     }
 
     public String getIssuerWithDomain() {

@@ -35,8 +35,8 @@ public abstract class SAML2SSOValidator extends AbstractRequestValidator {
     protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext) throws
                                                                                                       SAML2SSORequestValidationException {
 
-        MessageContext messageContext = new MessageContext((SAML2SSORequest) authenticationContext
-                .getInitialAuthenticationRequest(), new HashMap());
+        MessageContext messageContext = new MessageContext(new HashMap());
+        messageContext.setRequest((SAML2SSORequest) authenticationContext.getInitialAuthenticationRequest());
         authenticationContext.addParameter(SAML2AuthConstants.SAML_CONTEXT, messageContext);
         return messageContext;
     }

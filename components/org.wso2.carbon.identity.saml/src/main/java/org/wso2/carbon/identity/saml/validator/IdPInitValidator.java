@@ -57,7 +57,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
                                                                                                       SAML2SSORequestValidationException {
 
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
-        String spEntityId = ((IdPInitRequest) messageContext.getIdentityRequest()).getSPEntityId();
+        String spEntityId = ((IdPInitRequest) messageContext.getRequest()).getSPEntityId();
         try {
             authenticationContext.setServiceProviderId(spEntityId);
         } catch (GatewayClientException e) {
@@ -83,9 +83,9 @@ public class IdPInitValidator extends SAML2SSOValidator {
         RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
         String spName = authenticationContext.getServiceProvider().getName();
 
-        messageContext.setSPEntityId(messageContext.getServiceProviderId());
+        messageContext.setSPEntityId(authenticationContext.getServiceProviderId());
 
-        String acs = ((IdPInitRequest) messageContext.getInitialAuthenticationRequest()).getAcs();
+        String acs = ((IdPInitRequest) messageContext.getRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {
             if (!requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
                 SAML2SSORequestValidationException ex =

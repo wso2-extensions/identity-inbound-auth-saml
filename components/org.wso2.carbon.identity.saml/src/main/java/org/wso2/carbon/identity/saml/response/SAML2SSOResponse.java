@@ -63,10 +63,6 @@ public class SAML2SSOResponse extends GatewayResponse {
         return respString;
     }
 
-    public MessageContext getContext() {
-        return (MessageContext) this.context;
-    }
-
     public static class SAML2SSOResponseBuilder extends GatewayResponseBuilder {
 
         private Response response;
