@@ -59,6 +59,7 @@ serviceProviderConfig:
       -
         type: "SAML"
         properties:
+          notOnOrAfterPeriod : "5"
           defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
           certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
                          UzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoM

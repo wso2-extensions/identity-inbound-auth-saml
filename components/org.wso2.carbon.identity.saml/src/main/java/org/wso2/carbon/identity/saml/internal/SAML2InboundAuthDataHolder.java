@@ -20,12 +20,19 @@ package org.wso2.carbon.identity.saml.internal;
 
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 
-public class SAMLInboundServiceHolder {
+/**
+ * SAML2 SSO Inbound Authenticator Component Data Holder.
+ */
+public class SAML2InboundAuthDataHolder {
 
-    private static SAMLInboundServiceHolder instance = new SAMLInboundServiceHolder();
+    private static volatile SAML2InboundAuthDataHolder instance = new SAML2InboundAuthDataHolder();
     private GatewayClaimResolverService gatewayClaimResolverService = null;
 
-    public static SAMLInboundServiceHolder getInstance() {
+    private SAML2InboundAuthDataHolder() {
+
+    }
+
+    public static SAML2InboundAuthDataHolder getInstance() {
         return instance;
     }
 

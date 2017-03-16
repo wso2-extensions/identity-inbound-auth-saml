@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -84,7 +84,7 @@ public class SAMLInboundTestUtils {
     }
 
 
-    public static Response getSAMLResponse(String samlResponse) throws SAMLServerException {
+    public static Response getSAMLResponse(String samlResponse) throws SAML2SSOServerException {
         String decodedResponse = new String(Base64.decode(samlResponse));
         XMLObject xmlObject = SAML2AuthUtils.unmarshall(decodedResponse);
 

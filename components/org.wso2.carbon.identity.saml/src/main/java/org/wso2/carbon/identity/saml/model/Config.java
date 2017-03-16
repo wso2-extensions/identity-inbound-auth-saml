@@ -15,24 +15,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.saml.model;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SAMLConfigurations {
+/**
+ * Bean class that represents the SAML2 SSO Inbound Authenticator Configuration.
+ * This class must read configuration from deployment.yaml.
+ */
+public class Config {
 
-    private static SAMLConfigurations instance = new SAMLConfigurations();
-    ;
-    private String keyStoreLocation = System.getProperty("carbon.home") + File.separator + "resources" + File.separator
-            +
-            "security" + File
-            .separator + "wso2carbon.jks";
-    private String keyStoreType = "JKS";
-    private String keyStorePassword = "wso2carbon";
-    private String keyStoreAlias = "wso2carbon";
-    private long samlResponseValidityPeriod = 5;
+    private static Config instance = new Config();
+
     private String ssoResponseHtml = "<html>\n" +
             "\t<body>\n" +
             "        \t<p>You are now redirected back to $acUrl \n" +
@@ -50,16 +46,17 @@ public class SAMLConfigurations {
             "        \t</script>\n" +
             "        </body>\n" +
             "</html>";
+
     private String idpEntityId = "localhost";
     private List<String> destinationUrls = new ArrayList<>();
-    private String notificationEndpoint = "https://localhost:2929/notifications";
+    private String errorPageUrl = "https://localhost:2929/notifications";
 
 
-    private SAMLConfigurations() {
+    private Config() {
         this.destinationUrls.add("https://localhost:9292/gateway");
     }
 
-    public static SAMLConfigurations getInstance() {
+    public static Config getInstance() {
         return instance;
     }
 
@@ -79,46 +76,6 @@ public class SAMLConfigurations {
         this.idpEntityId = idpEntityId;
     }
 
-    public String getKeyStoreAlias() {
-        return keyStoreAlias;
-    }
-
-    public void setKeyStoreAlias(String keyStoreAlias) {
-        this.keyStoreAlias = keyStoreAlias;
-    }
-
-    public String getKeyStoreLocation() {
-        return keyStoreLocation;
-    }
-
-    public void setKeyStoreLocation(String keyStoreLocation) {
-        this.keyStoreLocation = keyStoreLocation;
-    }
-
-    public String getKeyStorePassword() {
-        return keyStorePassword;
-    }
-
-    public void setKeyStorePassword(String keyStorePassword) {
-        this.keyStorePassword = keyStorePassword;
-    }
-
-    public String getKeyStoreType() {
-        return keyStoreType;
-    }
-
-    public void setKeyStoreType(String keyStoreType) {
-        this.keyStoreType = keyStoreType;
-    }
-
-    public long getSamlResponseValidityPeriod() {
-        return samlResponseValidityPeriod;
-    }
-
-    public void setSamlResponseValidityPeriod(long samlResponseValidityPeriod) {
-        this.samlResponseValidityPeriod = samlResponseValidityPeriod;
-    }
-
     public String getSsoResponseHtml() {
         return ssoResponseHtml;
     }
@@ -127,11 +84,11 @@ public class SAMLConfigurations {
         this.ssoResponseHtml = ssoResponseHtml;
     }
 
-    public String getNotificationEndpoint() {
-        return this.notificationEndpoint;
+    public String getErrorPageUrl() {
+        return this.errorPageUrl;
     }
 
-    public void setNotificationEndpoint(String notificationEndpoint) {
-        this.notificationEndpoint = notificationEndpoint;
+    public void setErrorPageUrl(String errorPageUrl) {
+        this.errorPageUrl = errorPageUrl;
     }
 }

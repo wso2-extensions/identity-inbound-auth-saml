@@ -21,17 +21,40 @@ package org.wso2.carbon.identity.saml.exception;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
 /**
- * Exception implementation to be used inside SAML2 SSO Identity Provider impl.
+ * SAML2 SSO Inbound Authenticator Server Exception.
  */
-public class SAMLServerException extends GatewayServerException {
+public class SAML2SSOServerException extends GatewayServerException {
 
     private static final long serialVersionUID = 7027553884968546755L;
 
-    public SAMLServerException(String message) {
+    private String inResponseTo;
+    private String acsUrl;
+
+    public SAML2SSOServerException(String message) {
         super(message);
     }
 
-    public SAMLServerException(String message, Throwable cause) {
-        super(message, cause);
+    public SAML2SSOServerException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    public SAML2SSOServerException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
+
+    public String getInResponseTo() {
+        return this.inResponseTo;
+    }
+
+    public void setInResponseTo(String inResponseTo) {
+        this.inResponseTo = inResponseTo;
+    }
+
+    public String getACSUrl() {
+        return this.acsUrl;
+    }
+
+    public void setAcsUrl(String acsUrl) {
+        this.acsUrl = acsUrl;
     }
 }

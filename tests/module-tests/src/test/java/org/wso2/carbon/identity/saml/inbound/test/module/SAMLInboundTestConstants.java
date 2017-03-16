@@ -38,6 +38,6 @@ public class SAMLInboundTestConstants {
     public static final String SAMPLE_ISSUER_NAME = "travelocity.com";
     public static final String SAMPLE_IDP_NAME = "myidp";
     public static final String SAML_REQUEST_PARAM = "SAMLRequest";
-    public static final String SP_ENTITY_ID = "spEntityID";
+    public static final String SP_ENTITY_ID = "spEntityId";
 }
 

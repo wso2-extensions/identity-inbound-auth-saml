@@ -21,27 +21,15 @@ package org.wso2.carbon.identity.saml.inbound;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.ConfigurationException;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.mgt.IdentityStore;
 import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.exception.DomainException;
 import org.wso2.carbon.identity.mgt.impl.Domain;
 import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.response.SAMLSPInitResponseHandler;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
 
 /**
  * Identity Store Tests.

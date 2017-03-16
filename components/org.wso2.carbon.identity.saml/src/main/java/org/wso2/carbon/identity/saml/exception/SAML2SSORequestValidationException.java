@@ -15,25 +15,41 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.saml.exception;
 
+import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
 
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+/**
+ * SAML2 SSO Inbound Authenticator Request Validation Exception.
+ */
+public class SAML2SSORequestValidationException extends RequestValidatorException {
 
-public class SAMLRuntimeException extends GatewayRuntimeException {
-    public SAMLRuntimeException(String message) {
-        super(message);
-    }
+    private String inResponseTo;
+    private String acsUrl;
 
-    public SAMLRuntimeException(String errorCode, String message) {
+    public SAML2SSORequestValidationException(String errorCode, String message) {
         super(errorCode, message);
     }
 
-    public SAMLRuntimeException(String errorCode, String message, Throwable cause) {
+    public SAML2SSORequestValidationException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
     }
 
-    public SAMLRuntimeException(String errorCode, Throwable cause) {
-        super(errorCode, cause);
+    public String getInResponseTo() {
+        return this.inResponseTo;
     }
+
+    public void setInResponseTo(String inResponseTo) {
+        this.inResponseTo = inResponseTo;
+    }
+
+    public String getACSUrl() {
+        return this.acsUrl;
+    }
+
+    public void setAcsUrl(String acsUrl) {
+        this.acsUrl = acsUrl;
+    }
+
 }

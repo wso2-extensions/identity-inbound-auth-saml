@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.saml.response;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.utils.EncryptionConstants;
 import org.joda.time.DateTime;
@@ -35,6 +37,7 @@ import org.opensaml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml2.core.AuthnStatement;
 import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
@@ -52,6 +55,7 @@ import org.opensaml.saml2.core.impl.AuthnContextBuilder;
 import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml2.core.impl.AuthnStatementBuilder;
 import org.opensaml.saml2.core.impl.ConditionsBuilder;
+import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
@@ -68,57 +72,50 @@ import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.util.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.auth.saml2.common.X509CredentialImpl;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
-import org.wso2.carbon.identity.common.util.keystore.KeyStoreUtils;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.saml.context.SAMLMessageContext;
-import org.wso2.carbon.identity.saml.exception.SAMLRuntimeException;
-import org.wso2.carbon.identity.saml.exception.SAMLServerException;
-import org.wso2.carbon.identity.saml.model.SAMLConfigurations;
-import org.wso2.carbon.identity.saml.model.SAMLResponseHandlerConfig;
-import org.wso2.carbon.identity.saml.util.SAMLSSOConstants;
-import org.wso2.carbon.identity.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
+import org.wso2.carbon.identity.saml.model.Config;
+import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
+import org.wso2.carbon.identity.saml.util.Utils;
 
-import java.io.ByteArrayInputStream;
 import java.security.KeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
- * SPI to build a SAML2 Response.
+ * SPI to build a SAMLResponse.
  */
-public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
+public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(SAML2SSOResponseBuilder.class);
-
-    protected Response buildSAMLResponse(SAMLMessageContext samlMessageContext, SAMLResponseHandlerConfig config,
-                                         AuthenticationContext context) throws SAMLServerException {
+    protected Response buildSAMLResponse(MessageContext messageContext, ResponseBuilderConfig config,
+                                         AuthenticationContext context) throws SAML2SSOResponseBuilderException {
 
         Response response = new ResponseBuilder().buildObject();
-        response.setIssuer(SAMLSSOUtil.getIssuer());
+        response.setIssuer(getIssuer());
         response.setID(SAML2AuthUtils.createID());
-        if (!samlMessageContext.isIdpInitSSO()) {
-            response.setInResponseTo(samlMessageContext.getId());
+        if (!messageContext.isIdpInitSSO()) {
+            response.setInResponseTo(messageContext.getId());
         }
-        response.setDestination(samlMessageContext.getAssertionConsumerURL());
-        buildStatus(response, SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null);
+        response.setDestination(messageContext.getAssertionConsumerURL());
+        buildStatus(response, StatusCode.SUCCESS_URI, null);
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         response.setIssueInstant(issueInstant);
 
-        buildAssertion(response, issueInstant, samlMessageContext, config, context);
+        buildAssertion(response, issueInstant, messageContext, config, context);
 
-        if (config.isDoSignResponse()) {
+        if (config.signResponse()) {
             SAML2AuthUtils.setSignature(response, config.getSigningAlgorithmUri(), config
                     .getDigestAlgorithmUri(), true, SAML2AuthUtils.getServerCredentials());
         }
@@ -126,23 +123,30 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         return response;
     }
 
-    protected void buildAssertion(Response response, DateTime issueInstant, SAMLMessageContext samlMessageContext,
-                                  SAMLResponseHandlerConfig config, AuthenticationContext context)
-            throws SAMLServerException {
+    protected Issuer getIssuer() {
 
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + SAMLConfigurations.getInstance()
-                                                                                .getSamlResponseValidityPeriod() * 60
-                                                                        * 1000L);
+        Issuer issuer = new IssuerBuilder().buildObject();
+        issuer.setFormat(NameID.ENTITY);
+        String idPEntityId = Config.getInstance().getIdpEntityId();
+        issuer.setValue(idPEntityId);
+        return issuer;
+    }
+
+    protected void buildAssertion(Response response, DateTime issueInstant, MessageContext messageContext,
+                                  ResponseBuilderConfig config, AuthenticationContext context)
+            throws SAML2SSOResponseBuilderException {
+
+        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + config.getNotOnOrAfterPeriod() * 60 * 1000L);
         DateTime currentTime = new DateTime();
         Assertion assertion = new AssertionBuilder().buildObject();
         assertion.setID(SAML2AuthUtils.createID());
         assertion.setVersion(SAMLVersion.VERSION_20);
-        assertion.setIssuer(SAMLSSOUtil.getIssuer());
+        assertion.setIssuer(getIssuer());
         assertion.setIssueInstant(currentTime);
         Subject subject = new SubjectBuilder().buildObject();
 
         NameID nameId = new NameIDBuilder().buildObject();
-        nameId.setValue(SAMLSSOUtil.getSubject(context));
+        nameId.setValue(Utils.getSubject(context, messageContext.getId(), messageContext.getAssertionConsumerURL()));
         if (config.getNameIdFormat() != null) {
             nameId.setFormat(config.getNameIdFormat());
         } else {
@@ -153,12 +157,12 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
 
         SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder()
                 .buildObject();
-        subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
+        subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
         SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
-        scData.setRecipient(samlMessageContext.getAssertionConsumerURL());
+        scData.setRecipient(messageContext.getAssertionConsumerURL());
         scData.setNotOnOrAfter(notOnOrAfter);
-        if (!samlMessageContext.isIdpInitSSO()) {
-            scData.setInResponseTo(samlMessageContext.getId());
+        if (!messageContext.isIdpInitSSO()) {
+            scData.setInResponseTo(messageContext.getId());
         }
         subjectConfirmation.setSubjectConfirmationData(scData);
         subject.getSubjectConfirmations().add(subjectConfirmation);
@@ -167,12 +171,12 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
             for (String recipient : config.getRequestedRecipients()) {
                 subjectConfirmation = new SubjectConfirmationBuilder()
                         .buildObject();
-                subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
+                subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
                 scData = new SubjectConfirmationDataBuilder().buildObject();
                 scData.setRecipient(recipient);
                 scData.setNotOnOrAfter(notOnOrAfter);
-                if (!samlMessageContext.isIdpInitSSO()) {
-                    scData.setInResponseTo(samlMessageContext.getId());
+                if (!messageContext.isIdpInitSSO()) {
+                    scData.setInResponseTo(messageContext.getId());
                 }
                 subjectConfirmation.setSubjectConfirmationData(scData);
                 subject.getSubjectConfirmations().add(subjectConfirmation);
@@ -195,7 +199,7 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         * If <AttributeConsumingServiceIndex> element is in the <AuthnRequest> and according to
         * the spec 2.0 the subject MUST be in the assertion
         */
-        Map<String, String> claims = SAMLSSOUtil.getAttributes(context);
+        Map<String, String> claims = Utils.getAttributes(context);
         if (claims != null && !claims.isEmpty()) {
             AttributeStatement attrStmt = buildAttributeStatement(claims);
             if (attrStmt != null) {
@@ -206,7 +210,7 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
                 .buildObject();
         Audience issuerAudience = new AudienceBuilder().buildObject();
-        issuerAudience.setAudienceURI(samlMessageContext.getIssuerWithDomain());
+        issuerAudience.setAudienceURI(messageContext.getIssuerWithDomain());
         audienceRestriction.getAudiences().add(issuerAudience);
         if (config.getRequestedAudiences() != null) {
             for (String requestedAudience : config.getRequestedAudiences()) {
@@ -221,10 +225,10 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         conditions.getAudienceRestrictions().add(audienceRestriction);
         assertion.setConditions(conditions);
 
-        if (config.isDoSignAssertions()) {
-            SAML2AuthUtils.setSignature(assertion, config.getSigningAlgorithmUri(), config.getDigestAlgorithmUri(),
+        // signing has to be ideally done at transport binding level. encryption also will have to move there.
+
+        SAML2AuthUtils.setSignature(assertion, config.getSigningAlgorithmUri(), config.getDigestAlgorithmUri(),
                                         true, SAML2AuthUtils.getServerCredentials());
-        }
 
         encryptAssertion(response, assertion, config);
     }
@@ -246,10 +250,10 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         response.setStatus(status);
     }
 
-    public void encryptAssertion(Response response, Assertion assertion, SAMLResponseHandlerConfig config)
-            throws SAMLServerException {
+    protected void encryptAssertion(Response response, Assertion assertion, ResponseBuilderConfig config)
+            throws SAML2SSOResponseBuilderException {
 
-        if (!config.isDoEnableEncryptedAssertion()) {
+        if (!config.encryptAssertion()) {
 
             response.getAssertions().add(assertion);
 
@@ -257,13 +261,23 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
 
             String encodedCert = config.getEncryptionCertificate();
             if (StringUtils.isBlank(encodedCert)) {
-                throw new SAMLServerException("Encryption certificate is not configured.");
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Encryption certificate is not configured.");
+                ex.setInResponseTo(response.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
             Certificate certificate;
             try {
-                certificate = decodeCertificate(encodedCert);
+                certificate = Utils.decodeCertificate(encodedCert);
             } catch (CertificateException e) {
-                throw new SAMLServerException("Invalid encoded certificate: " + encodedCert);
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Invalid encoded certificate: " + encodedCert);
+                ex.setInResponseTo(response.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             Credential symmetricCredential = null;
@@ -271,7 +285,12 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
                 symmetricCredential = SecurityHelper.getSimpleCredential(
                         SecurityHelper.generateSymmetricKey(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256));
             } catch (NoSuchAlgorithmException | KeyException e) {
-                throw new SAMLRuntimeException("Error occurred while encrypting Assertion.");
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Error occurred while encrypting assertion.", e);
+                ex.setInResponseTo(assertion.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             EncryptionParameters encParams = new EncryptionParameters();
@@ -289,14 +308,19 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
             try {
                 encryptedAssertion = encrypter.encrypt(assertion);
             } catch (EncryptionException e) {
-                throw new SAMLRuntimeException("Error occurred while encrypting Assertion.");
+                SAML2SSOResponseBuilderException ex =
+                        new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                             "Error occurred while encrypting assertion.", e);
+                ex.setInResponseTo(assertion.getID());
+                ex.setAcsUrl(response.getDestination());
+                throw ex;
             }
 
             response.getEncryptedAssertions().add(encryptedAssertion);
         }
     }
 
-    private AttributeStatement buildAttributeStatement(Map<String, String> claims) {
+    protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
 
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();
         Iterator<Map.Entry<String, String>> iterator = claims.entrySet().iterator();
@@ -310,7 +334,7 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
                 Attribute attribute = new AttributeBuilder().buildObject();
                 attribute.setName(claimUri);
                 //setting NAMEFORMAT attribute value to basic attribute profile
-                attribute.setNameFormat(SAMLSSOConstants.NAME_FORMAT_BASIC);
+                attribute.setNameFormat(Attribute.BASIC);
                 // look
                 // https://wiki.shibboleth.net/confluence/display/OpenSAML/OSTwoUsrManJavaAnyTypes
                 XSStringBuilder stringBuilder = (XSStringBuilder) Configuration.getBuilderFactory().
@@ -329,28 +353,65 @@ public class SAML2SSOResponseBuilder extends AbstractMessageHandler {
         }
     }
 
-    /**
-     * TODO: ideally this method must be in identity.commons. However the one in identity.commons uses
-     * TODO: java.util.Base64 which doesn't work here. Only the OpenSAML Base64 decoder works. Until then duplicating
-     * TODO: this method.
-     * Decode X509 certificate.
-     *
-     * @param encodedCert Base64 encoded certificate
-     * @return Decoded <code>Certificate</code>
-     * @throws java.security.cert.CertificateException Error when decoding certificate
-     */
-    public Certificate decodeCertificate(String encodedCert) throws CertificateException {
+    protected Response buildErrorResponse(String inResponseTo, String status, String message, String destination) {
 
-        if (encodedCert != null) {
-            byte[] bytes = Base64.decode(encodedCert);
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) factory
-                    .generateCertificate(new ByteArrayInputStream(bytes));
-            return cert;
-        } else {
-            String errorMsg = "Invalid encoded certificate: \'NULL\'";
-            logger.debug(errorMsg);
-            throw new IllegalArgumentException(errorMsg);
+        List<String> statusCodeList = new ArrayList();
+        statusCodeList.add(status);
+        return buildErrorResponse(inResponseTo, statusCodeList, message, destination);
+    }
+
+    protected Response buildErrorResponse(String inResponseToId, List<String> statusCodes, String statusMsg,
+                                          String destination) {
+
+        if (statusCodes == null || statusCodes.isEmpty()) {
+            return null;
         }
+        Response response = new ResponseBuilder().buildObject();
+        response.setIssuer(getIssuer());
+        Status status = new StatusBuilder().buildObject();
+        StatusCode statusCode = null;
+        for (String statCode : statusCodes) {
+            statusCode = buildStatusCode(statCode, statusCode);
+        }
+        status.setStatusCode(statusCode);
+        buildStatusMsg(status, statusMsg);
+        response.setStatus(status);
+        response.setVersion(SAMLVersion.VERSION_20);
+        response.setID(SAML2AuthUtils.createID());
+        if (StringUtils.isNotBlank(inResponseToId)) {
+            response.setInResponseTo(inResponseToId);
+        }
+        if (destination != null) {
+            response.setDestination(destination);
+        }
+        response.setIssueInstant(new DateTime());
+        return response;
+    }
+
+    private StatusCode buildStatusCode(String parentStatusCode, StatusCode childStatusCode) {
+
+        if (StringUtils.isBlank(parentStatusCode)) {
+            return childStatusCode;
+        }
+
+        StatusCode statusCode = new StatusCodeBuilder().buildObject();
+        statusCode.setValue(parentStatusCode);
+
+        if (childStatusCode != null) {
+            statusCode.setStatusCode(childStatusCode);
+            return statusCode;
+        } else {
+            return statusCode;
+        }
+    }
+
+    private Status buildStatusMsg(Status status, String statusMsg) {
+
+        if (statusMsg != null) {
+            StatusMessage statusMesssage = new StatusMessageBuilder().buildObject();
+            statusMesssage.setMessage(statusMsg);
+            status.setStatusMessage(statusMesssage);
+        }
+        return status;
     }
 }

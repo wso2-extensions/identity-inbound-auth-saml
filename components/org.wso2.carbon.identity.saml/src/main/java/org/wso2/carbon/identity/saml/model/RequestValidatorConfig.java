@@ -15,54 +15,59 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.saml.model;
 
-import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
+package org.wso2.carbon.identity.saml.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SAMLValidatorConfig implements Serializable {
+/**
+ * SAML2 SSO Request Validator Config Bean.
+ */
+public class RequestValidatorConfig implements Serializable {
 
     private static final long serialVersionUID = 1926448600042806841L;
-    private RequestValidatorConfig requestValidatorConfig;
+    private org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig requestValidatorConfig;
 
-    public SAMLValidatorConfig(RequestValidatorConfig requestValidatorConfig) {
+    public RequestValidatorConfig(
+            org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig requestValidatorConfig) {
         this.requestValidatorConfig = requestValidatorConfig;
     }
 
-    public List<String> getAssertionConsumerUrlList() {
-        List assertionConsumerUrls = (List) this.requestValidatorConfig.getProperties().get("assertionConsumerUrls");
-        List<String> assertionConsumerUrlStrings = new ArrayList<>();
-        assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
-        return assertionConsumerUrlStrings;
-    }
 
-    public String getAttributeConsumingServiceIndex() {
-        return (String) this.requestValidatorConfig.getProperties().get("attributeConsumingServiceIndex");
-    }
-
-    public String getCertAlias() {
-        return (String) this.requestValidatorConfig.getProperties().get("certificateAlias");
+    public String getSPEntityId() {
+        return (String) this.requestValidatorConfig.getProperties().get("issuer");
     }
 
     public String getDefaultAssertionConsumerUrl() {
         return (String) this.requestValidatorConfig.getProperties().get("defaultAssertionConsumerUrl");
     }
 
-    public String getIssuer() {
-        return (String) this.requestValidatorConfig.getProperties().get("issuer");
+    public List<String> getAssertionConsumerUrlList() {
+        List assertionConsumerUrls = (List) this.requestValidatorConfig.getProperties().get
+                ("assertionConsumerUrls");
+        List<String> assertionConsumerUrlStrings = new ArrayList();
+        assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
+        return assertionConsumerUrlStrings;
     }
 
-    public boolean isDoValidateSignatureInRequests() {
+    public boolean isRequireSignatureValidation() {
         return Boolean.parseBoolean(
                 (String) this.requestValidatorConfig.getProperties().get("doValidateSignatureInRequests"));
     }
 
-    public boolean isEnableAttributesByDefault() {
+    public String getSigningCertificate() {
+        return (String) this.requestValidatorConfig.getProperties().get("certificate");
+    }
+
+    public boolean sendBackClaimsAlways() {
         return Boolean
                 .parseBoolean((String) this.requestValidatorConfig.getProperties().get("enableAttributesByDefault"));
+    }
+
+    public String getAttributeConsumingServiceIndex() {
+        return (String) this.requestValidatorConfig.getProperties().get("attributeConsumingServiceIndex");
     }
 
     public boolean isIdPInitSSOEnabled() {
