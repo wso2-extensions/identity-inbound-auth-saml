@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.internal.SAML2InboundAuthDataHolder;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 
