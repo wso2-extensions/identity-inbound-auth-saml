@@ -57,7 +57,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
 
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
         String spEntityId = ((IdPInitRequest) messageContext.getIdentityRequest()).getSPEntityId();
-        authenticationContext.setUniqueId(spEntityId);
+        authenticationContext.setServiceProviderId(spEntityId);
         messageContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =
@@ -75,7 +75,7 @@ public class IdPInitValidator extends SAML2SSOValidator {
         RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
         String spName = authenticationContext.getServiceProvider().getName();
 
-        messageContext.setSPEntityId(messageContext.getUniqueId());
+        messageContext.setSPEntityId(messageContext.getServiceProviderId());
 
         String acs = ((IdPInitRequest) messageContext.getInitialAuthenticationRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {

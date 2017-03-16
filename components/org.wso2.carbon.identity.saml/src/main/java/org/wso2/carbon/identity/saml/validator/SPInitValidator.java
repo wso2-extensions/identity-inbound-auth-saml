@@ -79,9 +79,9 @@ public class SPInitValidator extends SAML2SSOValidator {
             throw ex;
         }
         if (StringUtils.isNotBlank(issuer.getValue())) {
-            authenticationContext.setUniqueId(issuer.getValue());
+            authenticationContext.setServiceProviderId(issuer.getValue());
         } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
-            authenticationContext.setUniqueId(issuer.getValue());
+            authenticationContext.setServiceProviderId(issuer.getValue());
         }
         messageContext.setName(authenticationContext.getServiceProvider().getName());
 
@@ -100,7 +100,7 @@ public class SPInitValidator extends SAML2SSOValidator {
         SPInitRequest spInitRequest = (SPInitRequest) messageContext.getInitialAuthenticationRequest();
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
 
-        messageContext.setSPEntityId(messageContext.getUniqueId());
+        messageContext.setSPEntityId(messageContext.getServiceProviderId());
         messageContext.setId((authnRequest).getID());
 
         try {
