@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.saml.model;
 
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +38,20 @@ public class RequestValidatorConfig implements Serializable {
     }
 
     public String getSPEntityId() {
-        return (String) this.requestValidatorConfig.getProperties().get("issuer");
+        return (String) this.requestValidatorConfig.getProperties().get
+                (SAML2AuthConstants.Config.Name.SP_ENTITY_ID);
     }
 
     public String getDefaultAssertionConsumerUrl() {
-        return (String) this.requestValidatorConfig.getProperties().get("defaultAssertionConsumerUrl");
+        return (String) this.requestValidatorConfig.getProperties().get(
+                SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL);
     }
 
     public List<String> getAssertionConsumerUrlList() {
         List<String> assertionConsumerUrlStrings = new ArrayList();
         List assertionConsumerUrls = (List) this.requestValidatorConfig.getProperties().get
-                ("assertionConsumerUrls");
-        if (assertionConsumerUrls == null || assertionConsumerUrls.isEmpty()){
+                (SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS);
+        if (assertionConsumerUrls == null || assertionConsumerUrls.isEmpty()) {
             return assertionConsumerUrlStrings;
         }
         assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
@@ -56,23 +60,28 @@ public class RequestValidatorConfig implements Serializable {
 
     public boolean isRequireSignatureValidation() {
         return Boolean.parseBoolean(
-                (String) this.requestValidatorConfig.getProperties().get("doValidateSignatureInRequests"));
+                (String) this.requestValidatorConfig.getProperties().get(
+                        SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED));
     }
 
     public String getSigningCertificate() {
-        return (String) this.requestValidatorConfig.getProperties().get("certificate");
+        return (String) this.requestValidatorConfig.getProperties().get(
+                SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE);
     }
 
     public boolean sendBackClaimsAlways() {
         return Boolean
-                .parseBoolean((String) this.requestValidatorConfig.getProperties().get("enableAttributesByDefault"));
+                .parseBoolean((String) this.requestValidatorConfig.getProperties().get(
+                        SAML2AuthConstants.Config.Name.SEND_CLAIMS_ALWAYS));
     }
 
     public String getAttributeConsumingServiceIndex() {
-        return (String) this.requestValidatorConfig.getProperties().get("attributeConsumingServiceIndex");
+        return (String) this.requestValidatorConfig.getProperties().get(
+                SAML2AuthConstants.Config.Name.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
     }
 
     public boolean isIdPInitSSOEnabled() {
-        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get("idPInitSSOEnabled"));
+        return Boolean.parseBoolean((String) this.requestValidatorConfig.getProperties().get(
+                SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED));
     }
 }

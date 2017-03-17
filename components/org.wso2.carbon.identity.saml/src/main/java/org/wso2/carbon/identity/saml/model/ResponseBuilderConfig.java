@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.saml.model;
 
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,29 +39,35 @@ public class ResponseBuilderConfig implements Serializable {
     }
 
     public String getDefaultAssertionConsumerUrl() {
-        return (String) responseBuilderConfigs.getProperties().get("defaultAssertionConsumerUrl");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL);
     }
 
     public String getNameIdFormat() {
-        return (String) responseBuilderConfigs.getProperties().get("nameIDFormat");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.NAME_ID_FORMAT);
     }
 
     public int getNotOnOrAfterPeriod() {
-        return Integer.parseInt((String) responseBuilderConfigs.getProperties().get("notOnOrAfterPeriod"));
+        return Integer.parseInt((String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.NOT_ON_OR_AFTER_PERIOD));
     }
 
     public boolean sendBackClaimsAlways() {
-        return Boolean.parseBoolean((String) responseBuilderConfigs.getProperties().get("enableAttributesByDefault"));
+        return Boolean.parseBoolean((String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.SEND_CLAIMS_ALWAYS));
     }
 
     public String getAttributeConsumingServiceIndex() {
-        return (String) responseBuilderConfigs.getProperties().get("attributeConsumingServiceIndex");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
     }
 
     public List<String> getRequestedAudiences() {
 
         List<String> requestedAudiencesStringList = new ArrayList();
-        List requestedAudiencesList = (List) responseBuilderConfigs.getProperties().get("requestedAudiences");
+        List requestedAudiencesList = (List) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.REQUESTED_AUDIENCES);
         if (requestedAudiencesList == null || requestedAudiencesList.isEmpty()) {
             return requestedAudiencesStringList;
         }
@@ -70,7 +78,8 @@ public class ResponseBuilderConfig implements Serializable {
     public List<String> getRequestedRecipients() {
 
         List<String> requestedRecipientStringList = new ArrayList();
-        List requestedRecipientList = (List) responseBuilderConfigs.getProperties().get("requestedAudiences");
+        List requestedRecipientList = (List) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.REQUESTED_RECIPIENTS);
         if (requestedRecipientList == null || requestedRecipientList.isEmpty()) {
             return requestedRecipientStringList;
         }
@@ -79,22 +88,27 @@ public class ResponseBuilderConfig implements Serializable {
     }
 
     public String getDigestAlgorithmUri() {
-        return (String) responseBuilderConfigs.getProperties().get("digestAlgorithmUri");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.DIGEST_ALGO);
     }
 
     public String getSigningAlgorithmUri() {
-        return (String) responseBuilderConfigs.getProperties().get("signingAlgorithmUri");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.SIGNATURE_ALGO);
     }
 
     public boolean signResponse() {
-        return Boolean.valueOf((String) responseBuilderConfigs.getProperties().get("doSignResponse"));
+        return Boolean.valueOf((String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_SIGNED));
     }
 
     public boolean encryptAssertion() {
-        return Boolean.parseBoolean((String) responseBuilderConfigs.getProperties().get("doEnableEncryptedAssertion"));
+        return Boolean.parseBoolean((String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_ENCRYPTED));
     }
 
     public String getEncryptionCertificate() {
-        return (String) responseBuilderConfigs.getProperties().get("certificate");
+        return (String) responseBuilderConfigs.getProperties().get(
+                SAML2AuthConstants.Config.Name.ENCRYPTION_CERTIFICATE);
     }
 }

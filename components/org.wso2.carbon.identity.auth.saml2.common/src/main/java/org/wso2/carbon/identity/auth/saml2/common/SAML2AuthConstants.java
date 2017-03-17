@@ -49,8 +49,15 @@ public class SAML2AuthConstants {
         public static class Name {
             public static final String SP_ENTITY_ID = "SPEntityId";
             public static final String IDP_ENTITY_ID = "IdPEntityId";
+            public static final String ASSERTION_CONSUMER_URLS = "AssertionConsumerURLs";
+            public static final String DEFAULT_ASSERTION_CONSUMER_URL = "DefaultAssertionConsumerURL";
+            public static final String NOT_ON_OR_AFTER_PERIOD = "NotOnOrAfterPeriod";
+            public static final String SEND_CLAIMS_ALWAYS = "SendClaimsAlways";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
+            public static final String REQUESTED_AUDIENCES = "RequestedAudiences";
+            public static final String REQUESTED_RECIPIENTS = "RequestedRecipients";
             public static final String INCLUDE_NAME_ID_POLICY = "IncludeNameIdPolicy";
+            public static final String NAME_ID_FORMAT = "NameIdFormat";
             public static final String INCLUDE_AUTHN_CONTEXT = "IncludeAuthnContext";
             public static final String AUTHN_CONTEXT_CLASS_REF = "AuthnContextClassRef";
             public static final String AUTHN_CONTEXT_COMPARISON = "AuthnContextComparison";
@@ -60,10 +67,13 @@ public class SAML2AuthConstants {
             public static final String FORCE = "Force";
             public static final String PASSIVE = "Passive";
             public static final String AUTHN_REQUEST_SIGNED = "AuthnRequestSigned";
+            public static final String SIGNING_CERTIFICATE = "certificate";
+            public static final String ENCRYPTION_CERTIFICATE = "certificate";
             public static final String AUTHN_RESPONSE_SIGNED = "AuthnResponseSigned";
             public static final String AUTHN_RESPONSE_ENCRYPTED = "AuthnResponseEncrypted";
             public static final String SIGNATURE_ALGO = "SignatureAlgo";
             public static final String DIGEST_ALGO = "DigestAlgo";
+            public static final String IDP_INIT_SSO_ENABLED = "IdPInitSSOEnabled";
         }
 
         /**
