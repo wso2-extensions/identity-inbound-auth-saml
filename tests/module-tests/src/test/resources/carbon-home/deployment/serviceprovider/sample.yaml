@@ -3,7 +3,7 @@ serviceProviderConfig:
   requestValidationConfig:
     requestValidatorConfigs:
       -
-          type: "SAML"
+          type: "SAML2SSO"
           uniquePropertyName : "issuer"
           properties:
             issuer : "travelocity.com"
@@ -57,7 +57,7 @@ serviceProviderConfig:
   responseBuildingConfig:
     responseBuilderConfigs:
       -
-        type: "SAML"
+        type: "SAML2SSO"
         properties:
           notOnOrAfterPeriod : "5"
           defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"

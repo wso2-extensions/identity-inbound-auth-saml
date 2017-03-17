@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.saml.inbound.test.module;
 
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.io.Charsets;
-import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Response;
-import org.opensaml.xml.ConfigurationException;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
@@ -38,27 +36,18 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
-import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
-import org.wso2.carbon.identity.saml.request.SPInitRequest;
-import org.wso2.carbon.identity.saml.response.SAML2SSOResponse;
-import org.wso2.carbon.identity.saml.util.Utils;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 
 /**
  * General tests for SAML inbound SP Init.

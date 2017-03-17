@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.AuthenticationFailure;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
@@ -37,14 +37,16 @@ import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * SAML2 SSO Response Handler.
  */
 public class SAML2SSOResponseHandler extends AbstractResponseHandler {
 
-    protected String getValidatorType() {
-        // change to "SAML2SSO"
-        return "SAML";
+    public String getValidatorType() {
+        return SAML2AuthConstants.SAML2_SSO_TYPE;
     }
 
     public int getPriority(org.wso2.carbon.identity.common.base.message.MessageContext messageContext) {
@@ -109,11 +111,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
             builder.setRelayState(messageContext.getRelayState());
         }
 
-        try {
-            addSessionKey(builder, context);
-        } catch (ResponseHandlerException e) {
-            // TODO: ignore for now. Remove exception thrown from addSessionKey method
-        }
+        addSessionKey(builder, context);
 
         return response;
     }
@@ -134,6 +132,22 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
             samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
                                                                   e2.getMessage(), e2.getACSUrl());
             builder.setAcsUrl(e2.getACSUrl());
+        } else if (e instanceof AuthenticationFailure) {
+            AuthenticationFailure e2 = (AuthenticationFailure) e;
+            MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
+            List<String> statusCodes = new ArrayList();
+            if (AuthenticationFailure.AuthnStatus.INVALID_CREDENTIAL.equals(e2.getErrorCode())) {
+                statusCodes.add(StatusCode.AUTHN_FAILED_URI);
+                statusCodes.add(StatusCode.RESPONDER_URI);
+            } else if (AuthenticationFailure.AuthnStatus.NO_PASSIVE.equals(e2.getErrorCode())) {
+                statusCodes.add(StatusCode.NO_PASSIVE_URI);
+                statusCodes.add(StatusCode.RESPONDER_URI);
+            } else {
+                statusCodes.add(StatusCode.RESPONDER_URI);
+            }
+            samlResponse = samlResponseBuilder.buildErrorResponse(messageContext.getId(), statusCodes,
+                                                                  e.getMessage(),
+                                                                  messageContext.getAssertionConsumerURL());
         } else {
             SAML2SSOServerException e2 = ((SAML2SSOServerException) e);
             samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),

@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.auth.saml2.common;
  */
 public class SAML2AuthConstants {
 
+    public static final String SAML2_SSO_TYPE = "SAML2SSO";
     public static final String SAML_REQUEST = "SAMLRequest";
     public static final String SAML_RESPONSE = "SAMLResponse";
     public static final String RELAY_STATE = "RelayState";

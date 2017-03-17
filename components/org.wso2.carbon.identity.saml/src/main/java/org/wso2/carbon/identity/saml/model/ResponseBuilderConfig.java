@@ -56,18 +56,26 @@ public class ResponseBuilderConfig implements Serializable {
         return (String) responseBuilderConfigs.getProperties().get("attributeConsumingServiceIndex");
     }
 
-    public String[] getRequestedAudiences() {
+    public List<String> getRequestedAudiences() {
+
+        List<String> requestedAudiencesStringList = new ArrayList();
         List requestedAudiencesList = (List) responseBuilderConfigs.getProperties().get("requestedAudiences");
-        List<String> requestedAudiencesStringList = new ArrayList<String>();
+        if (requestedAudiencesList == null || requestedAudiencesList.isEmpty()) {
+            return requestedAudiencesStringList;
+        }
         requestedAudiencesList.stream().forEach(v -> requestedAudiencesStringList.add((String) v));
-        return requestedAudiencesStringList.stream().toArray(size -> new String[size]);
+        return requestedAudiencesStringList;
     }
 
-    public String[] getRequestedRecipients() {
+    public List<String> getRequestedRecipients() {
+
+        List<String> requestedRecipientStringList = new ArrayList();
         List requestedRecipientList = (List) responseBuilderConfigs.getProperties().get("requestedAudiences");
-        List<String> requestedRecipientStringList = new ArrayList<String>();
+        if (requestedRecipientList == null || requestedRecipientList.isEmpty()) {
+            return requestedRecipientStringList;
+        }
         requestedRecipientList.stream().forEach(v -> requestedRecipientStringList.add((String) v));
-        return requestedRecipientStringList.stream().toArray(size -> new String[size]);
+        return requestedRecipientStringList;
     }
 
     public String getDigestAlgorithmUri() {

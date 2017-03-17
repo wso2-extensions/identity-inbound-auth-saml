@@ -35,7 +35,6 @@ public class RequestValidatorConfig implements Serializable {
         this.requestValidatorConfig = requestValidatorConfig;
     }
 
-
     public String getSPEntityId() {
         return (String) this.requestValidatorConfig.getProperties().get("issuer");
     }
@@ -45,9 +44,12 @@ public class RequestValidatorConfig implements Serializable {
     }
 
     public List<String> getAssertionConsumerUrlList() {
+        List<String> assertionConsumerUrlStrings = new ArrayList();
         List assertionConsumerUrls = (List) this.requestValidatorConfig.getProperties().get
                 ("assertionConsumerUrls");
-        List<String> assertionConsumerUrlStrings = new ArrayList();
+        if (assertionConsumerUrls == null || assertionConsumerUrls.isEmpty()){
+            return assertionConsumerUrlStrings;
+        }
         assertionConsumerUrls.stream().forEach(a -> assertionConsumerUrlStrings.add((String) a));
         return assertionConsumerUrlStrings;
     }

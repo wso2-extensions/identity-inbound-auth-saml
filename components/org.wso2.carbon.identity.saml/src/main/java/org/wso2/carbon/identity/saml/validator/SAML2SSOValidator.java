@@ -43,7 +43,6 @@ public abstract class SAML2SSOValidator extends AbstractRequestValidator {
 
     @Override
     public String getValidatorType() {
-        // change to "SAML2SSO"
-        return "SAML";
+        return SAML2AuthConstants.SAML2_SSO_TYPE;
     }
 }

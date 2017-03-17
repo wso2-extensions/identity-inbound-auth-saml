@@ -502,7 +502,7 @@
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
         <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}
         </identity.inbound.auth.saml.exp.version>
-        <carbon.identity.commons.version>0.1.20</carbon.identity.commons.version>
+        <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
         <carbon.identity.gateway.version>1.0.0-SNAPSHOT</carbon.identity.gateway.version>
         <auth.saml2.common.version>${project.version}</auth.saml2.common.version>
         <auth.saml2.common.import.version.range>[6.0.0,7.0.0)</auth.saml2.common.import.version.range>

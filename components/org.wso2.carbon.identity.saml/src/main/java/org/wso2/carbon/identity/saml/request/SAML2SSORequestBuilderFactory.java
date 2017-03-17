@@ -18,11 +18,8 @@
 
 package org.wso2.carbon.identity.saml.request;
 
-import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.StringUtils;
-import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.StatusMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
@@ -30,16 +27,9 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
-import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
-import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.msf4j.Request;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import javax.ws.rs.core.Response;
 
 /**

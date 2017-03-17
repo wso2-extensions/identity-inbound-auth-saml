@@ -18,16 +18,9 @@
 package org.wso2.carbon.identity.saml.response;
 
 import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Status;
-import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.opensaml.saml2.core.impl.StatusBuilder;
-import org.opensaml.saml2.core.impl.StatusCodeBuilder;
-import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
 
 /**
  * The SAML2 SSO Response returned to the service provider.

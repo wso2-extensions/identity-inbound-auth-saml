@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.saml.response;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.utils.EncryptionConstants;
 import org.joda.time.DateTime;
@@ -78,7 +76,6 @@ import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
-import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.saml.util.Utils;
@@ -167,20 +164,18 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         subjectConfirmation.setSubjectConfirmationData(scData);
         subject.getSubjectConfirmations().add(subjectConfirmation);
 
-        if (config.getRequestedRecipients() != null && config.getRequestedRecipients().length > 0) {
-            for (String recipient : config.getRequestedRecipients()) {
-                subjectConfirmation = new SubjectConfirmationBuilder()
-                        .buildObject();
-                subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
-                scData = new SubjectConfirmationDataBuilder().buildObject();
-                scData.setRecipient(recipient);
-                scData.setNotOnOrAfter(notOnOrAfter);
-                if (!messageContext.isIdpInitSSO()) {
-                    scData.setInResponseTo(messageContext.getId());
-                }
-                subjectConfirmation.setSubjectConfirmationData(scData);
-                subject.getSubjectConfirmations().add(subjectConfirmation);
+        for (String recipient : config.getRequestedRecipients()) {
+            subjectConfirmation = new SubjectConfirmationBuilder()
+                    .buildObject();
+            subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
+            scData = new SubjectConfirmationDataBuilder().buildObject();
+            scData.setRecipient(recipient);
+            scData.setNotOnOrAfter(notOnOrAfter);
+            if (!messageContext.isIdpInitSSO()) {
+                scData.setInResponseTo(messageContext.getId());
             }
+            subjectConfirmation.setSubjectConfirmationData(scData);
+            subject.getSubjectConfirmations().add(subjectConfirmation);
         }
 
         assertion.setSubject(subject);
@@ -212,12 +207,10 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         Audience issuerAudience = new AudienceBuilder().buildObject();
         issuerAudience.setAudienceURI(messageContext.getIssuerWithDomain());
         audienceRestriction.getAudiences().add(issuerAudience);
-        if (config.getRequestedAudiences() != null) {
-            for (String requestedAudience : config.getRequestedAudiences()) {
-                Audience audience = new AudienceBuilder().buildObject();
-                audience.setAudienceURI(requestedAudience);
-                audienceRestriction.getAudiences().add(audience);
-            }
+        for (String requestedAudience : config.getRequestedAudiences()) {
+            Audience audience = new AudienceBuilder().buildObject();
+            audience.setAudienceURI(requestedAudience);
+            audienceRestriction.getAudiences().add(audience);
         }
         Conditions conditions = new ConditionsBuilder().buildObject();
         conditions.setNotBefore(currentTime);
