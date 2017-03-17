@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
  * SAML inbound unit tests.
  */
 @PrepareForTest()
-public class SAMLInboundUnitTests {
+public class UnitTests {
 
     @Mock
     private RealmService realmService;

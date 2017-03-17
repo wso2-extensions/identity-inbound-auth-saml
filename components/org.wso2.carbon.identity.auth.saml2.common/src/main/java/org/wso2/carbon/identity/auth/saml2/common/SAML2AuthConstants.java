@@ -67,10 +67,10 @@ public class SAML2AuthConstants {
             public static final String FORCE = "Force";
             public static final String PASSIVE = "Passive";
             public static final String AUTHN_REQUEST_SIGNED = "AuthnRequestSigned";
-            public static final String SIGNING_CERTIFICATE = "certificate";
-            public static final String ENCRYPTION_CERTIFICATE = "certificate";
+            public static final String SIGNING_CERTIFICATE = "Certificate";
+            public static final String ENCRYPTION_CERTIFICATE = "Certificate";
             public static final String AUTHN_RESPONSE_SIGNED = "AuthnResponseSigned";
-            public static final String AUTHN_RESPONSE_ENCRYPTED = "AuthnResponseEncrypted";
+            public static final String AUTHN_RESPONSE_ENCRYPTED = "AssertionEncrypted";
             public static final String SIGNATURE_ALGO = "SignatureAlgo";
             public static final String DIGEST_ALGO = "DigestAlgo";
             public static final String IDP_INIT_SSO_ENABLED = "IdPInitSSOEnabled";

@@ -30,7 +30,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 /**
  * This class contains the utility methods for SAML inbound OSGI tests.
  */
-public class SAMLInboundOSGiTestUtils {
+public class OSGiTestUtils {
 
     /**
      * Returns the default list of PAX options needed for SAML inbound OSGI test.

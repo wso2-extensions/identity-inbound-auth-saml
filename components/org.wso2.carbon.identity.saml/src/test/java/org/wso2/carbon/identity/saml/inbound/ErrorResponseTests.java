@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
  * Identity Store Tests.
  */
 @PrepareForTest()
-public class SAMLErrorResponseTests {
+public class ErrorResponseTests {
 
     @Mock
     private RealmService realmService;

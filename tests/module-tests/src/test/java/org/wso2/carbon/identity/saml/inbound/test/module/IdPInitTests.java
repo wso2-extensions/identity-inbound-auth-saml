@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
@@ -49,9 +50,9 @@ import javax.ws.rs.HttpMethod;
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
-public class SAMLIDPInitiatedTests {
+public class IdPInitTests {
 
-    private static final Logger log = LoggerFactory.getLogger(SAMLInboundSPInitTests.class);
+    private static final Logger log = LoggerFactory.getLogger(SPInitTests.class);
 
     @Inject
     private BundleContext bundleContext;
@@ -63,10 +64,10 @@ public class SAMLIDPInitiatedTests {
     @Configuration
     public Option[] createConfiguration() {
 
-        List<Option> optionList = SAMLInboundOSGiTestUtils.getDefaultSecurityPAXOptions();
+        List<Option> optionList = OSGiTestUtils.getDefaultSecurityPAXOptions();
 
         optionList.add(CoreOptions.systemProperty("java.security.auth.login.config")
-                .value(Paths.get(SAMLInboundOSGiTestUtils.getCarbonHome(), "conf", "security", "carbon-jaas.config")
+                .value(Paths.get(OSGiTestUtils.getCarbonHome(), "conf", "security", "carbon-jaas.config")
                         .toString()));
 
         return optionList.toArray(new Option[optionList.size()]);
@@ -78,23 +79,23 @@ public class SAMLIDPInitiatedTests {
     @Test
     public void testSAMLInboundAuthenticationIDPinit() {
         try {
-            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
                     .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
 
-            String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
-            Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
-            Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
 
-            String relayState = locationHeader.split(SAMLInboundTestConstants.RELAY_STATE + "=")[1];
-            relayState = relayState.split(SAMLInboundTestConstants.QUERY_PARAM_SEPARATOR)[0];
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
 
-            urlConnection = SAMLInboundTestUtils.request
-                    (SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" + SAMLInboundTestConstants.RELAY_STATE + "=" +
-                            relayState + "&" + SAMLInboundTestConstants.ASSERTION + "=" + SAMLInboundTestConstants
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                     relayState + "&" + TestConstants.ASSERTION + "=" + TestConstants
                             .AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
-            String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
@@ -108,34 +109,34 @@ public class SAMLIDPInitiatedTests {
     @Test
     public void testSAMLResponse() {
         try {
-            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
                     .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
 
-            String locationHeader = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
-            Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.RELAY_STATE));
-            Assert.assertTrue(locationHeader.contains(SAMLInboundTestConstants.EXTERNAL_IDP));
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
 
-            String relayState = locationHeader.split(SAMLInboundTestConstants.RELAY_STATE + "=")[1];
-            relayState = relayState.split(SAMLInboundTestConstants.QUERY_PARAM_SEPARATOR)[0];
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
 
-            urlConnection = SAMLInboundTestUtils.request
-                    (SAMLInboundTestConstants.GATEWAY_ENDPOINT + "?" + SAMLInboundTestConstants.RELAY_STATE + "=" +
-                            relayState + "&" + SAMLInboundTestConstants.ASSERTION + "=" + SAMLInboundTestConstants
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                     relayState + "&" + TestConstants.ASSERTION + "=" + TestConstants
                             .AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
-            String cookie = SAMLInboundTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
             if (cookie != null) {
                 cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
                 Assert.assertNotNull(cookie);
-                String response = SAMLInboundTestUtils.getContent(urlConnection);
+                String response = TestUtils.getContent(urlConnection);
                 if (response != null) {
                     String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
                     try {
-                        Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+                        Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
                         Assert.assertEquals(samlResponseObject.getAssertions().get(0)
                                                     .getSubject().getNameID().getValue(),
-                                            SAMLInboundTestConstants.AUTHENTICATED_USER_NAME);
+                                            TestConstants.AUTHENTICATED_USER_NAME);
                     } catch (SAML2SSOServerException e) {
                         Assert.fail("Error while building SAML response from the response");
                     }
@@ -153,14 +154,14 @@ public class SAMLIDPInitiatedTests {
     public void testInvalidIssuer() {
 
         try {
-            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
                     .SAMPLE_ISSUER_NAME + "dummy", HttpMethod.GET, false);
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
-            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String response = TestUtils.getContent(urlConnection);
             Assert.assertNotNull(response);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
             Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
             String location = response.split("post' action='")[1].split("'>")[0];
             Assert.assertTrue(location.contains("notifications"));
@@ -176,20 +177,20 @@ public class SAMLIDPInitiatedTests {
      */
     @Test
     public void testIDPInitSSODisabled() {
-        ServiceProviderConfig serviceProviderConfig = SAMLInboundTestUtils.getServiceProviderConfigs
-                (SAMLInboundTestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
-                .setProperty("idPInitSSOEnabled", "false");
+                .setProperty(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "false");
         try {
-            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
                     .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
 
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
-            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            String response = TestUtils.getContent(urlConnection);
             Assert.assertNotNull(response);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
             Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
 
         } catch (IOException e) {
@@ -198,7 +199,7 @@ public class SAMLIDPInitiatedTests {
             Assert.fail("Error while building Response object from SAMLResponse message.");
         } finally {
             serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
-                    .setProperty("idPInitSSOEnabled", "true");
+                    .setProperty(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
         }
     }
 
@@ -209,15 +210,15 @@ public class SAMLIDPInitiatedTests {
     public void testIDPInitSSOWrongACS() {
 
         try {
-            HttpURLConnection urlConnection = SAMLInboundTestUtils.request(SAMLInboundTestConstants.GATEWAY_ENDPOINT
-                    + "?" + SAMLInboundTestConstants.SP_ENTITY_ID + "=" + SAMLInboundTestConstants
-                    .SAMPLE_ISSUER_NAME + SAMLInboundTestConstants.QUERY_PARAM_SEPARATOR +
-                    "acs=http://localhost:9092/invalidACS", HttpMethod.GET, false);
-            String response = SAMLInboundTestUtils.getContent(urlConnection);
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
+                    .SAMPLE_ISSUER_NAME + TestConstants.QUERY_PARAM_SEPARATOR +
+                                                                "acs=http://localhost:9092/invalidACS", HttpMethod.GET, false);
+            String response = TestUtils.getContent(urlConnection);
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
             Assert.assertNotNull(response);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
-            Response samlResponseObject = SAMLInboundTestUtils.getSAMLResponse(samlResponse);
+            Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
             Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
             String location = response.split("post' action='")[1].split("'>")[0];
             Assert.assertTrue(location.contains("notifications"));

@@ -55,9 +55,9 @@ import java.net.URL;
 /**
  * Utilities for SAML inbound tests.
  */
-public class SAMLInboundTestUtils {
+public class TestUtils {
 
-    private static Logger logger = LoggerFactory.getLogger(SAMLInboundTestUtils.class);
+    private static Logger logger = LoggerFactory.getLogger(TestUtils.class);
 
     public static HttpURLConnection request(String path, String method, boolean keepAlive) throws IOException {
 

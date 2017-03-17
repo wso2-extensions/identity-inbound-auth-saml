@@ -4,14 +4,14 @@ serviceProviderConfig:
     requestValidatorConfigs:
       -
           type: "SAML2SSO"
-          uniquePropertyName : "issuer"
+          uniquePropertyName : "SPEntityId"
           properties:
-            issuer : "travelocity.com"
-            assertionConsumerUrls:
+            SPEntityId : "travelocity.com"
+            AssertionConsumerURLs:
                 - "http://localhost:8080/travelocity.com/home.jsp"
-            defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
-            nameIDformat : "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-            certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
+            DefaultAssertionConsumerURL : "http://localhost:8080/travelocity.com/home.jsp"
+            NameIdformat : "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+            Certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
                            UzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoM
                            BFdTTzIxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAy
                            MTMwNzAyMjZaMFUxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEWMBQGA1UEBwwN
@@ -23,10 +23,10 @@ serviceProviderConfig:
                            AQEFBQADgYEAW5wPR7cr1LAdq+IrR44iQlRG5ITCZXY9hI0PygLP2rHANh+PYfTm
                            xbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJRO4d1DeGHT/YnIjs9JogR
                            Kv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo="
-            enableAttributesByDefault : "true"
-            idPInitSSOEnabled : "true"
-            attributeConsumingServiceIndex : "2342342"
-            doValidateSignatureInRequests : "true"
+            SendClaimsAlways : "true"
+            IdPInitSSOEnabled : "true"
+            AttributeConsumingServiceIndex : "2342342"
+            AuthnRequestSigned : "true"
       -
           type: "oidc"
           uniquePropertyName : "key"
@@ -59,9 +59,9 @@ serviceProviderConfig:
       -
         type: "SAML2SSO"
         properties:
-          notOnOrAfterPeriod : "5"
-          defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
-          certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
+          NotOnOrAfterPeriod : "5"
+          DefaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
+          Certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
                          UzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoM
                          BFdTTzIxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAy
                          MTMwNzAyMjZaMFUxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEWMBQGA1UEBwwN
@@ -73,14 +73,12 @@ serviceProviderConfig:
                          AQEFBQADgYEAW5wPR7cr1LAdq+IrR44iQlRG5ITCZXY9hI0PygLP2rHANh+PYfTm
                          xbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJRO4d1DeGHT/YnIjs9JogR
                          Kv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo="
-          doSignResponse : "true"
-          doSingleLogout : "false"
-          doSignAssertions : "true"
+          AuthnResponseSigned : "true"
           attributeConsumingServiceIndex : "2342342"
-          enableAttributesByDefault : "true"
-          doEnableEncryptedAssertion : "false"
-          signingAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
-          digestAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#sha1"
-          requestedAudiences :
+          SendClaimsAlways : "true"
+          AssertionEncrypted : "false"
+          SignatureAlgo : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+          DigestAlgo : "http://www.w3.org/2000/09/xmldsig#sha1"
+          RequestedAudiences :
             - "testing"
             - "testing2"
