@@ -73,7 +73,7 @@ serviceProviderConfig:
                          xbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJRO4d1DeGHT/YnIjs9JogR
                          Kv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo="
           AuthnResponseSigned : "true"
-          attributeConsumingServiceIndex : "2342342"
+          AttributeConsumingServiceIndex : "2342342"
           SendClaimsAlways : "true"
           AssertionEncrypted : "false"
           SignatureAlgo : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
