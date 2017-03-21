@@ -30,7 +30,7 @@ serviceProviderConfig:
           type: "oidc"
           uniquePropertyName : "key"
           properties:
-              assertionConsumerUrls:
+              AssertionConsumerUrls:
                   - "http://localhost:8080/playground/home.jsp"
               key : "f3f43f43f43f43v4343gfddd"
               secret : "ssdf232f23f32f32f32f32f32f"
@@ -58,8 +58,8 @@ serviceProviderConfig:
       -
         type: "SAML2SSO"
         properties:
-          NotOnOrAfterPeriod : "5"
-          NameIdformat : "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+          NotOnOrAfterPeriod : "5NameIdformat"
+          NameIdFormat : "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
           Certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
                          UzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoM
                          BFdTTzIxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAy
@@ -79,5 +79,5 @@ serviceProviderConfig:
           SignatureAlgo : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
           DigestAlgo : "http://www.w3.org/2000/09/xmldsig#sha1"
           RequestedAudiences :
-            - "testing"
-            - "testing2"
+            - "audience1"
+            - "audience2"

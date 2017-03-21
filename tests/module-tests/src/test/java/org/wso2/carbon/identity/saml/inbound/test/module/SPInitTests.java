@@ -721,4 +721,90 @@ public class SPInitTests {
 //            Assert.fail("Error while building error response", e);
 //        }
     }
+
+    /**
+     * SAML request without signature validation turned on.
+     */
+    @Test
+    public void testSPInitSSOWithAllConfigs() {
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalReqValidatorConfigs = serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties();
+        Properties originalResponseBuilderConfigs = serviceProviderConfig.getResponseBuildingConfig()
+                .getResponseBuilderConfigs().get(0).getProperties();
+        try {
+
+            applyAllConfigs(originalReqValidatorConfigs, originalResponseBuilderConfigs, serviceProviderConfig);
+            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
+
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                            relayState + "&" + TestConstants.ASSERTION + "=" +
+                            TestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = TestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+                Assert.assertTrue(samlResponseObject.getAssertions().isEmpty());
+                Assert.assertNotNull(samlResponseObject.getSignature());
+                Assert.assertFalse(samlResponseObject.getEncryptedAssertions().isEmpty());
+            } catch (SAML2SSOServerException e) {
+                log.error("Error while building response object from SAML response string", e);
+            }
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (originalResponseBuilderConfigs);
+        }
+    }
+
+
+    private void applyAllConfigs(Properties originalReqValidatorConfigs, Properties
+            originalResponseBuilderConfigs, ServiceProviderConfig serviceProviderConfig) {
+        Properties newReqValidatorConfigs = (Properties) originalReqValidatorConfigs.clone();
+        Properties newResponseBuilderConfigs =(Properties) originalResponseBuilderConfigs.clone();
+
+        // ACS, defaultACS, signingAlgo, DigestAlgo, EncryptionCert, Signing Certificate, AttributeConsumerUrl,
+        // NameIdFormat,
+        // NotOrAfterPeriod are set in sample.yaml SP by def`ault. Therefore no need to explicitly enable them
+        newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
+        newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_ENCRYPTED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_SIGNED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.SEND_CLAIMS_ALWAYS, "true");
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                (newReqValidatorConfigs);
+        serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                (newResponseBuilderConfigs);
+    }
+
 }
