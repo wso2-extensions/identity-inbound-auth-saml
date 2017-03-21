@@ -98,7 +98,8 @@ public class TestUtils {
     }
 
 
-    public static AuthnRequest buildAuthnRequest(String idpUrl, boolean isForce, boolean isPassive, String issuerName) {
+    public static AuthnRequest buildAuthnRequest(String idpUrl, boolean isForce, boolean isPassive, String
+            issuerName, String acsUrl) {
 
         IssuerBuilder issuerBuilder = new IssuerBuilder();
         Issuer issuer = issuerBuilder.buildObject("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer", "samlp");
@@ -117,8 +118,6 @@ public class TestUtils {
 
         // how about redirect binding URI?
         authRequest.setProtocolBinding(SAMLConstants.SAML2_POST_BINDING_URI);
-
-        String acsUrl = "http://localhost:8080/travelocity.com/home.jsp";
         authRequest.setAssertionConsumerServiceURL(acsUrl);
         authRequest.setIssuer(issuer);
         authRequest.setID(SAML2AuthUtils.createID());

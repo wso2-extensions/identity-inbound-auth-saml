@@ -25,7 +25,7 @@ serviceProviderConfig:
             SendClaimsAlways : "true"
             IdPInitSSOEnabled : "true"
             AttributeConsumingServiceIndex : "2342342"
-            AuthnRequestSigned : "true"
+            AuthnRequestSigned : "false"
       -
           type: "oidc"
           uniquePropertyName : "key"

@@ -23,6 +23,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.SPInitTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.IdPInitTests"/>
+            <class name="org.wso2.carbon.identity.saml.inbound.test.module.SSOTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/>
         </classes>
     </test>
