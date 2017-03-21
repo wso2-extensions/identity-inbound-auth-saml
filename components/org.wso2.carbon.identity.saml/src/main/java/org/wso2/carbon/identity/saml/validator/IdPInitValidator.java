@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
@@ -61,8 +62,8 @@ public class IdPInitValidator extends SAML2SSOValidator {
         try {
             authenticationContext.setServiceProviderId(spEntityId);
         } catch (GatewayClientException e) {
-            SAML2SSORequestValidationException ex =
-                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, e.getMessage());
+            InvalidSPEntityIdException ex =
+                    new InvalidSPEntityIdException(StatusCode.REQUESTER_URI, e.getMessage());
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
         }

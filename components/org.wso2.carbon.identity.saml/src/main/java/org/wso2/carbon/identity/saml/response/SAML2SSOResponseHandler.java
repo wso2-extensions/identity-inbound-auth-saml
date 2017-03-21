@@ -18,18 +18,25 @@
 package org.wso2.carbon.identity.saml.response;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationFailure;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.exception.ServiceProviderIdNotSetException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.model.User;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
@@ -38,12 +45,16 @@ import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SAML2 SSO Response Handler.
  */
 public class SAML2SSOResponseHandler extends AbstractResponseHandler {
+
+    private static Logger logger = LoggerFactory.getLogger(SAMLResponseBuilder.class);
 
     public String getValidatorType() {
         return SAML2AuthConstants.SAML2_SSO_TYPE;
@@ -99,8 +110,33 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
         ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
 
+        User subjectUser;
+        Claim subjectClaim = null;
+        try {
+            subjectUser = context.getSubjectUser();
+            if (subjectUser == null) {
+                subjectClaim = context.getSubjectClaim();
+                if (subjectClaim == null) {
+                    SAML2SSOResponseBuilderException ex =
+                            new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
+                                                                 "Cannot find SAML2 subject.");
+                    ex.setInResponseTo(messageContext.getId());
+                    ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+                    throw ex;
+                }
+            }
+        } catch (GatewayServerException e) {
+            SAML2SSOResponseBuilderException ex =
+                    new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, e.getMessage(), e);
+            ex.setInResponseTo(messageContext.getId());
+            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            throw ex;
+        }
+        String subject = subjectUser != null ? subjectUser.getUserIdentifier() : subjectClaim.getValue();
+        Set<Claim> claims = getAttributes(messageContext, config, context);
+
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
-        Response samlResponse = samlResponseBuilder.buildSAMLResponse(messageContext, config, context);
+        Response samlResponse = samlResponseBuilder.buildSAMLResponse(subject, claims, messageContext, config, context);
         builder.setResponse(samlResponse);
 
         String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse));
@@ -119,7 +155,9 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
     @Override
     public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayException e) {
 
-        decorateResponseConfigWithSAML2(context);
+        if (!(e instanceof InvalidSPEntityIdException)) {
+            decorateResponseConfigWithSAML2(context);
+        }
 
         SAML2SSOResponse.SAML2SSOResponseBuilder builder =
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
@@ -190,13 +228,45 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
 
         MessageContext messageContext = (MessageContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);
-        org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs = null;
-        try {
-            responseBuilderConfigs = getResponseBuilderConfigs(authenticationContext);
-        } catch (AuthenticationHandlerException e) {
-            // TODO: ignoring for now. This cannot happen once we validate service provider while setting unique SP ID
-        }
+
+        org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs =
+                getResponseBuilderConfigs(authenticationContext);
+
         ResponseBuilderConfig responseBuilderConfig = new ResponseBuilderConfig(responseBuilderConfigs);
         messageContext.setResponseBuilderConfig(responseBuilderConfig);
+    }
+
+    protected Set<Claim> getAttributes(MessageContext messageContext, ResponseBuilderConfig responseBuilderConfig,
+                                       AuthenticationContext context) {
+
+        int requestedIndex = messageContext.getAttributeConsumingServiceIndex();
+        String configuredIndex = responseBuilderConfig.getAttributeConsumingServiceIndex();
+        if (StringUtils.isNotBlank(configuredIndex) && !NumberUtils.isNumber(configuredIndex)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invalid AttributeConsumingServiceIndex configured: " + configuredIndex);
+            }
+            return Collections.emptySet();
+        }
+
+        if (!messageContext.isIdpInitSSO()) {
+            if (requestedIndex == 0) {
+                if (!responseBuilderConfig.sendBackClaimsAlways()) {
+                    return Collections.emptySet();
+                }
+            } else {
+                if (StringUtils.isNotBlank(configuredIndex) && requestedIndex != Integer.parseInt(configuredIndex)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Invalid AttributeConsumingServiceIndex in request: " + requestedIndex);
+                    }
+                    return Collections.emptySet();
+                }
+            }
+        } else {
+            if (!responseBuilderConfig.sendBackClaimsAlways()) {
+                return Collections.emptySet();
+            }
+        }
+
+        return getAttributes(context);
     }
 }

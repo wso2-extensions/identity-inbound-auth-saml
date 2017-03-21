@@ -29,8 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.InvalidServiceProviderIdException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
@@ -73,8 +75,8 @@ public class SPInitValidator extends SAML2SSOValidator {
         Issuer issuer = authnRequest.getIssuer();
         if (issuer == null || (StringUtils.isBlank(issuer.getValue()) &&
                                StringUtils.isBlank(issuer.getSPProvidedID()))) {
-            SAML2SSORequestValidationException ex =
-                    new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, "Cannot find issuer.");
+            InvalidSPEntityIdException ex =
+                    new InvalidSPEntityIdException(StatusCode.REQUESTER_URI, "Cannot find issuer.");
             ex.setInResponseTo(authnRequest.getID());
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
@@ -85,6 +87,12 @@ public class SPInitValidator extends SAML2SSOValidator {
             } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
                 authenticationContext.setServiceProviderId(issuer.getValue());
             }
+        } catch (InvalidServiceProviderIdException e) {
+            InvalidSPEntityIdException ex =
+                    new InvalidSPEntityIdException(StatusCode.REQUESTER_URI, e.getMessage());
+            ex.setInResponseTo(authnRequest.getID());
+            ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+            throw ex;
         } catch (GatewayClientException e) {
             SAML2SSORequestValidationException ex =
                     new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, e.getMessage());

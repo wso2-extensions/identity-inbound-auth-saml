@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.auth.saml2.common.X509CredentialImpl;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.saml.bean.MessageContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.model.Config;
@@ -88,15 +89,16 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * SPI to build a SAMLResponse.
  */
 public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    protected Response buildSAMLResponse(MessageContext messageContext, ResponseBuilderConfig config,
-                                         AuthenticationContext context) throws SAML2SSOResponseBuilderException {
+    protected Response buildSAMLResponse(String subject, Set<Claim> claims, MessageContext messageContext,
+                                         ResponseBuilderConfig config, AuthenticationContext context)
+            throws SAML2SSOResponseBuilderException {
 
         Response response = new ResponseBuilder().buildObject();
         response.setIssuer(getIssuer());
@@ -110,7 +112,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         DateTime issueInstant = new DateTime();
         response.setIssueInstant(issueInstant);
 
-        buildAssertion(response, issueInstant, messageContext, config, context);
+        buildAssertion(subject, claims, response, issueInstant, messageContext, config, context);
 
         if (config.signResponse()) {
             SAML2AuthUtils.setSignature(response, config.getSigningAlgorithmUri(), config
@@ -129,8 +131,9 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         return issuer;
     }
 
-    protected void buildAssertion(Response response, DateTime issueInstant, MessageContext messageContext,
-                                  ResponseBuilderConfig config, AuthenticationContext context)
+    protected void buildAssertion(String subject, Set<Claim> claims, Response response, DateTime issueInstant,
+                                  MessageContext messageContext, ResponseBuilderConfig config,
+                                  AuthenticationContext context)
             throws SAML2SSOResponseBuilderException {
 
         DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + config.getNotOnOrAfterPeriod() * 60 * 1000L);
@@ -140,17 +143,17 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         assertion.setVersion(SAMLVersion.VERSION_20);
         assertion.setIssuer(getIssuer());
         assertion.setIssueInstant(currentTime);
-        Subject subject = new SubjectBuilder().buildObject();
+        Subject subjectElem = new SubjectBuilder().buildObject();
 
         NameID nameId = new NameIDBuilder().buildObject();
-        nameId.setValue(Utils.getSubject(context, messageContext.getId(), messageContext.getAssertionConsumerURL()));
+        nameId.setValue(subject);
         if (config.getNameIdFormat() != null) {
             nameId.setFormat(config.getNameIdFormat());
         } else {
             nameId.setFormat(NameIdentifier.EMAIL);
         }
 
-        subject.setNameID(nameId);
+        subjectElem.setNameID(nameId);
 
         SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder()
                 .buildObject();
@@ -162,7 +165,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             scData.setInResponseTo(messageContext.getId());
         }
         subjectConfirmation.setSubjectConfirmationData(scData);
-        subject.getSubjectConfirmations().add(subjectConfirmation);
+        subjectElem.getSubjectConfirmations().add(subjectConfirmation);
 
         for (String recipient : config.getRequestedRecipients()) {
             subjectConfirmation = new SubjectConfirmationBuilder()
@@ -175,10 +178,10 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
                 scData.setInResponseTo(messageContext.getId());
             }
             subjectConfirmation.setSubjectConfirmationData(scData);
-            subject.getSubjectConfirmations().add(subjectConfirmation);
+            subjectElem.getSubjectConfirmations().add(subjectConfirmation);
         }
 
-        assertion.setSubject(subject);
+        assertion.setSubject(subjectElem);
 
         AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
         authStmt.setAuthnInstant(new DateTime());
@@ -190,17 +193,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         authStmt.setAuthnContext(authContext);
         assertion.getAuthnStatements().add(authStmt);
 
-        /*
-        * If <AttributeConsumingServiceIndex> element is in the <AuthnRequest> and according to
-        * the spec 2.0 the subject MUST be in the assertion
-        */
-        Map<String, String> claims = Utils.getAttributes(context);
-        if (claims != null && !claims.isEmpty()) {
-            AttributeStatement attrStmt = buildAttributeStatement(claims);
-            if (attrStmt != null) {
-                assertion.getAttributeStatements().add(attrStmt);
-            }
-        }
+        buildAttributeStatement(claims, assertion, messageContext, config, context);
 
         AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
                 .buildObject();
@@ -313,38 +306,35 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         }
     }
 
-    protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
+    protected void buildAttributeStatement(Set<Claim> claims, Assertion assertion, MessageContext messageContext,
+                                           ResponseBuilderConfig config, AuthenticationContext context) {
 
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();
-        Iterator<Map.Entry<String, String>> iterator = claims.entrySet().iterator();
-        boolean atLeastOneNotEmpty = false;
-        for (int i = 0; i < claims.size(); i++) {
-            Map.Entry<String, String> claimEntry = iterator.next();
-            String claimUri = claimEntry.getKey();
-            String claimValue = claimEntry.getValue();
-            if (claimUri != null && !claimUri.trim().isEmpty() && claimValue != null && !claimValue.trim().isEmpty()) {
-                atLeastOneNotEmpty = true;
-                Attribute attribute = new AttributeBuilder().buildObject();
-                attribute.setName(claimUri);
-                //setting NAMEFORMAT attribute value to basic attribute profile
-                attribute.setNameFormat(Attribute.BASIC);
-                // look
-                // https://wiki.shibboleth.net/confluence/display/OpenSAML/OSTwoUsrManJavaAnyTypes
-                XSStringBuilder stringBuilder = (XSStringBuilder) Configuration.getBuilderFactory().
-                        getBuilder(XSString.TYPE_NAME);
-                XSString stringValue = stringBuilder.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME, XSString
-                        .TYPE_NAME);
-                stringValue.setValue(claimValue);
-                attribute.getAttributeValues().add(stringValue);
-                attStmt.getAttributes().add(attribute);
-            }
+        Iterator<Claim> iterator = claims.iterator();
+        while (iterator.hasNext()) {
+            Claim claim = iterator.next();
+            String claimUri = claim.getClaimUri();
+            String claimValue = claim.getValue();
+            Attribute attribute = new AttributeBuilder().buildObject();
+            attribute.setName(claimUri);
+            //setting NAMEFORMAT attribute value to basic attribute profile
+            attribute.setNameFormat(Attribute.BASIC);
+            // look
+            // https://wiki.shibboleth.net/confluence/display/OpenSAML/OSTwoUsrManJavaAnyTypes
+            XSStringBuilder stringBuilder = (XSStringBuilder) Configuration.getBuilderFactory().
+                    getBuilder(XSString.TYPE_NAME);
+            XSString stringValue = stringBuilder.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME, XSString
+                    .TYPE_NAME);
+            stringValue.setValue(claimValue);
+            attribute.getAttributeValues().add(stringValue);
+            attStmt.getAttributes().add(attribute);
         }
-        if (atLeastOneNotEmpty) {
-            return attStmt;
-        } else {
-            return null;
+        if (attStmt != null) {
+            assertion.getAttributeStatements().add(attStmt);
         }
     }
+
+
 
     protected Response buildErrorResponse(String inResponseTo, String status, String message, String destination) {
 
