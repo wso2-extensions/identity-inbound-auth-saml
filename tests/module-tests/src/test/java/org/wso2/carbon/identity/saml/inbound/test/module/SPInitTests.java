@@ -560,6 +560,11 @@ public class SPInitTests {
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSignatureForRedirect() {
+
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
                                                                    false, false, TestConstants.SAMPLE_ISSUER_NAME,
@@ -590,6 +595,9 @@ public class SPInitTests {
             Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
         } catch (SAML2SSOServerException e) {
             Assert.fail("Error while building response object", e);
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "false");
         }
     }
 
@@ -598,6 +606,11 @@ public class SPInitTests {
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSigAlgForRedirect() {
+
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
                                                                    false, false, TestConstants.SAMPLE_ISSUER_NAME,
@@ -628,6 +641,9 @@ public class SPInitTests {
             Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
         } catch (SAML2SSOServerException e) {
             Assert.fail("Error while building response object", e);
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "false");
         }
     }
 
@@ -636,6 +652,11 @@ public class SPInitTests {
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSignatureForPost() {
+
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
         try {
 
             String requestRelayState = "6c72a926-119d-4b4d-b236-f7594a037b0e";
@@ -677,6 +698,9 @@ public class SPInitTests {
             Assert.fail("Error while running testSAMLInboundAuthenticationPost test case", e);
         } catch (SAML2SSOServerException e) {
             Assert.fail("Error while building response object", e);
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "false");
         }
     }
 
@@ -691,7 +715,11 @@ public class SPInitTests {
         String correctCert = serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
                 .getProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE);
         serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                 .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, "invalid_cert");
+        serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.ENCRYPTION_CERTIFICATE, "invalid_cert");
 
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
@@ -722,6 +750,8 @@ public class SPInitTests {
         } catch (SAML2SSOServerException e) {
             Assert.fail("Error while building response object", e);
         } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "false");
             serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
                     .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, correctCert);
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()

@@ -201,7 +201,9 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
     @Override
     public GatewayHandlerResponse buildErrorResponse(AuthenticationContext context, GatewayRuntimeException e) {
 
-        decorateResponseConfigWithSAML2(context);
+        if (!(e instanceof ServiceProviderIdNotSetException)) {
+            decorateResponseConfigWithSAML2(context);
+        }
 
         SAML2SSOResponse.SAML2SSOResponseBuilder builder =
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
