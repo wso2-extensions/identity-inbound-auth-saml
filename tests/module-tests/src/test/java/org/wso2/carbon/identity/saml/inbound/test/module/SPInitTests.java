@@ -40,14 +40,15 @@ import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
+import java.util.Properties;
 
 /**
  * General tests for SAML inbound SP Init.
@@ -84,7 +85,7 @@ public class SPInitTests {
     public void testSAMLInboundAuthentication() {
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -126,7 +127,7 @@ public class SPInitTests {
             String requestRelayState = "6c72a926-119d-4b4d-b236-f7594a037b0e";
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
 
             SAML2AuthUtils.setSignature(samlRequest, "http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3" +
                     ".org/2000/09/xmldsig#sha1", true, SAML2AuthUtils.getServerCredentials());
@@ -169,7 +170,7 @@ public class SPInitTests {
         try {
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -242,7 +243,7 @@ public class SPInitTests {
     public void testSAMLResponseWithEmptyIssuer() {
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, "");
+                    false, false, "", TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -277,7 +278,7 @@ public class SPInitTests {
         try {
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, "NonExistingIssuer");
+                    false, false, "NonExistingIssuer", TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -318,7 +319,7 @@ public class SPInitTests {
         try {
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -377,7 +378,7 @@ public class SPInitTests {
                     .setProperty(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_SIGNED, "false");
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -433,7 +434,7 @@ public class SPInitTests {
                     .setProperty(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_SIGNED, "true");
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
@@ -509,15 +510,13 @@ public class SPInitTests {
                     .setProperty(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "false");
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
             SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
 
             StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
             httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
                     StandardCharsets.UTF_8.name()).trim());
-            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
-                    SAML2AuthUtils.getServerCredentials());
 
             HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
                                                                 + "?" + httpQueryString.toString(), HttpMethod.GET, false);
@@ -557,13 +556,14 @@ public class SPInitTests {
     }
 
     /**
-     * Test inbound authentication and successful statement on assertion.
+     * Test inbound authentication with redirect binding with invalid signature parameter.
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSignatureForRedirect() {
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME,
+                                                                   TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
 
             StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
@@ -594,13 +594,14 @@ public class SPInitTests {
     }
 
     /**
-     * Test inbound authentication and successful statement on assertion.
+     * Test inbound authentication with redirect binding with invalid signature algorithm parameter.
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSigAlgForRedirect() {
         try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME,
+                                                                   TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
 
             StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
@@ -631,55 +632,7 @@ public class SPInitTests {
     }
 
     /**
-     * Test inbound authentication and successful statement on assertion.
-     */
-    @Test
-    public void testAuthnRequestSignatureValidationWithInvalidCert() {
-
-        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
-                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
-        String correctCert = serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                .getProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE);
-        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
-                .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, "invalid_cert");
-
-        try {
-            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
-            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
-
-            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
-            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
-                                                                                                  StandardCharsets.UTF_8.name()).trim());
-            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
-                                                         SAML2AuthUtils.getServerCredentials());
-
-            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
-                                                                + "?" + httpQueryString.toString(), HttpMethod.GET, false);
-            String postBody = TestUtils.getContent(urlConnection);
-//          Relay state must be returned for error scenarios as well
-//            Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
-
-            Assert.assertEquals(urlConnection.getResponseCode(), 200);
-            Assert.assertNotNull(postBody);
-            String samlResponse = postBody.split("SAMLResponse' value='")[1].split("'>")[0];
-            Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
-            Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
-
-        } catch (IOException e) {
-            Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
-        } catch (SAML2SSOServerException e) {
-            Assert.fail("Error while building response object", e);
-        } finally {
-            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
-                    .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, correctCert);
-            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                    .setProperty(SAML2AuthConstants.Config.Name.ENCRYPTION_CERTIFICATE, correctCert);
-        }
-    }
-
-    /**
-     * Test authentication with post binding.
+     * Test inbound authentication with post binding with invalid signature element.
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSignatureForPost() {
@@ -688,7 +641,8 @@ public class SPInitTests {
             String requestRelayState = "6c72a926-119d-4b4d-b236-f7594a037b0e";
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
-                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME);
+                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME,
+                                                                   TestConstants.ACS_URL);
 
             SAML2AuthUtils.setSignature(samlRequest, "http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3" +
                                                                                                    ".org/2000/09/xmldsig#sha1", true, SAML2AuthUtils.getServerCredentials());
@@ -727,6 +681,193 @@ public class SPInitTests {
     }
 
     /**
+     * Test inbound authentication with invalid certificate configuration.
+     */
+    @Test
+    public void testAuthnRequestSignatureValidationWithInvalidCert() {
+
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        String correctCert = serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                .getProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE);
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, "invalid_cert");
+
+        try {
+            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                                                                   false, false, TestConstants.SAMPLE_ISSUER_NAME,
+                                                                   TestConstants.ACS_URL);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                                                                                                  StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                                                         SAML2AuthUtils.getServerCredentials());
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                                                                + "?" + httpQueryString.toString(), HttpMethod.GET, false);
+            String postBody = TestUtils.getContent(urlConnection);
+//          Relay state must be returned for error scenarios as well
+//            Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
+
+            Assert.assertEquals(urlConnection.getResponseCode(), 200);
+            Assert.assertNotNull(postBody);
+            String samlResponse = postBody.split("SAMLResponse' value='")[1].split("'>")[0];
+            Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+            Assert.assertEquals(samlResponseObject.getAssertions().size(), 0);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
+        } catch (SAML2SSOServerException e) {
+            Assert.fail("Error while building response object", e);
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.SIGNING_CERTIFICATE, correctCert);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                    .setProperty(SAML2AuthConstants.Config.Name.ENCRYPTION_CERTIFICATE, correctCert);
+        }
+    }
+
+    /**
+     * SAML request without signature validation turned on.
+     */
+    @Test
+    public void testSPInitSSOWithMinimumConfigs() {
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalReqValidatorConfigs = serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties();
+        Properties originalResponseBuilderConfigs = serviceProviderConfig.getResponseBuildingConfig()
+                .getResponseBuilderConfigs().get(0).getProperties();
+        try {
+            Properties newReqValidatorConfigs = new Properties();
+            Properties newResponseBuilderConfigs = new Properties();
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.SP_ENTITY_ID, originalReqValidatorConfigs
+                    .get(SAML2AuthConstants.Config.Name.SP_ENTITY_ID));
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL,
+                    originalReqValidatorConfigs
+                            .get(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL));
+
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS,
+                    originalReqValidatorConfigs.get(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS));
+
+
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (newReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (newResponseBuilderConfigs);
+
+            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
+
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                            relayState + "&" + TestConstants.ASSERTION + "=" +
+                            TestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = TestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(TestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
+                        .getAssertions().get(0).getSubject().getNameID().getValue());
+            } catch (SAML2SSOServerException e) {
+                log.error("Error while building response object from SAML response string", e);
+            }
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (originalResponseBuilderConfigs);
+        }
+    }
+
+    /**
+     * SAML request with Wrong ACS in request.
+     */
+    @Test
+    public void testWithWrongACS() {
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalReqValidatorConfigs = serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties();
+        Properties originalResponseBuilderConfigs = serviceProviderConfig.getResponseBuildingConfig()
+                .getResponseBuilderConfigs().get(0).getProperties();
+        try {
+            Properties newReqValidatorConfigs = new Properties();
+            Properties newResponseBuilderConfigs = new Properties();
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.SP_ENTITY_ID, originalReqValidatorConfigs
+                    .get(SAML2AuthConstants.Config.Name.SP_ENTITY_ID));
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL,
+                    originalReqValidatorConfigs
+                            .get(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL));
+
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS,
+                    originalReqValidatorConfigs.get(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS));
+
+
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (newReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (newResponseBuilderConfigs);
+
+            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, "https://localhost:8080/wrongACS");
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
+
+            String response = TestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+                Assert.assertEquals(samlResponseObject.getStatus().getStatusMessage().getMessage()
+                        , "Invalid Assertion Consumer Service URL in the AuthnRequest message.");
+            } catch (SAML2SSOServerException e) {
+                log.error("Error while building response object from SAML response string", e);
+            }
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (originalResponseBuilderConfigs);
+        }
+    }
+
+    /**
      * Test error responses
      */
 //    @Test
@@ -755,4 +896,90 @@ public class SPInitTests {
 //            Assert.fail("Error while building error response", e);
 //        }
     }
+
+    /**
+     * SAML request without signature validation turned on.
+     */
+    @Test
+    public void testSPInitSSOWithAllConfigs() {
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalReqValidatorConfigs = serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties();
+        Properties originalResponseBuilderConfigs = serviceProviderConfig.getResponseBuildingConfig()
+                .getResponseBuilderConfigs().get(0).getProperties();
+        try {
+
+            applyAllConfigs(originalReqValidatorConfigs, originalResponseBuilderConfigs, serviceProviderConfig);
+            AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
+                    false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
+            String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
+            SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlRequest));
+
+            StringBuilder httpQueryString = new StringBuilder(SAML2AuthConstants.SAML_REQUEST + "=" + samlRequestString);
+            httpQueryString.append("&" + SAML2AuthConstants.RELAY_STATE + "=" + URLEncoder.encode("relayState",
+                    StandardCharsets.UTF_8.name()).trim());
+            SAML2AuthUtils.addSignatureToHTTPQueryString(httpQueryString, "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+                    SAML2AuthUtils.getServerCredentials());
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + httpQueryString.toString(), HttpMethod.GET, false);
+
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                            relayState + "&" + TestConstants.ASSERTION + "=" +
+                            TestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+
+            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+            String response = TestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+                Assert.assertTrue(samlResponseObject.getAssertions().isEmpty());
+                Assert.assertNotNull(samlResponseObject.getSignature());
+                Assert.assertFalse(samlResponseObject.getEncryptedAssertions().isEmpty());
+            } catch (SAML2SSOServerException e) {
+                log.error("Error while building response object from SAML response string", e);
+            }
+
+        } catch (IOException e) {
+            Assert.fail("Error while running testSAMLAssertionWithoutRequestValidation test case");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalReqValidatorConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (originalResponseBuilderConfigs);
+        }
+    }
+
+
+    private void applyAllConfigs(Properties originalReqValidatorConfigs, Properties
+            originalResponseBuilderConfigs, ServiceProviderConfig serviceProviderConfig) {
+        Properties newReqValidatorConfigs = (Properties) originalReqValidatorConfigs.clone();
+        Properties newResponseBuilderConfigs =(Properties) originalResponseBuilderConfigs.clone();
+
+        // ACS, defaultACS, signingAlgo, DigestAlgo, EncryptionCert, Signing Certificate, AttributeConsumerUrl,
+        // NameIdFormat,
+        // NotOrAfterPeriod are set in sample.yaml SP by def`ault. Therefore no need to explicitly enable them
+        newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
+        newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_REQUEST_SIGNED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_ENCRYPTED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.AUTHN_RESPONSE_SIGNED, "true");
+        newResponseBuilderConfigs.put(SAML2AuthConstants.Config.Name.SEND_CLAIMS_ALWAYS, "true");
+        serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                (newReqValidatorConfigs);
+        serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                (newResponseBuilderConfigs);
+    }
+
 }

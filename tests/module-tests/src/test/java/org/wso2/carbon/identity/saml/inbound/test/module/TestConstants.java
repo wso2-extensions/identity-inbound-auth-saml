@@ -39,5 +39,6 @@ public class TestConstants {
     public static final String SAMPLE_IDP_NAME = "myidp";
     public static final String SAML_REQUEST_PARAM = "SAMLRequest";
     public static final String SP_ENTITY_ID = "spEntityId";
+    public static final String ACS_URL = "http://localhost:8080/travelocity.com/home.jsp";
 }
 

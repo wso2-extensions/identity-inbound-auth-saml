@@ -38,12 +38,13 @@ import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Paths;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
+import java.util.Properties;
 
 /**
  * Tests for IDP initiated SAML.
@@ -103,6 +104,56 @@ public class IdPInitTests {
         }
     }
 
+
+    /**
+     * Testing successful authentication using idp initiated sso
+     */
+    @Test
+    public void testSAMLInboundAuthenticationIDPInitWithMinimumConfigs() {
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalReqValidatorConfigs = serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties();
+
+        try {
+            Properties newReqValidatorConfigs = new Properties();
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.SP_ENTITY_ID, originalReqValidatorConfigs
+                    .get(SAML2AuthConstants.Config.Name.SP_ENTITY_ID));
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL,
+                    originalReqValidatorConfigs
+                            .get(SAML2AuthConstants.Config.Name.DEFAULT_ASSERTION_CONSUMER_URL));
+
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS,
+                    originalReqValidatorConfigs.get(SAML2AuthConstants.Config.Name.ASSERTION_CONSUMER_URLS));
+            newReqValidatorConfigs.put(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (newReqValidatorConfigs);
+
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
+                    .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
+
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                            relayState + "&" + TestConstants.ASSERTION + "=" + TestConstants
+                            .AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case");
+        } finally {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties(originalReqValidatorConfigs);
+        }
+    }
     /**
      * Test the content of successful authentication of idp init sso
      */

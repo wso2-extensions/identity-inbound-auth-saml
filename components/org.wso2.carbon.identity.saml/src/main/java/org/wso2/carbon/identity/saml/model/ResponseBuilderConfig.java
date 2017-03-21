@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.saml.model;
 
+import org.opensaml.saml1.core.NameIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 
 import java.io.Serializable;
@@ -30,6 +33,7 @@ import java.util.List;
 public class ResponseBuilderConfig implements Serializable {
 
     private static final long serialVersionUID = 6508235825726363156L;
+    private static Logger logger = LoggerFactory.getLogger(ResponseBuilderConfig.class);
 
     private org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs;
 
@@ -44,13 +48,23 @@ public class ResponseBuilderConfig implements Serializable {
     }
 
     public String getNameIdFormat() {
-        return (String) responseBuilderConfigs.getProperties().get(
+        String nameIdFormat = NameIdentifier.EMAIL;
+        Object nameIDFormatObj = responseBuilderConfigs.getProperties().get(
                 SAML2AuthConstants.Config.Name.NAME_ID_FORMAT);
+        if (nameIDFormatObj != null) {
+            nameIdFormat = (String) nameIDFormatObj;
+        }
+        return nameIdFormat;
     }
 
     public int getNotOnOrAfterPeriod() {
-        return Integer.parseInt((String) responseBuilderConfigs.getProperties().get(
-                SAML2AuthConstants.Config.Name.NOT_ON_OR_AFTER_PERIOD));
+        try {
+            return Integer.parseInt((String) responseBuilderConfigs.getProperties().get(
+                    SAML2AuthConstants.Config.Name.NOT_ON_OR_AFTER_PERIOD));
+        } catch (NumberFormatException e) {
+            logger.debug("Error while converting given configuration value to an integer", e);
+            return 5;
+        }
     }
 
     public boolean sendBackClaimsAlways() {
@@ -88,13 +102,23 @@ public class ResponseBuilderConfig implements Serializable {
     }
 
     public String getDigestAlgorithmUri() {
-        return (String) responseBuilderConfigs.getProperties().get(
+        String digestAlgorithm = SAML2AuthConstants.XML.DigestAlgorithmURI.SHA1;
+        Object digestAlgorithmObj = responseBuilderConfigs.getProperties().get(
                 SAML2AuthConstants.Config.Name.DIGEST_ALGO);
+        if (digestAlgorithmObj != null) {
+            digestAlgorithm = (String) digestAlgorithmObj;
+        }
+        return digestAlgorithm;
     }
 
     public String getSigningAlgorithmUri() {
-        return (String) responseBuilderConfigs.getProperties().get(
+        String signatureAlgorithm = SAML2AuthConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
+        Object signatureAlgorithmObj = responseBuilderConfigs.getProperties().get(
                 SAML2AuthConstants.Config.Name.SIGNATURE_ALGO);
+        if (signatureAlgorithmObj != null) {
+            signatureAlgorithm = (String) signatureAlgorithmObj;
+        }
+        return signatureAlgorithm;
     }
 
     public boolean signResponse() {
