@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOService;
@@ -54,17 +55,17 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This is the entry point for authentication process in an SSO scenario. This servlet is registered
@@ -88,6 +89,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
     private boolean isCacheAvailable = false;
+
+    private static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
 
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
@@ -821,10 +824,21 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      */
     private void storeTokenIdCookie(String sessionId, HttpServletRequest req, HttpServletResponse resp,
                                     String tenantDomain) {
-        Cookie samlssoTokenIdCookie = new Cookie("samlssoTokenId", sessionId);
-        samlssoTokenIdCookie.setMaxAge(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain)*60);
+        Cookie samlssoTokenIdCookie = new Cookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
+        IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
+                .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
+        int defaultMaxAge = IdPManagementUtil.getIdleSessionTimeOut(tenantDomain) * 60;
+
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
+        if (samlssoTokenIdCookieConfig != null) {
+            samlssoTokenIdCookie.setMaxAge(samlssoTokenIdCookieConfig.getMaxAge() > 0 ?
+                    samlssoTokenIdCookieConfig.getMaxAge() :
+                    defaultMaxAge);
+            samlssoTokenIdCookie.setDomain(samlssoTokenIdCookieConfig.getDomain());
+        } else {
+            samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
+        }
         resp.addCookie(samlssoTokenIdCookie);
     }
 
