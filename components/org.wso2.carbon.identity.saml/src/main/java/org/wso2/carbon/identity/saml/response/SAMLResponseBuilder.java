@@ -214,7 +214,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         // signing has to be ideally done at transport binding level. encryption also will have to move there.
 
         SAML2AuthUtils.setSignature(assertion, config.getSigningAlgorithmUri(), config.getDigestAlgorithmUri(),
-                                        true, SAML2AuthUtils.getServerCredentials());
+                true, SAML2AuthUtils.getServerCredentials());
 
         encryptAssertion(response, assertion, config);
     }
@@ -249,7 +249,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             if (StringUtils.isBlank(encodedCert)) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                             "Encryption certificate is not configured.");
+                                "Encryption certificate is not configured.");
                 ex.setInResponseTo(response.getID());
                 ex.setAcsUrl(response.getDestination());
                 throw ex;
@@ -260,7 +260,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             } catch (CertificateException e) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                             "Invalid encoded certificate: " + encodedCert);
+                                "Invalid encoded certificate: " + encodedCert);
                 ex.setInResponseTo(response.getID());
                 ex.setAcsUrl(response.getDestination());
                 throw ex;
@@ -273,7 +273,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             } catch (NoSuchAlgorithmException | KeyException e) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                             "Error occurred while encrypting assertion.", e);
+                                "Error occurred while encrypting assertion.", e);
                 ex.setInResponseTo(assertion.getID());
                 ex.setAcsUrl(response.getDestination());
                 throw ex;
@@ -296,7 +296,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             } catch (EncryptionException e) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
-                                                             "Error occurred while encrypting assertion.", e);
+                                "Error occurred while encrypting assertion.", e);
                 ex.setInResponseTo(assertion.getID());
                 ex.setAcsUrl(response.getDestination());
                 throw ex;
@@ -333,7 +333,6 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             assertion.getAttributeStatements().add(attStmt);
         }
     }
-
 
 
     protected Response buildErrorResponse(String inResponseTo, String status, String message, String destination) {
