@@ -87,10 +87,12 @@ public class ResponseSigningTests {
                 .DigestAlgorithmURI.MD5);
         testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.RSA_SHA512, SAML2AuthConstants.XML
                 .DigestAlgorithmURI.MD5);
-//        testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.RSA_RIPEMD160, SAML2AuthConstants.XML
-//                .DigestAlgorithmURI.MD5);
+        testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.RSA_RIPEMD160, SAML2AuthConstants.XML
+                .DigestAlgorithmURI.MD5);
         testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.RSA_MD5, SAML2AuthConstants.XML
                 .DigestAlgorithmURI.MD5);
+//        testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.DSA_SHA1, SAML2AuthConstants.XML
+//                .DigestAlgorithmURI.MD5);
 //        testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.ECDSA_SHA1, SAML2AuthConstants.XML
 //                .DigestAlgorithmURI.MD5);
 //        testResponseSigning(SAML2AuthConstants.XML.SignatureAlgorithmURI.ECDSA_SHA256, SAML2AuthConstants.XML

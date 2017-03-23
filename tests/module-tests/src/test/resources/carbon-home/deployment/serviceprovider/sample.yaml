@@ -58,7 +58,7 @@ serviceProviderConfig:
       -
         type: "SAML2SSO"
         properties:
-          NotOnOrAfterPeriod : "5NameIdformat"
+          NotOnOrAfterPeriod : "5"
           NameIdFormat : "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
           Certificate : "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJV
                          UzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoM

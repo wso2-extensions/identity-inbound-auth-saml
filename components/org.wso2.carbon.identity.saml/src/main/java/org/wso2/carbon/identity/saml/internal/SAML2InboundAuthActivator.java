@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.saml.internal;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.xml.ConfigurationException;
 import org.osgi.framework.BundleActivator;
@@ -40,6 +41,8 @@ import org.wso2.carbon.identity.saml.response.SAML2SSOResponseHandler;
 import org.wso2.carbon.identity.saml.validator.IdPInitValidator;
 import org.wso2.carbon.identity.saml.validator.SPInitValidator;
 
+import java.security.Security;
+
 /**
  * SAML2 SSO Inbound Authenticator Service Component.
  */
@@ -56,6 +59,7 @@ public class SAML2InboundAuthActivator implements BundleActivator {
         try {
             try {
                 DefaultBootstrap.bootstrap();
+                Security.addProvider(new BouncyCastleProvider());
             } catch (ConfigurationException e) {
                 log.error("Error in bootstrapping the OpenSAML2 library.", e);
             }
