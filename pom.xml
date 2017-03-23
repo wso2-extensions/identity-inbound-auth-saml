@@ -510,6 +510,7 @@
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
         <commons.codec.version>1.4.0.wso2v1</commons.codec.version>
         <commons.collections.version>3.2.2.wso2v1</commons.collections.version>
+        <commons-collections.imp.version.range>[3.2.2,4.0.0)</commons-collections.imp.version.range>
 
         <httpcomponents-httpclient.wso2.version>3.1.0.wso2v3</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
@@ -518,6 +519,7 @@
         <wss4j.wso2.version>1.5.11.wso2v16</wss4j.wso2.version>
         <wso2.xerces.version>2.8.1.wso2v3</wso2.xerces.version>
         <xerces.version>2.8.1</xerces.version>
+        <wso2.xerces.imp.version.range>[2.8.1.wso2v3,3)</wso2.xerces.imp.version.range>
         <bouncycastle.version>1.52.0.wso2v1</bouncycastle.version>
         <msf4j.core.version>2.1.0</msf4j.core.version>
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
