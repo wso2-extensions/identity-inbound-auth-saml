@@ -25,7 +25,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 /**
  * Class that will encapsulate the key store management functionality of a carbon instance.
@@ -57,14 +60,15 @@ public class KeyStoreManager {
                 in = new FileInputStream(keyStorePath);
                 store.load(in, keyStorePassword.toCharArray());
                 this.serverKeyStore = store;
-            } catch (Exception e) {
-                throw new SecurityException("Error while reading keystore from the given path.");
+            } catch (IOException | CertificateException | NoSuchAlgorithmException
+                    | KeyStoreException e) {
+                throw new SecurityException("Error while reading keystore from the given path.", e);
             } finally {
                 if (in != null) {
                     try {
                         in.close();
                     } catch (IOException e) {
-                        throw new SecurityException("Error while reading keystore.");
+                        throw new SecurityException("Error while reading keystore.", e);
                     }
                 }
             }
@@ -95,8 +99,8 @@ public class KeyStoreManager {
         String keyStorePassword = KeyStoreConfig.getInstance().getKeyStorePassword();
         try {
             return (PrivateKey) serverKeyStore.getKey(alias, keyStorePassword.toCharArray());
-        } catch (Exception e) {
-            throw new IdentityRuntimeException("Error occurred while loading the key for the given alias " + alias);
+        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new IdentityRuntimeException("Error occurred while loading the key for the given alias " + alias, e);
         }
     }
 }

@@ -46,82 +46,22 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>org.osgi.core</artifactId>
-                <version>6.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>6.9.4</version>
-            </dependency>
 
-            <!-- gateway dependencies -->
-            <dependency>
-                <groupId>org.wso2.carbon.identity.gateway</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway</artifactId>
-                <version>${carbon.identity.gateway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.gateway</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
-                <version>${carbon.identity.gateway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.gateway</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
-                <version>${carbon.identity.gateway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.gateway</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
-                <version>${carbon.identity.gateway.version}</version>
-            </dependency>
+            <!-- 3rd party dependencies -->
             <dependency>
                 <groupId>commons-lang.wso2</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>${commons.lang.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.commons</groupId>
-                <artifactId>org.wso2.carbon.identity.commons</artifactId>
-                <version>${carbon.identity.commons.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
-                <artifactId>encoder</artifactId>
-                <version>${encoder.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-                <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
-                <version>${auth.saml2.common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.opensaml</groupId>
-                <artifactId>opensaml</artifactId>
-                <version>${opensaml2.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>${joda.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-                <artifactId>org.wso2.carbon.identity.saml</artifactId>
-                <version>${identity.inbound.auth.saml.version}</version>
+                <groupId>org.wso2.orbit.commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons.collections.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec.wso2</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons.codec.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.commons-collections</groupId>
-                <artifactId>commons-collections</artifactId>
-                <version>${commons.collections.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.orbit.commons-httpclient</groupId>
@@ -134,9 +74,9 @@
                 <version>${joda.wso2.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.ws.security.wso2</groupId>
-                <artifactId>wss4j</artifactId>
-                <version>${wss4j.wso2.version}</version>
+                <groupId>xalan.wso2</groupId>
+                <artifactId>xalan</artifactId>
+                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.orbit.xerces</groupId>
@@ -144,59 +84,113 @@
                 <version>${wso2.xerces.version}</version>
             </dependency>
             <dependency>
+                <groupId>net.minidev.wso2</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json.smart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ws.security.wso2</groupId>
+                <artifactId>wss4j</artifactId>
+                <version>${wss4j.wso2.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.orbit.org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.msf4j</groupId>
-                <artifactId>msf4j-core</artifactId>
-                <version>${msf4j.core.version}</version>
+                <groupId>org.wso2.orbit.org.opensaml</groupId>
+                <artifactId>opensaml</artifactId>
+                <version>${opensaml2.wso2.version}</version>
             </dependency>
-
-            <!-- dependencies for tests -->
-
             <dependency>
-                <groupId>org.wso2.orbit.org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${org.snakeyaml.version}</version>
+                <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+                <artifactId>encoder</artifactId>
+                <version>${encoder.wso2.version}</version>
             </dependency>
 
-            <!--carbon deployment framework-->
+            <!-- Kernel dependencies -->
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>${osgi.core.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.deployment</groupId>
                 <artifactId>org.wso2.carbon.deployment.engine</artifactId>
                 <version>${carbon.deployment.version}</version>
+            </dependency>
+
+            <!-- Identity dependencies -->
+            <dependency>
+                <groupId>org.wso2.carbon.identity.commons</groupId>
+                <artifactId>org.wso2.carbon.identity.commons</artifactId>
+                <version>${carbon.identity.commons.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.mgt</groupId>
+                <artifactId>org.wso2.carbon.identity.claim</artifactId>
+                <version>${carbon.identity.mgt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.mgt</groupId>
                 <artifactId>org.wso2.carbon.identity.mgt</artifactId>
                 <version>${carbon.identity.mgt.version}</version>
             </dependency>
-
             <dependency>
-                <groupId>org.wso2.carbon.identity.mgt</groupId>
-                <artifactId>org.wso2.carbon.identity.claim</artifactId>
-                <version>${carbon.identity.mgt.version}</version>
-            </dependency>
-
-
-            <!-- Dependencies for Testing-->
-            <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>osgi-test-util</artifactId>
-                <version>${carbon.osgi.test.util.version}</version>
-                <scope>test</scope>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+                <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
+                <version>${inbound.saml2.common.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.minidev.wso2</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>${json.smart.version}</version>
+                <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+                <artifactId>org.wso2.carbon.identity.saml</artifactId>
+                <version>${inbound.saml2.version}</version>
+            </dependency>
+
+            <!-- gateway dependencies -->
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
+                <version>${carbon.identity.gateway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+                <version>${carbon.identity.gateway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+                <version>${carbon.identity.gateway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
+                <version>${carbon.identity.gateway.version}</version>
+            </dependency>
+
+            <!-- dependencies for tests -->
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.9.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.orbit.org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${org.snakeyaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>osgi-test-util</artifactId>
+                <version>${carbon.osgi.test.util.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.jacoco</groupId>
@@ -257,15 +251,12 @@
                 <artifactId>pax-logging-log4j2</artifactId>
                 <version>${pax.logging.log4j2.version}</version>
             </dependency>
+
+            <!-- MSF4J dependencies -->
             <dependency>
-                <groupId>xerces</groupId>
-                <artifactId>xercesImpl</artifactId>
-                <version>${xerces.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>xalan.wso2</groupId>
-                <artifactId>xalan</artifactId>
-                <version>${xalan.version}</version>
+                <groupId>org.wso2.msf4j</groupId>
+                <artifactId>msf4j-core</artifactId>
+                <version>${msf4j.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
@@ -388,13 +379,11 @@
             </dependency>
 
             <!-- gateway test module -->
-
             <dependency>
-                <groupId>org.wso2.carbon.identity.gateway</groupId>
-                <artifactId>identity-gateway-module-tests</artifactId>
-                <version>${carbon.identity.gateway.version}</version>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito</artifactId>
@@ -407,7 +396,11 @@
                 <version>${org.powermock.version}</version>
                 <scope>test</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>identity-gateway-module-tests</artifactId>
+                <version>${carbon.identity.gateway.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -496,33 +489,38 @@
     </build>
 
     <properties>
+        <osgi.core.version>6.0.0</osgi.core.version>
+        <osgi.core.imp.version.range>[1.8.0, 2.0.0)</osgi.core.imp.version.range>
 
-        <carbon.kernel.version>4.4.7</carbon.kernel.version>
+        <inbound.saml2.common.version>${project.version}</inbound.saml2.common.version>
+        <inbound.saml2.common.import.version.range>[6.0.0,7.0.0)</inbound.saml2.common.import.version.range>
+        <inbound.saml2.version>${project.version}</inbound.saml2.version>
+        <inbound.saml2.exp.version>${project.version}</inbound.saml2.exp.version>
 
-        <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
-        <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}
-        </identity.inbound.auth.saml.exp.version>
         <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
+        <carbon.identity.commons.imp.version.range>[0.1.24,1.0.0)</carbon.identity.commons.imp.version.range>
         <carbon.identity.gateway.version>1.0.0-SNAPSHOT</carbon.identity.gateway.version>
-        <auth.saml2.common.version>${project.version}</auth.saml2.common.version>
-        <auth.saml2.common.import.version.range>[6.0.0,7.0.0)</auth.saml2.common.import.version.range>
 
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
         <commons.codec.version>1.4.0.wso2v1</commons.codec.version>
+        <commons-codec.imp.version.range>[1.4.0,2.0.0)</commons-codec.imp.version.range>
         <commons.collections.version>3.2.2.wso2v1</commons.collections.version>
-
+        <commons.collections.imp.version.range>[3.2.2,4.0.0)</commons.collections.imp.version.range>
         <httpcomponents-httpclient.wso2.version>3.1.0.wso2v3</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
+        <encoder.wso2.imp.version.range>[1.2.0,2.0.0)</encoder.wso2.imp.version.range>
         <opensaml2.wso2.version>2.6.4.wso2v4</opensaml2.wso2.version>
         <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
         <wss4j.wso2.version>1.5.11.wso2v16</wss4j.wso2.version>
         <wso2.xerces.version>2.8.1.wso2v3</wso2.xerces.version>
-        <xerces.version>2.8.1</xerces.version>
+        <xerces.wso2.orbit.imp.version.range>[2.8.1.wso2v3,3.0.0)</xerces.wso2.orbit.imp.version.range>
         <bouncycastle.version>1.52.0.wso2v1</bouncycastle.version>
+        <bouncycastle.imp.version.range>[1.52.0,2.0.0)</bouncycastle.imp.version.range>
         <msf4j.core.version>2.1.0</msf4j.core.version>
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
         <carbon.deployment.version>5.0.0</carbon.deployment.version>
         <carbon.identity.mgt.version>0.1.22</carbon.identity.mgt.version>
+        <carbon.identity.mgt.imp.version.range>[0.1.22,1.0.0)</carbon.identity.mgt.imp.version.range>
         <carbon.osgi.test.util.version>5.1.0</carbon.osgi.test.util.version>
         <json.smart.version>2.1.0.wso2v1</json.smart.version>
         <testng.version>6.9.4</testng.version>
@@ -546,10 +544,10 @@
         <org.wso2.carbon.lcm.version>1.0.0</org.wso2.carbon.lcm.version>
         <json.version>20160810</json.version>
         <rs-api.version>2.0</rs-api.version>
+        <rs-api.imp.version.range>[2.0,3.0)</rs-api.imp.version.range>
         <disruptor.wso2.version>3.3.2.wso2v2</disruptor.wso2.version>
         <maven.paxexam.plugin.version>1.2.4</maven.paxexam.plugin.version>
 
-        <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <commons-httpclient.wso2.osgi.version.range>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version.range>
         <commons-httpclient.wso2.osgi.version>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>

@@ -35,40 +35,32 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.commons</groupId>
-            <artifactId>org.wso2.carbon.identity.commons</artifactId>
+            <groupId>commons-codec.wso2</groupId>
+            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <groupId>org.wso2.orbit.commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.ws.security.wso2</groupId>
-            <artifactId>wss4j</artifactId>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
-            <artifactId>encoder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec.wso2</groupId>
-            <artifactId>commons-codec</artifactId>
+            <groupId>org.wso2.carbon.identity.commons</groupId>
+            <artifactId>org.wso2.carbon.identity.commons</artifactId>
         </dependency>
     </dependencies>
 
@@ -77,12 +69,18 @@
             org.wso2.carbon.identity.auth.saml2.common.*;version="${project.version}"
         </export.package>
         <import.package>
-            org.apache.commons.codec.binary,
-            org.apache.xerces.util.*
+            javax.xml.*,
+            org.w3c.dom.*,
+            org.xml.sax.*,
+            org.slf4j.*,
+            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+            org.apache.commons.codec.binary; version="${commons-codec.imp.version.range}",
+            org.apache.commons.collections; version="${commons.collections.imp.version.range}",
+            org.apache.xerces.util; version="${xerces.wso2.orbit.imp.version.range}",
+            org.joda.time; version="${joda.wso2.osgi.version.range}",
+            org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
+            org.wso2.carbon.identity.common.*; version="${carbon.identity.commons.imp.version.range}"
         </import.package>
-        <checkstyle.skip>true</checkstyle.skip>
-        <findbugs.skip>true</findbugs.skip>
-        <dynamic.import.package>*</dynamic.import.package>
     </properties>
 
 </project>

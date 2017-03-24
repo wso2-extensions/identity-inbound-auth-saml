@@ -31,6 +31,7 @@
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.RecipientValidationTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.ClaimTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/>
+            <!--class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/-->
         </classes>
     </test>
 </suite>

@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.InvalidServiceProviderIdException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
@@ -66,11 +66,11 @@ public class SPInitValidator extends SAML2SSOValidator {
         return 10;
     }
 
-    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext)
+    protected SAML2SSOContext createInboundMessageContext(AuthenticationContext authenticationContext)
             throws SAML2SSORequestValidationException {
 
-        MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
-        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getRequest());
+        SAML2SSOContext saml2SSOContext = super.createInboundMessageContext(authenticationContext);
+        SPInitRequest spInitRequest = ((SPInitRequest) saml2SSOContext.getRequest());
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
         Issuer issuer = authnRequest.getIssuer();
         if (issuer == null || (StringUtils.isBlank(issuer.getValue()) &&
@@ -100,33 +100,33 @@ public class SPInitValidator extends SAML2SSOValidator {
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
         }
-        messageContext.setName(authenticationContext.getServiceProvider().getName());
+        saml2SSOContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =
                 getValidatorConfig(authenticationContext);
         RequestValidatorConfig requestValidatorConfig = new RequestValidatorConfig(validatorConfig);
-        messageContext.setRequestValidatorConfig(requestValidatorConfig);
-        return messageContext;
+        saml2SSOContext.setRequestValidatorConfig(requestValidatorConfig);
+        return saml2SSOContext;
     }
 
     @Override
     public GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
             throws SAML2SSORequestValidationException {
 
-        MessageContext messageContext = createInboundMessageContext(authenticationContext);
-        SPInitRequest spInitRequest = (SPInitRequest) messageContext.getRequest();
+        SAML2SSOContext saml2SSOContext = createInboundMessageContext(authenticationContext);
+        SPInitRequest spInitRequest = (SPInitRequest) saml2SSOContext.getRequest();
         AuthnRequest authnRequest = spInitRequest.getAuthnRequest();
 
-        messageContext.setSPEntityId(authenticationContext.getServiceProviderId());
-        messageContext.setId((authnRequest).getID());
+        saml2SSOContext.setSPEntityId(authenticationContext.getServiceProviderId());
+        saml2SSOContext.setId((authnRequest).getID());
 
         try {
-            validateAuthnRequest(authnRequest, messageContext);
+            validateAuthnRequest(authnRequest, saml2SSOContext);
         } catch (SAML2SSOServerException e) {
             // TODO: Throw GatewayServerException from validation handler.
             SAML2SSORuntimeException ex = new SAML2SSORuntimeException(StatusCode.RESPONDER_URI, e.getMessage(), e);
             ex.setInResponseTo(e.getInResponseTo());
-            ex.setAcsUrl(e.getACSUrl());
+            ex.setAcsUrl(e.getAcsUrl());
             throw ex;
         }
 
@@ -134,13 +134,13 @@ public class SPInitValidator extends SAML2SSOValidator {
 
     }
 
-    protected void validateAuthnRequest(AuthnRequest authnReq, MessageContext messageContext)
+    protected void validateAuthnRequest(AuthnRequest authnReq, SAML2SSOContext saml2SSOContext)
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
-        String appName = messageContext.getName();
+        String appName = saml2SSOContext.getName();
 
-        RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
-        validateACS(authnReq.getAssertionConsumerServiceURL(), messageContext.getId(), messageContext,
+        RequestValidatorConfig requestValidatorConfig = saml2SSOContext.getRequestValidatorConfig();
+        validateACS(authnReq.getAssertionConsumerServiceURL(), saml2SSOContext.getId(), saml2SSOContext,
                     requestValidatorConfig);
 
         if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
@@ -148,8 +148,8 @@ public class SPInitValidator extends SAML2SSOValidator {
                     new SAML2SSORequestValidationException(StatusCode.VERSION_MISMATCH_URI,
                                                            "Invalid SAML Version in AuthnRequest. SAML Version should" +
                                                            " be equal to 2.0.");
-            ex.setInResponseTo(messageContext.getId());
-            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            ex.setInResponseTo(saml2SSOContext.getId());
+            ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
             throw ex;
         }
 
@@ -160,19 +160,19 @@ public class SPInitValidator extends SAML2SSOValidator {
                     new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
                                                            "Invalid Issuer Format attribute value " + issuer
                                                                    .getFormat());
-            ex.setInResponseTo(messageContext.getId());
-            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            ex.setInResponseTo(saml2SSOContext.getId());
+            ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
             throw ex;
         }
 
-        messageContext.setForce(authnReq.isForceAuthn());
-        messageContext.setPassive(authnReq.isPassive());
+        saml2SSOContext.setForce(authnReq.isForceAuthn());
+        saml2SSOContext.setPassive(authnReq.isPassive());
 
         // TODO: Validate the NameID Format
         Subject subject = authnReq.getSubject();
         if (subject != null && subject.getNameID() != null &&
             StringUtils.isNotBlank(subject.getNameID().getValue())) {
-            messageContext.setSubject(subject.getNameID().getValue());
+            saml2SSOContext.setSubject(subject.getNameID().getValue());
         }
 
         // subject confirmation should not exist
@@ -182,15 +182,15 @@ public class SPInitValidator extends SAML2SSOValidator {
                              "found " + subject.getSubjectConfirmations().get(0);
             SAML2SSORequestValidationException ex =
                     new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, message);
-            ex.setInResponseTo(messageContext.getId());
-            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            ex.setInResponseTo(saml2SSOContext.getId());
+            ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
             throw ex;
         }
 
         Integer index = authnReq.getAttributeConsumingServiceIndex();
         //according the spec, should be an unsigned short
         if (index != null && !(index < 1)) {
-            messageContext.setAttributeConsumingServiceIndex(index);
+            saml2SSOContext.setAttributeConsumingServiceIndex(index);
         }
 
         // Validate the assertion consumer url, only if request is not signed.
@@ -200,47 +200,47 @@ public class SPInitValidator extends SAML2SSOValidator {
 
             if (authnReq.getDestination() == null || !idpUrlSet.contains(authnReq.getDestination())) {
                 String msg = "Destination validation for AuthnRequest failed. " + "Received: [" +
-                             messageContext.getDestination() + "]." + " Expected one in the list: [" + StringUtils
+                             saml2SSOContext.getDestination() + "]." + " Expected one in the list: [" + StringUtils
                                      .join(idpUrlSet, ',') + "]";
                 SAML2SSORequestValidationException ex =
                         new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, msg);
-                ex.setInResponseTo(messageContext.getId());
-                ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+                ex.setInResponseTo(saml2SSOContext.getId());
+                ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
                 throw ex;
             }
-            messageContext.setDestination(authnReq.getDestination());
+            saml2SSOContext.setDestination(authnReq.getDestination());
 
             boolean isSignatureValid = AuthnReqSigUtil.validateAuthnRequestSignature(authnReq,
-                                                                                     messageContext,
+                                                                                     saml2SSOContext,
                                                                                      requestValidatorConfig);
 
             if (!isSignatureValid) {
                 SAML2SSORequestValidationException ex =
                         new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
                                                                "Signature validation for AuthnRequest failed.");
-                ex.setInResponseTo(messageContext.getId());
-                ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+                ex.setInResponseTo(saml2SSOContext.getId());
+                ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
                 throw ex;
             }
 
         } else {
 
-            String acsUrl = messageContext.getAssertionConsumerURL();
+            String acsUrl = saml2SSOContext.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) || !requestValidatorConfig.getAssertionConsumerUrlList()
                     .contains(acsUrl)) {
                 String message = "Invalid Assertion Consumer URL value '" + acsUrl + "' in the AuthnRequest " +
                                  "message from '" + appName;
                 SAML2SSORequestValidationException ex =
                         new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI, message);
-                ex.setInResponseTo(messageContext.getId());
-                ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+                ex.setInResponseTo(saml2SSOContext.getId());
+                ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
                 throw ex;
             }
         }
     }
 
     protected void validateACS(String requestedACSUrl, String inResponseTo,
-                               MessageContext messageContext, RequestValidatorConfig requestValidatorConfig)
+                               SAML2SSOContext saml2SSOContext, RequestValidatorConfig requestValidatorConfig)
             throws SAML2SSORequestValidationException {
 
         if (!requestValidatorConfig.getAssertionConsumerUrlList().contains(requestedACSUrl)) {
@@ -252,6 +252,6 @@ public class SPInitValidator extends SAML2SSOValidator {
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
         }
-        messageContext.setAssertionConsumerUrl(requestedACSUrl);
+        saml2SSOContext.setAssertionConsumerUrl(requestedACSUrl);
     }
 }

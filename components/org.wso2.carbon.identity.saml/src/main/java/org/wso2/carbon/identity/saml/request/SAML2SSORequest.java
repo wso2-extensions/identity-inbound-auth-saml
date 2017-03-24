@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 /**
- * The abstract model independent representing an AuthnRequest sent by the service
+ * The abstract model representing an AuthnRequest sent by the service
  * provider.
  */
 public abstract class SAML2SSORequest extends ClientAuthenticationRequest {
@@ -34,6 +34,9 @@ public abstract class SAML2SSORequest extends ClientAuthenticationRequest {
         return getParameter(SAML2AuthConstants.RELAY_STATE);
     }
 
+    /**
+     * Builder used to build a SAML2SSORequest.
+     */
     public static class SAMLGatewayRequestBuilder
             extends ClientAuthenticationRequest.ClientAuthenticationRequestBuilder {
 

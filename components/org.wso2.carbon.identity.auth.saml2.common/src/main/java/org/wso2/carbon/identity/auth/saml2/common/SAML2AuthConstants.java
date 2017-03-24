@@ -150,14 +150,19 @@ public class SAML2AuthConstants {
             public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
         }
 
-
+        /**
+         * Canonicalization Algorithm URIs.
+         */
         public static class CanonicalizationAlgorithm {
             public static final String ALGO_ID_C14N_OMIT_COMMENTS = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
-            public static final String ALGO_ID_C14N_WITH_COMMENTS = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments";
+            public static final String ALGO_ID_C14N_WITH_COMMENTS =
+                    "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments";
             public static final String ALGO_ID_C14N_EXCL_OMIT_COMMENTS = "http://www.w3.org/2001/10/xml-exc-c14n#";
-            public static final String ALGO_ID_C14N_EXCL_WITH_COMMENTS = "http://www.w3.org/2001/10/xml-exc-c14n#WithComments";
+            public static final String ALGO_ID_C14N_EXCL_WITH_COMMENTS =
+                    "http://www.w3.org/2001/10/xml-exc-c14n#WithComments";
             public static final String ALGO_ID_C14N11_OMIT_COMMENTS = "http://www.w3.org/2006/12/xml-c14n11";
-            public static final String ALGO_ID_C14N11_WITH_COMMENTS = "http://www.w3.org/2006/12/xml-c14n11#WithComments";
+            public static final String ALGO_ID_C14N11_WITH_COMMENTS =
+                    "http://www.w3.org/2006/12/xml-c14n11#WithComments";
             public static final String ALGO_ID_C14N_PHYSICAL = "http://santuario.apache.org/c14n/physical";
         }
     }

@@ -48,7 +48,7 @@ public class SAML2SSORuntimeException extends GatewayRuntimeException {
         this.inResponseTo = inResponseTo;
     }
 
-    public String getACSUrl() {
+    public String getAcsUrl() {
         return this.acsUrl;
     }
 

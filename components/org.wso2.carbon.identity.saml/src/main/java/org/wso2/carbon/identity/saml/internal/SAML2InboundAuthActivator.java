@@ -63,8 +63,10 @@ public class SAML2InboundAuthActivator implements BundleActivator {
             } catch (ConfigurationException e) {
                 log.error("Error in bootstrapping the OpenSAML2 library.", e);
             }
-            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAML2SSORequestBuilderFactory(), null);
-            bundleContext.registerService(GatewayResponseBuilderFactory.class, new SAML2SSOResponseBuilderFactory(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SAML2SSORequestBuilderFactory(),
+                                          null);
+            bundleContext.registerService(GatewayResponseBuilderFactory.class, new SAML2SSOResponseBuilderFactory(),
+                                          null);
             bundleContext.registerService(AbstractRequestValidator.class, new SPInitValidator(), null);
             bundleContext.registerService(AbstractRequestValidator.class, new IdPInitValidator(), null);
             bundleContext.registerService(AbstractResponseHandler.class, new SAML2SSOResponseHandler(), null);

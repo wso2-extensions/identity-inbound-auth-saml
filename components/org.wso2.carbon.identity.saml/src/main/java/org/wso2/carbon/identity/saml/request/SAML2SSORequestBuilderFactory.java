@@ -42,7 +42,7 @@ public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory 
     @Override
     public boolean canHandle(Request request) throws GatewayClientException {
         String samlRequest = GatewayUtil.getParameter(request, SAML2AuthConstants.SAML_REQUEST);
-        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID.toString());
+        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID);
         if (StringUtils.isNotBlank(samlRequest) || StringUtils.isNotBlank(spEntityID)) {
             return true;
         }
@@ -52,7 +52,7 @@ public class SAML2SSORequestBuilderFactory extends GatewayRequestBuilderFactory 
     @Override
     public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
-        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID.toString());
+        String spEntityID = GatewayUtil.getParameter(request, SAML2AuthConstants.SP_ENTITY_ID);
         GatewayRequest.GatewayRequestBuilder builder = null;
 
         if (spEntityID != null) {

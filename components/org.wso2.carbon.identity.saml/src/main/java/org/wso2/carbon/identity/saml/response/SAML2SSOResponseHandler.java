@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
@@ -107,8 +107,8 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
         GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
-        MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
-        ResponseBuilderConfig config = messageContext.getResponseBuilderConfig();
+        SAML2SSOContext saml2SSOContext = (SAML2SSOContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
+        ResponseBuilderConfig config = saml2SSOContext.getResponseBuilderConfig();
 
         User subjectUser;
         Claim subjectClaim = null;
@@ -120,31 +120,32 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
                     SAML2SSOResponseBuilderException ex =
                             new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
                                                                  "Cannot find SAML2 subject.");
-                    ex.setInResponseTo(messageContext.getId());
-                    ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+                    ex.setInResponseTo(saml2SSOContext.getId());
+                    ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
                     throw ex;
                 }
             }
         } catch (GatewayServerException e) {
             SAML2SSOResponseBuilderException ex =
                     new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI, e.getMessage(), e);
-            ex.setInResponseTo(messageContext.getId());
-            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            ex.setInResponseTo(saml2SSOContext.getId());
+            ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
             throw ex;
         }
         String subject = subjectUser != null ? subjectUser.getUserIdentifier() : subjectClaim.getValue();
-        Set<Claim> claims = getAttributes(messageContext, config, context);
+        Set<Claim> claims = getAttributes(saml2SSOContext, config, context);
 
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
-        Response samlResponse = samlResponseBuilder.buildSAMLResponse(subject, claims, messageContext, config, context);
+        Response samlResponse = samlResponseBuilder.buildSAMLResponse(subject, claims, saml2SSOContext, config,
+                                                                      context);
         builder.setResponse(samlResponse);
 
         String respString = SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse));
         builder.setRespString(respString);
 
-        builder.setAcsUrl(messageContext.getAssertionConsumerURL());
-        if (StringUtils.isNotBlank(messageContext.getRelayState())) {
-            builder.setRelayState(messageContext.getRelayState());
+        builder.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
+        if (StringUtils.isNotBlank(saml2SSOContext.getRelayState())) {
+            builder.setRelayState(saml2SSOContext.getRelayState());
         }
 
         addSessionKey(builder, context);
@@ -168,11 +169,11 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         if (e instanceof SAML2SSORequestValidationException) {
             SAML2SSORequestValidationException e2 = ((SAML2SSORequestValidationException) e);
             samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
-                                                                  e2.getMessage(), e2.getACSUrl());
-            builder.setAcsUrl(e2.getACSUrl());
+                                                                  e2.getMessage(), e2.getAcsUrl());
+            builder.setAcsUrl(e2.getAcsUrl());
         } else if (e instanceof AuthenticationFailure) {
             AuthenticationFailure e2 = (AuthenticationFailure) e;
-            MessageContext messageContext = (MessageContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
+            SAML2SSOContext saml2SSOContext = (SAML2SSOContext) context.getParameter(SAML2AuthConstants.SAML_CONTEXT);
             List<String> statusCodes = new ArrayList();
             if (AuthenticationFailure.AuthnStatus.INVALID_CREDENTIAL.equals(e2.getErrorCode())) {
                 statusCodes.add(StatusCode.AUTHN_FAILED_URI);
@@ -183,14 +184,20 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
             } else {
                 statusCodes.add(StatusCode.RESPONDER_URI);
             }
-            samlResponse = samlResponseBuilder.buildErrorResponse(messageContext.getId(), statusCodes,
+            samlResponse = samlResponseBuilder.buildErrorResponse(saml2SSOContext.getId(), statusCodes,
                                                                   e.getMessage(),
-                                                                  messageContext.getAssertionConsumerURL());
+                                                                  saml2SSOContext.getAssertionConsumerURL());
         } else {
-            SAML2SSOServerException e2 = ((SAML2SSOServerException) e);
+            SAML2SSOServerException e2;
+            if (e instanceof SAML2SSOServerException) {
+                e2 = ((SAML2SSOServerException) e);
+            } else {
+                throw new SAML2SSORuntimeException("Exception object not a SAML2SSOServerException.");
+            }
+            e2 = ((SAML2SSOServerException) e);
             samlResponse = samlResponseBuilder.buildErrorResponse(e2.getInResponseTo(), e2.getErrorCode(),
-                                                                  "Server Error", e2.getACSUrl());
-            builder.setAcsUrl(e2.getACSUrl());
+                                                                  "Server Error", e2.getAcsUrl());
+            builder.setAcsUrl(e2.getAcsUrl());
         }
         builder.setResponse(samlResponse);
         builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
@@ -210,38 +217,43 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
         SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
-        SAML2SSORuntimeException e1 = ((SAML2SSORuntimeException) e);
+        SAML2SSORuntimeException e1 = null;
+        if (e instanceof SAML2SSORuntimeException) {
+            e1 = ((SAML2SSORuntimeException) e);
+        } else {
+            throw new SAML2SSORuntimeException("Exception object not a SAML2SSORuntimeException.");
+        }
         Response samlResponse;
         if (StatusCode.REQUESTER_URI.equals(e1.getErrorCode())) {
             samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
-                                                                  e1.getMessage(), e1.getACSUrl());
+                                                                  e1.getMessage(), e1.getAcsUrl());
         } else {
             samlResponse = samlResponseBuilder.buildErrorResponse(e1.getInResponseTo(), e1.getErrorCode(),
-                                                                  "Server Error", e1.getACSUrl());
+                                                                  "Server Error", e1.getAcsUrl());
         }
         builder.setResponse(samlResponse);
         builder.setRespString(SAML2AuthUtils.encodeForPost(SAML2AuthUtils.marshall(samlResponse)));
-        builder.setAcsUrl(e1.getACSUrl());
+        builder.setAcsUrl(e1.getAcsUrl());
 
         return response;
     }
 
     protected void decorateResponseConfigWithSAML2(AuthenticationContext authenticationContext) {
 
-        MessageContext messageContext = (MessageContext) authenticationContext
+        SAML2SSOContext saml2SSOContext = (SAML2SSOContext) authenticationContext
                 .getParameter(SAML2AuthConstants.SAML_CONTEXT);
 
         org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig responseBuilderConfigs =
                 getResponseBuilderConfigs(authenticationContext);
 
         ResponseBuilderConfig responseBuilderConfig = new ResponseBuilderConfig(responseBuilderConfigs);
-        messageContext.setResponseBuilderConfig(responseBuilderConfig);
+        saml2SSOContext.setResponseBuilderConfig(responseBuilderConfig);
     }
 
-    protected Set<Claim> getAttributes(MessageContext messageContext, ResponseBuilderConfig responseBuilderConfig,
+    protected Set<Claim> getAttributes(SAML2SSOContext saml2SSOContext, ResponseBuilderConfig responseBuilderConfig,
                                        AuthenticationContext context) {
 
-        int requestedIndex = messageContext.getAttributeConsumingServiceIndex();
+        int requestedIndex = saml2SSOContext.getAttributeConsumingServiceIndex();
         String configuredIndex = responseBuilderConfig.getAttributeConsumingServiceIndex();
         if ((StringUtils.isNotBlank(configuredIndex) && !NumberUtils.isNumber(configuredIndex)) || StringUtils
                 .isEmpty(configuredIndex)) {
@@ -251,7 +263,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
             return Collections.emptySet();
         }
 
-        if (!messageContext.isIdpInitSSO()) {
+        if (!saml2SSOContext.isIdpInitSSO()) {
             if (requestedIndex == 0) {
                 if (!responseBuilderConfig.sendBackClaimsAlways()) {
                     return Collections.emptySet();
