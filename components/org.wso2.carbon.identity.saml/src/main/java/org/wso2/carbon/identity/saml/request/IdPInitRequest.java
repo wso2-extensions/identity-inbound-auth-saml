@@ -37,7 +37,11 @@ public class IdPInitRequest extends SAML2SSORequest {
         return this.getParameter(SAML2AuthConstants.SP_ENTITY_ID.toString());
     }
 
+    /**
+     * Builder used to build a IdP Initiated SAML2 SSO Request.
+     */
     public static class SAMLIdpInitRequestBuilder extends SAMLGatewayRequestBuilder {
+
         public SAMLIdpInitRequestBuilder() {
         }
 

@@ -54,8 +54,8 @@ public class IdPInitValidator extends SAML2SSOValidator {
         return 11;
     }
 
-    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext) throws
-                                                                                                      SAML2SSORequestValidationException {
+    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext)
+            throws SAML2SSORequestValidationException {
 
         MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
         String spEntityId = ((IdPInitRequest) messageContext.getRequest()).getSPEntityId();

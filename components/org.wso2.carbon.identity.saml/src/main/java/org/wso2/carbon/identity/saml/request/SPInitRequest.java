@@ -83,7 +83,8 @@ public class SPInitRequest extends SAML2SSORequest {
             } catch (UnsupportedEncodingException e) {
                 // throwing a unchecked here to avoid handling checked exception in all the places
                 SAML2SSORuntimeException ex =
-                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI, "Failed to decode the Signature Algorithm.");
+                        new SAML2SSORuntimeException(StatusCode.REQUESTER_URI,
+                                                     "Failed to decode the Signature Algorithm.");
                 ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
                 throw ex;
             }
@@ -118,6 +119,9 @@ public class SPInitRequest extends SAML2SSORequest {
         return authnRequest;
     }
 
+    /**
+     * Builder used to build a SP Initiated SAML2 SSO Request.
+     */
     public static class SAMLSpInitRequestBuilder extends SAMLGatewayRequestBuilder {
 
         public SAMLSpInitRequestBuilder() {

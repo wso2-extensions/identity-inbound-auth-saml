@@ -103,7 +103,6 @@
             org.wso2.carbon.identity.gateway.common.*; version="${carbon.identity.gateway.import.version.range}",
             org.wso2.carbon.identity.mgt.*; version="${carbon.identity.mgt.imp.version.range}"
         </import.package>
-        <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
     </properties>
 

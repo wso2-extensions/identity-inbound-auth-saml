@@ -32,8 +32,8 @@ import java.util.HashMap;
  */
 public abstract class SAML2SSOValidator extends AbstractRequestValidator {
 
-    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext) throws
-                                                                                                      SAML2SSORequestValidationException {
+    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext)
+            throws SAML2SSORequestValidationException {
 
         MessageContext messageContext = new MessageContext(new HashMap());
         messageContext.setRequest((SAML2SSORequest) authenticationContext.getInitialAuthenticationRequest());

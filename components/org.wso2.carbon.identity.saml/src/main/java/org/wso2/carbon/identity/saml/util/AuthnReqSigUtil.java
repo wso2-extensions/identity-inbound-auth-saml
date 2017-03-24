@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.ws.security.SecurityPolicyException;
 import org.opensaml.ws.transport.http.HTTPTransportUtils;
 import org.opensaml.xml.security.CriteriaSet;
 import org.opensaml.xml.security.SecurityException;
@@ -174,12 +173,6 @@ public class AuthnReqSigUtil {
     /**
      * Extract the raw request parameters and build a string representation of
      * the content that was signed.
-     *
-     * @param queryString
-     *         the raw HTTP query string from the request
-     * @return a string representation of the signed content
-     * @throws SecurityPolicyException
-     *         thrown if there is an error during request processing
      */
     public static String buildSignedContentString(String queryString, String inResponseTo, String acsUrl)
             throws SAML2SSORequestValidationException {

@@ -56,6 +56,9 @@ public class SAML2SSOResponse extends GatewayResponse {
         return respString;
     }
 
+    /**
+     * Builder used to build a SAML2SSOResponse
+     */
     public static class SAML2SSOResponseBuilder extends GatewayResponseBuilder {
 
         private Response response;
