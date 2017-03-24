@@ -28,6 +28,8 @@
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.ResponseSigningTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.AudienceRestrictionTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.RequestSigningTests"/>
+            <class name="org.wso2.carbon.identity.saml.inbound.test.module.RecipientValidationTests"/>
+            <class name="org.wso2.carbon.identity.saml.inbound.test.module.ClaimTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/>
         </classes>
     </test>
