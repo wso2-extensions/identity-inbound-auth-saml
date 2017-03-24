@@ -128,7 +128,7 @@
             <artifactId>xalan</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces</groupId>
+            <groupId>org.wso2.orbit.xerces</groupId>
             <artifactId>xercesImpl</artifactId>
         </dependency>
         <dependency>

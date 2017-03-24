@@ -90,14 +90,15 @@
         <import.package>
             org.slf4j.*,
             javax.ws.rs.*; version="${rs-api.imp.version.range}",
-            org.osgi.framework.*; version="[1.8.0, 2.0.0)",
+            org.osgi.framework.*; version="${osgi.core.imp.version.range}",
             org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
             org.joda.time; version="${joda.wso2.osgi.version.range}",
+            org.bouncycastle.jce.provider.*; version="${bouncycastle.imp.version.range}",
             org.apache.xml.security; version="${wss4j.xml.security.imp.pkg.version.range}",
             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
             org.owasp.encoder; version="${encoder.wso2.imp.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.commons.imp.version.range}",
-            org.wso2.carbon.identity.auth.saml2.common; version="${auth.saml2.common.import.version.range}",
+            org.wso2.carbon.identity.auth.saml2.common; version="${inbound.saml2.common.import.version.range}",
             org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
             org.wso2.carbon.identity.gateway.common.*; version="${carbon.identity.gateway.import.version.range}",
             org.wso2.carbon.identity.mgt.*; version="${carbon.identity.mgt.imp.version.range}"

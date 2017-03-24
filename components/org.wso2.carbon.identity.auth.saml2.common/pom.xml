@@ -47,7 +47,7 @@
             <artifactId>commons-collections</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces</groupId>
+            <groupId>org.wso2.orbit.xerces</groupId>
             <artifactId>xercesImpl</artifactId>
         </dependency>
         <dependency>
@@ -74,9 +74,9 @@
             org.xml.sax.*,
             org.slf4j.*,
             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-            org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
-            org.apache.commons.collections; version="${commons-collections.imp.version.range}",
-            org.apache.xerces.util; version="${wso2.xerces.imp.version.range}",
+            org.apache.commons.codec.binary; version="${commons-codec.imp.version.range}",
+            org.apache.commons.collections; version="${commons.collections.imp.version.range}",
+            org.apache.xerces.util; version="${xerces.wso2.orbit.imp.version.range}",
             org.joda.time; version="${joda.wso2.osgi.version.range}",
             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.commons.imp.version.range}"
