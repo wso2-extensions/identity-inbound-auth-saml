@@ -18,30 +18,52 @@
 package org.wso2.carbon.identity.saml.response;
 
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
+import org.opensaml.xml.XMLObject;
+import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
+import org.wso2.carbon.identity.saml.model.Config;
 
 /**
  * The SAML2 SSO Response returned to the service provider.
  */
 public class SAML2SSOResponse extends GatewayResponse {
 
-    private Response response;
+    private static final long serialVersionUID = 1740029664367832638L;
+
+    private transient Response response = null;
     private String respString;
     private String relayState;
     private String acsUrl;
 
-    protected SAML2SSOResponse(GatewayResponseBuilder builder) {
+    protected SAML2SSOResponse(SAML2SSOResponseBuilder builder) {
         super(builder);
-        this.response = ((SAML2SSOResponseBuilder) builder).response;
-        this.respString = ((SAML2SSOResponseBuilder) builder).respString;
-        this.relayState = ((SAML2SSOResponseBuilder) builder).relayState;
-        this.acsUrl = ((SAML2SSOResponseBuilder) builder).acsUrl;
+        this.response = builder.response;
+        this.respString = builder.respString;
+        this.relayState = builder.relayState;
+        this.acsUrl = builder.acsUrl;
     }
 
     public Response getResponse() {
-        return this.response;
+        if (response == null) {
+            String decodedRequest;
+            decodedRequest = SAML2AuthUtils.decodeForPost(getRespString());
+            XMLObject request = SAML2AuthUtils.unmarshall(decodedRequest);
+            if (request instanceof Response) {
+                Response response = (Response) request;
+                this.response = response;
+            } else {
+                // throwing a unchecked here to avoid handling checked exception in all the places
+                SAML2SSORuntimeException ex =
+                        new SAML2SSORuntimeException(StatusCode.RESPONDER_URI, "SAMLResponse not a Response.");
+                ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
+                throw ex;
+            }
+        }
+        return response;
     }
 
     public String getAcsUrl() {
@@ -57,7 +79,7 @@ public class SAML2SSOResponse extends GatewayResponse {
     }
 
     /**
-     * Builder used to build a SAML2SSOResponse
+     * Builder used to build a SAML2SSOResponse.
      */
     public static class SAML2SSOResponseBuilder extends GatewayResponseBuilder {
 

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.InvalidSPEntityIdException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.model.Config;
@@ -54,11 +54,11 @@ public class IdPInitValidator extends SAML2SSOValidator {
         return 11;
     }
 
-    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext)
+    protected SAML2SSOContext createInboundMessageContext(AuthenticationContext authenticationContext)
             throws SAML2SSORequestValidationException {
 
-        MessageContext messageContext = super.createInboundMessageContext(authenticationContext);
-        String spEntityId = ((IdPInitRequest) messageContext.getRequest()).getSPEntityId();
+        SAML2SSOContext saml2SSOContext = super.createInboundMessageContext(authenticationContext);
+        String spEntityId = ((IdPInitRequest) saml2SSOContext.getRequest()).getSPEntityId();
         try {
             authenticationContext.setServiceProviderId(spEntityId);
         } catch (GatewayClientException e) {
@@ -67,26 +67,26 @@ public class IdPInitValidator extends SAML2SSOValidator {
             ex.setAcsUrl(Config.getInstance().getErrorPageUrl());
             throw ex;
         }
-        messageContext.setName(authenticationContext.getServiceProvider().getName());
+        saml2SSOContext.setName(authenticationContext.getServiceProvider().getName());
 
         org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig validatorConfig =
                 getValidatorConfig(authenticationContext);
         RequestValidatorConfig requestValidatorConfig = new RequestValidatorConfig(validatorConfig);
-        messageContext.setRequestValidatorConfig(requestValidatorConfig);
-        return messageContext;
+        saml2SSOContext.setRequestValidatorConfig(requestValidatorConfig);
+        return saml2SSOContext;
     }
 
     @Override
     public GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
             throws SAML2SSORequestValidationException {
 
-        MessageContext messageContext = createInboundMessageContext(authenticationContext);
-        RequestValidatorConfig requestValidatorConfig = messageContext.getRequestValidatorConfig();
+        SAML2SSOContext saml2SSOContext = createInboundMessageContext(authenticationContext);
+        RequestValidatorConfig requestValidatorConfig = saml2SSOContext.getRequestValidatorConfig();
         String spName = authenticationContext.getServiceProvider().getName();
 
-        messageContext.setSPEntityId(authenticationContext.getServiceProviderId());
+        saml2SSOContext.setSPEntityId(authenticationContext.getServiceProviderId());
 
-        String acs = ((IdPInitRequest) messageContext.getRequest()).getAcs();
+        String acs = ((IdPInitRequest) saml2SSOContext.getRequest()).getAcs();
         if (StringUtils.isNotBlank(acs)) {
             if (!requestValidatorConfig.getAssertionConsumerUrlList().contains(acs)) {
                 SAML2SSORequestValidationException ex =
@@ -99,20 +99,20 @@ public class IdPInitValidator extends SAML2SSOValidator {
         } else {
             acs = requestValidatorConfig.getDefaultAssertionConsumerUrl();
         }
-        messageContext.setAssertionConsumerUrl(acs);
+        saml2SSOContext.setAssertionConsumerUrl(acs);
 
         if (!requestValidatorConfig.isIdPInitSSOEnabled()) {
             SAML2SSORequestValidationException ex =
                     new SAML2SSORequestValidationException(StatusCode.REQUESTER_URI,
                                                            "IdP-initiated SSO not enabled for service provider '" +
                                                            spName + "'.");
-            ex.setAcsUrl(messageContext.getAssertionConsumerURL());
+            ex.setAcsUrl(saml2SSOContext.getAssertionConsumerURL());
             throw ex;
         }
 
         if (requestValidatorConfig.sendBackClaimsAlways() && requestValidatorConfig
                                                                      .getAttributeConsumingServiceIndex() != null) {
-            messageContext.setAttributeConsumingServiceIndex(
+            saml2SSOContext.setAttributeConsumingServiceIndex(
                     Integer.parseInt(requestValidatorConfig.getAttributeConsumingServiceIndex()));
         }
 

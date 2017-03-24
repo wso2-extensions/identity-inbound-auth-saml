@@ -81,8 +81,6 @@
             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.commons.imp.version.range}"
         </import.package>
-        <checkstyle.skip>true</checkstyle.skip>
-        <findbugs.skip>true</findbugs.skip>
     </properties>
 
 </project>

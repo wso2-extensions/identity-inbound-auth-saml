@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.model.Config;
 
 import javax.ws.rs.core.MediaType;
@@ -51,7 +52,11 @@ public class SAML2SSOResponseBuilderFactory extends GatewayResponseBuilderFactor
 
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
         super.createBuilder(builder, gatewayResponse);
-        sendResponse(builder, (SAML2SSOResponse) gatewayResponse);
+        if (gatewayResponse instanceof SAML2SSOResponse) {
+            sendResponse(builder, (SAML2SSOResponse) gatewayResponse);
+        } else {
+            throw new SAML2SSORuntimeException("gatewayResponse instance is not a SAML2SSOResponse.");
+        }
 
     }
 

@@ -44,7 +44,7 @@ public class SAML2SSORequestValidationException extends RequestValidatorExceptio
         this.inResponseTo = inResponseTo;
     }
 
-    public String getACSUrl() {
+    public String getAcsUrl() {
         return this.acsUrl;
     }
 

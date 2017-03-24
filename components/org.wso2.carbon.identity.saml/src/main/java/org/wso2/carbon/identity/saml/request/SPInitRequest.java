@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.saml.request;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.XMLObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
@@ -35,7 +33,8 @@ import java.io.UnsupportedEncodingException;
  */
 public class SPInitRequest extends SAML2SSORequest {
 
-    private static Logger logger = LoggerFactory.getLogger(SPInitRequest.class);
+    private static final long serialVersionUID = 5541858866683227862L;
+
     private transient AuthnRequest authnRequest;
 
     public SPInitRequest(SAMLSpInitRequestBuilder builder) {

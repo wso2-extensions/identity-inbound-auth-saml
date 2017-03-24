@@ -47,7 +47,7 @@ public class SAML2SSOResponseBuilderException extends ResponseHandlerException {
         this.inResponseTo = inResponseTo;
     }
 
-    public String getACSUrl() {
+    public String getAcsUrl() {
         return this.acsUrl;
     }
 

@@ -42,7 +42,7 @@ import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.X509CredentialImpl;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.saml.model.RequestValidatorConfig;
@@ -62,7 +62,7 @@ public class AuthnReqSigUtil {
 
     private static Logger logger = LoggerFactory.getLogger(AuthnReqSigUtil.class);
 
-    public static boolean validateAuthnRequestSignature(AuthnRequest authnRequest, MessageContext messageContext,
+    public static boolean validateAuthnRequestSignature(AuthnRequest authnRequest, SAML2SSOContext saml2SSOContext,
                                                         RequestValidatorConfig config)
             throws SAML2SSORequestValidationException, SAML2SSOServerException {
 
@@ -79,14 +79,14 @@ public class AuthnReqSigUtil {
             throw ex;
         }
 
-        SPInitRequest spInitRequest = ((SPInitRequest) messageContext.getRequest());
+        SPInitRequest spInitRequest = ((SPInitRequest) saml2SSOContext.getRequest());
         if (spInitRequest.isRedirect()) {
             return validateDeflateSignature(spInitRequest.getQueryString(), spInitRequest.getSignature(),
-                                            spInitRequest.getSignatureAlgorithm(), certificate, messageContext.getId(),
-                                            messageContext.getAssertionConsumerURL(), messageContext.getSPEntityId());
+                                            spInitRequest.getSignatureAlgorithm(), certificate, saml2SSOContext.getId(),
+                                            saml2SSOContext.getAssertionConsumerURL(), saml2SSOContext.getSPEntityId());
         } else {
-            return validateXMLSignature(authnRequest, certificate, messageContext.getId(),
-                                        messageContext.getAssertionConsumerURL());
+            return validateXMLSignature(authnRequest, certificate, saml2SSOContext.getId(),
+                                        saml2SSOContext.getAssertionConsumerURL());
         }
     }
 

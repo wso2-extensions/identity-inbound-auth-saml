@@ -50,7 +50,7 @@ public class SAML2SSOServerException extends GatewayServerException {
         this.inResponseTo = inResponseTo;
     }
 
-    public String getACSUrl() {
+    public String getAcsUrl() {
         return this.acsUrl;
     }
 

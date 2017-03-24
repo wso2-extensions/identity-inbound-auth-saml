@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * MessageContext specific to Inbound SAML2 SSO.
  */
-public class MessageContext extends org.wso2.carbon.identity.common.base.message.MessageContext {
+public class SAML2SSOContext extends org.wso2.carbon.identity.common.base.message.MessageContext {
 
     private static final long serialVersionUID = 104634801939285909L;
 
@@ -47,7 +47,7 @@ public class MessageContext extends org.wso2.carbon.identity.common.base.message
     private RequestValidatorConfig requestValidatorConfig;
     private ResponseBuilderConfig responseBuilderConfig;
 
-    public MessageContext(Map<Serializable, Serializable> parameters) {
+    public SAML2SSOContext(Map<Serializable, Serializable> parameters) {
         super(parameters);
     }
 

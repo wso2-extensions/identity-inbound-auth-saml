@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml1.core.NameIdentifier;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AttributeStatement;
@@ -74,7 +73,7 @@ import org.wso2.carbon.identity.auth.saml2.common.X509CredentialImpl;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.saml.model.Config;
 import org.wso2.carbon.identity.saml.model.ResponseBuilderConfig;
@@ -95,23 +94,23 @@ import java.util.Set;
  */
 public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    protected Response buildSAMLResponse(String subject, Set<Claim> claims, MessageContext messageContext,
+    protected Response buildSAMLResponse(String subject, Set<Claim> claims, SAML2SSOContext saml2SSOContext,
                                          ResponseBuilderConfig config, AuthenticationContext context)
             throws SAML2SSOResponseBuilderException {
 
         Response response = new ResponseBuilder().buildObject();
         response.setIssuer(getIssuer());
         response.setID(SAML2AuthUtils.createID());
-        if (!messageContext.isIdpInitSSO()) {
-            response.setInResponseTo(messageContext.getId());
+        if (!saml2SSOContext.isIdpInitSSO()) {
+            response.setInResponseTo(saml2SSOContext.getId());
         }
-        response.setDestination(messageContext.getAssertionConsumerURL());
+        response.setDestination(saml2SSOContext.getAssertionConsumerURL());
         buildStatus(response, StatusCode.SUCCESS_URI, null);
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         response.setIssueInstant(issueInstant);
 
-        buildAssertion(subject, claims, response, issueInstant, messageContext, config, context);
+        buildAssertion(subject, claims, response, issueInstant, saml2SSOContext, config, context);
 
         if (config.signResponse()) {
             SAML2AuthUtils.setSignature(response, config.getSigningAlgorithmUri(), config
@@ -131,11 +130,11 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
     }
 
     protected void buildAssertion(String subject, Set<Claim> claims, Response response, DateTime issueInstant,
-                                  MessageContext messageContext, ResponseBuilderConfig config,
+                                  SAML2SSOContext saml2SSOContext, ResponseBuilderConfig config,
                                   AuthenticationContext context)
             throws SAML2SSOResponseBuilderException {
 
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + config.getNotOnOrAfterPeriod() * 60 * 1000L);
+        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis() + config.getNotOnOrAfterPeriod() * 60L * 1000L);
         DateTime currentTime = new DateTime();
         Assertion assertion = new AssertionBuilder().buildObject();
         assertion.setID(SAML2AuthUtils.createID());
@@ -146,11 +145,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
 
         NameID nameId = new NameIDBuilder().buildObject();
         nameId.setValue(subject);
-        if (config.getNameIdFormat() != null) {
-            nameId.setFormat(config.getNameIdFormat());
-        } else {
-            nameId.setFormat(NameIdentifier.EMAIL);
-        }
+        nameId.setFormat(config.getNameIdFormat());
 
         subjectElem.setNameID(nameId);
 
@@ -158,10 +153,10 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
                 .buildObject();
         subjectConfirmation.setMethod(SubjectConfirmation.METHOD_BEARER);
         SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
-        scData.setRecipient(messageContext.getAssertionConsumerURL());
+        scData.setRecipient(saml2SSOContext.getAssertionConsumerURL());
         scData.setNotOnOrAfter(notOnOrAfter);
-        if (!messageContext.isIdpInitSSO()) {
-            scData.setInResponseTo(messageContext.getId());
+        if (!saml2SSOContext.isIdpInitSSO()) {
+            scData.setInResponseTo(saml2SSOContext.getId());
         }
         subjectConfirmation.setSubjectConfirmationData(scData);
         subjectElem.getSubjectConfirmations().add(subjectConfirmation);
@@ -173,8 +168,8 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             scData = new SubjectConfirmationDataBuilder().buildObject();
             scData.setRecipient(recipient);
             scData.setNotOnOrAfter(notOnOrAfter);
-            if (!messageContext.isIdpInitSSO()) {
-                scData.setInResponseTo(messageContext.getId());
+            if (!saml2SSOContext.isIdpInitSSO()) {
+                scData.setInResponseTo(saml2SSOContext.getId());
             }
             subjectConfirmation.setSubjectConfirmationData(scData);
             subjectElem.getSubjectConfirmations().add(subjectConfirmation);
@@ -192,12 +187,12 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         authStmt.setAuthnContext(authContext);
         assertion.getAuthnStatements().add(authStmt);
 
-        buildAttributeStatement(claims, assertion, messageContext, config, context);
+        buildAttributeStatement(claims, assertion, saml2SSOContext, config, context);
 
         AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
                 .buildObject();
         Audience issuerAudience = new AudienceBuilder().buildObject();
-        issuerAudience.setAudienceURI(messageContext.getIssuerWithDomain());
+        issuerAudience.setAudienceURI(saml2SSOContext.getIssuerWithDomain());
         audienceRestriction.getAudiences().add(issuerAudience);
         for (String requestedAudience : config.getRequestedAudiences()) {
             Audience audience = new AudienceBuilder().buildObject();
@@ -305,7 +300,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
         }
     }
 
-    protected void buildAttributeStatement(Set<Claim> claims, Assertion assertion, MessageContext messageContext,
+    protected void buildAttributeStatement(Set<Claim> claims, Assertion assertion, SAML2SSOContext saml2SSOContext,
                                            ResponseBuilderConfig config, AuthenticationContext context) {
 
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();

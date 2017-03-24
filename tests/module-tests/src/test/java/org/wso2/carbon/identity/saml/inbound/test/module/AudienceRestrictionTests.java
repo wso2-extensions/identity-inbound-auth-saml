@@ -36,12 +36,9 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
@@ -52,6 +49,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 
 /**
  * Tests for IDP initiated SAML.

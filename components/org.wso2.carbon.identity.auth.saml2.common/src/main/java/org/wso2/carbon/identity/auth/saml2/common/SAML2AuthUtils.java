@@ -227,8 +227,7 @@ public class SAML2AuthUtils {
         return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(), objectQName.getPrefix());
     }
 
-    public static String encodeForRedirect(RequestAbstractType requestMessage)
-            throws IdentityRuntimeException {
+    public static String encodeForRedirect(RequestAbstractType requestMessage)  {
 
         Marshaller marshaller = Configuration.getMarshallerFactory().getMarshaller(requestMessage);
         Element authDOM = null;
@@ -241,7 +240,7 @@ public class SAML2AuthUtils {
             DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
             StringWriter rspWrt = new StringWriter();
             XMLHelper.writeNode(authDOM, rspWrt);
-            deflaterOutputStream.write(rspWrt.toString().getBytes());
+            deflaterOutputStream.write(rspWrt.toString().getBytes(StandardCharsets.UTF_8));
             deflaterOutputStream.close();
 
             /* Encoding the compressed message */
@@ -249,7 +248,7 @@ public class SAML2AuthUtils {
                                                                       .toByteArray(), Base64.DONT_BREAK_LINES);
 
             byteArrayOutputStream.write(byteArrayOutputStream.toByteArray());
-            byteArrayOutputStream.toString();
+            byteArrayOutputStream.toString(StandardCharsets.UTF_8.toString());
 
             // logger saml
             if (logger.isDebugEnabled()) {
@@ -258,11 +257,7 @@ public class SAML2AuthUtils {
 
             return URLEncoder.encode(encodedRequestMessage, "UTF-8").trim();
 
-        } catch (MarshallingException e) {
-            throw new IdentityRuntimeException("Error occurred while encoding SAML request", e);
-        } catch (UnsupportedEncodingException e) {
-            throw new IdentityRuntimeException("Error occurred while encoding SAML request", e);
-        } catch (IOException e) {
+        } catch (MarshallingException | IOException  e) {
             throw new IdentityRuntimeException("Error occurred while encoding SAML request", e);
         }
     }
@@ -338,7 +333,7 @@ public class SAML2AuthUtils {
         }
     }
 
-    public static String marshall(XMLObject xmlObject) throws IdentityRuntimeException {
+    public static String marshall(XMLObject xmlObject) {
         try {
             MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
@@ -350,8 +345,9 @@ public class SAML2AuthUtils {
             LSOutput output = impl.createLSOutput();
             output.setByteStream(byteArrayOutputStrm);
             writer.write(element, output);
-            return byteArrayOutputStrm.toString();
-        } catch (Exception e) {
+            return byteArrayOutputStrm.toString(StandardCharsets.UTF_8.toString());
+        } catch (InstantiationException | MarshallingException | IllegalAccessException |
+                UnsupportedEncodingException | ClassNotFoundException e) {
             throw new IdentityRuntimeException("Error marshalling the XML object", e);
         }
     }
@@ -369,7 +365,7 @@ public class SAML2AuthUtils {
 
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             docBuilder.setEntityResolver(new CarbonEntityResolver());
-            ByteArrayInputStream is = new ByteArrayInputStream(samlString.getBytes());
+            ByteArrayInputStream is = new ByteArrayInputStream(samlString.getBytes(StandardCharsets.UTF_8));
             Document document = docBuilder.parse(is);
             Element element = document.getDocumentElement();
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();

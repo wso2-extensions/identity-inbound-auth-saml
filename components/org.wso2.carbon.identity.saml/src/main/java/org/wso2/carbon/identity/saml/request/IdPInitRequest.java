@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
  */
 public class IdPInitRequest extends SAML2SSORequest {
 
+    private static final long serialVersionUID = 1430097995526520192L;
+
     public IdPInitRequest(SAMLIdpInitRequestBuilder builder) {
         super(builder);
     }
@@ -34,7 +36,7 @@ public class IdPInitRequest extends SAML2SSORequest {
     }
 
     public String getSPEntityId() {
-        return this.getParameter(SAML2AuthConstants.SP_ENTITY_ID.toString());
+        return this.getParameter(SAML2AuthConstants.SP_ENTITY_ID);
     }
 
     /**

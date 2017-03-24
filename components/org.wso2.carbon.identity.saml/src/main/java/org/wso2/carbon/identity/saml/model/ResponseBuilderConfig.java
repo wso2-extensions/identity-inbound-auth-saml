@@ -57,13 +57,13 @@ public class ResponseBuilderConfig implements Serializable {
         return nameIdFormat;
     }
 
-    public int getNotOnOrAfterPeriod() {
+    public long getNotOnOrAfterPeriod() {
         try {
-            return Integer.parseInt((String) responseBuilderConfigs.getProperties().get(
+            return Long.parseLong((String) responseBuilderConfigs.getProperties().get(
                     SAML2AuthConstants.Config.Name.NOT_ON_OR_AFTER_PERIOD));
         } catch (NumberFormatException e) {
             logger.debug("Error while converting given configuration value to an integer", e);
-            return 5;
+            return 5L;
         }
     }
 

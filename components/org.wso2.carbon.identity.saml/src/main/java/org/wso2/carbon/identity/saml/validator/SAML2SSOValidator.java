@@ -21,8 +21,10 @@ package org.wso2.carbon.identity.saml.validator;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
-import org.wso2.carbon.identity.saml.bean.MessageContext;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.saml.bean.SAML2SSOContext;
 import org.wso2.carbon.identity.saml.exception.SAML2SSORequestValidationException;
+import org.wso2.carbon.identity.saml.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.saml.request.SAML2SSORequest;
 
 import java.util.HashMap;
@@ -32,13 +34,19 @@ import java.util.HashMap;
  */
 public abstract class SAML2SSOValidator extends AbstractRequestValidator {
 
-    protected MessageContext createInboundMessageContext(AuthenticationContext authenticationContext)
+    protected SAML2SSOContext createInboundMessageContext(AuthenticationContext authenticationContext)
             throws SAML2SSORequestValidationException {
 
-        MessageContext messageContext = new MessageContext(new HashMap());
-        messageContext.setRequest((SAML2SSORequest) authenticationContext.getInitialAuthenticationRequest());
-        authenticationContext.addParameter(SAML2AuthConstants.SAML_CONTEXT, messageContext);
-        return messageContext;
+        SAML2SSOContext saml2SSOContext = new SAML2SSOContext(new HashMap());
+        ClientAuthenticationRequest request = authenticationContext.getInitialAuthenticationRequest();
+        if (request instanceof SAML2SSORequest) {
+            saml2SSOContext.setRequest((SAML2SSORequest) request);
+        } else {
+            throw new SAML2SSORuntimeException("ClientAuthenticationRequest not a SAML2SSORequest.");
+        }
+
+        authenticationContext.addParameter(SAML2AuthConstants.SAML_CONTEXT, saml2SSOContext);
+        return saml2SSOContext;
     }
 
     @Override
