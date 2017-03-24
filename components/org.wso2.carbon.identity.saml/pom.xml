@@ -34,32 +34,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <groupId>org.wso2.carbon.identity.commons</groupId>
+            <artifactId>org.wso2.carbon.identity.commons</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.commons</groupId>
-            <artifactId>org.wso2.carbon.identity.commons</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.joda-time</groupId>
@@ -70,25 +62,12 @@
             <artifactId>wss4j</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-            <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${org.powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <version>${org.powermock.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -100,25 +79,6 @@
                 <version>${maven.wagon.ssh.version}</version>
             </extension>
         </extensions>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
-                    </suiteXmlFiles>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
     <properties>
@@ -128,18 +88,22 @@
             org.wso2.carbon.identity.saml.*;version="${project.version}"
         </export.package>
         <import.package>
-            org.osgi.framework.*;version="[1.8.0, 2.0.0)",
+            org.slf4j.*,
+            javax.ws.rs.*; version="${rs-api.imp.version.range}",
+            org.osgi.framework.*; version="[1.8.0, 2.0.0)",
+            org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
+            org.joda.time; version="${joda.wso2.osgi.version.range}",
+            org.apache.xml.security; version="${wss4j.xml.security.imp.pkg.version.range}",
+            org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
+            org.owasp.encoder; version="${encoder.wso2.imp.version.range}",
+            org.wso2.carbon.identity.common.*; version="${carbon.identity.commons.imp.version.range}",
+            org.wso2.carbon.identity.auth.saml2.common; version="${auth.saml2.common.import.version.range}",
             org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
             org.wso2.carbon.identity.gateway.common.*; version="${carbon.identity.gateway.import.version.range}",
-            org.apache.xerces.util.*,
-            org.apache.commons.ssl.*,
-            org.opensaml.*,
-            javax.xml.parsers; version="${javax.xml.version}";resolution:=optional,
+            org.wso2.carbon.identity.mgt.*; version="${carbon.identity.mgt.imp.version.range}"
         </import.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
-        <dynamic.import.package>*</dynamic.import.package>
-        <javax.xml.version>[1.0.0,2.0.0)</javax.xml.version>
     </properties>
 
 </project>

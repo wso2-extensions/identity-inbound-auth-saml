@@ -26,7 +26,7 @@
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.SSOTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.NameIDFormatTests"/>
             <class name="org.wso2.carbon.identity.saml.inbound.test.module.ResponseSigningTests"/>
-            <class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/>
+            <!--class name="org.wso2.carbon.identity.saml.inbound.test.module.InitialTests"/-->
         </classes>
     </test>
 </suite>

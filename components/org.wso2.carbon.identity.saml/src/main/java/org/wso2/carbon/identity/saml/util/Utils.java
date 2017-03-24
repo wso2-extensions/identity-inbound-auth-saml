@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.saml.util;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.xml.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

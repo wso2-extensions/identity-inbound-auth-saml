@@ -652,7 +652,7 @@ public class SPInitTests {
      */
     @Test
     public void testAuthnRequestSignatureValidationWithInvalidSignatureForPost() {
-        
+
         ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
                 (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()

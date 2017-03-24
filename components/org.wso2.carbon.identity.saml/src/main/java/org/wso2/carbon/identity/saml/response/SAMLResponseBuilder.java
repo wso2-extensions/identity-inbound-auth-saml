@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.saml.response;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.xml.security.utils.EncryptionConstants;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.common.SAMLVersion;
@@ -269,7 +268,7 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             Credential symmetricCredential = null;
             try {
                 symmetricCredential = SecurityHelper.getSimpleCredential(
-                        SecurityHelper.generateSymmetricKey(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256));
+                        SecurityHelper.generateSymmetricKey("http://www.w3.org/2001/04/xmlenc#aes256-cbc"));
             } catch (NoSuchAlgorithmException | KeyException e) {
                 SAML2SSOResponseBuilderException ex =
                         new SAML2SSOResponseBuilderException(StatusCode.RESPONDER_URI,
@@ -280,11 +279,11 @@ public class SAMLResponseBuilder extends AbstractMessageHandler {
             }
 
             EncryptionParameters encParams = new EncryptionParameters();
-            encParams.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256);
+            encParams.setAlgorithm("http://www.w3.org/2001/04/xmlenc#aes256-cbc");
             encParams.setEncryptionCredential(symmetricCredential);
 
             KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
-            keyEncryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSA15);
+            keyEncryptionParameters.setAlgorithm("http://www.w3.org/2001/04/xmlenc#rsa-1_5");
             keyEncryptionParameters.setEncryptionCredential(new X509CredentialImpl((X509Certificate) certificate));
 
             Encrypter encrypter = new Encrypter(encParams, keyEncryptionParameters);

@@ -32,36 +32,222 @@
     <url>http://wso2.com</url>
 
     <dependencies>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
 
-        <!-- Carbon Dependencies-->
-
+        <!-- Kernel Dependencies-->
         <dependency>
             <groupId>org.wso2.carbon.caching</groupId>
             <artifactId>org.wso2.carbon.caching</artifactId>
+        </dependency>
+
+        <!-- Identity dependencies -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>org.wso2.carbon.identity.claim</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.msf4j</groupId>
+                    <artifactId>msf4j-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.mgt</groupId>
             <artifactId>org.wso2.carbon.identity.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>in-memory-connectors-test-artifact</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.deployment</groupId>
+            <artifactId>org.wso2.carbon.deployment.engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.saml</artifactId>
         </dependency>
 
+        <!-- 3rd party dependencies -->
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.wso2.orbit.com.lmax</groupId>
             <artifactId>disruptor</artifactId>
         </dependency>
-
-        <!-- Dependencies for Testing -->
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>osgi-test-util</artifactId>
+            <groupId>xalan.wso2</groupId>
+            <artifactId>xalan</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev.wso2</groupId>
+            <artifactId>json-smart</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.spec.ee</groupId>
+            <artifactId>ow2-jta-1.1-spec</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io.wso2</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-pool.wso2</groupId>
+            <artifactId>commons-pool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>asm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+            <artifactId>encoder</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.lcm</groupId>
+            <artifactId>org.wso2.carbon.lcm.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.lcm</groupId>
+            <artifactId>org.wso2.carbon.lcm.sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec.wso2</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
+        </dependency>
+
+        <!-- Dependencies for Testing -->
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>osgi-test-util</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -97,219 +283,19 @@
             <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>xalan.wso2</groupId>
-            <artifactId>xalan</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.ant</artifactId>
         </dependency>
 
-        <!-- Other Dependencies-->
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.spec.ee</groupId>
-            <artifactId>ow2-jta-1.1-spec</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.minidev.wso2</groupId>
-            <artifactId>json-smart</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io.wso2</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-pool.wso2</groupId>
-            <artifactId>commons-pool</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>asm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.mgt</groupId>
-            <artifactId>org.wso2.carbon.identity.claim</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.wso2.msf4j</groupId>
-                    <artifactId>msf4j-all</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.lcm</groupId>
-            <artifactId>org.wso2.carbon.lcm.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.lcm</groupId>
-            <artifactId>org.wso2.carbon.lcm.sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.mgt</groupId>
-            <artifactId>in-memory-connectors-test-artifact</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.gateway</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.deployment</groupId>
-            <artifactId>org.wso2.carbon.deployment.engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.wso2.msf4j</groupId>
-            <artifactId>msf4j-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- SAML inbound specific dependencies-->
-
-        <dependency>
-            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-            <artifactId>org.wso2.carbon.identity.saml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec.wso2</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang.wso2</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
-            <artifactId>encoder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ws.security.wso2</groupId>
-            <artifactId>wss4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-            <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
-        </dependency>
-
         <!-- sample dependencies -->
-
-        <dependency>
-            <groupId>org.wso2.carbon.identity.gateway</groupId>
-            <artifactId>org.wso2.carbon.identity.outbound.sample</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>identity-gateway-module-tests</artifactId>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.outbound.sample</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -322,35 +308,6 @@
             </activation>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-
-                            <execution>
-                                <id>copy-jacoco-dependencies</id>
-                                <phase>compile</phase>
-                                <goals>
-                                    <goal>copy-dependencies</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.build.directory}</outputDirectory>
-                                    <includeTypes>jar</includeTypes>
-                                    <includeArtifactIds>org.jacoco.ant</includeArtifactIds>
-                                    <stripVersion>true</stripVersion>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
-                        </configuration>
-                    </plugin>
-
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
@@ -372,7 +329,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
@@ -401,51 +357,6 @@
                             </suiteXmlFiles>
                         </configuration>
                     </plugin>
-
-
-                    <!--<plugin>-->
-                        <!--<groupId>org.apache.maven.plugins</groupId>-->
-                        <!--<artifactId>maven-antrun-plugin</artifactId>-->
-                        <!--<executions>-->
-                            <!--<execution>-->
-                                <!--<phase>prepare-package</phase>-->
-                                <!--<configuration>-->
-                                    <!--<target xmlns:jacoco="antlib:org.jacoco.ant">-->
-                                        <!--//this task is to provide class/src files locations for jacoco report generation-->
-                                        <!--<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">-->
-                                            <!--<classpath path="${project.build.directory}" />-->
-                                        <!--</taskdef>-->
-                                        <!--<jacoco:report>-->
-                                            <!--<executiondata>-->
-                                                <!--<file file="${project.build.directory}/jacoco.exec" />-->
-                                            <!--</executiondata>-->
-                                            <!--<structure name="Identity Server Tests">-->
-                                                <!--<classfiles>-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/target/classes" />-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/target/classes" />-->
-                                                <!--</classfiles>-->
-                                                <!--<sourcefiles encoding="UTF-8">-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/src" />-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/src" />-->
-                                                <!--</sourcefiles>-->
-                                            <!--</structure>-->
-                                            <!--<html destdir="${project.build.directory}/site/jacoco" />-->
-                                        <!--</jacoco:report>-->
-                                    <!--</target>-->
-                                <!--</configuration>-->
-                                <!--<goals>-->
-                                    <!--<goal>run</goal>-->
-                                <!--</goals>-->
-                            <!--</execution>-->
-                        <!--</executions>-->
-                        <!--<dependencies>-->
-                            <!--<dependency>-->
-                                <!--<groupId>org.jacoco</groupId>-->
-                                <!--<artifactId>org.jacoco.ant</artifactId>-->
-                                <!--<version>${org.jacoco.ant.version}</version>-->
-                            <!--</dependency>-->
-                        <!--</dependencies>-->
-                    <!--</plugin>-->
                     <plugin>
                         <groupId>org.ops4j.pax.exam</groupId>
                         <artifactId>maven-paxexam-plugin</artifactId>
