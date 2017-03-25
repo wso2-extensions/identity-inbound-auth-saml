@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.saml.inbound.test.module;
 
 import com.google.common.net.HttpHeaders;
+import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Response;
 import org.ops4j.pax.exam.Configuration;
@@ -35,29 +37,26 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
 
 /**
  * Tests for IDP initiated SAML.
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
-public class AudienceRestrictionTests {
+public class ClaimTests {
 
     private static final Logger log = LoggerFactory.getLogger(InitialTests.class);
 
@@ -81,26 +80,82 @@ public class AudienceRestrictionTests {
     }
 
     /**
-     * Test response signing disabled.
+     * Testing successful authentication using idp initiated sso
      */
     @Test
-    public void testAudienceRestriction() {
-        String AUDIENCE1 = "audience1";
-        String AUDIENCE2 = "audience2";
+    public void testClaimsInEncryptedAssertionIDPinit() {
         ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
                 (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         Properties originalResponseBuilderConfigs = (Properties) serviceProviderConfig.getResponseBuildingConfig()
                 .getResponseBuilderConfigs().get(0).getProperties().clone();
+        Properties originalRequestValidatorConfigs = (Properties) serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties().clone();
 
         try {
+            serviceProviderConfig.getResponseBuildingConfig()
+                    .getResponseBuilderConfigs().get(0).getProperties().put(SAML2AuthConstants.Config.Name
+                    .AUTHN_RESPONSE_ENCRYPTED, "true");
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .put(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
+            HttpURLConnection urlConnection = TestUtils.request(TestConstants.GATEWAY_ENDPOINT
+                    + "?" + TestConstants.SP_ENTITY_ID + "=" + TestConstants
+                    .SAMPLE_ISSUER_NAME, HttpMethod.GET, false);
 
-            List<String> restrictedAudiences = new ArrayList<>();
-            restrictedAudiences.add(AUDIENCE1);
-            restrictedAudiences.add(AUDIENCE2);
+            String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(TestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(TestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = TestUtils.request
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
+                            relayState + "&" + TestConstants.ASSERTION + "=" + TestConstants
+                            .AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            String response = TestUtils.getContent(urlConnection);
+            String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
+            try {
+                Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
+                Assertion assertion = TestUtils.decryptAssertion(samlResponseObject);
+                List<Attribute> attributes = assertion.getAttributeStatements().get(0).getAttributes();
+                Assert.assertTrue(attributes.size() == 3);
+
+            } catch (SAML2SSOServerException e) {
+                Assert.fail("Error while building response object", e);
+            }
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case");
+        } finally {
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
+                    (originalResponseBuilderConfigs);
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalRequestValidatorConfigs);
+        }
+    }
+
+    /**
+     * Testing the content of the SAML response.
+     */
+    @Test
+    public void testSAMLSPInitResponseClaimsWithoutASCIConfigured() {
+
+        ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
+                (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
+        Properties originalResponseBuilderConfigs = (Properties) serviceProviderConfig.getResponseBuildingConfig()
+                .getResponseBuilderConfigs().get(0).getProperties().clone();
+        Properties originalRequestValidatorConfigs = (Properties) serviceProviderConfig.getRequestValidationConfig()
+                .getRequestValidatorConfigs().get(0).getProperties().clone();
+
+        try {
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .remove(SAML2AuthConstants.Config.Name.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).getProperties()
+                    .put(SAML2AuthConstants.Config.Name.IDP_INIT_SSO_ENABLED, "true");
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                    .put(SAML2AuthConstants.Config.Name.REQUESTED_AUDIENCES, restrictedAudiences);
-
+                    .remove(SAML2AuthConstants.Config.Name.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
                     false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
@@ -127,32 +182,30 @@ public class AudienceRestrictionTests {
                             TestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+
             cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
             String response = TestUtils.getContent(urlConnection);
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
             try {
                 Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
-                Assert.assertEquals(TestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                        .getAssertions().get(0).getSubject().getNameID().getValue());
-                Assert.assertEquals(3, samlResponseObject.getAssertions().get(0).getConditions()
-                        .getAudienceRestrictions().get(0).getAudiences().size());
-                Map<String, String> audiencesFromResponse = new HashMap<>();
-                samlResponseObject.getAssertions().get(0).getConditions().getAudienceRestrictions().get(0)
-                        .getAudiences().stream().forEach(audience -> audiencesFromResponse.put(audience
-                        .getAudienceURI(), audience.getAudienceURI()));
-                Assert.assertNotNull(audiencesFromResponse.get(AUDIENCE1));
-                Assert.assertNotNull(audiencesFromResponse.get(AUDIENCE2));
-                Assert.assertNotNull(audiencesFromResponse.get(TestConstants.SAMPLE_ISSUER_NAME));
+                Assert.assertEquals(samlResponseObject.getAssertions().get(0).getSubject().getNameID().getValue(),
+                        TestConstants.AUTHENTICATED_USER_NAME);
+                List<Attribute> attributes = samlResponseObject.getAssertions().get(0).getAttributeStatements().get(0)
+                        .getAttributes();
+                Assert.assertTrue(attributes.size() == 0);
             } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object", e);
             }
 
+
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLResponse test case", e);
         } finally {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
                     (originalResponseBuilderConfigs);
+            serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0).setProperties
+                    (originalRequestValidatorConfigs);
         }
     }
 }

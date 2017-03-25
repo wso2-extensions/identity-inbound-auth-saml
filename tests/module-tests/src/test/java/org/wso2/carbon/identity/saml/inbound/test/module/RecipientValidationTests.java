@@ -35,10 +35,12 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
@@ -49,15 +51,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
 
 /**
  * Tests for IDP initiated SAML.
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
-public class AudienceRestrictionTests {
+public class RecipientValidationTests {
 
     private static final Logger log = LoggerFactory.getLogger(InitialTests.class);
 
@@ -80,26 +80,22 @@ public class AudienceRestrictionTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
-    /**
-     * Test response signing disabled.
-     */
     @Test
-    public void testAudienceRestriction() {
-        String AUDIENCE1 = "audience1";
-        String AUDIENCE2 = "audience2";
+    public void testRecipientInResponse() {
+        String recipient1 = "recipient1";
+        String recipient2 = "recipient2";
         ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
                 (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
         Properties originalResponseBuilderConfigs = (Properties) serviceProviderConfig.getResponseBuildingConfig()
                 .getResponseBuilderConfigs().get(0).getProperties().clone();
-
         try {
 
-            List<String> restrictedAudiences = new ArrayList<>();
-            restrictedAudiences.add(AUDIENCE1);
-            restrictedAudiences.add(AUDIENCE2);
+            List<String> requestedRecipients = new ArrayList<>();
+            requestedRecipients.add(recipient1);
+            requestedRecipients.add(recipient2);
 
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                    .put(SAML2AuthConstants.Config.Name.REQUESTED_AUDIENCES, restrictedAudiences);
+                    .put(SAML2AuthConstants.Config.Name.REQUESTED_RECIPIENTS, requestedRecipients);
 
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
                     false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
@@ -137,13 +133,14 @@ public class AudienceRestrictionTests {
                         .getAssertions().get(0).getSubject().getNameID().getValue());
                 Assert.assertEquals(3, samlResponseObject.getAssertions().get(0).getConditions()
                         .getAudienceRestrictions().get(0).getAudiences().size());
-                Map<String, String> audiencesFromResponse = new HashMap<>();
-                samlResponseObject.getAssertions().get(0).getConditions().getAudienceRestrictions().get(0)
-                        .getAudiences().stream().forEach(audience -> audiencesFromResponse.put(audience
-                        .getAudienceURI(), audience.getAudienceURI()));
-                Assert.assertNotNull(audiencesFromResponse.get(AUDIENCE1));
-                Assert.assertNotNull(audiencesFromResponse.get(AUDIENCE2));
-                Assert.assertNotNull(audiencesFromResponse.get(TestConstants.SAMPLE_ISSUER_NAME));
+                Map<String, String> recipientsFromResponse = new HashMap<>();
+                samlResponseObject.getAssertions().get(0).getSubject().getSubjectConfirmations().stream().forEach
+                        (subjectConfirmation -> recipientsFromResponse.put(subjectConfirmation
+                                .getSubjectConfirmationData().getRecipient(), subjectConfirmation
+                                .getSubjectConfirmationData().getRecipient()));
+                Assert.assertNotNull(recipientsFromResponse.get(recipient1));
+                Assert.assertNotNull(recipientsFromResponse.get(recipient2));
+                Assert.assertNotNull(recipientsFromResponse.get(TestConstants.ACS_URL));
             } catch (SAML2SSOServerException e) {
                 Assert.fail("Error while building response object", e);
             }
@@ -155,4 +152,6 @@ public class AudienceRestrictionTests {
                     (originalResponseBuilderConfigs);
         }
     }
+
+
 }

@@ -24,10 +24,12 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.xml.SAMLConstants;
+import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnContext;
 import org.opensaml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.NameIDPolicy;
 import org.opensaml.saml2.core.NameIDType;
@@ -38,7 +40,14 @@ import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.encryption.EncryptedKey;
+import org.opensaml.xml.security.SecurityHelper;
+import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.util.Base64;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -46,11 +55,14 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Utilities for SAML inbound tests.
@@ -193,5 +205,29 @@ public class TestUtils {
         if (requestedAuthnContext != null) {
             authnRequest.setRequestedAuthnContext(requestedAuthnContext);
         }
+    }
+
+    public static Assertion decryptAssertion(Response response) {
+
+        Assertion assertion = null;
+        List<EncryptedAssertion> encryptedAssertions = response.getEncryptedAssertions();
+        EncryptedAssertion encryptedAssertion = null;
+        encryptedAssertion = encryptedAssertions.get(0);
+        try {
+            KeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(SAML2AuthUtils
+                    .getServerCredentials());
+            EncryptedKey key = encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
+            Decrypter decrypter = new Decrypter(null, keyResolver, null);
+            SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().
+                    getEncryptionMethod().getAlgorithm());
+            Credential shared = SecurityHelper.getSimpleCredential(dkey);
+            decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), null, null);
+            decrypter.setRootInNewDocument(true);
+            assertion = decrypter.decrypt(encryptedAssertion);
+        } catch (DecryptionException e) {
+            logger.error("Error while decrypting assertion");
+        }
+
+        return assertion;
     }
 }

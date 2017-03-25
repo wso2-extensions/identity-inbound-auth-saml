@@ -258,7 +258,8 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
 
         int requestedIndex = saml2SSOContext.getAttributeConsumingServiceIndex();
         String configuredIndex = responseBuilderConfig.getAttributeConsumingServiceIndex();
-        if (StringUtils.isNotBlank(configuredIndex) && !NumberUtils.isNumber(configuredIndex)) {
+        if ((StringUtils.isNotBlank(configuredIndex) && !NumberUtils.isNumber(configuredIndex)) || StringUtils
+                .isEmpty(configuredIndex)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Invalid AttributeConsumingServiceIndex configured: " + configuredIndex);
             }
