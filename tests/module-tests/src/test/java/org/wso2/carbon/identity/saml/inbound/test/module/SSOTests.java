@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
+import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import java.io.IOException;

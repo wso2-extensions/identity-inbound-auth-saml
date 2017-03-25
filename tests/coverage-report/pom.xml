@@ -91,13 +91,15 @@
                                                 <fileset dir="../module-tests/target">
                                                     <include name="jacoco.exec"/>
                                                 </fileset>
-                                                <fileset dir="../../components/org.wso2.carbon.identity.saml/target">
+                                                <fileset
+                                                        dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target">
                                                     <include name="jacoco.exec"/>
                                                 </fileset>
                                             </executiondata>
                                             <structure name="Identity Server SAML Inbound Tests">
                                                 <classfiles>
-                                                    <fileset dir="../../components/org.wso2.carbon.identity.saml/target/classes">
+                                                    <fileset
+                                                            dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target/classes">
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Exception.class" />
                                                         <exclude name="**/org/wso2/carbon/identity/saml/exception/*"/>
@@ -112,7 +114,7 @@
                                                     </fileset>
                                                 </classfiles>
                                                 <sourcefiles encoding="UTF-8">
-                                                    <fileset dir="../../components/org.wso2.carbon.identity.saml/src" />
+                                                    <fileset dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/src" />
                                                     <fileset dir="../../components/org.wso2.carbon.identity.auth.saml2.common/src" />
                                                 </sourcefiles>
                                             </structure>

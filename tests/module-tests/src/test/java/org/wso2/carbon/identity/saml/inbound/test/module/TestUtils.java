@@ -44,9 +44,9 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
+import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

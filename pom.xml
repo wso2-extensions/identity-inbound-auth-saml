@@ -144,7 +144,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-                <artifactId>org.wso2.carbon.identity.saml</artifactId>
+                <artifactId>org.wso2.carbon.identity.authenticator.inbound.saml2sso</artifactId>
                 <version>${inbound.saml2.version}</version>
             </dependency>
 
@@ -407,9 +407,9 @@
 
     <modules>
         <module>components/org.wso2.carbon.identity.auth.saml2.common</module>
-        <module>components/org.wso2.carbon.identity.saml</module>
+        <module>components/org.wso2.carbon.identity.authenticator.inbound.saml2sso</module>
         <module>features/org.wso2.carbon.identity.auth.saml2.common.feature</module>
-        <module>features/org.wso2.carbon.identity.sso.saml.server.feature</module>
+        <module>features/org.wso2.carbon.identity.authenticator.inbound.saml2sso.feature</module>
         <module>tests</module>
     </modules>
 

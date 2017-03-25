@@ -302,7 +302,7 @@ public class OSGiTestUtils {
 
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.inbound.auth.saml2")
-                .artifactId("org.wso2.carbon.identity.saml")
+                .artifactId("org.wso2.carbon.identity.authenticator.inbound.saml2sso")
                 .versionAsInProject());
 
         defaultOptionList.add(mavenBundle()
