@@ -16,9 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.saml.inbound.test.module;
+package org.wso2.carbon.identity.authenticator.inbound.saml2sso.test;
 
 import com.google.common.net.HttpHeaders;
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Response;
 import org.ops4j.pax.exam.Configuration;
@@ -35,29 +36,25 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
+import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.saml.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
-import javax.inject.Inject;
-import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 
 /**
  * Tests for IDP initiated SAML.
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
-public class RecipientValidationTests {
+public class NameIDFormatTests {
 
     private static final Logger log = LoggerFactory.getLogger(InitialTests.class);
 
@@ -81,22 +78,34 @@ public class RecipientValidationTests {
     }
 
     @Test
-    public void testRecipientInResponse() {
-        String recipient1 = "recipient1";
-        String recipient2 = "recipient2";
+    public void testDefaultNameIDFormat() {
+        testNameIdFormat(null);
+    }
+
+    @Test
+    public void testCustomNameIDFormat() {
+        testNameIdFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:userName");
+    }
+    /**
+     * Test inbound authentication and successful statement on assertion without configuring nameIDformat.
+     */
+    private void testNameIdFormat(String inputNameId) {
         ServiceProviderConfig serviceProviderConfig = TestUtils.getServiceProviderConfigs
                 (TestConstants.SAMPLE_ISSUER_NAME, bundleContext);
-        Properties originalResponseBuilderConfigs = (Properties) serviceProviderConfig.getResponseBuildingConfig()
-                .getResponseBuilderConfigs().get(0).getProperties().clone();
-        try {
 
-            List<String> requestedRecipients = new ArrayList<>();
-            requestedRecipients.add(recipient1);
-            requestedRecipients.add(recipient2);
+        String originalNameIDFormat = serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                .getProperty(SAML2AuthConstants.Config.Name.NAME_ID_FORMAT);
+        serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                .remove(SAML2AuthConstants.Config.Name.NAME_ID_FORMAT);
 
+        if (StringUtils.isNotEmpty(inputNameId)) {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
-                    .put(SAML2AuthConstants.Config.Name.REQUESTED_RECIPIENTS, requestedRecipients);
+                    .put(SAML2AuthConstants.Config.Name.NAME_ID_FORMAT, inputNameId);
+        } else {
+            inputNameId = originalNameIDFormat;
+        }
 
+        try {
             AuthnRequest samlRequest = TestUtils.buildAuthnRequest("https://localhost:9292/gateway",
                     false, false, TestConstants.SAMPLE_ISSUER_NAME, TestConstants.ACS_URL);
             String samlRequestString = SAML2AuthUtils.encodeForRedirect(samlRequest);
@@ -118,40 +127,26 @@ public class RecipientValidationTests {
             relayState = relayState.split(TestConstants.QUERY_PARAM_SEPARATOR)[0];
 
             urlConnection = TestUtils.request
-                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" +
-                            relayState + "&" + TestConstants.ASSERTION + "=" +
+                    (TestConstants.GATEWAY_ENDPOINT + "?" + TestConstants.RELAY_STATE + "=" + relayState +
+                            "&" + TestConstants.ASSERTION + "=" +
                             TestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
-            String cookie = TestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
-            cookie = cookie.split(org.wso2.carbon.identity.gateway.common.util.Constants.GATEWAY_COOKIE + "=")[1];
-            Assert.assertNotNull(cookie);
             String response = TestUtils.getContent(urlConnection);
+
             String samlResponse = response.split("SAMLResponse' value='")[1].split("'>")[0];
             try {
                 Response samlResponseObject = TestUtils.getSAMLResponse(samlResponse);
-                Assert.assertEquals(TestConstants.AUTHENTICATED_USER_NAME, samlResponseObject
-                        .getAssertions().get(0).getSubject().getNameID().getValue());
-                Assert.assertEquals(3, samlResponseObject.getAssertions().get(0).getConditions()
-                        .getAudienceRestrictions().get(0).getAudiences().size());
-                Map<String, String> recipientsFromResponse = new HashMap<>();
-                samlResponseObject.getAssertions().get(0).getSubject().getSubjectConfirmations().stream().forEach
-                        (subjectConfirmation -> recipientsFromResponse.put(subjectConfirmation
-                                .getSubjectConfirmationData().getRecipient(), subjectConfirmation
-                                .getSubjectConfirmationData().getRecipient()));
-                Assert.assertNotNull(recipientsFromResponse.get(recipient1));
-                Assert.assertNotNull(recipientsFromResponse.get(recipient2));
-                Assert.assertNotNull(recipientsFromResponse.get(TestConstants.ACS_URL));
+                Assert.assertEquals(inputNameId, samlResponseObject.getAssertions().get(0).getSubject().getNameID().getFormat());
             } catch (SAML2SSOServerException e) {
-                Assert.fail("Error while building response object", e);
+                Assert.fail("Error while asserting on encrypted assertions test case", e);
             }
-
         } catch (IOException e) {
-            Assert.fail("Error while running federated authentication test case", e);
+            Assert.fail("Error while running testSAMLInboundAuthentication test case", e);
         } finally {
-            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
-                    (originalResponseBuilderConfigs);
+            serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).getProperties()
+                    .put(SAML2AuthConstants.Config.Name.NAME_ID_FORMAT, originalNameIDFormat);
+
+
         }
     }
-
-
 }

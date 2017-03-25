@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.saml.inbound.test.module;
+package org.wso2.carbon.identity.authenticator.inbound.saml2sso.test;
 
 public class TestConstants {
 

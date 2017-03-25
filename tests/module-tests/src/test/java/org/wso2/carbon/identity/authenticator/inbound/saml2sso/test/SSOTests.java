@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.saml.inbound.test.module;
+package org.wso2.carbon.identity.authenticator.inbound.saml2sso.test;
 
 import com.google.common.net.HttpHeaders;
 import org.opensaml.saml2.core.AuthnRequest;
@@ -35,9 +35,9 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthConstants;
 import org.wso2.carbon.identity.auth.saml2.common.SAML2AuthUtils;
+import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import java.io.IOException;

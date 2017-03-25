@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.saml.inbound.test.module;
+package org.wso2.carbon.identity.authenticator.inbound.saml2sso.test;
 
 import com.google.common.net.HttpHeaders;
 import org.opensaml.saml2.core.Response;
