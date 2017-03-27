@@ -488,22 +488,6 @@ public class SPInitTests {
         }
     }
 
-    /**
-     * Assert on error response
-     * Added this as a unit test since bootstrapping is needed.
-     */
-//    @Test
-    public void testHandleException() {
-//        try {
-//            DefaultBootstrap.bootstrap();
-//            String errorResponse = Utils.SAMLResponseUtil.buildErrorResponse("ErrorStatus", "ErrorMessage",
-//                                                                             "https://localhost:9292/error");
-//            Assert.assertNotNull(errorResponse);
-//        } catch (ConfigurationException e) {
-//            Assert.fail("Error while bootstrapping opensaml");
-//        }
-
-    }
 
 
     /**
@@ -534,7 +518,7 @@ public class SPInitTests {
                                                                 + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String postBody = TestUtils.getContent(urlConnection);
 //          Relay state must be returned for error scenarios as well
-//            Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
+//          Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
 
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
             Assert.assertNotNull(postBody);
@@ -590,7 +574,7 @@ public class SPInitTests {
 
             String locationHeader = TestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
 //          Relay state must be returned for error scenarios as well
-//            Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
+//          Assert.assertTrue(locationHeader.contains(TestConstants.RELAY_STATE));
 
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
             String responseBody = TestUtils.getContent(urlConnection);
@@ -642,7 +626,7 @@ public class SPInitTests {
                                                                 + "?" + httpQueryString.toString(), HttpMethod.GET, false);
             String postBody = TestUtils.getContent(urlConnection);
 //          Relay state must be returned for error scenarios as well
-//            Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
+//          Assert.assertTrue(postBody.contains(TestConstants.RELAY_STATE));
 
             Assert.assertEquals(urlConnection.getResponseCode(), 200);
             Assert.assertNotNull(postBody);
@@ -800,36 +784,6 @@ public class SPInitTests {
             serviceProviderConfig.getResponseBuildingConfig().getResponseBuilderConfigs().get(0).setProperties
                     (originalResponseBuilderConfigs);
         }
-    }
-
-    /**
-     * Test error responses
-     */
-//    @Test
-    public void testSAMLResponseBuilderFactory() {
-//        SPInitResponseHandler responseHandler = new SPInitResponseHandler();
-//        AuthenticationContext authenticationContext = new AuthenticationContext(null);
-//        MessageContext messageContext = new MessageContext(null, null);
-//        SPInitRequest.SAMLSpInitRequestBuilder spInitRequestBuilder = new SPInitRequest
-//                .SAMLSpInitRequestBuilder();
-//
-//        SAML2SSORequest samlRequest = new SPInitRequest(spInitRequestBuilder);
-//        messageContext.setIdentityRequest(samlRequest);
-//        messageContext.setPassive(true);
-//        authenticationContext.addParameter(SAML2AuthConstants.SAML_CONTEXT, messageContext);
-//        authenticationContext.setUniqueId(SAMLInboundTestConstants.SAMPLE_ISSUER_NAME);
-//        try {
-//            GatewayHandlerResponse response = responseHandler.buildErrorResponse(authenticationContext, new
-//                    GatewayException("GatewayException"));
-//            Assert.assertNotNull(response);
-//            Assert.assertNotNull(response.getGatewayResponseBuilder());
-//            SAML2SSOResponse.SAML2SSOResponseBuilder samlLoginResponseBuilder = (SAML2SSOResponse
-//                    .SAML2SSOResponseBuilder) response
-//                    .getGatewayResponseBuilder();
-//            Assert.assertNotNull(samlLoginResponseBuilder.build());
-//        } catch (ResponseHandlerException e) {
-//            Assert.fail("Error while building error response", e);
-//        }
     }
 
     /**
