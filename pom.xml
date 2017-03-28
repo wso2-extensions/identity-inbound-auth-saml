@@ -138,12 +138,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.auth.saml2.common</artifactId>
-                <version>${inbound.saml2.common.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.authenticator.inbound.saml2sso</artifactId>
-                <version>${inbound.saml2.version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- gateway dependencies -->
@@ -512,9 +512,7 @@
         <osgi.core.version>6.0.0</osgi.core.version>
         <osgi.core.imp.version.range>[1.8.0, 2.0.0)</osgi.core.imp.version.range>
 
-        <inbound.saml2.common.version>${project.version}</inbound.saml2.common.version>
         <inbound.saml2.common.import.version.range>[5.9.0,6.0.0)</inbound.saml2.common.import.version.range>
-        <inbound.saml2.version>${project.version}</inbound.saml2.version>
         <inbound.saml2.exp.version>${project.version}</inbound.saml2.exp.version>
 
         <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
