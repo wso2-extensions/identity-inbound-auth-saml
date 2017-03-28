@@ -26,7 +26,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.9.9-SNAPSHOT</version>
+    <version>6.0.0-m1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -512,7 +512,7 @@
         <osgi.core.version>6.0.0</osgi.core.version>
         <osgi.core.imp.version.range>[1.8.0, 2.0.0)</osgi.core.imp.version.range>
 
-        <inbound.saml2.common.import.version.range>[5.9.0,6.0.0)</inbound.saml2.common.import.version.range>
+        <inbound.saml2.common.import.version.range>[6.0.0,7.0.0)</inbound.saml2.common.import.version.range>
         <inbound.saml2.exp.version>${project.version}</inbound.saml2.exp.version>
 
         <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
