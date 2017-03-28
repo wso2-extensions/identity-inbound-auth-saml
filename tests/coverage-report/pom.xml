@@ -15,14 +15,13 @@
   ~ limitations under the License.
   -->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>org.wso2.carbon.identity.saml.inbound.tests</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>6.0.0-SNAPSHOT</version>
+        <version>6.0.0-m1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -84,30 +83,27 @@
 
                                     <target xmlns:jacoco="antlib:org.jacoco.ant">
                                         <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
-                                            <classpath path="${project.build.directory}"/>
+                                            <classpath path="${project.build.directory}" />
                                         </taskdef>
                                         <jacoco:report>
                                             <executiondata>
                                                 <fileset dir="../module-tests/target">
-                                                    <include name="jacoco.exec"/>
+                                                    <include name="jacoco.exec" />
                                                 </fileset>
-                                                <fileset
-                                                        dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target">
-                                                    <include name="jacoco.exec"/>
+                                                <fileset dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target">
+                                                    <include name="jacoco.exec" />
                                                 </fileset>
                                             </executiondata>
                                             <structure name="Identity Server SAML Inbound Tests">
                                                 <classfiles>
-                                                    <fileset
-                                                            dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target/classes">
+                                                    <fileset dir="../../components/org.wso2.carbon.identity.authenticator.inbound.saml2sso/target/classes">
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Exception.class" />
-                                                        <exclude name="**/org/wso2/carbon/identity/saml/exception/*"/>
+                                                        <exclude name="**/org/wso2/carbon/identity/saml/exception/*" />
                                                         <!-- majority of the code are due to abstract implementations. No usages of those implementations -->
-                                                        <exclude name="**/org/wso2/carbon/identity/saml/builders/*"/>
+                                                        <exclude name="**/org/wso2/carbon/identity/saml/builders/*" />
                                                     </fileset>
-                                                    <fileset
-                                                            dir="../../components/org.wso2.carbon.identity.auth.saml2.common/target/classes">
+                                                    <fileset dir="../../components/org.wso2.carbon.identity.auth.saml2.common/target/classes">
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Constants*" />
                                                         <exclude name="**/*Exception.class" />
@@ -118,10 +114,10 @@
                                                     <fileset dir="../../components/org.wso2.carbon.identity.auth.saml2.common/src" />
                                                 </sourcefiles>
                                             </structure>
-                                            <html destdir="${project.build.directory}/site/jacoco"/>
+                                            <html destdir="${project.build.directory}/site/jacoco" />
                                             <check>
                                                 <rule element="PACKAGE">
-                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.66"/>
+                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.66" />
                                                 </rule>
                                             </check>
                                         </jacoco:report>
