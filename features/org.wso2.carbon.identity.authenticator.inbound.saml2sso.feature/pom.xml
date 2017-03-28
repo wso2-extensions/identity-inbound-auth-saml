@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
-        <version>6.0.1-SNAPSHOT</version>
+        <version>5.9.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 

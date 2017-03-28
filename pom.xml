@@ -28,7 +28,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>6.0.1-SNAPSHOT</version>
+    <version>5.9.9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -467,6 +467,14 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <preparationGoals>clean install</preparationGoals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>1.8</source>
@@ -485,21 +493,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
     </build>
+
 
     <properties>
         <osgi.core.version>6.0.0</osgi.core.version>
         <osgi.core.imp.version.range>[1.8.0, 2.0.0)</osgi.core.imp.version.range>
 
         <inbound.saml2.common.version>${project.version}</inbound.saml2.common.version>
-        <inbound.saml2.common.import.version.range>[6.0.0,7.0.0)</inbound.saml2.common.import.version.range>
+        <inbound.saml2.common.import.version.range>[5.9.0,6.0.0)</inbound.saml2.common.import.version.range>
         <inbound.saml2.version>${project.version}</inbound.saml2.version>
         <inbound.saml2.exp.version>${project.version}</inbound.saml2.exp.version>
 
         <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
         <carbon.identity.commons.imp.version.range>[0.1.24,1.0.0)</carbon.identity.commons.imp.version.range>
-        <carbon.identity.gateway.version>1.0.0-SNAPSHOT</carbon.identity.gateway.version>
+        <carbon.identity.gateway.version>0.1.0</carbon.identity.gateway.version>
 
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
         <commons.codec.version>1.4.0.wso2v1</commons.codec.version>
@@ -559,10 +581,12 @@
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)
         </httpcomponents-httpclient.imp.pkg.version.range>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
-        <carbon.identity.gateway.import.version.range>[1.0.0, 2.0.0)</carbon.identity.gateway.import.version.range>
+        <carbon.identity.gateway.import.version.range>[0.0.0, 1.0.0)</carbon.identity.gateway.import.version.range>
         <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
         <org.jacoco.ant.version>0.7.5.201505241946</org.jacoco.ant.version>
         <org.powermock.version>1.5.6</org.powermock.version>
+
+        <project.scm.id>my-scm-server</project.scm.id>
     </properties>
 
 </project>
