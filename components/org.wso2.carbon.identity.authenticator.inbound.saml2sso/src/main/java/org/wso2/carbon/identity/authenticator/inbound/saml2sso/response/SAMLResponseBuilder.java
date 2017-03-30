@@ -94,11 +94,6 @@ import java.util.Set;
  */
 public class SAMLResponseBuilder extends AbstractMessageHandler {
 
-    public boolean canHandle(String subject, Set<Claim> claims, SAML2SSOContext saml2SSOContext,
-                     ResponseBuilderConfig config, AuthenticationContext context) {
-        return true;
-    }
-
     protected Response buildSAMLResponse(String subject, Set<Claim> claims, SAML2SSOContext saml2SSOContext,
                                          ResponseBuilderConfig config, AuthenticationContext context)
             throws SAML2SSOResponseBuilderException {
