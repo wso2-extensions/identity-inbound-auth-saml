@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SS
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOResponseBuilderException;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSORuntimeException;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.exception.SAML2SSOServerException;
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.internal.SAML2InboundAuthDataHolder;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.model.ResponseBuilderConfig;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.request.SAML2SSORequest;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
@@ -136,7 +135,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
         String subject = subjectUser != null ? subjectUser.getUserIdentifier() : subjectClaim.getValue();
         Set<Claim> claims = getAttributes(saml2SSOContext, config, context);
 
-        SAMLResponseBuilder samlResponseBuilder = SAML2InboundAuthDataHolder.getInstance().getSamlResponseBuilder();
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         Response samlResponse = samlResponseBuilder.buildSAMLResponse(subject, claims, saml2SSOContext, config,
                                                                       context);
         builder.setResponse(samlResponse);
@@ -165,7 +164,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
         GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
-        SAMLResponseBuilder samlResponseBuilder = SAML2InboundAuthDataHolder.getInstance().getSamlResponseBuilder();
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         Response samlResponse;
         if (e instanceof SAML2SSORequestValidationException) {
             SAML2SSORequestValidationException e2 = ((SAML2SSORequestValidationException) e);
@@ -217,7 +216,7 @@ public class SAML2SSOResponseHandler extends AbstractResponseHandler {
                 new SAML2SSOResponse.SAML2SSOResponseBuilder(context);
         GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
 
-        SAMLResponseBuilder samlResponseBuilder = SAML2InboundAuthDataHolder.getInstance().getSamlResponseBuilder();
+        SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
         SAML2SSORuntimeException e1 = null;
         if (e instanceof SAML2SSORuntimeException) {
             e1 = ((SAML2SSORuntimeException) e);

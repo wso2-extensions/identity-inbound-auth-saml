@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.request.SAML2SSORequestBuilderFactory;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.response.SAML2SSOResponseBuilderFactory;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.response.SAML2SSOResponseHandler;
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.response.SAMLResponseBuilder;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.validator.IdPInitValidator;
 import org.wso2.carbon.identity.authenticator.inbound.saml2sso.validator.SPInitValidator;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
@@ -101,31 +100,6 @@ public class SAML2InboundAuthActivator implements BundleActivator {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Unbinding GatewayClaimResolverService");
-        }
-    }
-
-    @Reference(
-            name = "auth.inbound.saml2sso.builder.samlresponse",
-            service = SAMLResponseBuilder.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetSAMLResponseBuilder"
-    )
-    protected void setSAMLResponseBuilder(SAMLResponseBuilder samlResponseBuilder) {
-
-        SAML2InboundAuthDataHolder.getInstance().setSAMLResponseBuilder(samlResponseBuilder);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Binding SAMLResponseBuilder");
-        }
-    }
-
-    protected void unsetSAMLResponseBuilder(SAMLResponseBuilder samlResponseBuilder) {
-
-        SAML2InboundAuthDataHolder.getInstance().setSAMLResponseBuilder(null);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Unbinding SAMLResponseBuilder");
         }
     }
 }

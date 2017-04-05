@@ -516,7 +516,7 @@
 
         <carbon.identity.commons.version>0.1.24</carbon.identity.commons.version>
         <carbon.identity.commons.imp.version.range>[0.1.24,1.0.0)</carbon.identity.commons.imp.version.range>
-        <carbon.identity.gateway.version>0.1.2</carbon.identity.gateway.version>
+        <carbon.identity.gateway.version>0.1.0</carbon.identity.gateway.version>
 
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
         <commons.codec.version>1.4.0.wso2v1</commons.codec.version>
