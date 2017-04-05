@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.authenticator.inbound.saml2sso.internal;
 
-import org.wso2.carbon.identity.authenticator.inbound.saml2sso.response.SAMLResponseBuilder;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 
 /**
@@ -28,7 +27,6 @@ public class SAML2InboundAuthDataHolder {
 
     private static volatile SAML2InboundAuthDataHolder instance = new SAML2InboundAuthDataHolder();
     private GatewayClaimResolverService gatewayClaimResolverService = null;
-    private SAMLResponseBuilder samlResponseBuilder = new SAMLResponseBuilder();
 
     private SAML2InboundAuthDataHolder() {
 
@@ -42,15 +40,7 @@ public class SAML2InboundAuthDataHolder {
         return gatewayClaimResolverService;
     }
 
-    public SAMLResponseBuilder getSamlResponseBuilder() {
-        return samlResponseBuilder;
-    }
-
     public void setGatewayClaimResolverService(GatewayClaimResolverService gatewayClaimResolverService) {
         this.gatewayClaimResolverService = gatewayClaimResolverService;
-    }
-
-    public void setSAMLResponseBuilder(SAMLResponseBuilder samlResponseBuilder) {
-        this.samlResponseBuilder = samlResponseBuilder;
     }
 }
