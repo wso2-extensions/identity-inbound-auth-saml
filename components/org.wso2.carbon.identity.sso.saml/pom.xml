@@ -210,6 +210,7 @@
                             !org.wso2.carbon.identity.sso.saml.internal,
                             org.wso2.carbon.identity.sso.saml.*; version="${identity.inbound.auth.saml.exp.version}",
                         </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
