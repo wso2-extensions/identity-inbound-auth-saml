@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.query.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
@@ -109,6 +110,9 @@ public class SignKeyDataHolder implements X509Credential {
             } else {
                 keyAlias = ServerConfiguration.getInstance().getFirstProperty(
                         SECURITY_KEY_STORE_KEY_ALIAS);
+                if (StringUtils.isBlank(keyAlias)) {
+                    throw new IdentityException("Invalid file configurations. The key alias is not found.");
+                }
 
                 keyAdmin = new KeyStoreAdmin(tenantID,
                         SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
