@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
@@ -91,7 +92,8 @@ public class SignKeyDataHolder implements X509Credential {
                 keyAlias = tenantDomain;
                 keyMan = KeyStoreManager.getInstance(tenantID);
                 KeyStore keyStore = keyMan.getKeyStore(keyStoreName);
-                issuerPK = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
+                //issuerPK = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
+                issuerPK = (PrivateKey) SAMLQueryServiceComponent.getPrivateKeyProvider().getPrivateKey(tenantDomain);
                 certificates = keyStore.getCertificateChain(keyAlias);
                 issuerCerts = new X509Certificate[certificates.length];
 
@@ -120,7 +122,8 @@ public class SignKeyDataHolder implements X509Credential {
                         SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
                 keyMan = KeyStoreManager.getInstance(tenantID);
 
-                issuerPK = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+                //issuerPK = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+                issuerPK = (PrivateKey) SAMLQueryServiceComponent.getPrivateKeyProvider().getPrivateKey(tenantDomain);
 
                 certificates = keyMan.getPrimaryKeyStore().getCertificateChain(keyAlias);
 

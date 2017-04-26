@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.query.saml.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.core.PrivateKeyProvider;
+import org.wso2.carbon.identity.query.saml.service.DefaultPrivateKeyProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -28,6 +30,8 @@ import org.wso2.carbon.user.core.service.RealmService;
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * @scr.reference name="private.key.provider" interface="org.wso2.carbon.identity.core.PrivateKeyProvider"
+ * cardinality="0..1" policy="dynamic" bind="setPrivateKeyProvider"  unbind="unsetPrivateKeyProvider"
  */
 
 public class SAMLQueryServiceComponent {
@@ -35,6 +39,8 @@ public class SAMLQueryServiceComponent {
     private static Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
 
     private static RealmService realmservice = null;
+
+    private static PrivateKeyProvider privateKeyProvider;
 
     /**
      * This method is used to get created realm service
@@ -89,5 +95,20 @@ public class SAMLQueryServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm unset in to bundle");
         }
+    }
+
+    protected void setPrivateKeyProvider(PrivateKeyProvider pkProvider) {
+        privateKeyProvider = pkProvider;
+    }
+
+    protected void unsetPrivateKeyProvider(PrivateKeyProvider pkProvider) {
+        privateKeyProvider = null;
+    }
+
+    public static PrivateKeyProvider getPrivateKeyProvider() {
+        if (SAMLQueryServiceComponent.privateKeyProvider == null) {
+            SAMLQueryServiceComponent.privateKeyProvider = new DefaultPrivateKeyProvider();
+        }
+        return SAMLQueryServiceComponent.privateKeyProvider;
     }
 }
