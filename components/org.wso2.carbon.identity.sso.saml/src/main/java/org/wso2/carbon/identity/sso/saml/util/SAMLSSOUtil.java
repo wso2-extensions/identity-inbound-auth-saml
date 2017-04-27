@@ -64,11 +64,13 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 
+import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import org.wso2.carbon.identity.sso.saml.DefaultKeyProvider;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -163,6 +165,7 @@ public class SAMLSSOUtil {
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
     private static RealmService realmService;
+    private static KeyProviderService keyProvider;
     private static ConfigurationContextService configCtxService;
     private static HttpService httpService;
     private static boolean isBootStrapped = false;
@@ -276,6 +279,17 @@ public class SAMLSSOUtil {
 
     public static void setHttpService(HttpService httpService) {
         SAMLSSOUtil.httpService = httpService;
+    }
+
+    public static KeyProviderService getKeyProvider() {
+        if (keyProvider == null) {
+            keyProvider = new DefaultKeyProvider();
+        }
+        return keyProvider;
+    }
+
+    public static void setKeyProvider(KeyProviderService keyProvider) {
+        SAMLSSOUtil.keyProvider = keyProvider;
     }
 
     /**
