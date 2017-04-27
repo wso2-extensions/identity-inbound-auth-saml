@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -64,7 +65,7 @@ public class SignKeyDataHolder implements X509Credential {
         KeyStoreManager keyMan;
         Certificate[] certificates;
         int tenantID;
-        String tenantDomain;
+        String tenantDomain = null;
         String userTenantDomain;
         String spTenantDomain;
 
@@ -123,7 +124,8 @@ public class SignKeyDataHolder implements X509Credential {
                 keyAlias = ServerConfiguration.getInstance().getFirstProperty(
                         SECURITY_KEY_STORE_KEY_ALIAS);
                 if (StringUtils.isBlank(keyAlias)) {
-                    throw new IdentityException("Invalid file configurations. The key alias is not found.");
+                    throw new IdentityException("Invalid security configurations in the carbon.xml," +
+                            " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain );
                 }
 
                 keyAdmin = new KeyStoreAdmin(tenantID,
@@ -150,13 +152,15 @@ public class SignKeyDataHolder implements X509Credential {
             }
 
         } catch (IdentityException e) {
-            throw new IdentityException("Unable to access realm service", e);
+            throw new IdentityException("Unable to access the realm service of the tenant domain:" + tenantDomain, e);
         } catch (KeyStoreException e) {
-            throw new IdentityException("Unable to load keystore", e);
+            throw new IdentityException("Unable to load keystore of the tenant domain:" + tenantDomain, e);
         } catch (UserStoreException e) {
-            throw new IdentityException("Unable to load user store", e);
+            throw new IdentityException("Unable to load user store of the tenant domain:" + tenantDomain, e);
+        } catch (RegistryException e) {
+            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
         } catch (Exception e) {
-            throw new IdentityException("Unable to get primary keystore", e);
+            throw new IdentityException("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
         }
 
     }
