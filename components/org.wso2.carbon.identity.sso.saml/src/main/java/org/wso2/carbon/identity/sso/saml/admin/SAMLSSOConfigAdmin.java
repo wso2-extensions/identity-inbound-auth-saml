@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml1.core.NameIdentifier;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -36,7 +37,8 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
-import java.security.cert.CertificateException;
+
+import java.security.KeyStore;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -85,20 +87,47 @@ public class SAMLSSOConfigAdmin {
     /**
      * Save Certificate To Key Store
      *
-     * @param serviceProviderDO
-     * @throws java.security.cert.CertificateException,java.lang.Exception
+     * @param serviceProviderDO Service provider data object
+     * @throws Exception exception
      */
+    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws Exception {
 
-    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws CertificateException, Exception {
+        KeyStoreManager manager = KeyStoreManager.getInstance(registry.getTenantId(), IdentitySAMLSSOServiceComponent
+                .getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
 
-        UserRegistry userRegistry = (UserRegistry) registry;
+        if (MultitenantConstants.SUPER_TENANT_ID == registry.getTenantId()) {
 
-        KeyStoreManager manager = KeyStoreManager.getInstance(userRegistry.getTenantId(), IdentitySAMLSSOServiceComponent.getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
+            KeyStore keyStore = manager.getPrimaryKeyStore();
 
-        manager.getPrimaryKeyStore().setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());
+            // Admin should manually add the service provider signing certificate to the keystore file.
+            // If the certificate is available we will set the alias of that certificate.
+            String alias = keyStore.getCertificateAlias(serviceProviderDO.getX509Certificate());
+            if (!StringUtils.isBlank(alias)) {
+                serviceProviderDO.setCertAlias(alias);
+            } else {
+                serviceProviderDO.setCertAlias(null);
+            }
+        } else {
 
+            String keyStoreName = getKeyStoreName(registry.getTenantId());
+            KeyStore keyStore = manager.getKeyStore(keyStoreName);
+
+            // Add new certificate
+            keyStore.setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());
+            manager.updateKeyStore(keyStoreName, keyStore);
+        }
     }
 
+    /**
+     * This method returns the key store file name from the domain Name
+     *
+     * @return key store name
+     */
+    private String getKeyStoreName(int tenantId) {
+
+        String ksName = IdentityTenantUtil.getTenantDomain(tenantId).replace(".", "-");
+        return (ksName + ".jks");
+    }
 
     /**
      * upload SAML SSO service provider metadata directly
@@ -120,13 +149,13 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error("Error parsing SP metadata", e);
         }
 
-        try {
-            //save certificate
-            this.saveCertificateToKeyStore(samlssoServiceProviderDO);
-        } catch (CertificateException e) {
-            log.error("Error While setting Certificate and alias", e);
-        } catch(Exception e) {
-            log.error("Error While setting Certificate and alias", e);
+        if (samlssoServiceProviderDO.getX509Certificate() != null) {
+            try {
+                //save certificate
+                this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+            } catch (Exception e) {
+                throw new IdentityException("Error occurred while setting certificate and alias", e);
+            }
         }
 
         try {

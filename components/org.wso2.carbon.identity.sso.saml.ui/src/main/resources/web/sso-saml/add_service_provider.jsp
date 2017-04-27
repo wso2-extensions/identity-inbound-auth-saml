@@ -34,6 +34,8 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.context.CarbonContext" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -1755,7 +1757,15 @@
                         return;
                     }
 
+                    <% if (MultitenantConstants.SUPER_TENANT_ID ==
+                    CarbonContext.getThreadLocalCarbonContext().getTenantId()) { %>
+                    CARBON.showConfirmationDialog("<fmt:message key='sp.saml.metadata.certificate.warn'/>",
+                            function () {
+                                document.uploadServiceProvider.submit();
+                            });
+                    <% } else { %>
                     document.uploadServiceProvider.submit();
+                    <% } %>
                 }
 
                 function doCancel() {
