@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.credential.CredentialContextSet;
@@ -30,11 +31,14 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.crypto.SecretKey;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
@@ -43,7 +47,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
 
 
 public class SignKeyDataHolder implements X509Credential {
@@ -62,7 +65,7 @@ public class SignKeyDataHolder implements X509Credential {
         KeyStoreManager keyMan;
         Certificate[] certificates;
         int tenantID;
-        String tenantDomain;
+        String tenantDomain = null;
         String userTenantDomain;
         String spTenantDomain;
 
@@ -120,6 +123,10 @@ public class SignKeyDataHolder implements X509Credential {
             } else {
                 keyAlias = ServerConfiguration.getInstance().getFirstProperty(
                         SECURITY_KEY_STORE_KEY_ALIAS);
+                if (StringUtils.isBlank(keyAlias)) {
+                    throw new IdentityException("Invalid security configurations in the carbon.xml," +
+                            " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain );
+                }
 
                 keyAdmin = new KeyStoreAdmin(tenantID,
                         SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
@@ -144,8 +151,16 @@ public class SignKeyDataHolder implements X509Credential {
                 }
             }
 
+        } catch (IdentityException e) {
+            throw new IdentityException("Unable to access the realm service of the tenant domain:" + tenantDomain, e);
+        } catch (KeyStoreException e) {
+            throw new IdentityException("Unable to load keystore of the tenant domain:" + tenantDomain, e);
+        } catch (UserStoreException e) {
+            throw new IdentityException("Unable to load user store of the tenant domain:" + tenantDomain, e);
+        } catch (RegistryException e) {
+            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
         } catch (Exception e) {
-            throw IdentityException.error(e.getMessage(), e);
+            throw new IdentityException("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
         }
 
     }
