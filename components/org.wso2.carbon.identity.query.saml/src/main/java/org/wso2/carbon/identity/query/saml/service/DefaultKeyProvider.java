@@ -20,21 +20,22 @@ package org.wso2.carbon.identity.query.saml.service;
 
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.core.PrivateKeyProvider;
+import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 
 import java.security.Key;
+import java.security.cert.Certificate;
 
 /**
- * Provide the default implementation to fetch the tenant specific private key
+ * Provide the default implementation to fetch the tenant specific keys
  * using {@link KeyStoreManager}. This default implementation is used if there
  * isn't any other implementation registered as an OSGi service.
  */
 
-public class DefaultPrivateKeyProvider implements PrivateKeyProvider {
+public class DefaultKeyProvider implements KeyProviderService {
 
     public static final String SECURITY_KEY_STORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
 
@@ -61,5 +62,10 @@ public class DefaultPrivateKeyProvider implements PrivateKeyProvider {
             throw new IdentitySAML2QueryException("Error while fetching Private ket for tenant: " + tenantDomain, e);
         }
         return privateKey;
+    }
+
+    @Override
+    public Certificate getCertificate(String tenantDomain, String alias) throws Exception {
+        return null;
     }
 }

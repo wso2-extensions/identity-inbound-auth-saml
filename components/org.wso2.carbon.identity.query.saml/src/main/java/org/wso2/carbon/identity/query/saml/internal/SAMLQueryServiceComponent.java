@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.query.saml.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.identity.core.PrivateKeyProvider;
-import org.wso2.carbon.identity.query.saml.service.DefaultPrivateKeyProvider;
+import org.wso2.carbon.identity.core.KeyProviderService;
+import org.wso2.carbon.identity.query.saml.service.DefaultKeyProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -30,8 +30,8 @@ import org.wso2.carbon.user.core.service.RealmService;
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="private.key.provider" interface="org.wso2.carbon.identity.core.PrivateKeyProvider"
- * cardinality="0..1" policy="dynamic" bind="setPrivateKeyProvider"  unbind="unsetPrivateKeyProvider"
+ * @scr.reference name="private.key.provider" interface="org.wso2.carbon.identity.core.KeyProviderService"
+ * cardinality="0..1" policy="dynamic" bind="setKeyProvider"  unbind="unsetKeyProvider"
  */
 
 public class SAMLQueryServiceComponent {
@@ -40,7 +40,7 @@ public class SAMLQueryServiceComponent {
 
     private static RealmService realmservice = null;
 
-    private static PrivateKeyProvider privateKeyProvider;
+    private static KeyProviderService privateKeyProvider;
 
     /**
      * This method is used to get created realm service
@@ -97,17 +97,17 @@ public class SAMLQueryServiceComponent {
         }
     }
 
-    protected void setPrivateKeyProvider(PrivateKeyProvider pkProvider) {
+    protected void setKeyProvider(KeyProviderService pkProvider) {
         privateKeyProvider = pkProvider;
     }
 
-    protected void unsetPrivateKeyProvider(PrivateKeyProvider pkProvider) {
+    protected void unsetKeyProvider(KeyProviderService pkProvider) {
         privateKeyProvider = null;
     }
 
-    public static PrivateKeyProvider getPrivateKeyProvider() {
+    public static KeyProviderService getKeyProvider() {
         if (SAMLQueryServiceComponent.privateKeyProvider == null) {
-            SAMLQueryServiceComponent.privateKeyProvider = new DefaultPrivateKeyProvider();
+            SAMLQueryServiceComponent.privateKeyProvider = new DefaultKeyProvider();
         }
         return SAMLQueryServiceComponent.privateKeyProvider;
     }
