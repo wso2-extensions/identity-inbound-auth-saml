@@ -755,7 +755,8 @@
                         <td class="formRow">
                             <table class="normal" cellspacing="0" style="width: 100%;">
                                 <tr>
-                                    <td style="width: 300px;">
+                                    <td style="width: 300px;" title="unique identifier of the service provider specified in the SAML Authentication Request">
+
                                         <fmt:message key="sp.issuer"/>
                                         <font color="red">*</font>
                                     </td>
@@ -767,7 +768,7 @@
                                     </td>
                                 </tr>
                                 <tr id="assertionConsumerURLInputRow">
-                                    <td>
+                                    <td title="URL to which the browser should be redirected to after the authentication is successful">
                                         <fmt:message key="sp.assertionConsumerURLs"/>
                                         <font color="red">*</font>
                                     </td>
@@ -828,7 +829,7 @@
                                 %>
 
                                 <tr id="defaultAssertionConsumerURLRow">
-                                    <td>
+                                    <td title="Default Assertion Consumer URL in case you are unable to retrieve it from the authentication request">
                                         <fmt:message key="sp.defaultAssertionConsumerURL"/>
                                         <font color="red">*</font>
                                     </td>
@@ -861,7 +862,7 @@
                                 <!-- NameID format -->
 
                                 <tr>
-                                    <td>
+                                    <td title="Defines the name identifier formats supported by the identity provider">
                                         <fmt:message key="sp.nameIDFormat"/>
                                     </td>
                                     <td>
@@ -953,7 +954,7 @@
                                 <% if (isEditSP) {
                                 %>
                                 <tr>
-                                    <td>
+                                    <td title="Used to validate the signature of SAML2 requests and is used to generate encryption">
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
@@ -980,7 +981,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td>
+                                    <td title="Used to validate the signature of SAML2 requests and is used to generate encryption">
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
@@ -1010,7 +1011,7 @@
 
                                 <!--selectResponseSignAlgo-->
                                 <tr id="defaultSigningAlgorithmRow">
-                                    <td>
+                                    <td title="Specifies the SignatureMethod algorithm to be used in the Signature element in POST binding">
                                         <fmt:message key="sp.signingAlgorithm"/>
                                         <font color="red">*</font>
                                     </td>
@@ -1047,7 +1048,7 @@
 
                                 <!--digestAlgorithmRow-->
                                 <tr id="digestAlgorithmRow">
-                                    <td>
+                                    <td title="Specifies the DigestMethod algorithm to be used in the Signature element in POST binding">
                                         <fmt:message key="sp.digestAlgorithm"/>
                                         <font color="red">*</font>
                                     </td>
@@ -1082,7 +1083,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select Enable Response Signing to sign the SAML2 Responses returned after the authentication process">
                                         <input type="checkbox" name="enableResponseSignature" value="true"
                                                onclick="disableResponseSignature(this);"
                                                 <%=(isEditSP && provider.getDoSignResponse() ? "checked=\"checked\"" : "")%> />
@@ -1098,7 +1099,7 @@
                                     if (isEditSP && provider.isDoValidateSignatureInRequestsSpecified() && provider.getDoValidateSignatureInRequests()) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
                                                name="enableSigValidation" value="true" checked="checked"/>
                                         <fmt:message
@@ -1107,7 +1108,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
                                                name="enableSigValidation" value="true"/>
                                         <fmt:message
@@ -1120,7 +1121,7 @@
                                 <% if (isEditSP && provider.isDoEnableEncryptedAssertionSpecified() && provider.getDoEnableEncryptedAssertion()) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Assertion Encryption, if you wish to encrypt the assertion">
                                         <input type="checkbox" id="enableEncAssertion"
                                                name="enableEncAssertion" value="true" checked="checked"/>
                                         <fmt:message
@@ -1129,7 +1130,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Assertion Encryption, if you wish to encrypt the assertion">
                                         <input type="checkbox" id="enableEncAssertion"
                                                name="enableEncAssertion" value="true"/>
                                         <fmt:message
@@ -1140,7 +1141,8 @@
 
                                 <!-- EnableSingleLogout -->
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td colspan="2" title="Enable Single Logout so that all sessions are terminated once the user signs out from one server">
+                                    <input type="checkbox"
                                                            name="enableSingleLogout" value="true"
                                                            onclick="disableLogoutUrl(this);"
                                             <%=(isEditSP && provider.getDoSingleLogout()) ? "checked=\"checked\"" : ""%>/>
@@ -1188,7 +1190,7 @@
                                     if (isEditSP && show) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select Enable Attribute Profile to enable this and add a claim by entering the claim link and clicking the Add Claim button">
                                         <% if (StringUtils.isNotEmpty(provider.getAttributeConsumingServiceIndex())) { %>
                                         <input type="checkbox"
                                                name="enableAttributeProfile" id="enableAttributeProfile"
@@ -1262,7 +1264,7 @@
 
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select Enable Attribute Profile to enable this and add a claim by entering the claim link and clicking the Add Claim button">
                                         <input type="checkbox"
                                                name="enableAttributeProfile" id="enableAttributeProfile" value="true"
                                                onclick="disableAttributeProfile(this);"/>
@@ -1354,7 +1356,7 @@
                                         provider.getRequestedAudiences()[0] != null) {
                                 %>
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td title="Enable Audience Restriction to restrict the audience. You may add audience members using the Audience text box and clicking the Add button" colspan="2"><input type="checkbox"
                                                            name="enableAudienceRestriction"
                                                            id="enableAudienceRestriction"
                                                            value="true" checked="checked"
@@ -1376,7 +1378,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Audience Restriction to restrict the audience. You may add audience members using the Audience text box and clicking the Add button">
                                         <input type="checkbox"
                                                name="enableAudienceRestriction" id="enableAudienceRestriction"
                                                value="true"
@@ -1448,7 +1450,7 @@
                                         provider.getRequestedRecipients()[0] != null) {
                                 %>
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td title="Select this if you require validation from the recipient of the response" colspan="2"><input type="checkbox"
                                                            name="enableRecipients" id="enableRecipients"
                                                            value="true" checked="checked"
                                                            onclick="disableRecipients(this);"/> <fmt:message
@@ -1469,7 +1471,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select this if you require validation from the recipient of the response">
                                         <input type="checkbox"
                                                name="enableRecipients" id="enableRecipients" value="true"
                                                onclick="disableRecipients(this);"/>
@@ -1536,7 +1538,7 @@
 
                                 <!-- IdP-Initiated SSO -->
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select the Enable IdP Initiated SSO checkbox to enable this functionality. When this is enabled, the service provider is not required to send the SAML2 request">
                                         <input type="checkbox" name="enableIdPInitSSO" value="true"
                                                onclick="disableIdPInitSSO(this);"
                                                 <%=(isEditSP && provider.getIdPInitSSOEnabled() ? "checked=\"checked\"" : "")%> />
@@ -1556,7 +1558,7 @@
 
 
                                 <tr id="idpSLOReturnToURLInputRow">
-                                    <td
+                                    <td title="Select the Enable IdP Initiated SLO checkbox to enable this functionality. You must specify the URL"
                                             style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
                                         <fmt:message key="sp.returnTo.url"/>
                                     </td>
@@ -1575,7 +1577,7 @@
                                 %>
                                 <tr id="idpSLOReturnToURLsTblRow">
                                     <td></td>
-                                    <td>
+                                    <td title="Select the Enable IdP Initiated SLO checkbox to enable this functionality. You must specify the URL">
                                         <table id="idpSLOReturnToURLsTbl" style="width: 40%;" class="styledInner">
                                             <tbody id="idpSLOReturnToURLsTblBody">
                                             <%
@@ -1625,7 +1627,7 @@
                                         provider.getAssertionQueryRequestProfileEnabled()) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="used for query assertions following SAML2.0 specification">
                                         <input type="checkbox" id="enableAssertionQueryRequestProfile"
                                                name="enableAssertionQueryRequestProfile" value="true" checked="checked"/>
                                         <fmt:message key='sp.enable.assertion.query.request.profile'/>
@@ -1633,7 +1635,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="used for query assertions following SAML2.0 specification">
                                         <input type="checkbox" id="enableAssertionQueryRequestProfile"
                                                name="enableAssertionQueryRequestProfile" value="true"/>
                                         <fmt:message key='sp.enable.assertion.query.request.profile'/>
