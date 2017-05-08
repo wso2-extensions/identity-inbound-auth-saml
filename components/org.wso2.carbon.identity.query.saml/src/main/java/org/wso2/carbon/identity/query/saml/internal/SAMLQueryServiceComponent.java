@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.KeyProviderService;
-import org.wso2.carbon.identity.query.saml.service.DefaultKeyProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -106,9 +105,6 @@ public class SAMLQueryServiceComponent {
     }
 
     public static KeyProviderService getKeyProvider() {
-        if (SAMLQueryServiceComponent.privateKeyProvider == null) {
-            SAMLQueryServiceComponent.privateKeyProvider = new DefaultKeyProvider();
-        }
         return SAMLQueryServiceComponent.privateKeyProvider;
     }
 }
