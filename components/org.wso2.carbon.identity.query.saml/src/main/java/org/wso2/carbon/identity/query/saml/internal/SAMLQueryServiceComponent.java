@@ -98,13 +98,12 @@ public class SAMLQueryServiceComponent {
 
     protected void setKeyProvider(KeyProviderService pkProvider) {
         privateKeyProvider = pkProvider;
+        ServiceReferenceHolder.setKeyProvider(pkProvider);
     }
 
     protected void unsetKeyProvider(KeyProviderService pkProvider) {
         privateKeyProvider = null;
+        ServiceReferenceHolder.setKeyProvider(null);
     }
 
-    public static KeyProviderService getKeyProvider() {
-        return SAMLQueryServiceComponent.privateKeyProvider;
-    }
 }

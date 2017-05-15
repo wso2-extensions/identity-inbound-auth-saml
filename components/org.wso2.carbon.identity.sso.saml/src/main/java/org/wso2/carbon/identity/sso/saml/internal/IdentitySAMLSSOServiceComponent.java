@@ -246,10 +246,10 @@ public class IdentitySAMLSSOServiceComponent {
     }
 
     protected void setKeyProvider(KeyProviderService pkProvider) {
-        SAMLSSOUtil.setKeyProvider(pkProvider);
+        ServiceReferenceHolder.setKeyProvider(pkProvider);
     }
 
     protected void unsetKeyProvider(KeyProviderService pkProvider) {
-        SAMLSSOUtil.setKeyProvider(null);
+        ServiceReferenceHolder.setKeyProvider(null);
     }
 }

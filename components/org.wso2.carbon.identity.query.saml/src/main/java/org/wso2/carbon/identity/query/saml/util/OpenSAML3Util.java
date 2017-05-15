@@ -42,7 +42,6 @@ import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.support.Signer;
-import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
@@ -55,20 +54,17 @@ import org.wso2.carbon.identity.query.saml.X509CredentialImpl;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.sso.saml.internal.ServiceReferenceHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.opensaml.core.xml.util.XMLObjectSupport.buildXMLObject;
-import static org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil.generateKSNameFromDomainName;
 
 /**
  * This is a utility class for processing request message issuer and signature elements.
@@ -294,35 +290,13 @@ public class OpenSAML3Util {
             log.error("Invalid parameters; domain name : " + tenantDomain + ", " +
                     "alias : " + alias);
         }
-        int tenantId;
-        try {
-            tenantId = SAMLQueryServiceComponent.getRealmservice().getTenantManager().getTenantId(tenantDomain);
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            String errorMsg = "Error getting the tenant ID for the tenant domain : " + tenantDomain;
-            throw new IdentitySAML2QueryException(errorMsg, e);
-        }
-        KeyStoreManager keyStoreManager;
-        // get an instance of the corresponding Key Store Manager instance
-        keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        X509CredentialImpl credentialImpl = null;
-        KeyStore keyStore;
-        try {
-            if (tenantId != -1234) {// for tenants, load private key from their generated key store
-                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
-            } else {
-                // for super tenant, load the default pub. cert using the
-                // config. in carbon.xml
-                keyStore = keyStoreManager.getPrimaryKeyStore();
-            }
-            java.security.cert.X509Certificate cert =
-                    (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
-            credentialImpl = new X509CredentialImpl(cert);
 
-        } catch (KeyStoreException e) {
-            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of "
-                    + tenantDomain;
-            log.error(errorMsg, e);
-            throw new IdentitySAML2QueryException(errorMsg,e);
+        X509CredentialImpl credentialImpl = null;
+        try {
+            java.security.cert.X509Certificate cert =
+                    (java.security.cert.X509Certificate) ServiceReferenceHolder.getKeyProvider()
+                            .getCertificate(tenantDomain);
+            credentialImpl = new X509CredentialImpl(cert);
         } catch (Exception e) {
             //keyStoreManager throws Exception
             log.error("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
