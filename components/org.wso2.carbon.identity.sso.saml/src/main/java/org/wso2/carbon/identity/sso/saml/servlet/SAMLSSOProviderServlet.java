@@ -806,10 +806,19 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes, append
         // it.
-        if ((boolean) authResult.getProperty(FrameworkConstants.USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER)) {
+        if (authResult.getProperty(FrameworkConstants.USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER) != null &&
+                (boolean) authResult.getProperty(FrameworkConstants.USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER)) {
             authResult.getSubject().setAuthenticatedSubjectIdentifier(authResult.getSubject()
                     .getAuthenticatedSubjectIdentifier() + CarbonConstants.ROLE_TENANT_DOMAIN_SEPARATOR +
                     authResult.getSubject().getTenantDomain());
+        }
+
+        // Check whether the user store domain should be appended to the subject identifier for this SP and if yes,
+        // append it.
+        if (authResult.getProperty(FrameworkConstants.USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER) != null &&
+                (boolean) authResult.getProperty(FrameworkConstants.USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER)) {
+            authResult.getSubject().setAuthenticatedSubjectIdentifier(authResult.getSubject().getUserStoreDomain()
+                    + CarbonConstants.DOMAIN_SEPARATOR + authResult.getSubject().getAuthenticatedSubjectIdentifier());
         }
 
         authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());
