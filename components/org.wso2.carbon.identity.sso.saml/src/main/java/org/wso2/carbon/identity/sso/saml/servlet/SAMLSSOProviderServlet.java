@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
@@ -802,6 +803,23 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void populateAuthnReqDTO(HttpServletRequest req, SAMLSSOAuthnReqDTO authnReqDTO,
                                      SAMLSSOSessionDTO sessionDTO, AuthenticationResult authResult)
             throws UserStoreException, IdentityException {
+
+        // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes, append
+        // it.
+        if (authResult.getProperty(FrameworkConstants.USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER) != null &&
+                (boolean) authResult.getProperty(FrameworkConstants.USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER)) {
+            authResult.getSubject().setAuthenticatedSubjectIdentifier(authResult.getSubject()
+                    .getAuthenticatedSubjectIdentifier() + CarbonConstants.ROLE_TENANT_DOMAIN_SEPARATOR +
+                    authResult.getSubject().getTenantDomain());
+        }
+
+        // Check whether the user store domain should be appended to the subject identifier for this SP and if yes,
+        // append it.
+        if (authResult.getProperty(FrameworkConstants.USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER) != null &&
+                (boolean) authResult.getProperty(FrameworkConstants.USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER)) {
+            authResult.getSubject().setAuthenticatedSubjectIdentifier(authResult.getSubject().getUserStoreDomain()
+                    + CarbonConstants.DOMAIN_SEPARATOR + authResult.getSubject().getAuthenticatedSubjectIdentifier());
+        }
 
         authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());
         authnReqDTO.setId(sessionDTO.getRequestID());
