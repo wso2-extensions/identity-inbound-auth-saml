@@ -260,7 +260,8 @@ public class SAMLSSOConfigAdmin {
         }
 
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
-        serviceProviderDTO.setAssertionConsumerUrl(serviceProviderDO.getAssertionConsumerUrl());
+        serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
+        serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
         serviceProviderDTO.setDoSingleLogout(serviceProviderDO.isDoSingleLogout());
         serviceProviderDTO.setLoginPageURL(serviceProviderDO.getLoginPageURL());
@@ -269,6 +270,12 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
         serviceProviderDTO.setDoSignAssertions(serviceProviderDO.isDoSignAssertions());
         serviceProviderDTO.setNameIdClaimUri(serviceProviderDO.getNameIdClaimUri());
+        serviceProviderDTO.setSigningAlgorithmURI(serviceProviderDO.getSigningAlgorithmUri());
+        serviceProviderDTO.setDigestAlgorithmURI(serviceProviderDO.getDigestAlgorithmUri());
+        serviceProviderDTO.setAssertionQueryRequestProfileEnabled(serviceProviderDO
+                .isAssertionQueryRequestProfileEnabled());
+        serviceProviderDTO.setSupportedAssertionQueryRequestTypes(serviceProviderDO
+                .getSupportedAssertionQueryRequestTypes());
         serviceProviderDTO.setEnableAttributesByDefault(serviceProviderDO.isEnableAttributesByDefault());
 
         if (serviceProviderDO.getNameIDFormat() == null) {
