@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.query.saml.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -28,6 +29,8 @@ import org.wso2.carbon.user.core.service.RealmService;
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * @scr.reference name="private.key.provider" interface="org.wso2.carbon.identity.core.KeyProviderService"
+ * cardinality="0..1" policy="dynamic" bind="setKeyProvider"  unbind="unsetKeyProvider"
  */
 
 public class SAMLQueryServiceComponent {
@@ -35,6 +38,8 @@ public class SAMLQueryServiceComponent {
     private static Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
 
     private static RealmService realmservice = null;
+
+    private static KeyProviderService privateKeyProvider;
 
     /**
      * This method is used to get created realm service
@@ -90,4 +95,15 @@ public class SAMLQueryServiceComponent {
             log.debug("DefaultUserRealm unset in to bundle");
         }
     }
+
+    protected void setKeyProvider(KeyProviderService pkProvider) {
+        privateKeyProvider = pkProvider;
+        ServiceReferenceHolder.setKeyProvider(pkProvider);
+    }
+
+    protected void unsetKeyProvider(KeyProviderService pkProvider) {
+        privateKeyProvider = null;
+        ServiceReferenceHolder.setKeyProvider(null);
+    }
+
 }

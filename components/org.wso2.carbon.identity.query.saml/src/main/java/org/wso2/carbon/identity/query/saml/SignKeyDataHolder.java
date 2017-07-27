@@ -31,15 +31,14 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
+import org.wso2.carbon.identity.query.saml.internal.ServiceReferenceHolder;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
@@ -48,6 +47,9 @@ import java.security.cert.Certificate;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.crypto.SecretKey;
 
 /**
  * This class is used to process Signature by loading algorithms, certificates,
@@ -91,7 +93,7 @@ public class SignKeyDataHolder implements X509Credential {
                 keyAlias = tenantDomain;
                 keyMan = KeyStoreManager.getInstance(tenantID);
                 KeyStore keyStore = keyMan.getKeyStore(keyStoreName);
-                issuerPK = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
+                issuerPK = (PrivateKey) ServiceReferenceHolder.getKeyProvider().getPrivateKey(tenantDomain);
                 certificates = keyStore.getCertificateChain(keyAlias);
                 issuerCerts = new X509Certificate[certificates.length];
 
@@ -109,18 +111,16 @@ public class SignKeyDataHolder implements X509Credential {
                 }
 
             } else {
-                keyAlias = ServerConfiguration.getInstance().getFirstProperty(
-                        SECURITY_KEY_STORE_KEY_ALIAS);
+                keyAlias = ServerConfiguration.getInstance().getFirstProperty(SECURITY_KEY_STORE_KEY_ALIAS);
                 if (StringUtils.isBlank(keyAlias)) {
-                    throw new IdentityException("Invalid security configurations in the carbon.xml," +
-                            " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain);
+                    throw new IdentityException("Invalid security configurations in the carbon.xml,"
+                            + " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain);
                 }
 
-                keyAdmin = new KeyStoreAdmin(tenantID,
-                        SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
+                keyAdmin = new KeyStoreAdmin(tenantID, SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
                 keyMan = KeyStoreManager.getInstance(tenantID);
 
-                issuerPK = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+                issuerPK = (PrivateKey) ServiceReferenceHolder.getKeyProvider().getPrivateKey(tenantDomain);
 
                 certificates = keyMan.getPrimaryKeyStore().getCertificateChain(keyAlias);
 
@@ -142,8 +142,8 @@ public class SignKeyDataHolder implements X509Credential {
 
         } catch (IdentityException e) {
             log.error("Unable to access the realm service of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to access the realm service of the tenant domain:"
-                    + tenantDomain);
+            throw new IdentitySAML2QueryException(
+                    "Unable to access the realm service of the tenant domain:" + tenantDomain);
         } catch (KeyStoreException e) {
             log.error("Unable to load keystore of the tenant domain:" + tenantDomain, e);
             throw new IdentitySAML2QueryException("Unable to load keystore of the tenant domain:" + tenantDomain);
@@ -152,12 +152,12 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentitySAML2QueryException("Unable to load user store of the tenant domain:" + tenantDomain);
         } catch (RegistryException e) {
             log.error("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to create new KeyStoreAdmin of the tenant domain:"
-                    + tenantDomain);
+            throw new IdentitySAML2QueryException(
+                    "Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
         } catch (Exception e) {
-            log.error("Unable to get primary keystore of the tenant domain:"+ tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to get primary keystore of the tenant domain:"
-                    + tenantDomain);
+            log.error("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
+            throw new IdentitySAML2QueryException(
+                    "Unable to get primary keystore of the tenant domain:" + tenantDomain);
         }
 
     }
@@ -182,7 +182,6 @@ public class SignKeyDataHolder implements X509Credential {
         this.signatureAlgorithm = signatureAlgorithm;
     }
 
-
     @Nullable
     public String getEntityId() {
 
@@ -194,7 +193,6 @@ public class SignKeyDataHolder implements X509Credential {
 
         return null;
     }
-
 
     public Collection<String> getKeyNames() {
         return null;
@@ -232,7 +230,6 @@ public class SignKeyDataHolder implements X509Credential {
         return null;
     }
 
-
     public Class<? extends Credential> getCredentialType() {
 
         return null;
@@ -247,7 +244,6 @@ public class SignKeyDataHolder implements X509Credential {
     public X509Certificate getEntityCertificate() {
         return issuerCerts[0];
     }
-
 
     public Collection<X509Certificate> getEntityCertificateChain() {
 

@@ -30,13 +30,13 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.internal.ServiceReferenceHolder;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
@@ -47,7 +47,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
+import javax.crypto.SecretKey;
 
 public class SignKeyDataHolder implements X509Credential {
 
@@ -87,8 +87,8 @@ public class SignKeyDataHolder implements X509Credential {
                         + " for non-SaaS applications");
             }
 
-            String signWithValue = IdentityUtil.getProperty(
-                    SAMLSSOConstants.FileBasedSPConfig.USE_AUTHENTICATED_USER_DOMAIN_CRYPTO);
+            String signWithValue = IdentityUtil
+                    .getProperty(SAMLSSOConstants.FileBasedSPConfig.USE_AUTHENTICATED_USER_DOMAIN_CRYPTO);
             if (signWithValue != null && "true".equalsIgnoreCase(signWithValue.trim())) {
                 tenantDomain = userTenantDomain;
                 tenantID = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
@@ -104,7 +104,7 @@ public class SignKeyDataHolder implements X509Credential {
                 keyAlias = tenantDomain;
                 keyMan = KeyStoreManager.getInstance(tenantID);
                 KeyStore keyStore = keyMan.getKeyStore(keyStoreName);
-                issuerPK = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
+                issuerPK = (PrivateKey) ServiceReferenceHolder.getKeyProvider().getPrivateKey(tenantDomain);
                 certificates = keyStore.getCertificateChain(keyAlias);
                 issuerCerts = new X509Certificate[certificates.length];
 
@@ -121,19 +121,16 @@ public class SignKeyDataHolder implements X509Credential {
                 }
 
             } else {
-                keyAlias = ServerConfiguration.getInstance().getFirstProperty(
-                        SECURITY_KEY_STORE_KEY_ALIAS);
+                keyAlias = ServerConfiguration.getInstance().getFirstProperty(SECURITY_KEY_STORE_KEY_ALIAS);
                 if (StringUtils.isBlank(keyAlias)) {
-                    throw new IdentityException("Invalid security configurations in the carbon.xml," +
-                            " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain );
+                    throw new IdentityException("Invalid security configurations in the carbon.xml,"
+                            + " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain);
                 }
 
-                keyAdmin = new KeyStoreAdmin(tenantID,
-                        SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
+                keyAdmin = new KeyStoreAdmin(tenantID, SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
                 keyMan = KeyStoreManager.getInstance(tenantID);
 
-                issuerPK = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
-
+                issuerPK = (PrivateKey) ServiceReferenceHolder.getKeyProvider().getPrivateKey(tenantDomain);
                 certificates = keyMan.getPrimaryKeyStore().getCertificateChain(keyAlias);
 
                 issuerCerts = new X509Certificate[certificates.length];

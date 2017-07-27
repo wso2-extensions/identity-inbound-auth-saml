@@ -25,6 +25,7 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -59,6 +60,8 @@ import java.util.Scanner;
  * @scr.reference name="osgi.httpservice" interface="org.osgi.service.http.HttpService"
  * cardinality="1..1" policy="dynamic" bind="setHttpService"
  * unbind="unsetHttpService"
+ * @scr.reference name="private.key.provider" interface="org.wso2.carbon.identity.core.KeyProviderService"
+ * cardinality="0..1" policy="dynamic" bind="setKeyProvider"  unbind="unsetKeyProvider"
  */
 public class IdentitySAMLSSOServiceComponent {
 
@@ -240,5 +243,13 @@ public class IdentitySAMLSSOServiceComponent {
             log.debug("Unset the ServerConfiguration Service");
         }
         IdentitySAMLSSOServiceComponent.serverConfigurationService = null;
+    }
+
+    protected void setKeyProvider(KeyProviderService pkProvider) {
+        ServiceReferenceHolder.setKeyProvider(pkProvider);
+    }
+
+    protected void unsetKeyProvider(KeyProviderService pkProvider) {
+        ServiceReferenceHolder.setKeyProvider(null);
     }
 }

@@ -54,7 +54,6 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
-import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -63,12 +62,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -81,6 +78,7 @@ import org.wso2.carbon.identity.sso.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.sso.saml.internal.ServiceReferenceHolder;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
@@ -101,8 +99,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -115,7 +111,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,6 +124,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class SAMLSSOUtil {
 
@@ -748,34 +745,18 @@ public class SAMLSSOUtil {
             throw new IllegalArgumentException("Invalid parameters; domain name : " + tenantDomain + ", " +
                     "alias : " + alias);
         }
-        int tenantId;
-        try {
-            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            String errorMsg = "Error getting the tenant ID for the tenant domain : " + tenantDomain;
-            throw new IdentitySAML2SSOException(errorMsg, e);
-        }
-
-        KeyStoreManager keyStoreManager;
-        // get an instance of the corresponding Key Store Manager instance
-        keyStoreManager = KeyStoreManager.getInstance(tenantId);
 
         X509CredentialImpl credentialImpl = null;
-        KeyStore keyStore;
 
         try {
-            if (tenantId != -1234) {// for tenants, load private key from their generated key store
-                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
-            } else { // for super tenant, load the default pub. cert using the
-                // config. in carbon.xml
-                keyStore = keyStoreManager.getPrimaryKeyStore();
-            }
-            java.security.cert.X509Certificate cert =
-                    (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
+            java.security.cert.X509Certificate cert = (java.security.cert.X509Certificate) ServiceReferenceHolder
+                    .getKeyProvider()
+                    .getCertificate(tenantDomain);
             credentialImpl = new X509CredentialImpl(cert);
-
         } catch (Exception e) {
-            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
+            String errorMsg =
+                    "Error instantiating an X509CredentialImpl object for the public certificate of the tenant: "
+                            + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
         }
         return credentialImpl;
