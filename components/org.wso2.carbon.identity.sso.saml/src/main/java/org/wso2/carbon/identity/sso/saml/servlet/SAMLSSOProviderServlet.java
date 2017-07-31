@@ -191,7 +191,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" + URLEncoder.encode
                                     (acsUrl, "UTF-8");
                         }
-                        
+
                         log.warn("Redirecting to default logout page due to an invalid logout request");
                         String defaultLogoutLocation = SAMLSSOUtil.getDefaultLogoutEndpoint();
                         resp.sendRedirect(defaultLogoutLocation + queryParams);
@@ -850,13 +850,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
+        samlssoTokenIdCookie.setPath("/");
+        samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
+
         if (samlssoTokenIdCookieConfig != null) {
-            samlssoTokenIdCookie.setMaxAge(samlssoTokenIdCookieConfig.getMaxAge() > 0 ?
-                    samlssoTokenIdCookieConfig.getMaxAge() :
-                    defaultMaxAge);
-            samlssoTokenIdCookie.setDomain(samlssoTokenIdCookieConfig.getDomain());
-        } else {
-            samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
+            int age = defaultMaxAge;
+            if (samlssoTokenIdCookieConfig.getMaxAge() > 0) {
+                age = samlssoTokenIdCookieConfig.getMaxAge();
+            }
+            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, age);
         }
         resp.addCookie(samlssoTokenIdCookie);
     }
@@ -864,11 +866,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     public void removeTokenIdCookie(HttpServletRequest req, HttpServletResponse resp) {
 
         Cookie[] cookies = req.getCookies();
+        IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
+                .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
                     if (log.isDebugEnabled()) {
                         log.debug("SSO tokenId Cookie is removed");
+                    }
+                    cookie.setHttpOnly(true);
+                    cookie.setSecure(true);
+                    cookie.setPath("/");
+
+                    if (samlssoTokenIdCookieConfig != null) {
+                        updateSAMLSSOIdCookieConfig(cookie, samlssoTokenIdCookieConfig, 0);
                     }
                     cookie.setMaxAge(0);
                     resp.addCookie(cookie);
@@ -1099,5 +1110,25 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             requestWrapper.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.UNKNOWN);
             doGet(requestWrapper, response);
         }
+    }
+
+    private void updateSAMLSSOIdCookieConfig(Cookie cookie, IdentityCookieConfig
+            samlSSOIdCookieConfig, int age) {
+
+        if (samlSSOIdCookieConfig.getDomain() != null) {
+            cookie.setDomain(samlSSOIdCookieConfig.getDomain());
+        }
+        if (samlSSOIdCookieConfig.getPath() != null) {
+            cookie.setPath(samlSSOIdCookieConfig.getPath());
+        }
+        if (samlSSOIdCookieConfig.getComment() != null) {
+            cookie.setComment(samlSSOIdCookieConfig.getComment());
+        }
+        if (samlSSOIdCookieConfig.getVersion() > 0) {
+            cookie.setVersion(samlSSOIdCookieConfig.getVersion());
+        }
+        cookie.setMaxAge(age);
+        cookie.setHttpOnly(samlSSOIdCookieConfig.isHttpOnly());
+        cookie.setSecure(samlSSOIdCookieConfig.isSecure());
     }
 }
