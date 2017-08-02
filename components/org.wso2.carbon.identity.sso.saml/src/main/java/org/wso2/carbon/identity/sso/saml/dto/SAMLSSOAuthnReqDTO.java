@@ -64,6 +64,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String certAlias;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
+    private boolean isAssertionQueryRequestProfileEnabled;
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -418,5 +419,13 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
 
     public void setSloRequestURL(String sloRequestURL) {
         this.sloRequestURL = sloRequestURL;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean assertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = assertionQueryRequestProfileEnabled;
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return this.isAssertionQueryRequestProfileEnabled;
     }
 }
