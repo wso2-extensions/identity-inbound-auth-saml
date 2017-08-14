@@ -53,19 +53,6 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
 
-            if (serviceProviderConfigs == null) {
-                String msg =
-                        "A Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
-                                "' is not registered." +
-                                " Service Provider should be registered in advance.";
-                log.warn(msg);
-                return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
-            }
-
-            // reading the service provider configs
-            populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
-
             if (authnReqDTO.isDoValidateSignatureInRequests()) {
 
 
@@ -234,44 +221,6 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         } catch (Exception e) {
             throw IdentityException.error("Error while reading Service Provider configurations", e);
         }
-    }
-
-    /**
-     * Populate the configurations of the service provider
-     *
-     * @param ssoIdpConfigs
-     * @param authnReqDTO
-     * @throws IdentityException
-     */
-    private void populateServiceProviderConfigs(SAMLSSOServiceProviderDO ssoIdpConfigs,
-                                                SAMLSSOAuthnReqDTO authnReqDTO)
-            throws IdentityException {
-
-        // load the ACS url, if it is not defined in the request. If it is sent in request,  if must owner it.
-        String acsUrl = authnReqDTO.getAssertionConsumerURL();
-        if (StringUtils.isBlank(acsUrl)) {
-            authnReqDTO.setAssertionConsumerURL(ssoIdpConfigs.getDefaultAssertionConsumerUrl());
-        }
-        authnReqDTO.setLoginPageURL(ssoIdpConfigs.getLoginPageURL());
-        authnReqDTO.setCertAlias(ssoIdpConfigs.getCertAlias());
-        authnReqDTO.setNameIdClaimUri(ssoIdpConfigs.getNameIdClaimUri());
-        authnReqDTO.setNameIDFormat(ssoIdpConfigs.getNameIDFormat());
-        authnReqDTO.setDoSingleLogout(ssoIdpConfigs.isDoSingleLogout());
-        authnReqDTO.setSloResponseURL(ssoIdpConfigs.getSloResponseURL());
-        authnReqDTO.setSloRequestURL(ssoIdpConfigs.getSloRequestURL());
-        authnReqDTO.setDoSignResponse(ssoIdpConfigs.isDoSignResponse());
-        authnReqDTO.setDoSignAssertions(ssoIdpConfigs.isDoSignAssertions());
-        authnReqDTO.setRequestedClaims(ssoIdpConfigs.getRequestedClaims());
-        authnReqDTO.setRequestedAudiences(ssoIdpConfigs.getRequestedAudiences());
-        authnReqDTO.setRequestedRecipients(ssoIdpConfigs.getRequestedRecipients());
-        authnReqDTO.setDoEnableEncryptedAssertion(ssoIdpConfigs.isDoEnableEncryptedAssertion());
-        authnReqDTO.setDoValidateSignatureInRequests(ssoIdpConfigs.isDoValidateSignatureInRequests());
-        authnReqDTO.setIdPInitSLOEnabled(ssoIdpConfigs.isIdPInitSLOEnabled());
-        authnReqDTO.setAssertionConsumerURLs(ssoIdpConfigs.getAssertionConsumerUrls());
-        authnReqDTO.setIdpInitSLOReturnToURLs(ssoIdpConfigs.getIdpInitSLOReturnToURLs());
-        authnReqDTO.setSigningAlgorithmUri(ssoIdpConfigs.getSigningAlgorithmUri());
-        authnReqDTO.setDigestAlgorithmUri(ssoIdpConfigs.getDigestAlgorithmUri());
-        authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
     }
 
     /**

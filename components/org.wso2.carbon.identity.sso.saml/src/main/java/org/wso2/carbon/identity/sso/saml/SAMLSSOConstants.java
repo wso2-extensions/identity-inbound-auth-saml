@@ -180,6 +180,11 @@ public class SAMLSSOConstants {
         public static final String INVALID_TENANT_DOMAIN = "Service provider tenant domain '%s' is invalid";
         public static final String ERROR_RETRIEVE_SP_CONFIG = "Error occurred while loading Service Provider " +
                                                               "configurations";
+        public static final String SP_NOT_REGISTERED_MESSAGE = "Service provider with issuer '%s' is not registered";
+        public static final String UNKNOWN_DESTINATION_MESSAGE = "Unknown destination URL received";
+        public static final String UNKNOWN_ACS_MESSAGE = "Unknown Assertion Consumer URL received";
+        public static final String INVALID_SIGNATURE_MESSAGE = "Signature validation for the authentication request " +
+                "failed";
 
         private Notification() {
         }
