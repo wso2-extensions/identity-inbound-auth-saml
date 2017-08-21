@@ -881,7 +881,11 @@ public class SAMLSSOUtil {
             return false;
         } catch (IdentitySAML2SSOException e) {
             log.warn("Signature validation failed for the SAML Message : Failed to construct the X509CredentialImpl for the alias " +
-                    alias, e);
+                    alias);
+            if (log.isDebugEnabled()) {
+                log.debug("Signature validation failed for the SAML Message : Failed to construct the X509CredentialImpl for the alias " +
+                        alias, e);
+            }
             return false;
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
