@@ -24,17 +24,20 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
-
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
- import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * This class reads the Service Providers info from sso-idp-config.xml and add them to the
@@ -94,9 +97,12 @@ public class FileBasedConfigManager {
                 return new SAMLSSOServiceProviderDO[0];
             }
 
+            Path filePath = Paths.get(configFilePath);
+            InputStream stream = Files.newInputStream(filePath);
+
             DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            document = builder.parse(configFilePath);
+            document = builder.parse(stream);
         } catch (Exception e) {
             log.error("Error reading Service Providers from sso-idp-config.xml", e);
             return new SAMLSSOServiceProviderDO[0];
