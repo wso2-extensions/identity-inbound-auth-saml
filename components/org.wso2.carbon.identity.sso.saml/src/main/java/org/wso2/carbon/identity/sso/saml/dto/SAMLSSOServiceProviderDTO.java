@@ -55,10 +55,15 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private boolean doValidateSignatureInRequests;
     private String signingAlgorithmURI;
     private String digestAlgorithmURI;
+    private String assertionEncryptionAlgorithmURI;
+    private String keyEncryptionAlgorithmURI;
 
     public SAMLSSOServiceProviderDTO() {
         signingAlgorithmURI = IdentityApplicationManagementUtil.getSigningAlgoURIByConfig();
         digestAlgorithmURI = IdentityApplicationManagementUtil.getDigestAlgoURIByConfig();
+        assertionEncryptionAlgorithmURI = IdentityApplicationManagementUtil
+                .getAssertionEncryptionAlgorithmURIByConfig();
+        keyEncryptionAlgorithmURI = IdentityApplicationManagementUtil.getKeyEncryptionAlgorithmURIByConfig();
     }
 
     public String getSigningAlgorithmURI() {
@@ -78,6 +83,26 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     public void setDigestAlgorithmURI(String digestAlgorithmURI) {
         if (StringUtils.isNotBlank(digestAlgorithmURI)) {
             this.digestAlgorithmURI = digestAlgorithmURI;
+        }
+    }
+
+    public String getAssertionEncryptionAlgorithmURI() {
+        return assertionEncryptionAlgorithmURI;
+    }
+
+    public void setAssertionEncryptionAlgorithmURI(String assertionEncryptionAlgorithmURI) {
+        if (StringUtils.isNotBlank(assertionEncryptionAlgorithmURI)) {
+            this.assertionEncryptionAlgorithmURI = assertionEncryptionAlgorithmURI;
+        }
+    }
+
+    public String getKeyEncryptionAlgorithmURI() {
+        return keyEncryptionAlgorithmURI;
+    }
+
+    public void setKeyEncryptionAlgorithmURI(String keyEncryptionAlgorithmURI) {
+        if (StringUtils.isNotBlank(keyEncryptionAlgorithmURI)) {
+            this.keyEncryptionAlgorithmURI = keyEncryptionAlgorithmURI;
         }
     }
 

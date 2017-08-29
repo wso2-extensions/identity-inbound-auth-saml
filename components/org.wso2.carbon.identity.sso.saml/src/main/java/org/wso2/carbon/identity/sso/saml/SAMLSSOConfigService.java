@@ -145,6 +145,24 @@ public class SAMLSSOConfigService extends AbstractAdmin {
     public String getDigestAlgorithmURIByConfig() {
         return IdentityApplicationManagementUtil.getDigestAlgoURIByConfig();
     }
+
+    public String[] getAssertionEncryptionAlgorithmURIs() {
+        Collection<String> assertionEncryptionAlgoUris = IdentityApplicationManagementUtil.getXMLAssertionEncryptionAlgorithms().values();
+        return assertionEncryptionAlgoUris.toArray(new String[assertionEncryptionAlgoUris.size()]);
+    }
+
+    public String getAssertionEncryptionAlgorithmURIByConfig() {
+        return IdentityApplicationManagementUtil.getAssertionEncryptionAlgorithmURIByConfig();
+    }
+
+    public String[] getKeyEncryptionAlgorithmURIs() {
+        Collection<String> keyEncryptionAlgoUris = IdentityApplicationManagementUtil.getXMLKeyEncryptionAlgorithms().values();
+        return keyEncryptionAlgoUris.toArray(new String[keyEncryptionAlgoUris.size()]);
+    }
+
+    public String getKeyEncryptionAlgorithmURIByConfig() {
+        return IdentityApplicationManagementUtil.getKeyEncryptionAlgorithmURIByConfig();
+    }
     /**
      * @param issuer
      * @return

@@ -199,6 +199,8 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setNameIdClaimUri(serviceProviderDTO.getNameIdClaimUri());
         serviceProviderDO.setSigningAlgorithmUri(serviceProviderDTO.getSigningAlgorithmURI());
         serviceProviderDO.setDigestAlgorithmUri(serviceProviderDTO.getDigestAlgorithmURI());
+        serviceProviderDO.setAssertionEncryptionAlgorithmUri(serviceProviderDTO.getAssertionEncryptionAlgorithmURI());
+        serviceProviderDO.setKeyEncryptionAlgorithmUri(serviceProviderDTO.getKeyEncryptionAlgorithmURI());
         serviceProviderDO.setAssertionQueryRequestProfileEnabled(serviceProviderDTO
                 .isAssertionQueryRequestProfileEnabled());
         serviceProviderDO.setSupportedAssertionQueryRequestTypes(serviceProviderDTO.getSupportedAssertionQueryRequestTypes());
@@ -272,6 +274,8 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setNameIdClaimUri(serviceProviderDO.getNameIdClaimUri());
         serviceProviderDTO.setSigningAlgorithmURI(serviceProviderDO.getSigningAlgorithmUri());
         serviceProviderDTO.setDigestAlgorithmURI(serviceProviderDO.getDigestAlgorithmUri());
+        serviceProviderDTO.setAssertionEncryptionAlgorithmURI(serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+        serviceProviderDTO.setKeyEncryptionAlgorithmURI(serviceProviderDO.getKeyEncryptionAlgorithmUri());
         serviceProviderDTO.setAssertionQueryRequestProfileEnabled(serviceProviderDO
                 .isAssertionQueryRequestProfileEnabled());
         serviceProviderDTO.setSupportedAssertionQueryRequestTypes(serviceProviderDO
@@ -327,6 +331,8 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
                 providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
                 providerDTO.setDigestAlgorithmURI(providerDO.getDigestAlgorithmUri());
+                providerDTO.setAssertionEncryptionAlgorithmURI(providerDO.getAssertionEncryptionAlgorithmUri());
+                providerDTO.setKeyEncryptionAlgorithmURI(providerDO.getKeyEncryptionAlgorithmUri());
                 providerDTO.setCertAlias(providerDO.getCertAlias());
                 providerDTO.setAttributeConsumingServiceIndex(providerDO.getAttributeConsumingServiceIndex());
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());

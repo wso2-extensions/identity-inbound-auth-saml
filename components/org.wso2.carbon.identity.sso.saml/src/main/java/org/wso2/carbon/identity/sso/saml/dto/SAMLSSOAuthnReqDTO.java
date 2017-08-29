@@ -64,6 +64,8 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String certAlias;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
+    private String assertionEncryptionAlgorithmUri;
+    private String keyEncryptionAlgorithmUri;
     private boolean isAssertionQueryRequestProfileEnabled;
 
     public String getDigestAlgorithmUri() {
@@ -83,6 +85,26 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     public void setSigningAlgorithmUri(String signingAlgorithmUri) {
         if (StringUtils.isNotBlank(signingAlgorithmUri)) {
             this.signingAlgorithmUri = signingAlgorithmUri;
+        }
+    }
+
+    public String getAssertionEncryptionAlgorithmUri() {
+        return assertionEncryptionAlgorithmUri;
+    }
+
+    public void setAssertionEncryptionAlgorithmUri(String assertionEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(assertionEncryptionAlgorithmUri)) {
+            this.assertionEncryptionAlgorithmUri = assertionEncryptionAlgorithmUri;
+        }
+    }
+
+    public String getKeyEncryptionAlgorithmUri() {
+        return keyEncryptionAlgorithmUri;
+    }
+
+    public void setKeyEncryptionAlgorithmUri(String keyEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(keyEncryptionAlgorithmUri)) {
+            this.keyEncryptionAlgorithmUri = keyEncryptionAlgorithmUri;
         }
     }
 

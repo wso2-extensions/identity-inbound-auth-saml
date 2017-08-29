@@ -61,4 +61,30 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             throw IdentityException.error("Error while Encrypting Assertion", e);
         }
     }
+
+    @Override
+    public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String
+            assertionEncryptionAlgorithm, String keyEncryptionAlgorithm) throws IdentityException {
+        try {
+
+            Credential symmetricCredential = SecurityHelper.getSimpleCredential(
+                    SecurityHelper.generateSymmetricKey(assertionEncryptionAlgorithm));
+
+            EncryptionParameters encParams = new EncryptionParameters();
+            encParams.setAlgorithm(assertionEncryptionAlgorithm);
+            encParams.setEncryptionCredential(symmetricCredential);
+
+            KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
+            keyEncryptionParameters.setAlgorithm(keyEncryptionAlgorithm);
+            keyEncryptionParameters.setEncryptionCredential(cred);
+
+            Encrypter encrypter = new Encrypter(encParams, keyEncryptionParameters);
+            encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
+
+            EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+            return encrypted;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while Encrypting Assertion", e);
+        }
+    }
 }
