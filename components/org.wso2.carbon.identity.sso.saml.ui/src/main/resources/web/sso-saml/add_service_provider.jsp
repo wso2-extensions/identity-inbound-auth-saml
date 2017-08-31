@@ -755,8 +755,7 @@
                         <td class="formRow">
                             <table class="normal" cellspacing="0" style="width: 100%;">
                                 <tr>
-                                    <td style="width: 300px;" title="unique identifier of the service provider specified in the SAML Authentication Request">
-
+                                    <td style="width: 300px;" title="Unique identifier of the service provider specified in the SAML Authentication Request">
                                         <fmt:message key="sp.issuer"/>
                                         <font color="red">*</font>
                                     </td>
@@ -1627,7 +1626,7 @@
                                         provider.getAssertionQueryRequestProfileEnabled()) {
                                 %>
                                 <tr>
-                                    <td colspan="2" title="used for query assertions following SAML2.0 specification">
+                                    <td colspan="2" title="Used for query assertions following SAML2.0 specification">
                                         <input type="checkbox" id="enableAssertionQueryRequestProfile"
                                                name="enableAssertionQueryRequestProfile" value="true" checked="checked"/>
                                         <fmt:message key='sp.enable.assertion.query.request.profile'/>
@@ -1635,7 +1634,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2" title="used for query assertions following SAML2.0 specification">
+                                    <td colspan="2" title="Used for query assertions following SAML2.0 specification">
                                         <input type="checkbox" id="enableAssertionQueryRequestProfile"
                                                name="enableAssertionQueryRequestProfile" value="true"/>
                                         <fmt:message key='sp.enable.assertion.query.request.profile'/>
