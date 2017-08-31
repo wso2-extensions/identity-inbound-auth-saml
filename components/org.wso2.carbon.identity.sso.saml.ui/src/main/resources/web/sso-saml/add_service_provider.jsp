@@ -1081,6 +1081,81 @@
                                         </select>
                                     </td>
                                 </tr>
+
+                                <!--assertionEncryptionAlgorithmRow-->
+                                <tr id="assertionEncryptionAlgorithmRow">
+                                    <td>
+                                        <fmt:message key="sp.assertionEncryptionAlgorithm"/>
+                                        <font color="red">*</font>
+                                    </td>
+                                    <td>
+                                        <select id="assertionEncryptionAlgorithm" name="assertionEncryptionAlgorithm">
+                                            <%
+                                                if (spConfigClient.getAssertionEncryptionAlgorithmURIs() != null) {
+                                                    for (String assertionEncryptionAlgo : spConfigClient.getAssertionEncryptionAlgorithmURIs()) {
+                                                        String assertionEncryptionAlgorithm = null;
+                                                        if (provider != null) {
+                                                            assertionEncryptionAlgorithm = provider.getAssertionEncryptionAlgorithmURI();
+                                                        } else {
+                                                            assertionEncryptionAlgorithm = spConfigClient.getAssertionEncryptionAlgorithmURIByConfig();
+                                                        }
+                                                        if (assertionEncryptionAlgorithm != null && assertionEncryptionAlgo.equals(assertionEncryptionAlgorithm)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(assertionEncryptionAlgo)%>" selected>
+                                                <%=Encode.forHtml(assertionEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(assertionEncryptionAlgo)%>">
+                                                <%=Encode.forHtml(assertionEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                                        }
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <!--keyEncryptionAlgorithmRow-->
+                                <tr id="keyEncryptionAlgorithmRow">
+                                    <td>
+                                        <fmt:message key="sp.keyEncryptionAlgorithm"/>
+                                        <font color="red">*</font>
+                                    </td>
+                                    <td>
+                                        <select id="keyEncryptionAlgorithm" name="keyEncryptionAlgorithm">
+                                            <%
+                                                if (spConfigClient.getKeyEncryptionAlgorithmURIs() != null) {
+                                                    for (String keyEncryptionAlgo : spConfigClient.getKeyEncryptionAlgorithmURIs()) {
+                                                        String keyEncryptionAlgorithm = null;
+                                                        if (provider != null) {
+                                                            keyEncryptionAlgorithm = provider.getKeyEncryptionAlgorithmURI();
+                                                        } else {
+                                                            keyEncryptionAlgorithm = spConfigClient.getKeyEncryptionAlgorithmURIByConfig();
+                                                        }
+                                                        if (keyEncryptionAlgorithm != null && keyEncryptionAlgo.equals(keyEncryptionAlgorithm)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(keyEncryptionAlgo)%>" selected>
+                                                <%=Encode.forHtml(keyEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(keyEncryptionAlgo)%>">
+                                                <%=Encode.forHtml(keyEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                                        }
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
+                                </tr>
+
                                 <tr>
                                     <td colspan="2" title="Select Enable Response Signing to sign the SAML2 Responses returned after the authentication process">
                                         <input type="checkbox" name="enableResponseSignature" value="true"
