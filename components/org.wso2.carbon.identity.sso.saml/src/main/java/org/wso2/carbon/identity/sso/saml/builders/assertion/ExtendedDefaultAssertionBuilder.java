@@ -71,6 +71,17 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
             throws IdentityException {
 
         Assertion assertion = super.buildAssertion(samlssoAuthnReqDTO, notOnOrAfter, sessionId);
+
+        // Persist the assertion in the assertion store, if "Assertion Query Request Profile" is enabled.
+        if (samlssoAuthnReqDTO.isAssertionQueryRequestProfileEnabled()) {
+            persistAssertion(samlssoAuthnReqDTO, assertion);
+        }
+
+        return assertion;
+    }
+
+    private void persistAssertion(SAMLSSOAuthnReqDTO samlssoAuthnReqDTO, Assertion assertion) throws IdentityException {
+
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
@@ -100,6 +111,5 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
                 log.error("Error while closing the stream", ex);
             }
         }
-        return assertion;
     }
 }
