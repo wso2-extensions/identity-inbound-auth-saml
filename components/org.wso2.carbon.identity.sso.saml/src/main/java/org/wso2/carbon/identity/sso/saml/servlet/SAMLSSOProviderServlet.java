@@ -845,7 +845,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSession(sessionDTO.getSessionId(), validationResponseDTO.getIssuer());
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
-            if ( SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
+            if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
                 // remove tokenId Cookie when there is no session available.
                 removeTokenIdCookie(request, response);
             }

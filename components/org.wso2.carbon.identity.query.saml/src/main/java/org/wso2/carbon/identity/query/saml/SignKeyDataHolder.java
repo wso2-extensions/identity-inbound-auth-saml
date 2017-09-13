@@ -141,22 +141,22 @@ public class SignKeyDataHolder implements X509Credential {
             }
 
         } catch (IdentityException e) {
-            log.error("Unable to access the realm service of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to access the realm service of the tenant domain:"
+            log.error("Unable to access the realm service of the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to access the realm service of the tenant domain: "
                     + tenantDomain);
         } catch (KeyStoreException e) {
-            log.error("Unable to load keystore of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to load keystore of the tenant domain:" + tenantDomain);
+            log.error("Unable to load keystore of the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to load keystore of the tenant domain: " + tenantDomain);
         } catch (UserStoreException e) {
-            log.error("Unable to load user store of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to load user store of the tenant domain:" + tenantDomain);
+            log.error("Unable to load user store of the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to load user store of the tenant domain: " + tenantDomain);
         } catch (RegistryException e) {
-            log.error("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to create new KeyStoreAdmin of the tenant domain:"
+            log.error("Unable to create new KeyStoreAdmin of the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to create new KeyStoreAdmin of the tenant domain: "
                     + tenantDomain);
         } catch (Exception e) {
-            log.error("Unable to get primary keystore of the tenant domain:"+ tenantDomain, e);
-            throw new IdentitySAML2QueryException("Unable to get primary keystore of the tenant domain:"
+            log.error("Unable to get primary keystore of the tenant domain: "+ tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to get primary keystore of the tenant domain: "
                     + tenantDomain);
         }
 
