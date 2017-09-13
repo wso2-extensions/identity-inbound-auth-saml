@@ -119,32 +119,6 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
                 return validationResponse;
             }
 
-            //TODO : REMOVE THIS UNNECESSARY CHECK
-            // set the custom login page URL and ACS URL if available
-            SSOServiceProviderConfigManager spConfigManager = SSOServiceProviderConfigManager.getInstance();
-            SAMLSSOServiceProviderDO spDO = spConfigManager.getServiceProvider(issuer.getValue());
-            String spAcsUrl = null;
-            if (spDO != null) {
-                validationResponse.setLoginPageURL(spDO.getLoginPageURL());
-                spAcsUrl = spDO.getAssertionConsumerUrl();
-            }
-            // Check for a Spoofing attack
-            String acsUrl = authnReq.getAssertionConsumerServiceURL();
-            if ( StringUtils.isNotBlank(spAcsUrl) && StringUtils.isNotBlank(acsUrl) && !acsUrl.equals(spAcsUrl)) {
-                log.error("Invalid ACS URL value " + acsUrl + " in the AuthnRequest message from " +
-                        spDO.getIssuer() + "\n" +
-                        "Possibly an attempt for a spoofing attack from Provider " +
-                        authnReq.getIssuer().getValue());
-
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                        "Invalid Assertion Consumer Service URL in the Authentication Request.",
-                        acsUrl);
-                validationResponse.setResponse(errorResp);
-                validationResponse.setValid(false);
-                return validationResponse;
-            }
-
             //TODO : Validate the NameID Format
             if (subject != null && subject.getNameID() != null) {
                 validationResponse.setSubject(subject.getNameID().getValue());

@@ -227,7 +227,17 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     String key = entry.getKey();
                     SAMLSSOServiceProviderDO value = entry.getValue();
 
-                    if (!key.equals(issuer)) {
+                    if (key.equals(issuer)) {
+                        reqValidationResponseDTO.setIssuer(value.getIssuer());
+                        reqValidationResponseDTO.setDoSignResponse(value.isDoSignResponse());
+                        reqValidationResponseDTO.setSigningAlgorithmUri(value.getSigningAlgorithmUri());
+                        reqValidationResponseDTO.setDigestAlgorithmUri(value.getDigestAlgorithmUri());
+                        if (StringUtils.isNotBlank(value.getSloResponseURL())) {
+                            reqValidationResponseDTO.setAssertionConsumerURL(value.getSloResponseURL());
+                        } else {
+                            reqValidationResponseDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
+                        }
+                    } else if (value.isDoSingleLogout()) {
                         SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
                         if (StringUtils.isNotBlank(value.getSloRequestURL())) {
                             logoutReqDTO.setAssertionConsumerURL(value.getSloRequestURL());
@@ -239,22 +249,12 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
                         LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(key)
                                 , sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
-                                .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(), value
-                                .getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
+                                        .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(),
+                                value.getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
                         String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
                         logoutReqDTO.setLogoutResponse(logoutReqString);
                         logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
                         singleLogoutReqDTOs.add(logoutReqDTO);
-                    } else {
-                        reqValidationResponseDTO.setIssuer(value.getIssuer());
-                        reqValidationResponseDTO.setDoSignResponse(value.isDoSignResponse());
-                        reqValidationResponseDTO.setSigningAlgorithmUri(value.getSigningAlgorithmUri());
-                        reqValidationResponseDTO.setDigestAlgorithmUri(value.getDigestAlgorithmUri());
-                        if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-                            reqValidationResponseDTO.setAssertionConsumerURL(value.getSloResponseURL());
-                        } else {
-                            reqValidationResponseDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
-                        }
                     }
                 }
 

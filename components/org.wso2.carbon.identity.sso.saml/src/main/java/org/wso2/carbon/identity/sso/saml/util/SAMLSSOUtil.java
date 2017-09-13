@@ -669,6 +669,34 @@ public class SAMLSSOUtil {
         }
     }
 
+    public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String assertionEncryptionAlgorithm,
+                                                           String keyEncryptionAlgorithm, String alias, String
+                                                                   domainName) throws IdentityException {
+        doBootstrap();
+        try {
+            X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+
+            synchronized (Runtime.getRuntime().getClass()) {
+                ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
+                        "SSOService.SAMLSSOEncrypter").trim()).newInstance();
+                ssoEncrypter.init();
+            }
+            return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, assertionEncryptionAlgorithm,
+                    keyEncryptionAlgorithm);
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + IdentityUtil.getProperty("SSOService.SAMLSSOEncrypter"), e);
+        } catch (Exception e) {
+            throw IdentityException.error("Error while signing the SAML Response message.", e);
+        }
+    }
+
     public static Assertion buildSAMLAssertion(SAMLSSOAuthnReqDTO authReqDTO, DateTime notOnOrAfter,
                                                String sessionId) throws IdentityException {
 
