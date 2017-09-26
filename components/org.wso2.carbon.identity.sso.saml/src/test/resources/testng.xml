@@ -20,7 +20,8 @@
 <suite name="identity-sso-saml-test-suite">
     <test name="identity-sso-saml-test-all">
         <classes>
-            <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil" />
+            <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilTest" />
+            <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilMarshallTest" />
         </classes>
     </test>
 </suite>
