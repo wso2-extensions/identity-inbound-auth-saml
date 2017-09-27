@@ -371,10 +371,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         issuer = req.getParameter("spEntityID");
                     }
                     if (StringUtils.isNotBlank(issuer)) {
-                        SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(SAMLSSOUtil
+                        SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil
                                         .getTenantDomainFromThreadLocal(),
                                 SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-                        //for IDP init SLO, priority should be given to log out URL.
+                        //if ACS is not available in request, priority should be given to SLO response URL over default
+                        // ACS in sp config.
                         acsUrl = serviceProviderDO.getSloResponseURL();
                         if (StringUtils.isBlank(acsUrl)) {
                             acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
@@ -409,10 +410,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             returnToUrl = req.getParameter("returnTo");
                         }
                         if (StringUtils.isNotBlank(issuer)) {
-                            SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(SAMLSSOUtil
+                            SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil
                                             .getTenantDomainFromThreadLocal(),
                                     SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-                            //for IDP init SLO, priority should be given to log out URL.
+                            //for IDP init SLO, priority should be given to SLO response URL over default ACS.
                             acsUrl = serviceProviderDO.getSloResponseURL();
                             if (StringUtils.isBlank(acsUrl)) {
                                 acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
@@ -935,8 +936,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             String acsUrl = sessionDTO.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
-                SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil
-                        .getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(), sessionDTO.getIssuer());
+                SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(),
+                        sessionDTO.getIssuer());
                 acsUrl = serviceProviderDO.getSloResponseURL();
                 if (StringUtils.isBlank(acsUrl)) {
                     acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
@@ -1360,5 +1361,53 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authnReqDTO.setClaimMapping(authResult.getClaimMapping());
         SAMLSSOUtil.setIsSaaSApplication(authResult.isSaaSApp());
         SAMLSSOUtil.setUserTenantDomain(authResult.getSubject().getTenantDomain());
+    }
+
+    /**
+     * Get service provider config.
+     *
+     * @param tenantDomain
+     * @param issuerName
+     * @return
+     * @throws IdentityException
+     */
+    private SAMLSSOServiceProviderDO getSPConfig(String tenantDomain, String issuerName) throws
+            IdentityException {
+
+        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
+        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
+        if (serviceProvider != null) {
+            return serviceProvider;
+        }
+
+        int tenantId;
+        try {
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                tenantId = MultitenantConstants.SUPER_TENANT_ID;
+            } else {
+                tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+                    tenantDomain, e);
+        }
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+            privilegedCarbonContext.setTenantId(tenantId, true);
+
+            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+            Registry registry = (Registry) privilegedCarbonContext.getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+            SAMLSSOServiceProviderDO spDO = persistenceManager.getServiceProvider(registry, issuerName);
+            return spDO;
+
+        } catch (IdentityException e) {
+            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 }
