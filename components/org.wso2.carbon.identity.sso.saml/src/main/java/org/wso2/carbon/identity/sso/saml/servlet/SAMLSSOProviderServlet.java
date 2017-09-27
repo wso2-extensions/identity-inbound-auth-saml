@@ -302,8 +302,21 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             queryParams += "&" + SAMLSSOConstants.SAML_RESP + "=" + URLEncoder.encode(errorResp, "UTF-8");
         }
 
-        if (acUrl != null) {
-            queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" + URLEncoder.encode(acUrl, "UTF-8");
+        // If the assertion consumer url is null, get it from the session.
+        if (StringUtils.isBlank(acUrl)) {
+            String sessionDataKey = getSessionDataKey(req);
+            SAMLSSOSessionDTO sessionDTO = null;
+            if (StringUtils.isNotBlank(sessionDataKey)) {
+                sessionDTO = getSessionDataFromCache(sessionDataKey);
+            }
+            if (sessionDTO != null) {
+                acUrl = sessionDTO.getAssertionConsumerURL();
+            }
+        }
+
+        if (StringUtils.isNotBlank(acUrl)) {
+            queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" +
+                    URLEncoder.encode(acUrl, SAMLSSOConstants.ENCODING_FORMAT);
         }
 
         String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
@@ -350,9 +363,27 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 }
 
                 String errorResp = signInRespDTO.getResponse();
+                String acsUrl = signInRespDTO.getAssertionConsumerURL();
+                if (StringUtils.isBlank(acsUrl)) {
+                    String issuer = signInRespDTO.getIssuer();
+
+                    if (StringUtils.isBlank(issuer) && req.getParameter("spEntityID") != null) {
+                        issuer = req.getParameter("spEntityID");
+                    }
+                    if (StringUtils.isNotBlank(issuer)) {
+                        SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(SAMLSSOUtil
+                                        .getTenantDomainFromThreadLocal(),
+                                SAMLSSOUtil.splitAppendedTenantDomain(issuer));
+                        //for IDP init SLO, priority should be given to log out URL.
+                        acsUrl = serviceProviderDO.getSloResponseURL();
+                        if (StringUtils.isBlank(acsUrl)) {
+                            acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                        }
+                    }
+                }
                 sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                                  SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
-                                 signInRespDTO.getAssertionConsumerURL(), req, resp);
+                                 acsUrl, req, resp);
             }
         } else {
             if(signInRespDTO.isValid()) {
@@ -366,9 +397,40 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     sendToFrameworkForLogout(req, resp, null, null, sessionId, true, isPost);
                 } else {
                     String errorResp = signInRespDTO.getResponse();
+                    String acsUrl = signInRespDTO.getAssertionConsumerURL();
+                    if (StringUtils.isBlank(acsUrl)) {
+                        String issuer = signInRespDTO.getIssuer();
+                        String returnToUrl = signInRespDTO.getReturnToURL();
+
+                        if (StringUtils.isBlank(issuer) && req.getParameter("spEntityID") != null) {
+                            issuer = req.getParameter("spEntityID");
+                        }
+                        if (StringUtils.isBlank(returnToUrl) && req.getParameter("returnTo") != null) {
+                            returnToUrl = req.getParameter("returnTo");
+                        }
+                        if (StringUtils.isNotBlank(issuer)) {
+                            SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(SAMLSSOUtil
+                                            .getTenantDomainFromThreadLocal(),
+                                    SAMLSSOUtil.splitAppendedTenantDomain(issuer));
+                            //for IDP init SLO, priority should be given to log out URL.
+                            acsUrl = serviceProviderDO.getSloResponseURL();
+                            if (StringUtils.isBlank(acsUrl)) {
+                                acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                            }
+
+                            //check whether ReturnToUrl query param is included in the configured Urls.
+                            if (StringUtils.isNotBlank(returnToUrl)) {
+                                List<String> returnToUrls = serviceProviderDO.getIdpInitSLOReturnToURLList();
+                                if (returnToUrls.contains(returnToUrl)) {
+                                    acsUrl += "&returnTo=" +
+                                            URLEncoder.encode(returnToUrl, SAMLSSOConstants.ENCODING_FORMAT);
+                                }
+                            }
+                        }
+                    }
                     sendNotification(errorResp, SAMLSSOConstants.Notification.INVALID_MESSAGE_STATUS,
                                      SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
-                                     signInRespDTO.getAssertionConsumerURL(), req, resp);
+                                     acsUrl, req, resp);
                 }
             }
         }
@@ -683,6 +745,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String authenticationRequestId = authnReqDTO.getId();
         String assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
 
+        //get sp configs
+        SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
+
+        if(serviceProviderConfigs != null) {
+            populateAuthnReqDTOWithRequiredServiceProviderConfigs(authnReqDTO, serviceProviderConfigs);
+        }
+
         if (authResult == null || !authResult.isAuthenticated()) {
 
             if (log.isDebugEnabled()) {
@@ -694,27 +763,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
 
             if (sessionDTO.getValidationRespDTO().isPassive()) { //if passive
-
-                SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
-
-                if (serviceProviderConfigs == null) {
-
-                    String msg = "A service provider with issuer : " + issuer + " is not registered in tenant domain " +
-                            "" + ": " + tenantDomain + ". A service provider should be registered in advance.";
-                    log.warn(msg);
-
-                    List<String> statusCodes = new ArrayList<String>();
-                    statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
-
-                    String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId, statusCodes,
-                            msg, assertionConsumerURL);
-
-                    sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
-                            .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
-                    return;
-                }
-
-                populateAuthnReqDTOWithRequiredServiceProviderConfigs(authnReqDTO, serviceProviderConfigs);
 
                 if (authnReqDTO.isDoValidateSignatureInRequests()) { // Authentication request signing is enabled
 
@@ -885,13 +933,22 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.error("Error when processing the logout request!", e);
             }
 
+            String acsUrl = sessionDTO.getAssertionConsumerURL();
+            if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
+                SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil
+                        .getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(), sessionDTO.getIssuer());
+                acsUrl = serviceProviderDO.getSloResponseURL();
+                if (StringUtils.isBlank(acsUrl)) {
+                    acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                }
+            }
             String errorResp = SAMLSSOUtil.buildErrorResponse(
                     SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                     "Invalid request",
-                    sessionDTO.getAssertionConsumerURL());
+                    acsUrl);
             sendNotification(errorResp, SAMLSSOConstants.Notification.INVALID_MESSAGE_STATUS,
                     SAMLSSOConstants.Notification.INVALID_MESSAGE_MESSAGE,
-                    sessionDTO.getAssertionConsumerURL(), request, response);
+                    acsUrl, request, response);
         }
     }
 

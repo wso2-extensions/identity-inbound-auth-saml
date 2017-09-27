@@ -177,6 +177,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                             statusCodes,
                             "Authentication Failure, invalid username or password.", null);
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
+            errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
         }
     }
