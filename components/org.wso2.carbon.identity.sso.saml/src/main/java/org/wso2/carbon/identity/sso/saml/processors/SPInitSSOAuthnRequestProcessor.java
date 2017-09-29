@@ -199,6 +199,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     buildErrorResponse(authnReqDTO.getId(), statusCodes,
                             "Authentication Failure, invalid username or password.", null);
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
+            errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
         }
     }
