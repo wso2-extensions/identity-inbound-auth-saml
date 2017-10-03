@@ -24,7 +24,10 @@ package org.wso2.carbon.identity.sso.saml.util;
 public class TestConstants {
 
     public static final String LOACALHOST_DOMAIN = "localhost";
-
+    public static final String WSO2_TENANT_DOMAIN = "wso2.com";
+    public static final String SAMPLE_SERVER_URL = "https://localhost:9443/server";
+    public static final String WSO2_CARBON = "wso2carbon";
+    public static final String KEY_STORE_NAME = WSO2_CARBON + ".jks";
     public static final String GENERAL_STRING = "kjladf jhadkjf kjhjkadf. adkjfa jdafkjhd. jhdafkjhd" +
             "lkadflkjdaf lkjdf  lkjdalkf.";
 

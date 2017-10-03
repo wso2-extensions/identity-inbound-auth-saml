@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.opensaml.xml.XMLObject;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.base.IdentityException;
 
 import static org.testng.Assert.assertEquals;
 
@@ -39,11 +40,23 @@ public class SAMLSSOUtilMarshallTest {
                 "Reason node value of unmarshalled Post Authentication Request is as not expected.");
     }
 
+    @Test(expectedExceptions = IdentityException.class)
+    public void testUnMarshallRandomString() throws Exception {
+
+        XMLObject xmlObject = SAMLSSOUtil.unmarshall("Random String");
+    }
+
     @Test
     public void testMarshall() throws Exception {
 
         assertEquals(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_AUTHN_REQUEST)),
                 TestConstants.DECODED_POST_AUTHN_REQUEST,
-                "Marshalled Post Authentication Request is not as expected.");
+                "Marshaled Post Authentication Request is not as expected.");
+    }
+
+    @Test(expectedExceptions = IdentityException.class)
+    public void testMarshallNonXML() throws Exception {
+
+        SAMLSSOUtil.marshall(null);
     }
 }
