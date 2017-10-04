@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
@@ -1359,6 +1360,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         authnReqDTO.setUser(authResult.getSubject());
         authnReqDTO.setClaimMapping(authResult.getClaimMapping());
+        if (authResult.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
+            List<AuthenticationContextProperty> authenticationContextProperties =
+                    (List<AuthenticationContextProperty>) authResult.getProperty(FrameworkConstants
+                            .AUTHENTICATION_CONTEXT_PROPERTIES);
+
+            for (AuthenticationContextProperty authenticationContextProperty : authenticationContextProperties) {
+                if (SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF.equals(authenticationContextProperty
+                        .getPassThroughDataType())) {
+                    authnReqDTO.addIdpAuthenticationContextProperty(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF,
+                            authenticationContextProperty);
+                }
+            }
+        }
+
         SAMLSSOUtil.setIsSaaSApplication(authResult.isSaaSApp());
         SAMLSSOUtil.setUserTenantDomain(authResult.getSubject().getTenantDomain());
     }
