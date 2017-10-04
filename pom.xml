@@ -190,6 +190,7 @@
                 <artifactId>org.jacoco.agent</artifactId>
                 <classifier>runtime</classifier>
                 <version>${jacoco.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
