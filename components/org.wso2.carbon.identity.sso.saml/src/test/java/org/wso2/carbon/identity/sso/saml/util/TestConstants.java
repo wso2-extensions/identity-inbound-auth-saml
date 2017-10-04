@@ -25,9 +25,15 @@ public class TestConstants {
 
     public static final String LOACALHOST_DOMAIN = "localhost";
     public static final String WSO2_TENANT_DOMAIN = "wso2.com";
+    public static final String TEST_USER_NAME = "testUser";
+    public static final String ATTRIBUTE_CONSUMER_INDEX = "1234567890";
+    public static final String SAMPLE_NAME_ID_FORMAT = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress";
+    public static final String SESSION_ID = "sessionId4567890";
     public static final String SAMPLE_SERVER_URL = "https://localhost:9443/server";
     public static final String WSO2_CARBON = "wso2carbon";
     public static final String KEY_STORE_NAME = WSO2_CARBON + ".jks";
+    public static final String RSA_SHA1_SIG_ALGO = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+    public static final String SHA1_DIGEST_ALGO = "http://www.w3.org/2000/09/xmldsig#sha1";
     public static final String GENERAL_STRING = "kjladf jhadkjf kjhjkadf. adkjfa jdafkjhd. jhdafkjhd" +
             "lkadflkjdaf lkjdf  lkjdalkf.";
 
