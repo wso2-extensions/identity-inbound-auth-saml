@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.3.17</version>
+    <version>5.3.18-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -39,7 +39,7 @@
         <url>https://github.com/wso2-extensions/identity-inbound-auth-saml.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</connection>
-        <tag>v5.3.17</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
