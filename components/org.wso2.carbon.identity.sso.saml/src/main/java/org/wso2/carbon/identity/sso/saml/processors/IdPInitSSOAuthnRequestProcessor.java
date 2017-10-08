@@ -52,9 +52,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
             if (serviceProviderConfigs == null) {
                 String msg =
-                        "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
-                                "' is not registered." +
-                                " Service Provider should be registered in advance.";
+                        "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not registered." +
+                        " Service Provider should be registered in advance.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
