@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.xml.XMLObject;
@@ -32,25 +33,23 @@ import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProces
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.identity.sso.saml.validators.IdPInitSSOAuthnRequestValidator;
-import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 
 public class SAMLSSOService {
 
     public static boolean isOpenIDLoginAccepted() {
-        if (IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN) != null &&
-                !"".equals(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN).trim())) {
-            return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN).trim());
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN))) {
+            return Boolean.parseBoolean(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN).trim());
         } else {
             return false;
         }
     }
 
     public static boolean isSAMLSSOLoginAccepted() {
-        if (IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN) != null &&
-                !"".equals(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN).trim())) {
-            return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN).trim());
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN))) {
+            return Boolean.parseBoolean(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN).trim());
         } else {
             return false;
         }

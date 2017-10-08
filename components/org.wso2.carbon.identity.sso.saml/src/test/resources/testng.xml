@@ -22,6 +22,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilTest" />
             <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilMarshallTest" />
+            <class name="org.wso2.carbon.identity.sso.saml.SAMLSSOServiceTest" />
         </classes>
     </test>
 </suite>

@@ -16,9 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.saml.util;
+package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.xml.XMLObject;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.io.FileInputStream;
 import java.nio.file.Paths;
@@ -43,5 +46,9 @@ public class TestUtils {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "conf", fileName).toString();
         }
         return null;
+    }
+
+    public static XMLObject mockSAMLUtilUnmarshal (String DecodedAuthnRequest) throws IdentityException {
+        return SAMLSSOUtil.unmarshall(DecodedAuthnRequest);
     }
 }
