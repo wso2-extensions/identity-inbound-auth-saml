@@ -47,8 +47,4 @@ public class TestUtils {
         }
         return null;
     }
-
-    public static XMLObject mockSAMLUtilUnmarshal (String DecodedAuthnRequest) throws IdentityException {
-        return SAMLSSOUtil.unmarshall(DecodedAuthnRequest);
-    }
 }
