@@ -16,9 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.saml.util;
+package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.xml.XMLObject;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.io.FileInputStream;
 import java.nio.file.Paths;

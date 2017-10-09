@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.saml.util;
+package org.wso2.carbon.identity.sso.saml;
 
 /**
  * Constants for unit test cases.
