@@ -87,6 +87,7 @@ public class Util {
      * @return
      */
     public static boolean isHttpSuccessStatusCode(int status) {
+
         return status >= 200 && status < 300;
     }
 
@@ -129,7 +130,7 @@ public class Util {
 
         return filteredProviders;
     }
-
+    @Deprecated
     public static String getUserNameFromOpenID(String openid) throws IdentityException {
         String caller = null;
         String path = null;
@@ -145,7 +146,6 @@ public class Util {
         caller = path.substring(path.indexOf(contextPath) + contextPath.length(), path.length());
         return caller;
     }
-
     /**
      * Find the OpenID corresponding to the given user name.
      *
@@ -153,6 +153,7 @@ public class Util {
      * @return OpenID corresponding the given user name.
      * @throws org.wso2.carbon.identity.base.IdentityException
      */
+    @Deprecated
     public static String getOpenID(String userName) throws IdentityException {
         return generateOpenID(userName);
     }
@@ -164,6 +165,7 @@ public class Util {
      * @return Generated OpenID
      * @throws org.wso2.carbon.identity.base.IdentityException
      */
+    @Deprecated
     public static String generateOpenID(String user) throws IdentityException {
         String openIDUserUrl = null;
         String openID = null;
@@ -188,7 +190,7 @@ public class Util {
         openID = url.toString();
         return openID;
     }
-
+    @Deprecated
     private static String normalizeUrlEncoding(String text) {
 
         if (text == null)
