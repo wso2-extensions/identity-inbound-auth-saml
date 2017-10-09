@@ -1008,7 +1008,7 @@ public class SAMLSSOUtil {
                         .isEnableAttributesByDefault()) {
                     index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
                 } else {
-                    return null;
+                    return Collections.emptyMap();
                 }
             } else {
                 //SP has provide a AttributeConsumingServiceIndex in the authnReqDTO
@@ -1019,7 +1019,7 @@ public class SAMLSSOUtil {
                     ()) {
                 index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
             } else {
-                return null;
+                return Collections.emptyMap();
             }
 
         }
