@@ -23,6 +23,11 @@ package org.wso2.carbon.identity.sso.saml;
  */
 public class TestConstants {
 
+    public static final String SP_ENTITY_ID_WITH_TENANT_DOMAIN = "travelocity.com@tenant.com";
+    public static final String SP_ENTITY_ID = "travelocity.com";
+    public static final String ACS_URL = "http://localhost.com:8080/travelocity.com/consumer";
+    public static final String SAML_SSO_IDP_URL = "https://localhost:9443/samlsso";
+
     public static final String LOACALHOST_DOMAIN = "localhost";
     public static final String WSO2_TENANT_DOMAIN = "wso2.com";
     public static final String TEST_USER_NAME = "testUser";
