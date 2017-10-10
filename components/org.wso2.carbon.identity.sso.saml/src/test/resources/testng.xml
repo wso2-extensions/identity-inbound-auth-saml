@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilMarshallTest" />
             <class name="org.wso2.carbon.identity.sso.saml.SAMLSSOServiceTest" />
             <class name="org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidatorTest" />
+            <class name="org.wso2.carbon.identity.sso.saml.util.SigningTests" />
         </classes>
     </test>
 </suite>
