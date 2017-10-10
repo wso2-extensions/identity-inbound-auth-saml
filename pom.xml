@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.3.6</version>
+    <version>5.3.23-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -39,7 +39,7 @@
         <url>https://github.com/wso2-extensions/identity-inbound-auth-saml.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</connection>
-        <tag>v5.3.6</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
@@ -167,43 +167,36 @@
                 <artifactId>org.wso2.carbon.identity.sp.metadata.saml2</artifactId>
                 <version>${identity.metadata.saml2.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.jacoco</groupId>
                 <artifactId>org.jacoco.agent</artifactId>
                 <classifier>runtime</classifier>
                 <version>${jacoco.version}</version>
+                <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.api.version}</version>
             </dependency>
-
-            <!--<dependency>-->
-            <!--<groupId>org.mockito</groupId>-->
-            <!--<artifactId>mockito-core</artifactId>-->
-            <!--<version>${mockito.version}</version>-->
-            <!--</dependency>-->
-
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <version>${powermock.version}</version>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
 
@@ -356,7 +349,7 @@
     <properties>
 
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
-        <carbon.identity.framework.version>5.7.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.8.146</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
@@ -407,11 +400,9 @@
 
         <testng.version>6.9.10</testng.version>
         <jacoco.version>0.7.9</jacoco.version>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
-
+        <powermock.version>1.7.3</powermock.version>
         <slf4j.api.version>1.7.12</slf4j.api.version>
-        <mockito.version>1.10.19</mockito.version>
-        <powermock.version>1.6.6</powermock.version>
+        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
     </properties>
 
 </project>

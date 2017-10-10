@@ -70,8 +70,8 @@ public class IdPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator
 
             if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(spEntityID),
                     SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-                String message = "A Service Provider with the Issuer '" + spEntityID + "' is not registered. Service " +
-                                 "Provider should be registered in advance";
+                String message = "A SAML Service Provider with the Issuer '" + spEntityID + "' is not registered. " +
+                                 "Service Provider should be registered in advance";
                 log.error(message);
                 String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                                                                   message, null);

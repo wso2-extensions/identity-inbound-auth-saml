@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.sso.saml.builders.encryption;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.encryption.Encrypter;
-import org.opensaml.xml.encryption.EncryptionConstants;
 import org.opensaml.xml.encryption.EncryptionParameters;
 import org.opensaml.xml.encryption.KeyEncryptionParameters;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 
 public class DefaultSSOEncrypter implements SSOEncrypter {
@@ -39,14 +39,43 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
         try {
 
             Credential symmetricCredential = SecurityHelper.getSimpleCredential(
-                    SecurityHelper.generateSymmetricKey(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256));
+                    SecurityHelper.generateSymmetricKey(IdentityApplicationManagementUtil
+                            .getAssertionEncryptionAlgorithmURIByConfig()));
 
             EncryptionParameters encParams = new EncryptionParameters();
-            encParams.setAlgorithm(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256);
+            encParams.setAlgorithm(IdentityApplicationManagementUtil
+                    .getAssertionEncryptionAlgorithmURIByConfig());
             encParams.setEncryptionCredential(symmetricCredential);
 
             KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
-            keyEncryptionParameters.setAlgorithm(EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSA15);
+            keyEncryptionParameters.setAlgorithm(IdentityApplicationManagementUtil
+                    .getKeyEncryptionAlgorithmURIByConfig());
+            keyEncryptionParameters.setEncryptionCredential(cred);
+
+            Encrypter encrypter = new Encrypter(encParams, keyEncryptionParameters);
+            encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
+
+            EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+            return encrypted;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while Encrypting Assertion", e);
+        }
+    }
+
+    @Override
+    public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String
+            assertionEncryptionAlgorithm, String keyEncryptionAlgorithm) throws IdentityException {
+        try {
+
+            Credential symmetricCredential = SecurityHelper.getSimpleCredential(
+                    SecurityHelper.generateSymmetricKey(assertionEncryptionAlgorithm));
+
+            EncryptionParameters encParams = new EncryptionParameters();
+            encParams.setAlgorithm(assertionEncryptionAlgorithm);
+            encParams.setEncryptionCredential(symmetricCredential);
+
+            KeyEncryptionParameters keyEncryptionParameters = new KeyEncryptionParameters();
+            keyEncryptionParameters.setAlgorithm(keyEncryptionAlgorithm);
             keyEncryptionParameters.setEncryptionCredential(cred);
 
             Encrypter encrypter = new Encrypter(encParams, keyEncryptionParameters);
