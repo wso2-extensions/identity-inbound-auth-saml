@@ -34,7 +34,7 @@ import org.testng.IObjectFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.sso.saml.TestUtils;
+import org.wso2.carbon.identity.sso.saml.SAMLTestRequestBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
@@ -67,7 +67,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateVersionError() throws Exception {
 
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.setVersion(SAMLVersion.VERSION_11);
 
         SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
@@ -78,7 +78,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateNoIssuerError() throws Exception {
 
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.getIssuer().setValue(StringUtils.EMPTY);
         request.getIssuer().setSPProvidedID(StringUtils.EMPTY);
 
@@ -90,7 +90,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateIssuerDoesNotExistError() throws Exception {
 
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(TestUtils.buildDefaultAuthnRequest(), false);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(SAMLTestRequestBuilder.buildDefaultAuthnRequest(), false);
         assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
         assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
     }
@@ -98,7 +98,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateIssuerFormatError() throws Exception {
 
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.getIssuer().setFormat("Invalid-Issuer-Format");
 
         SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
@@ -109,7 +109,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateSubjectConformationsExistError() throws Exception {
 
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
 
         SubjectImplExtend subjectImplExtend = spy(new SubjectImplExtend("namespaceURI", "elementLocalName",
                 "namespacePrefix"));
@@ -134,7 +134,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test
     public void testValidateNoError() throws Exception {
 
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
         assertTrue(validationResp.isValid(), "Authentication request validation should give valid.");
         assertEquals(validationResp.getId(), request.getID(), "Authentication request validation response should have" +
@@ -159,7 +159,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @Test(dataProvider = "testSplitAppendedTenantDomain")
     public void testSplitAppendedTenantDomain(String unsplittedIssuer, String tenantDomain, String actualIssuer) throws
             Exception {
-        AuthnRequest request = TestUtils.buildDefaultAuthnRequest();
+        AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         SPInitSSOAuthnRequestValidator authnRequestValidator =
                 (SPInitSSOAuthnRequestValidator) SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(request);
 
