@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.TestConstants;
+import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -197,7 +199,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetDestinationForServerURL() throws Exception {
 
         prepareForGetIssuer();
-        PowerMockito.mockStatic(IdentityUtil.class);
+        mockStatic(IdentityUtil.class);
         when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean())).thenReturn(TestConstants
                 .SAMPLE_SERVER_URL);
         List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
@@ -214,8 +216,8 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         List destinationUrls = new ArrayList();
         destinationUrls.add("https://url1");
         destinationUrls.add("https://url2");
-        PowerMockito.mockStatic(IdentityUtil.class);
-        PowerMockito.mockStatic(IdentityApplicationManagementUtil.class);
+        mockStatic(IdentityUtil.class);
+        mockStatic(IdentityApplicationManagementUtil.class);
         when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean())).thenReturn(TestConstants
                 .SAMPLE_SERVER_URL);
         when(IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(any(FederatedAuthenticatorConfig[]
@@ -245,7 +247,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetX509CredentialImplForSuperTenant() throws Exception {
 
         prepareForGetIssuer();
-        PowerMockito.mockStatic(KeyStoreManager.class);
+        mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(-1234))).thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
                 .getFilePath("wso2carbon.jks"), "wso2carbon", "JKS"));
@@ -258,7 +260,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         prepareForGetIssuer();
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        PowerMockito.mockStatic(KeyStoreManager.class);
+        mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
         when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
                 (TestUtils.loadKeyStoreFromFileSystem(TestUtils
@@ -273,7 +275,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         prepareForGetIssuer();
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        PowerMockito.mockStatic(KeyStoreManager.class);
+        mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
         when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
                 (null);

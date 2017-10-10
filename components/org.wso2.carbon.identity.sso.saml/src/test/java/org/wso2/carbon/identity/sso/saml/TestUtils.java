@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.saml.util;
+package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;

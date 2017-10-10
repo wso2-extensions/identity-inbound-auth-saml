@@ -16,12 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.saml.util;
+package org.wso2.carbon.identity.sso.saml;
 
 /**
  * Constants for unit test cases.
  */
 public class TestConstants {
+
+    public static final String SP_ENTITY_ID_WITH_TENANT_DOMAIN = "travelocity.com@tenant.com";
+    public static final String SP_ENTITY_ID = "travelocity.com";
+    public static final String SAML_SSO_IDP_URL = "https://localhost:9443/samlsso";
 
     public static final String LOACALHOST_DOMAIN = "localhost";
     public static final String TRAVELOCITY_ISSUER = "travelocity.com";
