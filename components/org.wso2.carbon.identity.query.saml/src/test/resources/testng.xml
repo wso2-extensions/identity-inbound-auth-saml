@@ -21,10 +21,11 @@
 
 <suite name="identity-inbound-query-saml-Test-Suite">
 
-    <test name="sso-saml-common-tests" preserve-order="true" parallel="false">
+    <test name="sso-saml-common-test-all">
         <classes>
-            <!--<class name="org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectAuthenticatorTestCase"/>-->
-            <!--<class name="org.wso2.carbon.identity.sso.saml.common"/>-->
+            <class name="org.wso2.carbon.identity.query.saml.dto.InvalidItemDTOTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.AbstractSAMLQueryValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLValidatorFactoryTest"/>
         </classes>
     </test>
 </suite>
