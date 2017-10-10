@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.joda.time.DateTime;
 import org.mockito.Mock;
+import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -37,12 +39,16 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -54,20 +60,28 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 
 @PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
-        SSOServiceProviderConfigManager.class})
+        SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
 
 public class AssertionBuildingTest extends PowerMockTestCase {
 
@@ -78,6 +92,9 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Mock
     private RealmService realmService;
+
+    @Mock
+    private IdentityPersistenceManager identityPersistenceManager;
 
     @Mock
     private TenantManager tenantManager;
@@ -132,8 +149,8 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         Assertion assertion = buildAssertion();
         assertNull(assertion.getSignature(), "Initially a signature was present before signing");
         mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(anyString())).thenReturn("org.wso2.carbon.identity.sso.saml.builders.signature" +
-                ".DefaultSSOSigner");
+        when(IdentityUtil.getProperty(anyString())).thenReturn("org.wso2.carbon.identity.sso.saml.builders" +
+                ".signature.DefaultSSOSigner");
         Assertion resultAssertion = SAMLSSOUtil.setSignature(assertion, TestConstants.RSA_SHA1_SIG_ALGO,
                 TestConstants.SHA1_DIGEST_ALGO, x509Credential);
         assertNotNull(resultAssertion.getSignature(), "Signature not present in assertion");
@@ -144,7 +161,8 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void testGetAttributes() throws Exception {
 
-        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN);
+        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
+                TestConstants.LOACALHOST_DOMAIN);
         Map<String, String> inputAttributes = new HashMap<>();
         inputAttributes.put(CLAIM_URI1, CLAIM_VALUE1);
         inputAttributes.put(CLAIM_URI2, CLAIM_VALUE2);
@@ -154,6 +172,76 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         assertTrue(attributes.containsKey(CLAIM_URI2), "Claim2 is not present in user attributes");
         assertTrue(CLAIM_VALUE1.equalsIgnoreCase(attributes.get(CLAIM_URI1)), "Received Claim1 value is incorrect");
         assertTrue(CLAIM_VALUE2.equalsIgnoreCase(attributes.get(CLAIM_URI2)), "Received Claim2 value is incorrect");
+    }
+
+    @Test
+    public void validateACS() throws Exception {
+
+        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
+                TestConstants.TRAVELOCITY_ISSUER);
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+        assertTrue(isACSValied, "Expected to ACS to be validated. But failed");
+    }
+
+    @Test
+    public void validateACSWithoutIssuer() throws Exception {
+
+        prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
+                Collections.emptyList());
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+        assertFalse(isACSValied, "Expected to ACS to be validated. But failed");
+    }
+
+    @Test
+    public void validateACSWithACSInSP() throws Exception {
+
+        List<String> acs = new ArrayList();
+        acs.add(TestConstants.ACS_URL);
+        prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER, acs);
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+        assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
+    }
+
+    @Test
+    public void getSPInitSSOAuthnRequestValidator() throws Exception {
+
+        DefaultBootstrap.bootstrap();
+        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
+                (authnRequest);
+        assertNotNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator not to be null");
+    }
+
+    @Test
+    public void getSPInitSSOAuthnRequestValidatorWithClassName() throws Exception {
+
+        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators" +
+                ".SPInitSSOAuthnRequestValidator");
+        DefaultBootstrap.bootstrap();
+        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
+                (authnRequest);
+        assertNotNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator not to be null");
+    }
+
+    @Test
+    public void getSPInitValidatorWithNonExistingClass() throws Exception {
+
+        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators.NonExistingClass");
+        DefaultBootstrap.bootstrap();
+        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
+                (authnRequest);
+        assertNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator to be null");
     }
 
     private void prepareForGetIssuer() throws Exception {
@@ -178,7 +266,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
     }
 
-    private void prepareForUserAttributes(String attrConsumerIndex, String issuer) {
+    private void prepareForUserAttributes(String attrConsumerIndex, String issuer, String spName) {
 
         mockStatic(SSOServiceProviderConfigManager.class);
         when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
@@ -187,7 +275,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setEnableAttributesByDefault(true);
         samlssoServiceProviderDO.setIssuer(issuer);
         ssoServiceProviderConfigManager.addServiceProvider(issuer, samlssoServiceProviderDO);
-        when(ssoServiceProviderConfigManager.getServiceProvider(anyString())).thenReturn(samlssoServiceProviderDO);
+        when(ssoServiceProviderConfigManager.getServiceProvider(spName)).thenReturn(samlssoServiceProviderDO);
     }
 
     private SAMLSSOAuthnReqDTO buildAuthnReqDTO(Map<String, String> attributes, String nameIDFormat, String issuer,
@@ -206,7 +294,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         return authnReqDTO;
     }
 
-    protected ClaimMapping buildClaimMapping(String claimUri) {
+    private ClaimMapping buildClaimMapping(String claimUri) {
 
         ClaimMapping claimMapping = new ClaimMapping();
         Claim claim = new Claim();
@@ -221,9 +309,10 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         prepareForGetIssuer();
         mockStatic(IdentityUtil.class);
         mockStatic(IdentityTenantUtil.class);
-        when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean())).thenReturn(TestConstants
-                .SAMPLE_SERVER_URL);
-        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN);
+        when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean()))
+                .thenReturn(TestConstants.SAMPLE_SERVER_URL);
+        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
+                TestConstants.LOACALHOST_DOMAIN);
         Map<String, String> inputAttributes = new HashMap<>();
         inputAttributes.put(CLAIM_URI1, CLAIM_VALUE1);
         inputAttributes.put(CLAIM_URI2, CLAIM_VALUE2);
@@ -258,4 +347,17 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         when(x509Credential.getPublicKey()).thenReturn(issuerCerts[0].getPublicKey());
     }
 
+    private void prepareIdentityPersistentManager(String attrConsumerIndex, String issuer, List acsList) throws
+            IdentityException {
+
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO.setAttributeConsumingServiceIndex(attrConsumerIndex);
+        samlssoServiceProviderDO.setEnableAttributesByDefault(true);
+        samlssoServiceProviderDO.setIssuer(issuer);
+        samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
+        when(identityPersistenceManager.getServiceProvider(any(Registry.class), anyString()))
+                .thenReturn(samlssoServiceProviderDO);
+        mockStatic(IdentityPersistenceManager.class);
+        when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+    }
 }
