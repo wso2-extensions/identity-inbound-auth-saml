@@ -26,18 +26,12 @@ import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
 import org.wso2.carbon.identity.base.IdentityException;
 
-import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-//import org.wso2.carbon.identity.saml.metadata.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 
-public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
+public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator{
 
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
     AuthnRequest authnReq;
@@ -158,26 +152,4 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
             throw IdentityException.error("Error validating the authentication request", e);
         }
     }
-
-    protected String splitAppendedTenantDomain(String issuer) throws UserStoreException, IdentityException {
-
-        if(IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-            if (issuer.contains("@")) {
-                String tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
-                issuer = issuer.substring(0, issuer.lastIndexOf('@'));
-                if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(issuer)) {
-                    SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + "has been " +
-                                "split");
-                    }
-                }
-            }
-        }
-        if(IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())){
-            SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        }
-        return issuer;
-    }
-
 }
