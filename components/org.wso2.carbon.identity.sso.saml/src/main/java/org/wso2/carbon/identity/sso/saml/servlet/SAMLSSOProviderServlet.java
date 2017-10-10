@@ -375,11 +375,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil
                                         .getTenantDomainFromThreadLocal(),
                                 SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-                        //if ACS is not available in request, priority should be given to SLO response URL over default
-                        // ACS in sp config.
-                        acsUrl = serviceProviderDO.getSloResponseURL();
-                        if (StringUtils.isBlank(acsUrl)) {
-                            acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+
+                        if (serviceProviderDO != null) {
+                            // if ACS is not available in request, priority should be given to SLO response URL over
+                            // default ACS in sp config.
+                            acsUrl = serviceProviderDO.getSloResponseURL();
+                            if (StringUtils.isBlank(acsUrl)) {
+                                acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                            }
                         }
                     }
                 }
