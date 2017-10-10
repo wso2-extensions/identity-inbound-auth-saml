@@ -4,8 +4,17 @@ import org.joda.time.DateTime;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.common.Extensions;
-import org.opensaml.saml2.core.*;
-import org.opensaml.saml2.core.impl.*;
+import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.NameIDPolicy;
+import org.opensaml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml2.core.RequestedAuthnContext;
+import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
+import org.opensaml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
+import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
+import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
 
 import java.util.Random;
 
