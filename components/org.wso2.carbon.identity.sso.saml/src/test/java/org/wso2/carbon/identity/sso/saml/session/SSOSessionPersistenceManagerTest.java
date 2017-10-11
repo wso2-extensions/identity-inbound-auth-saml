@@ -114,7 +114,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         String actualSessionIndex = SSOSessionPersistenceManager.getSessionIndexFromCache("sessionId");
 
         Assert.assertEquals(actualSessionIndex, sessionIndex);
-
     }
 
     @Test
@@ -144,7 +143,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         SSOSessionPersistenceManager.removeSessionInfoDataFromCache("123");
         Assert.assertNull(SSOSessionPersistenceManager.getSessionInfoDataFromCache("123"));
-
     }
 
     @Test
@@ -227,7 +225,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         SSOSessionPersistenceManager.removeSessionInfoDataFromCache("sessionIndex");
         Assert.assertEquals(ssoSessionPersistenceManager.isExistingSession("sessionIndex"), false);
-
     }
 
     @DataProvider(name = "testPersistSession1")
@@ -269,9 +266,8 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     }
 
     public static void initializeData() throws IdentityException {
-//
-        String sessionIndex = "sessionIdex";
-        String sessionId = "sessionId";
+
+        String sessionIndex = "sessionIndex";
         String subject = "subject";
         String issuer = "issuer";
 
@@ -300,9 +296,9 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         return new Object[][]{
                 {null, null, null},
-                {"sessionId", null, "sessionIdex",},
-                {"sessionId", "issuer", "sessionIdex"},
-                {"sessionId2", "issuer2", "sessionIdex"},
+                {"sessionId", null, "sessionIndex",},
+                {"sessionId", "issuer", "sessionIndex"},
+                {"sessionId2", "issuer2", "sessionIndex"},
                 {"sessionId1", "issuer1", null}
         };
     }
@@ -324,8 +320,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "sessionIndex");
         SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex", "sub", samlssoServiceProviderDO, null, "issuer", null);
         SSOSessionPersistenceManager.removeSession("sessionId", "issuer");
-
-        // ssoSessionPersistenceManager.persistSession("samlTokenId", "subject", samlssoServiceProviderDO, "rpSessionId", issuer, null);
     }
 
 }
