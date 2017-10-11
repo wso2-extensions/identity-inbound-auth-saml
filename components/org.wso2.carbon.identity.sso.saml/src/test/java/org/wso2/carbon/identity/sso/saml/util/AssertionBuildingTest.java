@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
+import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
 import org.opensaml.DefaultBootstrap;
@@ -29,12 +31,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.sso.saml.SAMLTestRequestBuilder;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
@@ -55,15 +56,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +73,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-
+/**
+ * Tests Assertion building functionality.
+ */
 @PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
         SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
@@ -119,11 +114,6 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
-    private final String CLAIM_URI1 = "http://wso2.org/claimuri1";
-    private final String CLAIM_URI2 = "http://wso2.org/claimuri2";
-    private final String CLAIM_VALUE1 = "ClaimValue1";
-    private final String CLAIM_VALUE2 = "ClaimValue2";
-
     @Test
     public void testBuildAssertion() throws Exception {
 
@@ -140,14 +130,14 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         map.put(assertion.getAttributeStatements().get(0).getAttributes().get(1).getName(), assertion
                 .getAttributeStatements().get(0).getAttributes().get(1).getName());
 
-        assertTrue(map.containsKey(CLAIM_URI1));
-        assertTrue(map.containsKey(CLAIM_URI2));
+        assertTrue(map.containsKey(TestConstants.CLAIM_URI1));
+        assertTrue(map.containsKey(TestConstants.CLAIM_URI2));
     }
 
     @Test
     public void testSetSignature() throws Exception {
 
-        prepareCredentials();
+        TestUtils.prepareCredentials(x509Credential);
         Assertion assertion = buildAssertion();
         assertNull(assertion.getSignature(), "Initially a signature was present before signing");
         mockStatic(IdentityUtil.class);
@@ -166,14 +156,16 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
                 TestConstants.LOACALHOST_DOMAIN);
         Map<String, String> inputAttributes = new HashMap<>();
-        inputAttributes.put(CLAIM_URI1, CLAIM_VALUE1);
-        inputAttributes.put(CLAIM_URI2, CLAIM_VALUE2);
-        Map<String, String> attributes = SAMLSSOUtil.getAttributes(buildAuthnReqDTO(inputAttributes, TestConstants
-                .SAMPLE_NAME_ID_FORMAT, TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME));
-        assertTrue(attributes.containsKey(CLAIM_URI1), "Claim1 is not present in user attributes");
-        assertTrue(attributes.containsKey(CLAIM_URI2), "Claim2 is not present in user attributes");
-        assertTrue(CLAIM_VALUE1.equalsIgnoreCase(attributes.get(CLAIM_URI1)), "Received Claim1 value is incorrect");
-        assertTrue(CLAIM_VALUE2.equalsIgnoreCase(attributes.get(CLAIM_URI2)), "Received Claim2 value is incorrect");
+        inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
+        inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
+        Map<String, String> attributes = SAMLSSOUtil.getAttributes(TestUtils.buildAuthnReqDTO(inputAttributes,
+                TestConstants.SAMPLE_NAME_ID_FORMAT, TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME));
+        assertTrue(attributes.containsKey(TestConstants.CLAIM_URI1), "Claim1 is not present in user attributes");
+        assertTrue(attributes.containsKey(TestConstants.CLAIM_URI2), "Claim2 is not present in user attributes");
+        assertTrue(TestConstants.CLAIM_VALUE1.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI1)), "Received " +
+                "Claim1 value is incorrect");
+        assertTrue(TestConstants.CLAIM_VALUE2.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI2)), "Received " +
+                "Claim2 value is incorrect");
     }
 
     @Test
@@ -210,28 +202,41 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
     }
 
-    @Test
-    public void getSPInitSSOAuthnRequestValidator() throws Exception {
-
-        DefaultBootstrap.bootstrap();
-        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
-                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
-        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
-                (authnRequest);
-        assertNotNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator not to be null");
+    @DataProvider
+    public Object[][] getSSOAuthnValidatorClasses() {
+        String signatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+        return new Object[][]{
+                {null, "Expected SP init SSO Authn Request validator not to be null"},
+                {"org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidator", "Expected SP init SSO" +
+                        " Authn Request validator not to be null"},
+        };
     }
 
     @Test
-    public void getSPInitSSOAuthnRequestValidatorWithClassName() throws Exception {
+    public void getSPInitSSOAuthnRequestValidator(String spInitSSOAuthnReqValidator, String message) throws Exception {
 
-        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators" +
-                ".SPInitSSOAuthnRequestValidator");
+        if (StringUtils.isNotEmpty(spInitSSOAuthnReqValidator)) {
+            SAMLSSOUtil.setSPInitSSOAuthnRequestValidator(spInitSSOAuthnReqValidator);
+        }
         DefaultBootstrap.bootstrap();
-        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
-                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
         SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
                 (authnRequest);
-        assertNotNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator not to be null");
+        assertNotNull(spInitSSOAuthnRequestValidator, message);
+    }
+
+    @Test
+    public void getSPInitAuthReqValidatorWithInvalidClass() throws Exception {
+
+        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators" +
+                ".NonExistingClass");
+        DefaultBootstrap.bootstrap();
+        AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
+                (authnRequest);
+        assertNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator to be null");
     }
 
     @Test
@@ -239,8 +244,8 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
         SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators.NonExistingClass");
         DefaultBootstrap.bootstrap();
-        AuthnRequest authnRequest = TestUtils.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
-                TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                "GET", TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
         SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
                 (authnRequest);
         assertNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator to be null");
@@ -280,31 +285,6 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         when(ssoServiceProviderConfigManager.getServiceProvider(spName)).thenReturn(samlssoServiceProviderDO);
     }
 
-    private SAMLSSOAuthnReqDTO buildAuthnReqDTO(Map<String, String> attributes, String nameIDFormat, String issuer,
-                                                String subjectName) {
-
-        SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
-        authnReqDTO.setUser(AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(subjectName));
-        authnReqDTO.setNameIDFormat(nameIDFormat);
-        authnReqDTO.setIssuer(issuer);
-        Map<ClaimMapping, String> userAttributes = new HashMap<>();
-
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            userAttributes.put(buildClaimMapping(entry.getKey()), entry.getValue());
-        }
-        authnReqDTO.getUser().setUserAttributes(userAttributes);
-        return authnReqDTO;
-    }
-
-    private ClaimMapping buildClaimMapping(String claimUri) {
-
-        ClaimMapping claimMapping = new ClaimMapping();
-        Claim claim = new Claim();
-        claim.setClaimUri(claimUri);
-        claimMapping.setRemoteClaim(claim);
-        claimMapping.setLocalClaim(claim);
-        return claimMapping;
-    }
 
     private Assertion buildAssertion() throws Exception {
 
@@ -316,9 +296,9 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
                 TestConstants.LOACALHOST_DOMAIN);
         Map<String, String> inputAttributes = new HashMap<>();
-        inputAttributes.put(CLAIM_URI1, CLAIM_VALUE1);
-        inputAttributes.put(CLAIM_URI2, CLAIM_VALUE2);
-        SAMLSSOAuthnReqDTO authnReqDTO = buildAuthnReqDTO(inputAttributes, TestConstants.SAMPLE_NAME_ID_FORMAT,
+        inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
+        inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
+        SAMLSSOAuthnReqDTO authnReqDTO = TestUtils.buildAuthnReqDTO(inputAttributes, TestConstants.SAMPLE_NAME_ID_FORMAT,
                 TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME);
 
         authnReqDTO.setNameIDFormat(TestConstants.SAMPLE_NAME_ID_FORMAT);
@@ -326,27 +306,6 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authnReqDTO, new DateTime(00000000L), TestConstants
                 .SESSION_ID);
         return assertion;
-    }
-
-    private void prepareCredentials() throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
-
-        KeyStore keyStore = TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS");
-        X509Certificate[] issuerCerts = null;
-        Certificate[] certificates;
-
-        certificates = keyStore.getCertificateChain(TestConstants.WSO2_CARBON);
-        issuerCerts = new X509Certificate[certificates.length];
-
-        int i = 0;
-        for (Certificate certificate : certificates) {
-            issuerCerts[i++] = (X509Certificate) certificate;
-        }
-        when(x509Credential.getEntityCertificate()).thenReturn((X509Certificate) certificates[0]);
-        when(x509Credential.getEntityCertificateChain()).thenReturn(Arrays.asList(issuerCerts));
-        when(x509Credential.getPrivateKey()).thenReturn((PrivateKey) keyStore.getKey(TestConstants.WSO2_CARBON,
-                TestConstants.WSO2_CARBON.toCharArray()));
-        when(x509Credential.getPublicKey()).thenReturn(issuerCerts[0].getPublicKey());
     }
 
     private void prepareIdentityPersistentManager(String attrConsumerIndex, String issuer, List acsList) throws
