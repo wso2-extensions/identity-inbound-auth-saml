@@ -26,6 +26,7 @@
             <class name="org.wso2.carbon.identity.query.saml.dto.InvalidItemDTOTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.AbstractSAMLQueryValidatorTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLValidatorFactoryTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLIDRequestValidatorTest"/>
         </classes>
     </test>
 </suite>
