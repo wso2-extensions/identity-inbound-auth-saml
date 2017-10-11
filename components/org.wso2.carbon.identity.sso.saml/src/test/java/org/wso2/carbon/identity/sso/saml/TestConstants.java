@@ -45,6 +45,11 @@ public class TestConstants {
     public static final String GENERAL_STRING = "WSO2 is an open source technology provider that increases the " +
             "agility of digital businesses and enterprises engaging in digital transformation.";
 
+    public static final String CLAIM_URI1 = "http://wso2.org/claimuri1";
+    public static final String CLAIM_URI2 = "http://wso2.org/claimuri2";
+    public static final String CLAIM_VALUE1 = "ClaimValue1";
+    public static final String CLAIM_VALUE2 = "ClaimValue2";
+
     public static final String AUTHN_FAILED_SAML_RESPONSE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<saml2p:Response Destination=\"https://localhost:9443/samlsso\" " +
             "ID=\"_bdcada906cfe9ead0580e5941ab50fe5\" IssueInstant=\"2016-04-23T15:25:27.652Z\" Version=\"2" +

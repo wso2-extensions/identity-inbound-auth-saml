@@ -19,21 +19,28 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.common.xml.SAMLConstants;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameIDPolicy;
-import org.opensaml.saml2.core.NameIDType;
-import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
+import org.opensaml.xml.security.x509.X509Credential;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 
 import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.powermock.api.mockito.PowerMockito.when;
 
 public class TestUtils {
 
@@ -65,44 +72,51 @@ public class TestUtils {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
     }
 
-    public static AuthnRequest buildAuthnRequest(String spEntityId, boolean isForceAuthenticate, boolean isPassive,
-                                                 String acsUrl, String idpUrl) {
+    public static void prepareCredentials(X509Credential x509Credential) throws KeyStoreException,
+            UnrecoverableKeyException, NoSuchAlgorithmException {
 
-        IssuerBuilder issuerBuilder = new IssuerBuilder();
-        Issuer issuer = issuerBuilder.buildObject("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer", "samlp");
-        if (spEntityId != null && !spEntityId.isEmpty()) {
-            issuer.setValue(spEntityId);
-        } else {
-            issuer.setValue("carbonServer");
+        KeyStore keyStore = TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS");
+        X509Certificate[] issuerCerts = null;
+        Certificate[] certificates;
+
+        certificates = keyStore.getCertificateChain(TestConstants.WSO2_CARBON);
+        issuerCerts = new X509Certificate[certificates.length];
+
+        int i = 0;
+        for (Certificate certificate : certificates) {
+            issuerCerts[i++] = (X509Certificate) certificate;
         }
-        DateTime issueInstant = new DateTime();
+        when(x509Credential.getEntityCertificate()).thenReturn((X509Certificate) certificates[0]);
+        when(x509Credential.getEntityCertificateChain()).thenReturn(Arrays.asList(issuerCerts));
+        when(x509Credential.getPrivateKey()).thenReturn((PrivateKey) keyStore.getKey(TestConstants.WSO2_CARBON,
+                TestConstants.WSO2_CARBON.toCharArray()));
+        when(x509Credential.getPublicKey()).thenReturn(issuerCerts[0].getPublicKey());
+    }
 
-		/* Creation of AuthRequestObject */
-        AuthnRequestBuilder authRequestBuilder = new AuthnRequestBuilder();
-        AuthnRequest authRequest = authRequestBuilder.buildObject("urn:oasis:names:tc:SAML:2.0:protocol",
-                "AuthnRequest", "samlp");
-        authRequest.setForceAuthn(isForceAuthenticate);
-        authRequest.setIsPassive(isPassive);
-        authRequest.setIssueInstant(issueInstant);
-        authRequest.setProtocolBinding(SAMLConstants.SAML2_POST_BINDING_URI);
-        authRequest.setAssertionConsumerServiceURL(acsUrl);
-        authRequest.setIssuer(issuer);
-        authRequest.setID("34567890");
-        authRequest.setVersion(SAMLVersion.VERSION_20);
-        authRequest.setDestination(idpUrl);
-        authRequest.setAttributeConsumingServiceIndex(Integer.valueOf(1234567890));
-        NameIDPolicyBuilder nameIdPolicyBuilder = new NameIDPolicyBuilder();
-        NameIDPolicy nameIdPolicy = nameIdPolicyBuilder.buildObject();
-        String nameIdType = NameIDType.UNSPECIFIED;
+    public static ClaimMapping buildClaimMapping(String claimUri) {
 
-        nameIdPolicy.setFormat(nameIdType);
-        if (spEntityId != null && !spEntityId.isEmpty()) {
-            nameIdPolicy.setSPNameQualifier(spEntityId);
+        ClaimMapping claimMapping = new ClaimMapping();
+        Claim claim = new Claim();
+        claim.setClaimUri(claimUri);
+        claimMapping.setRemoteClaim(claim);
+        claimMapping.setLocalClaim(claim);
+        return claimMapping;
+    }
+
+    public static SAMLSSOAuthnReqDTO buildAuthnReqDTO(Map<String, String> attributes, String nameIDFormat, String issuer,
+                                                String subjectName) {
+
+        SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
+        authnReqDTO.setUser(AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(subjectName));
+        authnReqDTO.setNameIDFormat(nameIDFormat);
+        authnReqDTO.setIssuer(issuer);
+        Map<ClaimMapping, String> userAttributes = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            userAttributes.put(TestUtils.buildClaimMapping(entry.getKey()), entry.getValue());
         }
-        //nameIdPolicy.setSPNameQualifier(issuer);
-        nameIdPolicy.setAllowCreate(true);
-        authRequest.setNameIDPolicy(nameIdPolicy);
-
-        return authRequest;
+        authnReqDTO.getUser().setUserAttributes(userAttributes);
+        return authnReqDTO;
     }
 }
