@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 import org.opensaml.xml.XMLObject;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.saml.TestConstants;
 
 import static org.testng.Assert.assertEquals;
 
