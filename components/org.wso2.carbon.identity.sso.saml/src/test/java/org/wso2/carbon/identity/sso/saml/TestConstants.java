@@ -33,6 +33,7 @@ public class TestConstants {
     public static final String TEST_USER_NAME = "testUser";
     public static final String ATTRIBUTE_CONSUMER_INDEX = "1234567890";
     public static final String ACS_URL = "https://locahost:8080/travelocity.com/home.jsp";
+    public static final String RETURN_TO_URL = "http://localhost.com:8080/travelocity.com/index.jsp";
     public static final String IDP_URL = "https://localhost:9443/commonauth";
     public static final String SAMPLE_NAME_ID_FORMAT = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress";
     public static final String SESSION_ID = "sessionId4567890";
