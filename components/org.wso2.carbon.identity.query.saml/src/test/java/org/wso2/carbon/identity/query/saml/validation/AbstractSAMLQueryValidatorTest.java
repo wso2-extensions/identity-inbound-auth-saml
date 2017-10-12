@@ -28,6 +28,7 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.*;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -44,6 +45,7 @@ import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.*;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
 
 /**
  * Test Class for the AbstractSAMLQueryValidator
@@ -51,8 +53,21 @@ import static org.testng.Assert.*;
 @PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
 @PowerMockIgnore({"java.net.*", "org.opensaml.*"})
 public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
+
     AbstractSAMLQueryValidator testclass = new AbstractSAMLQueryValidator();
-    SAMLAttributeQueryValidator testclass2 =new SAMLAttributeQueryValidator();
+
+    @BeforeClass
+    public void setUp() {
+
+        initPrivilegedCarbonContext("testDomain", 1, "testuser");
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+    }
+
     @DataProvider(name = "providerequest")
     public Object[][] createSubject() {
 
@@ -128,7 +143,7 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "provideValidationRequest")
-    public void testValidate(Object request, boolean value, boolean assertEn) throws Exception {
+    public void testValidate(Object request, boolean value, boolean assertEn) throws IdentitySAML2QueryException {
 
         List<InvalidItemDTO> invalidItems = new ArrayList<>();
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
@@ -145,11 +160,11 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
             when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
                     .thenReturn(true);
         }
-        assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request),value);
+        assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request), value);
     }
 
     @Test
-    public void testValidateSignature() throws Exception {
+    public void testValidateSignature() throws IdentitySAML2QueryException {
 
         setSAMLprovider();
         mockStatic(OpenSAML3Util.class);
@@ -160,14 +175,8 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         assertFalse(testclass.validateSignature(request));
     }
 
-    @BeforeClass
-    public void setUp() throws Exception {
-
-        initPrivilegedCarbonContext("testDomain", 1, "testuser");
-    }
-
     @Test(dataProvider = "providerequest")
-    public void testValidateIssuer(Object request, boolean value) throws Exception {
+    public void testValidateIssuer(Object request, boolean value) throws IdentitySAML2QueryException {
 
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
         mockStatic(SAMLQueryRequestUtil.class);
@@ -175,14 +184,18 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         assertEquals(testclass.validateIssuer((RequestAbstractType) request), value);
     }
 
-    @AfterClass
-    public void tearDown() throws Exception {
+    @Test(expectedExceptions = IdentitySAML2QueryException.class)
+    public void testIdentitySAML2QueryExceptionforValidateIssuer() throws Exception {
 
-        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        DummyIssuer issuer = new DummyIssuer();
+        DummyRequest request = new DummyRequest();
+        request.setIssuer(issuer);
+        testclass.validateIssuer(request);
+
     }
 
     @Test(dataProvider = "providerequest")
-    public void testValidateSAMLVersion(Object request, boolean value) throws Exception {
+    public void testValidateSAMLVersion(Object request, boolean value) throws IdentitySAML2QueryException {
 
         assertEquals(testclass.validateSAMLVersion((RequestAbstractType) request), value);
     }
@@ -217,14 +230,5 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         testclass.validateIssuer(requestt);
     }
 
-    private void initPrivilegedCarbonContext(String tenantDomain, int tenantID, String userName) throws Exception {
-
-        String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
-        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
-    }
 
 }

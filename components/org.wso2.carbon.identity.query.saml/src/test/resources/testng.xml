@@ -27,6 +27,8 @@
             <class name="org.wso2.carbon.identity.query.saml.validation.AbstractSAMLQueryValidatorTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLValidatorFactoryTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLIDRequestValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLSubjectQueryValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.X509CredentialImplTest"/>
         </classes>
     </test>
 </suite>
