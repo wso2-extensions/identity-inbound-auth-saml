@@ -18,7 +18,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="identity-sso-saml-common-test-suite">
-    <test name="identity-sso-saml-test-all">
+    <test name="identity-sso-saml-common-test-all">
         <classes>
             <class name="org.wso2.carbon.identity.sso.saml.common.UtilTest" />
         </classes>
