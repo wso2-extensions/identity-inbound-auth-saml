@@ -41,12 +41,9 @@ public class SessionInfoDataTest {
         initMocks(this);
         sessionInfoData = new SessionInfoData();
         samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
-
         sessionInfoData.addServiceProvider("testUser", samlssoServiceProviderDO, null);
         sessionInfoData.addServiceProvider("testUser1", samlssoServiceProviderDO, "rpSessionId");
-
         sessionInfoData.setSubject("testUser", "subject");
-
     }
 
     @AfterMethod
@@ -64,7 +61,6 @@ public class SessionInfoDataTest {
     public void testAddServiceProvider() throws Exception {
 
         Assert.assertEquals(sessionInfoData.getServiceProviderList().get("testUser"), samlssoServiceProviderDO);
-
         Assert.assertEquals(sessionInfoData.getServiceProviderList().get("testUser1"), samlssoServiceProviderDO);
     }
 
@@ -72,7 +68,6 @@ public class SessionInfoDataTest {
     public void testRemoveServiceProvider() throws Exception {
 
         sessionInfoData.removeServiceProvider("testUser1");
-
         Assert.assertFalse(sessionInfoData.getServiceProviderList().containsKey("testUser1"));
         Assert.assertFalse(sessionInfoData.getRPSessionsList().containsKey("testUser1"));
     }

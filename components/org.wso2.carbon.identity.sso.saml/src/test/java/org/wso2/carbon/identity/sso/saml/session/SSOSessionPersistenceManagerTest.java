@@ -24,18 +24,16 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.CarbonBaseConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCache;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheEntry;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheKey;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCache;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheEntry;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheKey;
-
-import java.nio.file.Paths;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -48,22 +46,13 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         initMocks(this);
         ssoSessionPersistenceManager = new SSOSessionPersistenceManager();
-        initPrivilegedCarbonContext("carbon.super", -1234, "testUser");
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
-
-    }
-
-    public static void initPrivilegedCarbonContext(String tenantDomain, int tenantID, String userName) throws Exception {
-
-        String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
-        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
+        //remove the exsisting sessionIndex from cache
+        SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId");
     }
 
     @Test
@@ -71,10 +60,8 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         SSOSessionPersistenceManager persistenceManager = SSOSessionPersistenceManager.getPersistenceManager();
         Assert.assertNotNull(persistenceManager);
-
         SSOSessionPersistenceManager anotherPersistenceManager = SSOSessionPersistenceManager.getPersistenceManager();
         Assert.assertNotNull(anotherPersistenceManager);
-
         Assert.assertEquals(persistenceManager, anotherPersistenceManager);
     }
 
@@ -82,26 +69,19 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public void testAddSessionIndexToCache() throws Exception {
 
         String actualSessionIndex = null;
-
-        SSOSessionPersistenceManager.addSessionIndexToCache("tokenid", "456");
-
+        SSOSessionPersistenceManager.addSessionIndexToCache("tokenid", "sessionIndex");
         SAMLSSOSessionIndexCacheKey cacheKey = new SAMLSSOSessionIndexCacheKey("tokenid");
         SAMLSSOSessionIndexCacheEntry cacheEntry = SAMLSSOSessionIndexCache.getInstance().getValueFromCache(cacheKey);
-
-        if (cacheEntry != null) {
-            actualSessionIndex = cacheEntry.getSessionIndex();
-        }
-        Assert.assertEquals(actualSessionIndex, "456");
+        Assert.assertNotNull(cacheEntry);
+        Assert.assertEquals(actualSessionIndex, "sessionIndex");
     }
 
     @Test
     public void testGetSessionInfoDataFromCache() throws Exception {
 
         SessionInfoData sessionInfoData = new SessionInfoData();
-        SSOSessionPersistenceManager.addSessionInfoDataToCache("123", sessionInfoData);
-
-        SessionInfoData actualSesssionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache("123");
-
+        SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionId", sessionInfoData);
+        SessionInfoData actualSesssionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache("sessionId");
         Assert.assertEquals(actualSesssionInfoData, sessionInfoData);
     }
 
@@ -110,9 +90,7 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         String sessionIndex = "sessionIndex";
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", sessionIndex);
-
         String actualSessionIndex = SSOSessionPersistenceManager.getSessionIndexFromCache("sessionId");
-
         Assert.assertEquals(actualSessionIndex, sessionIndex);
     }
 
@@ -121,40 +99,31 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         SessionInfoData actualSessionInfoData = null;
         SessionInfoData sessionInfoData = new SessionInfoData();
-
-        SSOSessionPersistenceManager.addSessionInfoDataToCache("123", sessionInfoData);
-
-        SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey("123");
+        SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionId", sessionInfoData);
+        SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey("sessionId");
         SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
-
-        if (cacheEntry != null) {
-            actualSessionInfoData = cacheEntry.getSessionInfoData();
-        }
+        Assert.assertNotNull(cacheEntry);
         Assert.assertEquals(actualSessionInfoData, sessionInfoData);
     }
 
     @Test
     public void testRemoveSessionInfoDataFromCache() throws Exception {
 
-        SSOSessionPersistenceManager.addSessionInfoDataToCache("123", new SessionInfoData());
-
+        SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionId", new SessionInfoData());
         SSOSessionPersistenceManager.removeSessionInfoDataFromCache(null);
-        Assert.assertNotNull(SSOSessionPersistenceManager.getSessionInfoDataFromCache("123"));
-
-        SSOSessionPersistenceManager.removeSessionInfoDataFromCache("123");
-        Assert.assertNull(SSOSessionPersistenceManager.getSessionInfoDataFromCache("123"));
+        Assert.assertNotNull(SSOSessionPersistenceManager.getSessionInfoDataFromCache("sessionId"));
+        SSOSessionPersistenceManager.removeSessionInfoDataFromCache("sessionId");
+        Assert.assertNull(SSOSessionPersistenceManager.getSessionInfoDataFromCache("sessionId"));
     }
 
     @Test
     public void testRemoveSessionIndexFromCache() throws Exception {
 
         String sessionIndex;
-        SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "456");
-
+        SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "sessionIndex");
         SSOSessionPersistenceManager.removeSessionIndexFromCache(null);
         sessionIndex = SSOSessionPersistenceManager.getSessionIndexFromCache("sessionId");
         Assert.assertNotNull(sessionIndex);
-
         SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId");
         sessionIndex = SSOSessionPersistenceManager.getSessionIndexFromCache("sessionId");
         Assert.assertNull(sessionIndex);
@@ -165,19 +134,15 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         String sessionIndex = "sessionIndex";
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", sessionIndex);
-
         String actualSessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId("sessionId");
-
         Assert.assertEquals(actualSessionIndex, sessionIndex);
     }
 
     @Test
     public void testRemoveTokenId() throws Exception {
 
-        SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "456");
-
+        SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "sessionIndex");
         ssoSessionPersistenceManager.removeTokenId("sessionId");
-
         String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId("sessionId");
         Assert.assertNull(sessionIndex);
     }
@@ -186,10 +151,8 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public void testIsExistingTokenId() throws Exception {
 
         String sessionIndex = "sessionIndex";
-
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionIndex", sessionIndex);
         Assert.assertEquals(ssoSessionPersistenceManager.isExistingTokenId("sessionIndex"), true);
-
         SSOSessionPersistenceManager.removeSessionIndexFromCache(sessionIndex);
         Assert.assertEquals(ssoSessionPersistenceManager.isExistingTokenId("sessionIndex"), false);
     }
@@ -199,7 +162,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         SessionInfoData sessionInfoData = new SessionInfoData();
         SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionIndex", sessionInfoData);
-
         SessionInfoData actualSessionInfoData = ssoSessionPersistenceManager.getSessionInfo("sessionIndex");
         Assert.assertEquals(actualSessionInfoData, sessionInfoData);
     }
@@ -208,10 +170,8 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public void testRemoveSession() throws Exception {
 
         SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionIndex", new SessionInfoData());
-
         ssoSessionPersistenceManager.removeSession("sessionIndex");
         SessionInfoData sessionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache("sessionIndex");
-
         Assert.assertNull(sessionInfoData);
     }
 
@@ -219,18 +179,14 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public void testIsExistingSession() throws Exception {
 
         SessionInfoData sessionInfoData = new SessionInfoData();
-
         SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionIndex", sessionInfoData);
         Assert.assertEquals(ssoSessionPersistenceManager.isExistingSession("sessionIndex"), true);
-
         SSOSessionPersistenceManager.removeSessionInfoDataFromCache("sessionIndex");
         Assert.assertEquals(ssoSessionPersistenceManager.isExistingSession("sessionIndex"), false);
     }
 
     @DataProvider(name = "testPersistSession1")
     public Object[][] values() {
-
-        SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId");
 
         return new Object[][]{
                 {null, null},
@@ -244,7 +200,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
         ssoSessionPersistenceManager.persistSession(sessionId, sessionIndex);
         String actualValue = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
-
         Assert.assertEquals(actualValue, sessionIndex);
     }
 
@@ -257,7 +212,6 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setIssuer(issuer);
         SSOSessionPersistenceManager.addSessionInfoDataToCache("samlTokenId", new SessionInfoData());
         ssoSessionPersistenceManager.persistSession("samlTokenId", "subject", samlssoServiceProviderDO, "rpSessionId", issuer, assertionConsumerUrl);
-
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfoDataFromCache("samlTokenId");
         Assert.assertEquals(sessionInfoData.getSubject(issuer), "subject");
         Assert.assertFalse(sessionInfoData.getRPSessionsList().isEmpty());
@@ -270,19 +224,16 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         String sessionIndex = "sessionIndex";
         String subject = "subject";
         String issuer = "issuer";
-
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(issuer);
         samlssoServiceProviderDO.setDoSingleLogout(true);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", sessionIndex);
         SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject, samlssoServiceProviderDO, null, issuer, null);
-//
         SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO1.setIssuer("issuer1");
         samlssoServiceProviderDO1.setDoSingleLogout(true);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId1", "sessionIndex2");
         SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex2", subject, samlssoServiceProviderDO1, null, "issuer1", null);
-
         SAMLSSOServiceProviderDO samlssoServiceProviderDO2 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO2.setIssuer("issuer2");
         samlssoServiceProviderDO2.setDoSingleLogout(false);
