@@ -47,12 +47,13 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         initMocks(this);
         ssoSessionPersistenceManager = new SSOSessionPersistenceManager();
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        //remove the exsisting sessionIndex from cache
+        SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId");
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
-        //remove the exsisting sessionIndex from cache
-        SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId");
+
     }
 
     @Test
@@ -73,6 +74,7 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         SAMLSSOSessionIndexCacheKey cacheKey = new SAMLSSOSessionIndexCacheKey("tokenid");
         SAMLSSOSessionIndexCacheEntry cacheEntry = SAMLSSOSessionIndexCache.getInstance().getValueFromCache(cacheKey);
         Assert.assertNotNull(cacheEntry);
+        actualSessionIndex = cacheEntry.getSessionIndex();
         Assert.assertEquals(actualSessionIndex, "sessionIndex");
     }
 
@@ -103,6 +105,7 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey("sessionId");
         SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
         Assert.assertNotNull(cacheEntry);
+        actualSessionInfoData = cacheEntry.getSessionInfoData();
         Assert.assertEquals(actualSessionInfoData, sessionInfoData);
     }
 
