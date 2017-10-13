@@ -56,6 +56,9 @@ public class EncryptionTests extends PowerMockTestCase {
     @Mock
     private KeyStoreManager keyStoreManager;
 
+    @Mock
+    private X509CredentialImpl x509Credential;
+
     @Test
     public void testSetEncryptedAssertionWithKeyEncryptionAlgorithm() throws Exception {
 
@@ -65,7 +68,8 @@ public class EncryptionTests extends PowerMockTestCase {
                 TestConstants.ASSERTION_ENCRYPTION_ALGO, TestConstants.KEY_ENCRYPTION_ALGO, TestConstants.WSO2_CARBON,
                 "carbon.super");
 
-        Assertion decryptedAssertion = SAMLAssertionDecryptor.getDecryptedAssertion(encryptedAssertion);
+        TestUtils.prepareCredentials(x509Credential);
+        Assertion decryptedAssertion = TestUtils.getDecryptedAssertion(encryptedAssertion, x509Credential);
 
         assertEncryptedSAMLAssertion(assertion, encryptedAssertion, decryptedAssertion);
     }
@@ -78,7 +82,8 @@ public class EncryptionTests extends PowerMockTestCase {
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion, TestConstants
                 .ASSERTION_ENCRYPTION_ALGO, TestConstants.WSO2_CARBON, "carbon.super");
 
-        Assertion decryptedAssertion = SAMLAssertionDecryptor.getDecryptedAssertion(encryptedAssertion);
+        TestUtils.prepareCredentials(x509Credential);
+        Assertion decryptedAssertion = TestUtils.getDecryptedAssertion(encryptedAssertion, x509Credential);
 
         assertEncryptedSAMLAssertion(assertion, encryptedAssertion, decryptedAssertion);
     }
@@ -87,13 +92,19 @@ public class EncryptionTests extends PowerMockTestCase {
                                               Assertion decryptedAssertion) throws Exception {
 
         assertEquals(encryptedAssertion.getEncryptedData().getEncryptionMethod().getAlgorithm(),
-                TestConstants.ASSERTION_ENCRYPTION_ALGO);
-        assertEquals(decryptedAssertion.getIssuer().getValue(), assertion.getIssuer().getValue());
+                TestConstants.ASSERTION_ENCRYPTION_ALGO, "Encrypted SAML assertion should contain the given " +
+                        "encryption algorithm.");
+        assertEquals(decryptedAssertion.getIssuer().getValue(), assertion.getIssuer().getValue(), "Issuer should be " +
+                "the same in both decrypted SAML assertion and original SAML assertion.");
         assertEquals(decryptedAssertion.getSubject().getNameID().getValue(),
-                assertion.getSubject().getNameID().getValue());
-        assertEquals(decryptedAssertion.getAttributeStatements().size(), assertion.getAttributeStatements().size());
+                assertion.getSubject().getNameID().getValue(), "Subject should be the same in both decrypted SAML " +
+                        "assertion and original SAML assertion.");
+        assertEquals(decryptedAssertion.getAttributeStatements().size(), assertion.getAttributeStatements().size(),
+                "Attribute statements size should be the same in both decrypted SAML assertion and original SAML " +
+                        "assertion.");
         assertEquals(decryptedAssertion.getAuthnStatements().get(0).getSessionIndex(),
-                assertion.getAuthnStatements().get(0).getSessionIndex());
+                assertion.getAuthnStatements().get(0).getSessionIndex(), "SessionId should be the same in both " +
+                        "decrypted SAML assertion and original SAML assertion.");
     }
 
     private void prepareForAssertionEncryption() throws Exception {
@@ -109,7 +120,7 @@ public class EncryptionTests extends PowerMockTestCase {
         SAMLSSOUtil.setRealmService(realmService);
 
         mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(SAMLSSOConstants.SSOSERVICE_SAMLSSOENCRYPTOR_LOCATION)).thenReturn(
+        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH)).thenReturn(
                 TestConstants.DEFAULT_SSO_ENCRYPTOR);
     }
 

@@ -74,17 +74,17 @@ public class SAMLTestAssertionBuilder {
 
         Assertion samlAssertion = new AssertionBuilder().buildObject();
 
-        // Create issuer
+        // Create issuer.
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setValue(issuerStr);
         issuer.setFormat(NameIDType.ENTITY);
 
-        //Create nameID
+        // Create nameID.
         NameID nameId = new NameIDBuilder().buildObject();
         nameId.setValue(nameIdStr);
         nameId.setFormat(NameIDType.EMAIL);
 
-        //Create subjectConfirmation
+        // Create subjectConfirmation.
         SubjectConfirmation subjectConfirmation = new SubjectConfirmationBuilder().buildObject();
         subjectConfirmation.setMethod(SAMLSSOConstants.SUBJECT_CONFIRM_BEARER);
         SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
@@ -92,75 +92,74 @@ public class SAMLTestAssertionBuilder {
         scData.setNotOnOrAfter(notOnOrAfter);
         subjectConfirmation.setSubjectConfirmationData(scData);
 
-        // Create subject
+        // Create subject.
         Subject subject = new SubjectBuilder().buildObject();
         subject.setNameID(nameId);
         subject.getSubjectConfirmations().add(subjectConfirmation);
 
-        // Create authentication statement
-        // Creating authentication context class reference
+        // Create authentication statement.
+        // Creating authentication context class reference.
         AuthnContextClassRef authCtxClassRef = new AuthnContextClassRefBuilder().buildObject();
         authCtxClassRef.setAuthnContextClassRef(AuthnContext.PASSWORD_AUTHN_CTX);
-        // Creating authenticating authority
+        // Creating authenticating authority.
         AuthenticatingAuthority authenticatingAuthority = new org.wso2.carbon.identity.sso.saml.builders.AuthenticatingAuthorityImpl();
         authenticatingAuthority.setURI(idpEntityId);
         // Creating authentication context
         AuthnContext authContext = new AuthnContextBuilder().buildObject();
         authContext.setAuthnContextClassRef(authCtxClassRef);
         authContext.getAuthenticatingAuthorities().add(authenticatingAuthority);
-        // Creating authnStatement
+        // Creating authnStatement.
         AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
         authStmt.setAuthnInstant(now);
         authStmt.setSessionIndex(sessionId);
         authStmt.setAuthnContext(authContext);
 
-
-        // Create attributeStatement
+        // Create attributeStatement.
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();
         XSStringBuilder stringBuilder = new XSStringBuilder();
         for(Map.Entry<String, String> entry : userAttributeMap.entrySet()){
             Attribute attribute = new AttributeBuilder().buildObject();
-            // Setting attribute name
+            // Setting attribute name.
             attribute.setName(entry.getKey());
-            // Setting attribute name format
+            // Setting attribute name format.
             attribute.setNameFormat(SAMLSSOConstants.NAME_FORMAT_BASIC);
-            // Creating attribute value
+            // Creating attribute value.
             XSString stringValue = stringBuilder.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME, XSString.TYPE_NAME);
             stringValue.setValue(entry.getValue());
-            // Setting attribute value to attribute values list
+            // Setting attribute value to attribute values list.
             attribute.getAttributeValues().add(stringValue);
-            // Setting attribute to attributeStatement
+            // Setting attribute to attributeStatement.
             attStmt.getAttributes().add(attribute);
         }
 
-        // Create conditions
-        // Creating audience restriction
+        // Create conditions.
+        // Creating audience restriction.
         AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder().buildObject();
         Audience issuerAudience = new AudienceBuilder().buildObject();
         issuerAudience.setAudienceURI(TestConstants.IDP_URL);
         audienceRestriction.getAudiences().add(issuerAudience);
-        // Creating conditions
+        // Creating conditions.
         Conditions conditions = new ConditionsBuilder().buildObject();
         conditions.setNotBefore(now);
         conditions.setNotOnOrAfter(notOnOrAfter);
         conditions.getAudienceRestrictions().add(audienceRestriction);
 
-        // Set basic information
+        // Set basic information.
         samlAssertion.setID(SAMLSSOUtil.createID());
         samlAssertion.setVersion(SAMLVersion.VERSION_20);
         samlAssertion.setIssuer(issuer);
         samlAssertion.setIssueInstant(now);
 
-        // Set subject
+        // Set subject.
         samlAssertion.setSubject(subject);
 
-        // Set authentication statement
+        // Set authentication statement.
         samlAssertion.getAuthnStatements().add(authStmt);
 
-        // Set attribute statement
+        // Set attribute statement.
         samlAssertion.getAttributeStatements().add(attStmt);
 
-        // Set conditions
+        // Set conditions.
         samlAssertion.setConditions(conditions);
 
         return samlAssertion;

@@ -19,6 +19,15 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml2.encryption.Decrypter;
+import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.encryption.EncryptedKey;
+import org.opensaml.xml.security.SecurityHelper;
+import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -26,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 
+import javax.crypto.SecretKey;
 import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -91,6 +101,22 @@ public class TestUtils {
         when(x509Credential.getPrivateKey()).thenReturn((PrivateKey) keyStore.getKey(TestConstants.WSO2_CARBON,
                 TestConstants.WSO2_CARBON.toCharArray()));
         when(x509Credential.getPublicKey()).thenReturn(issuerCerts[0].getPublicKey());
+    }
+
+    public static Assertion getDecryptedAssertion(EncryptedAssertion encryptedAssertion, X509Credential x509Credential)
+            throws DecryptionException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+
+        KeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(x509Credential);
+        Decrypter decrypter = new Decrypter(null, keyResolver, null);
+
+        EncryptedKey key = encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
+        SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().
+                getEncryptionMethod().getAlgorithm());
+        Credential shared = SecurityHelper.getSimpleCredential(dkey);
+
+        decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), null, null);
+        decrypter.setRootInNewDocument(true);
+        return decrypter.decrypt(encryptedAssertion);
     }
 
     public static ClaimMapping buildClaimMapping(String claimUri) {
