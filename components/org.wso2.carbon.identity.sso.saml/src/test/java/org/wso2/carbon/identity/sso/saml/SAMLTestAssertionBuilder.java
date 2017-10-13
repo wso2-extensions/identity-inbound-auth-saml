@@ -64,7 +64,7 @@ public class SAMLTestAssertionBuilder {
         userAttributes.put("first_name", "John");
         userAttributes.put("last_name", "Snow");
         userAttributes.put("email", "johnsnow@got.com");
-        return buildSAMLAssertion("localhost", "userJohnSnow", "abcdef1234567", "localhost", userAttributes);
+        return buildSAMLAssertion("is.com", "userJohnSnow", "abcdef1234567", "google.com", userAttributes);
     }
 
     public static Assertion buildSAMLAssertion(String issuerStr, String nameIdStr, String sessionId,

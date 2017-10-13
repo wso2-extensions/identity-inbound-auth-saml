@@ -80,6 +80,7 @@ public class SAMLSSOConstants {
     public static final String CRYPTO_PROTOCOL = "TLS";
 
     public static final String AUTHN_CONTEXT_CLASS_REF = "AuthnContextClassRef";
+    public static final String SSOSERVICE_SAMLSSOENCRYPTOR_LOCATION = "SSOService.SAMLSSOEncrypter";
 
     private SAMLSSOConstants() {
     }

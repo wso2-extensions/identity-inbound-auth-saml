@@ -24,7 +24,6 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 
 import java.io.FileInputStream;
