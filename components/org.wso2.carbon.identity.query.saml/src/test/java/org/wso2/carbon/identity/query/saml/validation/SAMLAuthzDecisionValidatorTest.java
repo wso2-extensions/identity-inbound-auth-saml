@@ -181,5 +181,4 @@ public class SAMLAuthzDecisionValidatorTest extends PowerMockTestCase {
         assertEquals(testclass.validate(invalidItems, (DummyAuthDecisionQuery) dummy), value);
     }
 
-
 }

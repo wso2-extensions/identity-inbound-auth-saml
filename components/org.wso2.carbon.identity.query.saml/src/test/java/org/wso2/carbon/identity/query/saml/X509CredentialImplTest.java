@@ -101,7 +101,7 @@ public class X509CredentialImplTest {
     }
 
     @Test
-    public void testGetEntityCertificateChain() throws Exception {
+    public void testGetEntityCertificateChain() {
 
         assertTrue(testequalarray((ArrayList) testclass.getEntityCertificateChain(), new ArrayList<X509Certificate>()));
     }
@@ -120,4 +120,5 @@ public class X509CredentialImplTest {
         }
         return true;
     }
+
 }

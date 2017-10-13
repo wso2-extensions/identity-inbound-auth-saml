@@ -82,4 +82,5 @@ public class SAMLValidatorFactoryTest {
         Assert.assertTrue(testInvalidItems.get(0).getValidationType().equals(testInvalidItemDTO.getValidationType()));
         Assert.assertEquals(null, testSamlQueryValidator);
     }
+
 }

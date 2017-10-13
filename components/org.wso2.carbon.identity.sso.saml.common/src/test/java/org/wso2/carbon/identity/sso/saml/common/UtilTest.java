@@ -24,6 +24,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
 
+import static org.testng.Assert.assertEquals;
+
 /**
  * Test Class for the Util
  */
@@ -34,27 +36,31 @@ public class UtilTest {
 
     @Test
     public void testGetSingleLogoutRetryCount() throws Exception {
+
         int singleLogoutRetryC = Util.getSingleLogoutRetryCount();
-        Assert.assertEquals(singleLogoutRetryC, singleLogoutRetryCount);
+        assertEquals(singleLogoutRetryC, singleLogoutRetryCount);
     }
 
     @Test
     public void testSetSingleLogoutRetryCount() throws Exception {
+
         Util.setSingleLogoutRetryCount(6);
-        Assert.assertEquals(Util.getSingleLogoutRetryCount(), 6);
+        assertEquals(Util.getSingleLogoutRetryCount(), 6);
         Util.setSingleLogoutRetryCount(singleLogoutRetryCount);
     }
 
     @Test
     public void testGetSingleLogoutRetryInterval() throws Exception {
+
         long singleLogoutRetryInt = Util.getSingleLogoutRetryInterval();
-        Assert.assertEquals(singleLogoutRetryInt, singleLogoutRetryInterval);
+        assertEquals(singleLogoutRetryInt, singleLogoutRetryInterval);
     }
 
     @Test
     public void testSetSingleLogoutRetryInterval() throws Exception {
+
         Util.setSingleLogoutRetryInterval(70000);
-        Assert.assertEquals(Util.getSingleLogoutRetryInterval(), 70000);
+        assertEquals(Util.getSingleLogoutRetryInterval(), 70000);
         Util.setSingleLogoutRetryInterval(singleLogoutRetryInterval);
     }
 
@@ -72,12 +78,14 @@ public class UtilTest {
     }
 
     @Test(dataProvider = "provideHttpStatusCode")
-    public void testIsHttpSuccessStatusCode(int status, boolean value){
-        Assert.assertEquals(Util.isHttpSuccessStatusCode(status), value);
+    public void testIsHttpSuccessStatusCode(int status, boolean value) {
+
+        assertEquals(Util.isHttpSuccessStatusCode(status), value);
     }
 
     @DataProvider(name = "provideServiceProvider")
     public Object[][] createServiceProvider() {
+
         SAMLSSOServiceProviderDTO SP1 = new SAMLSSOServiceProviderDTO();
         SP1.setIssuer("test1");
         SAMLSSOServiceProviderDTO SP2 = new SAMLSSOServiceProviderDTO();
@@ -103,6 +111,7 @@ public class UtilTest {
     @Test(dataProvider = "provideServiceProvider")
     public void testDoPaging(SAMLSSOServiceProviderDTO[] serviceProviderSet,
                              SAMLSSOServiceProviderDTO[] serviceProviderSetpattern) throws Exception {
+
         SAMLSSOServiceProviderDTO[] returnServiceProviderSet = Util.doPaging(0, serviceProviderSet);
         Assert.assertTrue(assertSSOproviderArray(returnServiceProviderSet, serviceProviderSet));
     }
@@ -110,11 +119,13 @@ public class UtilTest {
     @Test(dataProvider = "provideServiceProvider")
     public void testDoFilter(SAMLSSOServiceProviderDTO[] serviceProviderSet,
                              SAMLSSOServiceProviderDTO[] serviceProviderSetpattern) throws Exception {
+
         SAMLSSOServiceProviderDTO[] returnServiceProviderSet = Util.doFilter("^([A-Za-z0-9+/])*=$", serviceProviderSet);
         Assert.assertTrue(assertSSOproviderArray(returnServiceProviderSet, serviceProviderSetpattern));
     }
 
     public boolean assertSSOproviderArray(SAMLSSOServiceProviderDTO[] actual, SAMLSSOServiceProviderDTO[] expected) {
+
         for (int i = 0; i < actual.length; i++) {
             if (!actual[i].equals(expected[i])) {
                 return false;
@@ -122,6 +133,5 @@ public class UtilTest {
         }
         return true;
     }
-
 
 }

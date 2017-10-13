@@ -36,6 +36,7 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
@@ -66,13 +67,13 @@ public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
     }
 
     @AfterMethod
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
         System.clearProperty(CarbonBaseConstants.CARBON_HOME);
     }
 
     @Test
-    public void testValidate() throws Exception {
+    public void testValidate() throws IdentitySAML2QueryException {
 
         DummyIssuer issuer5 = new DummyIssuer();
         DummyRequest request5 = new DummyRequest();

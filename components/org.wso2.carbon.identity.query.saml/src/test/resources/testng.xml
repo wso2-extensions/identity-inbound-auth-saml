@@ -33,6 +33,8 @@
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLAuthzDecisionValidatorTest"/>
             <class name="org.wso2.carbon.identity.query.saml.X509CredentialImplTest"/>
             <class name="org.wso2.carbon.identity.query.saml.QueryResponseBuilderTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.processor.SAMLProcessorFactoryTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.processor.SAMLSubjectQueryProcessorTest"/>
         </classes>
     </test>
 </suite>

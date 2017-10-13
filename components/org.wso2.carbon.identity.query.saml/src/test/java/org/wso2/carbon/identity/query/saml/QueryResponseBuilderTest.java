@@ -18,16 +18,95 @@
 
 package org.wso2.carbon.identity.query.saml;
 
+import org.mockito.Mockito;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Status;
+import org.opensaml.saml.saml2.core.impl.AssertionImpl;
+import org.opensaml.saml.saml2.core.impl.IssuerImpl;
+import org.opensaml.saml.saml2.core.impl.ResponseImpl;
 import org.opensaml.saml.saml2.core.impl.StatusImpl;
+import org.opensaml.security.x509.X509Credential;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
+import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
+import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 
-import static org.testng.Assert.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import org.wso2.carbon.identity.query.saml.validation.TestUtil.*;
 
 /**
  * Test Class for the QueryResponseBuilder
  */
-public class QueryResponseBuilderTest {
+@PrepareForTest({OpenSAML3Util.class, QueryResponseBuilder.class})
+public class QueryResponseBuilderTest extends PowerMockTestCase {
+
+    @Test
+    public void testBuildforSuccess() throws Exception {
+
+        DummyAssertion dummyAssertion = new DummyAssertion();
+        List<Assertion> assertions = new ArrayList<>();
+        SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
+        Response response = new DummyResponse();
+        assertions.add(dummyAssertion);
+        DummyIssuer issuer = new DummyIssuer();
+
+        mockStatic(OpenSAML3Util.class);
+        when(OpenSAML3Util.getIssuer(anyString())).thenReturn(issuer);
+        when(OpenSAML3Util.setSignature(any(Response.class), anyString(), anyString(), any(SignKeyDataHolder.class))).thenReturn(response);
+
+        SignKeyDataHolder testSign = Mockito.mock(SignKeyDataHolder.class);
+        whenNew(SignKeyDataHolder.class).withAnyArguments().thenReturn(testSign);
+        assertTrue(QueryResponseBuilder.build(assertions, ssoIdpConfigs, "test").getAssertions() != null);
+
+    }
+
+    @Test
+    public void testBuildforError() throws IdentitySAML2QueryException {
+
+        DummyIssuer issuer = new DummyIssuer();
+        DummyIssuer issuer2 = new DummyIssuer();
+        List<InvalidItemDTO> invalidItems = new ArrayList<>();
+        mockStatic(OpenSAML3Util.class);
+        when(OpenSAML3Util.getIssuer(anyString())).thenReturn(issuer);
+        Response testresponse1 = QueryResponseBuilder.build(invalidItems);
+        when(OpenSAML3Util.getIssuer(anyString())).thenReturn(issuer2);
+        invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_SUBJECT,
+                SAMLQueryRequestConstants.ValidationMessage.VAL_SUBJECT_ERROR));
+        Response testresponse2 = QueryResponseBuilder.build(invalidItems);
+
+        assertEquals(testresponse1.getStatus().getStatusCode().getValue(), null);
+        assertEquals(testresponse1.getStatus().getStatusMessage().getMessage(), null);
+        assertEquals(testresponse2.getStatus().getStatusMessage().getMessage(), "Request subject is invalid");
+        assertEquals(testresponse2.getStatus().getStatusCode().getValue(), "urn:oasis:names:tc:SAML:2.0:status:Requester");
+    }
+
+    @Test
+    public void testBuildStatus() {
+
+        Status dummyStatus1 = QueryResponseBuilder.buildStatus("teststatus1", "testmsg");
+        Status dummyStatus2 = QueryResponseBuilder.buildStatus("teststatus2", null);
+        assertEquals(dummyStatus1.getStatusMessage().getMessage(), "testmsg");
+        assertEquals(dummyStatus2.getStatusMessage(), null);
+        assertEquals(dummyStatus1.getStatusCode().getValue(), "teststatus1");
+        assertEquals(dummyStatus2.getStatusCode().getValue(), "teststatus2");
+    }
 
     @DataProvider(name = "provideStatusCode")
     public Object[][] createSubject() {
@@ -78,9 +157,31 @@ public class QueryResponseBuilderTest {
     }
 
     @Test(dataProvider = "provideStatusCode")
-    public void testFilterStatusCode(String status, String response) throws Exception {
+    public void testFilterStatusCode(String status, String response)  {
 
         assertEquals(QueryResponseBuilder.filterStatusCode(status), response);
+    }
+
+    class DummyIssuer extends IssuerImpl {
+
+        protected DummyIssuer() {
+            super("testNSU", "testELN", "testNSP");
+        }
+
+    }
+
+    class DummyAssertion extends AssertionImpl {
+
+        protected DummyAssertion() {
+            super("testNSU", "testELN", "testNSP");
+        }
+    }
+
+    class DummyResponse extends ResponseImpl {
+
+        protected DummyResponse() {
+            super("testNSU", "testELN", "testNSP");
+        }
     }
 
 }

@@ -15,6 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+
 package org.wso2.carbon.identity.query.saml.validation;
 
 import org.mockito.Mock;
@@ -178,7 +179,8 @@ public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "provideSubectQuery")
-    public void testValidate(Object SubQ, boolean value, Object ssoP) throws Exception {
+    public void testValidate(Object SubQ, boolean value, Object ssoP)
+            throws IdentitySAML2QueryException, org.wso2.carbon.user.api.UserStoreException {
 
         mockStatic(SAMLQueryRequestUtil.class);
         mockStatic(MultitenantUtils.class);
@@ -200,7 +202,8 @@ public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testUserStoreExceptionforValidate() throws IdentitySAML2QueryException, org.wso2.carbon.user.api.UserStoreException {
+    public void testUserStoreExceptionforValidate()
+            throws IdentitySAML2QueryException, org.wso2.carbon.user.api.UserStoreException {
 
         DummyNameID dumID2 = new DummyNameID();
         DummySubject dumSub = new DummySubject();
