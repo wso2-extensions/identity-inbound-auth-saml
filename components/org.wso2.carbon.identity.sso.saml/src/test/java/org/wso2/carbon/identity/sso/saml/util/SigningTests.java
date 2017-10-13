@@ -100,13 +100,16 @@ public class SigningTests extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
+    private final String signatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
     private final String SAML2_REDIRECT_SIGNATURE_VALIDATOR =
-            "org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectSignatureValidator";
+            "org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectDeflateSignatureValidator";
+    private final String SAML2_DEFAULT_SIGNER =
+            "org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner";
+    private final String REDIRECT_SIGNATURE_VALIDATOR_PROPERTY = "SSOService.SAML2HTTPRedirectSignatureValidator";
 
 
     @DataProvider
-    public Object[][] getSignatureStatus() {
-        String signatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+    public Object[][] getSignatureParams() {
         return new Object[][]{
                 {true, null, null, signatureAlgorithm, true, "Signature is set properly. Hence signature should" +
                         " be validated"},
@@ -120,7 +123,7 @@ public class SigningTests extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "getSignatureStatus")
+    @Test(dataProvider = "getSignatureParams")
     public void testSignatureValidate(boolean addSignature, String prependEncodedMessage, String signature, String
             algorithm, boolean expected, String message) throws Exception {
 
@@ -131,8 +134,8 @@ public class SigningTests extends PowerMockTestCase {
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
                 .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
         mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator")).thenReturn("org.wso2.carbon" +
-                ".identity.sso.saml.validators.SAML2HTTPRedirectDeflateSignatureValidator");
+        when(IdentityUtil.getProperty(REDIRECT_SIGNATURE_VALIDATOR_PROPERTY)).thenReturn
+                (SAML2_REDIRECT_SIGNATURE_VALIDATOR);
         when(IdentityUtil.getSecuredDocumentBuilderFactory()).thenCallRealMethod();
 
         AuthnRequest authnReq = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
@@ -150,17 +153,66 @@ public class SigningTests extends PowerMockTestCase {
         samlssoAuthnReqDTO.setRequestMessageString(encodedMessage);
         samlssoAuthnReqDTO.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoAuthnReqDTO.setCertAlias(TestConstants.WSO2_CARBON);
+        samlssoAuthnReqDTO.setStratosDeployment(true);
         StringBuilder stringBuilder = new StringBuilder(samlssoAuthnReqDTO.getQueryString());
         if (addSignature && StringUtils.isBlank(signature)) {
             SAMLTestRequestBuilder.addSignatureToHTTPQueryString(stringBuilder,
                     algorithm, x509Credential);
         }
-
         if (StringUtils.isNotBlank(signature)) {
             stringBuilder.append("&Signature=" + signature).append("&SigAlg=" + algorithm);
         }
         samlssoAuthnReqDTO.setQueryString(stringBuilder.toString());
         assertEquals(expected, SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO), message);
+    }
+
+    @DataProvider
+    public Object[][] getPostSignatureParams() {
+        return new Object[][]{
+                {true, false, false, SAML2_DEFAULT_SIGNER, true, "Valid signature is added. Hence signature should " +
+                        "validate"},
+                {true, true, false, SAML2_DEFAULT_SIGNER, false, "Content of the signature is changed. Hence should " +
+                        "fail"},
+                {true, true, false, SAML2_DEFAULT_SIGNER + "NonExisting", false, "Non existing validator class is " +
+                        "given. Hence validation should fail"},
+        };
+    }
+
+    @Test(dataProvider = "getPostSignatureParams")
+    public void validateXMLSignatureTest(boolean addSignature, boolean manipulateXML, boolean changeSignature, String
+            ssoSigner, boolean expected, String message) throws Exception {
+
+        prepareForGetIssuer();
+        TestUtils.prepareCredentials(x509Credential);
+        mockStatic(KeyStoreManager.class);
+        when(KeyStoreManager.getInstance(eq(MultitenantConstants.SUPER_TENANT_ID))).thenReturn(keyStoreManager);
+        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
+
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getProperty("SSOService.SAMLSSOSigner")).thenReturn(ssoSigner);
+        when(IdentityUtil.getSecuredDocumentBuilderFactory()).thenCallRealMethod();
+
+        AuthnRequest authnReq = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
+                HTTPConstants.HTTP_METHOD_POST, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        if (addSignature) {
+            SAMLTestRequestBuilder.setSignature(authnReq, null, null, true, x509Credential);
+        }
+        if (manipulateXML) {
+            authnReq.getIssuer().setValue("ManipulatedIssuer");
+        }
+        String encodedMessage = SAMLTestRequestBuilder.encode(SAMLSSOUtil.marshall(authnReq));
+        Map<String, String> inputAttributes = new HashMap<>();
+        inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
+        inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
+        SAMLSSOAuthnReqDTO samlssoAuthnReqDTO = TestUtils.buildAuthnReqDTO(inputAttributes,
+                TestConstants.SAMPLE_NAME_ID_FORMAT, TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME);
+        samlssoAuthnReqDTO.setRequestMessageString(encodedMessage);
+        samlssoAuthnReqDTO.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        samlssoAuthnReqDTO.setCertAlias(TestConstants.WSO2_CARBON);
+        samlssoAuthnReqDTO.setStratosDeployment(true);
+
+        assertEquals(SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO), expected, message);
     }
 
     private void prepareForGetIssuer() throws Exception {
@@ -184,6 +236,4 @@ public class SigningTests extends PowerMockTestCase {
         when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
     }
-
-
 }

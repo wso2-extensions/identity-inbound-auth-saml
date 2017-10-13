@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.xml.security.c14n.Canonicalizer;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.common.impl.SAMLObjectContentReference;
 import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.common.Extensions;
 import org.opensaml.saml2.core.AuthnContextClassRef;
@@ -37,27 +40,39 @@ import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
 import org.opensaml.xml.ConfigurationException;
+import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.XMLObjectBuilder;
 import org.opensaml.xml.io.Marshaller;
+import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.MarshallingException;
 import org.opensaml.xml.security.SigningUtil;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.xml.signature.KeyInfo;
+import org.opensaml.xml.signature.Signature;
+import org.opensaml.xml.signature.Signer;
+import org.opensaml.xml.signature.X509Data;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.w3c.dom.Element;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import javax.xml.namespace.QName;
 
 public class SAMLTestRequestBuilder {
     private static Random random = new Random();
 
-    public static AuthnRequest buildDefaultAuthnRequest(){
+    public static AuthnRequest buildDefaultAuthnRequest() {
         return buildAuthnRequest(TestConstants.SP_ENTITY_ID, true, false, SAMLConstants.SAML2_POST_BINDING_URI,
                 TestConstants.ACS_URL, TestConstants.SAML_SSO_IDP_URL);
     }
@@ -147,6 +162,7 @@ public class SAMLTestRequestBuilder {
 
     /**
      * Generates a unique Id for Authentication Requests.
+     *
      * @return Generated unique Id
      */
     private static String createID() {
@@ -206,6 +222,76 @@ public class SAMLTestRequestBuilder {
 
         String base64Signature = Base64.encodeBytes(rawSignature, Base64.DONT_BREAK_LINES);
         httpQueryString.append("&Signature=" + URLEncoder.encode(base64Signature, "UTF-8").trim());
+    }
+
+    /**
+     * Add Signature to xml post request
+     *
+     * @param request            AuthnReuqest
+     * @param signatureAlgorithm Signature Algorithm
+     * @param digestAlgorithm    Digest algorithm to be used while digesting message
+     * @param includeCert        Whether to include certificate in request or not
+     * @param x509Credential     Credentials
+     * @throws Exception
+     */
+    public static void setSignature(RequestAbstractType request, String signatureAlgorithm,
+                                    String digestAlgorithm, boolean includeCert, X509Credential x509Credential)
+            throws Exception {
+        DefaultBootstrap.bootstrap();
+        if (StringUtils.isEmpty(signatureAlgorithm)) {
+            signatureAlgorithm = IdentityApplicationManagementUtil.getXMLSignatureAlgorithms().get(
+                    IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1);
+        }
+        if (StringUtils.isEmpty(digestAlgorithm)) {
+            digestAlgorithm = IdentityApplicationManagementUtil.getXMLDigestAlgorithms().get(
+                    IdentityApplicationConstants.XML.DigestAlgorithm.SHA1);
+        }
+
+        Signature signature = (Signature) buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
+        signature.setSigningCredential(x509Credential);
+        signature.setSignatureAlgorithm(signatureAlgorithm);
+        signature.setCanonicalizationAlgorithm(Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
+
+        if (includeCert) {
+            KeyInfo keyInfo = (KeyInfo) buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
+            X509Data data = (X509Data) buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
+            org.opensaml.xml.signature.X509Certificate cert = (org.opensaml.xml.signature.X509Certificate)
+                    buildXMLObject(org.opensaml.xml.signature.X509Certificate.DEFAULT_ELEMENT_NAME);
+            String value = null;
+            value = org.apache.xml.security.utils.Base64.encode(x509Credential.getEntityCertificate().getEncoded());
+            cert.setValue(value);
+            data.getX509Certificates().add(cert);
+            keyInfo.getX509Datas().add(data);
+            signature.setKeyInfo(keyInfo);
+        }
+
+        request.setSignature(signature);
+        ((SAMLObjectContentReference) signature.getContentReferences().get(0)).setDigestAlgorithm(digestAlgorithm);
+
+        List<Signature> signatureList = new ArrayList<Signature>();
+        signatureList.add(signature);
+        // Marshall and Sign
+        MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+        Marshaller marshaller = marshallerFactory.getMarshaller(request);
+        marshaller.marshall(request);
+        org.apache.xml.security.Init.init();
+        Signer.signObjects(signatureList);
+    }
+
+    /**
+     * Base64 encode XML string
+     *
+     * @param xmlString Unmarshelled xml string
+     * @return Base 64 encoded xml string
+     */
+    public static String encode(String xmlString) {
+        String encodedRequestMessage = Base64.encodeBytes(xmlString.getBytes(), Base64.DONT_BREAK_LINES);
+        return encodedRequestMessage.trim();
+    }
+
+    private static XMLObject buildXMLObject(QName objectQName) {
+        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);
+        return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(), objectQName.getPrefix());
     }
 
 }

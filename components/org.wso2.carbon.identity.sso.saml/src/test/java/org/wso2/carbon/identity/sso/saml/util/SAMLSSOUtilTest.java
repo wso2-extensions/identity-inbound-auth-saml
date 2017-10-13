@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.mockito.Mock;
 import org.opensaml.saml2.core.Issuer;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -146,8 +145,8 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Test
     public void testDecodeForPost() throws Exception {
 
-        assertEquals(SAMLSSOUtil.decodeForPost(TestConstants.ENCODED_POST_AUTHN_REQUEST),
-                TestConstants.DECODED_POST_AUTHN_REQUEST,
+        assertEquals(SAMLSSOUtil.decodeForPost(TestConstants.ENCODED_POST_LOGOUT_REQUEST),
+                TestConstants.DECODED_POST_LOGOUT_REQUEST,
                 "Decoded value of encoded Post Authentication Request is not as expected.");
     }
 
