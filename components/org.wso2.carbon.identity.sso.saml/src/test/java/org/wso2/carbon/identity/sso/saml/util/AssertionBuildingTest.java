@@ -202,7 +202,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
     }
 
-    @DataProvider
+    @DataProvider(name = "getSPInitSSOAuthnRequestValidator")
     public Object[][] getSSOAuthnValidatorClasses() {
         String signatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
         return new Object[][]{
@@ -212,17 +212,15 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         };
     }
 
-    @Test
+    @Test(dataProvider = "getSPInitSSOAuthnRequestValidator")
     public void getSPInitSSOAuthnRequestValidator(String spInitSSOAuthnReqValidator, String message) throws Exception {
 
-        if (StringUtils.isNotEmpty(spInitSSOAuthnReqValidator)) {
-            SAMLSSOUtil.setSPInitSSOAuthnRequestValidator(spInitSSOAuthnReqValidator);
-        }
+        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator(spInitSSOAuthnReqValidator);
         DefaultBootstrap.bootstrap();
-        AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
-                HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
-        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
-                (authnRequest);
+        AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false,
+                false, HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
+        SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(
+                authnRequest);
         assertNotNull(spInitSSOAuthnRequestValidator, message);
     }
 
