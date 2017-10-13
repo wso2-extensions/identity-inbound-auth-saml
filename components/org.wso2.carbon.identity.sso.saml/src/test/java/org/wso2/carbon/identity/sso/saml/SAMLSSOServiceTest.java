@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.LogoutRequest;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -32,6 +35,7 @@ import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
+import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
@@ -44,13 +48,16 @@ import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Unit Tests for SAMLSSOService.
  */
+@PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, SAMLSSOUtil.class, SAMLSSOReqValidationResponseDTO.class,
     SSOSessionPersistenceManager.class})
 public class SAMLSSOServiceTest extends PowerMockTestCase {
@@ -58,6 +65,24 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
     @DataProvider(name = "testAuthenticate")
     public static Object[][] isIDPInitSSOEnabled() {
         return new Object[][]{{true}, {false}};
+    }
+
+    @DataProvider(name = "testValidateSPInitSSORequestLogout")
+    public static Object[][] logoutRequests() {
+        return new Object[][]{
+                {TestConstants.ENCODED_POST_LOGOUT_REQUEST, null, true},
+                {TestConstants.ENCODED_REDIRECT_LOGOUT_REQUEST,
+                        TestConstants.ENCODED_QUERY_STRING_FOR_REDIRECT_LOGOUT_REQUEST,false}
+        };
+    }
+
+    @DataProvider(name = "testValidateSPInitSSORequestAuthentication")
+    public static Object[][] authnRequests() {
+        return new Object[][]{
+                {TestConstants.ENCODED_POST_AUTHN_REQUEST, null, true},
+                {TestConstants.ENCODED_REDIRECT_AUTHN_REQUEST,
+                        TestConstants.ENCODED_QUERY_STRING_FOR_AUTHN_REQUEST, false}
+        };
     }
 
     @ObjectFactory
@@ -85,6 +110,61 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_SAMLSSO_LOGIN)).thenReturn(" true ");
         assertTrue(SAMLSSOService.isSAMLSSOLoginAccepted(), "If the property is String true (with spaces) should give" +
                 " boolean true.");
+    }
+
+    @Test(dataProvider = "testValidateSPInitSSORequestAuthentication")
+    public void testValidateSPInitSSORequestAuthentication(String encodedAuthnRequest, String queryString,
+                                                           boolean isPost) throws Exception {
+
+        SAMLSSOUtil.doBootstrap();
+
+        mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
+
+        SAMLSSOService samlssoService = new SAMLSSOService();
+        SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
+                encodedAuthnRequest, queryString, null, null, TestConstants.BASIC_AUTHN_MODE, isPost);
+        assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML authentication request.");
+        assertFalse(samlssoReqValidationResponseDTO.isIdPInitSSO(), "Should not be an IDP initiated SAML SSO request.");
+        assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
+                "the given input query string.");
+        assertNull(samlssoReqValidationResponseDTO.getRpSessionId(), "RP sessionId should be same as the given input" +
+                " RpSessionId which is null.");
+    }
+
+    @Test(dataProvider = "testValidateSPInitSSORequestLogout")
+    public void testValidateSPInitSSORequestLogout(String encodedLogoutRequest, String queryString, boolean isPost)
+            throws Exception {
+
+        SAMLSSOUtil.doBootstrap();
+
+        SPInitLogoutRequestProcessor spInitLogoutRequestProcessor = mock(SPInitLogoutRequestProcessor.class);
+        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), anyString())).thenReturn(
+                mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
+        mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getSPInitLogoutRequestProcessor()).thenReturn(spInitLogoutRequestProcessor);
+        when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
+
+        SAMLSSOService samlssoService = new SAMLSSOService();
+        SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
+                encodedLogoutRequest, queryString, "sessionId", null, TestConstants.BASIC_AUTHN_MODE, isPost);
+        assertNotNull(samlssoReqValidationResponseDTO, "Validation response of SP-init SLO request should not be " +
+                "null.");
+    }
+
+    private SAMLSSOReqValidationResponseDTO mockValidSPInitLogoutRequestProcessing(String ACSUrl) {
+
+        SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
+        samlssoReqValidationResponseDTO.setLogOutReq(true);
+        samlssoReqValidationResponseDTO.setAssertionConsumerURL(ACSUrl);
+        samlssoReqValidationResponseDTO.setValid(true);
+        return samlssoReqValidationResponseDTO;
     }
 
     @Test
@@ -141,7 +221,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
 
         IdPInitLogoutRequestProcessor idPInitLogoutRequestProcessor = mock(IdPInitLogoutRequestProcessor.class);
         when(idPInitLogoutRequestProcessor.process(anyString(), any(QueryParamDTO[].class), anyString()))
-                .thenReturn(this.mockValidIDPInitLogoutRequestProcessing(queryParamDTOs));
+                .thenReturn(mockValidIDPInitLogoutRequestProcessing(queryParamDTOs[2].getValue()));
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getIdPInitLogoutRequestProcessor()).thenReturn(idPInitLogoutRequestProcessor);
 
@@ -156,11 +236,11 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
                 "the given input RpSessionId.");
     }
 
-    private SAMLSSOReqValidationResponseDTO mockValidIDPInitLogoutRequestProcessing(QueryParamDTO[] queryParamDTOS) {
+    private SAMLSSOReqValidationResponseDTO mockValidIDPInitLogoutRequestProcessing(String returnToUrl) {
 
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         samlssoReqValidationResponseDTO.setLogOutReq(true);
-        samlssoReqValidationResponseDTO.setReturnToURL(queryParamDTOS[2].getValue());
+        samlssoReqValidationResponseDTO.setReturnToURL(returnToUrl);
         samlssoReqValidationResponseDTO.setValid(true);
         return samlssoReqValidationResponseDTO;
     }

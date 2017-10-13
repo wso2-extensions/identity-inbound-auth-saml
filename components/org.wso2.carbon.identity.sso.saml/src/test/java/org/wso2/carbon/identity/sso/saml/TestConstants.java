@@ -26,13 +26,14 @@ public class TestConstants {
     public static final String SP_ENTITY_ID_WITH_TENANT_DOMAIN = "travelocity.com@tenant.com";
     public static final String SP_ENTITY_ID = "travelocity.com";
     public static final String SAML_SSO_IDP_URL = "https://localhost:9443/samlsso";
-
+    public static final String BASIC_AUTHN_MODE = "usernamePasswordBasedAuthn";
     public static final String LOACALHOST_DOMAIN = "localhost";
     public static final String TRAVELOCITY_ISSUER = "travelocity.com";
     public static final String WSO2_TENANT_DOMAIN = "wso2.com";
     public static final String TEST_USER_NAME = "testUser";
     public static final String ATTRIBUTE_CONSUMER_INDEX = "1234567890";
     public static final String ACS_URL = "https://locahost:8080/travelocity.com/home.jsp";
+    public static final String RETURN_TO_URL = "http://localhost.com:8080/travelocity.com/index.jsp";
     public static final String IDP_URL = "https://localhost:9443/commonauth";
     public static final String SAMPLE_NAME_ID_FORMAT = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress";
     public static final String SESSION_ID = "sessionId4567890";
@@ -41,8 +42,8 @@ public class TestConstants {
     public static final String KEY_STORE_NAME = WSO2_CARBON + ".jks";
     public static final String RSA_SHA1_SIG_ALGO = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
     public static final String SHA1_DIGEST_ALGO = "http://www.w3.org/2000/09/xmldsig#sha1";
-    public static final String GENERAL_STRING = "kjladf jhadkjf kjhjkadf. adkjfa jdafkjhd. jhdafkjhd" +
-            "lkadflkjdaf lkjdf  lkjdalkf.";
+    public static final String GENERAL_STRING = "WSO2 is an open source technology provider that increases the " +
+            "agility of digital businesses and enterprises engaging in digital transformation.";
 
     public static final String CLAIM_URI1 = "http://wso2.org/claimuri1";
     public static final String CLAIM_URI2 = "http://wso2.org/claimuri2";
@@ -67,6 +68,19 @@ public class TestConstants {
             "2nJsO27oYvHcGRorktSuEUBtfhKCT9F0tDwtvIc+1dXUHWgrs6hItrkssA7cehpq/WbUPvQPrLNk4YLK2jJra/6pk23/5lyPScePvv" +
             "n/4G";
 
+    public static final String ENCODED_QUERY_STRING_FOR_AUTHN_REQUEST = "SAMLRequest=nZNbj9owEIXf%2Bysiv0MupSq1SFYUt" +
+            "CrStqLA9qFvxplszPqSehyW%2Ffe1E2ijqkWoUp4m42%2BOzxnP7k5KRkewKIzOSTpOSASam1Lop5w87u5HU3JXvJkhU7Kh89bVegM%" +
+            "2FWkAXzRHBOn9sYTS2CuwW7FFweNw85KR2rqFxLA1nsjboxtwoOk2mSewsO4KvC%2FcainFtFIwP2JBo6alCM9cpCQAcEuiHyeRtHHQ" +
+            "gGhLdG8uh05OTikkEEq2WOXne6wZMIzUYrptKabNX7FA%2FP3Go1KGqKqgPZXmofDeuGaI4wu%2FziC2sNDqmXU6yJH0%2FShP%2F7d" +
+            "KUJhlN342nk%2FQ7idbWOMON%2FCh0b1NrNTUMBVLNFCB1nG7nnx9oNk7ovm9C%2Bmm3W482UAoL3JHo28XyLFjuQ9BIO5Ov45rzbFK" +
+            "cI%2BlE29sB7JIaKf5IYhYPiT0%2Fa%2BgXj1gt10YK%2FhrNpTQvCwvMeducbaELQjF3fWioiHJUda20CVdHB9rbsF0H%2FteWSVEJ" +
+            "sDnppw8dyW61JP6l%2BbyiUHYL4vfTwclFC6MaZgUG1%2BHEQgr%2FMaUfQofkhfSubqAa4G4O4WobpzygfTns6ouxZdg9vz9Q7izT2" +
+            "Bjr%2Btj%2Bqqfo%2F%2F3LkOKS%2BPBZFz8B&SigAlg=http%3A%2F%2Fwww.w3.org%2F2000%2F09%2Fxmldsig%23rsa-sha1&S" +
+            "ignature=iTTgVU3p7uy1gaGsK2UXxsfWR9yCQIqfqbOC1rjR8dbw%2BsgAJAtO2fCU91ceI9YvQ1MU0ufOkfAia9zZm27r%2BoyHuF" +
+            "kuYBu4CEYFEGr7ZHt8qJCblM8sEvFAWYcNBRv%2BVCVT%2Fk86MeM6x4EBq1e3if63vFoPC1fwNjzOi9D8eV%2FiQ3oXf6ipr27p%2F" +
+            "uevNf5ZC%2FWxWsoiPZ9FB7SykZUoYIiO20nctJJL3gCzJTUDbSZbMTDZlJuO1YmEUcI%2Fzs7dbqYidroZ%2FOB%2FpGLYIA95dtln" +
+            "yNcNNVym6IzeQwEl7RkbHPO6T7vrIihoLkpLY%2BcSj5xrXei3gWnsNj8wt%2FJLHA%3D%3D";
+
     public static final String DECODED_REDIRECT_AUTHN_REQUEST = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<samlp:AuthnRequest AssertionConsumerServiceURL=\"http://localhost.com:8080/travelocity.com/index.jsp\" " +
             "AttributeConsumingServiceIndex=\"995559409\" Destination=\"https://localhost:9443/samlsso\" " +
@@ -84,7 +98,52 @@ public class TestConstants {
             "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>" +
             "</saml2p:RequestedAuthnContext></samlp:AuthnRequest>";
 
-    public static final String ENCODED_POST_AUTHN_REQUEST = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4" +
+    public static final String ENCODED_POST_AUTHN_REQUEST = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KP" +
+            "HNhbWxwOkF1dGhuUmVxdWVzdCBBc3NlcnRpb25Db25zdW1lclNlcnZpY2VVUkw9Imh0dHA6Ly9sb2NhbGhvc3QuY29tOjgwODAvdH" +
+            "JhdmVsb2NpdHkuY29tL2hvbWUuanNwIiBEZXN0aW5hdGlvbj0iaHR0cHM6Ly9sb2NhbGhvc3Q6OTQ0My9zYW1sc3NvIiBGb3JjZUF" +
+            "1dGhuPSJmYWxzZSIgSUQ9Im9uaWlvbWFlaWhocG5hbWNpa2ZuZmtwa2xwZGRhZ2loaGhhcGZsYWgiIElzUGFzc2l2ZT0iZmFsc2Ui" +
+            "IElzc3VlSW5zdGFudD0iMjAxNy0xMC0xMFQxMTo0NDozNS4yMTRaIiBQcm90b2NvbEJpbmRpbmc9InVybjpvYXNpczpuYW1lczp0Y" +
+            "zpTQU1MOjIuMDpiaW5kaW5nczpIVFRQLVBPU1QiIFZlcnNpb249IjIuMCIgeG1sbnM6c2FtbHA9InVybjpvYXNpczpuYW1lczp0Yz" +
+            "pTQU1MOjIuMDpwcm90b2NvbCI+PHNhbWxwOklzc3VlciB4bWxuczpzYW1scD0idXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOmF" +
+            "zc2VydGlvbiI+dHJhdmVsb2NpdHkuY29tPC9zYW1scDpJc3N1ZXI+PGRzOlNpZ25hdHVyZSB4bWxuczpkcz0iaHR0cDovL3d3dy53" +
+            "My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PGRzOlNpZ25lZEluZm8+PGRzOkNhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtP" +
+            "SJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzEwL3htbC1leGMtYzE0biMiLz48ZHM6U2lnbmF0dXJlTWV0aG9kIEFsZ29yaXRobT0iaH" +
+            "R0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnI3JzYS1zaGExIi8+PGRzOlJlZmVyZW5jZSBVUkk9IiNvbmlpb21hZWloaHB" +
+            "uYW1jaWtmbmZrcGtscGRkYWdpaGhoYXBmbGFoIj48ZHM6VHJhbnNmb3Jtcz48ZHM6VHJhbnNmb3JtIEFsZ29yaXRobT0iaHR0cDov" +
+            "L3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnI2VudmVsb3BlZC1zaWduYXR1cmUiLz48ZHM6VHJhbnNmb3JtIEFsZ29yaXRobT0ia" +
+            "HR0cDovL3d3dy53My5vcmcvMjAwMS8xMC94bWwtZXhjLWMxNG4jIi8+PC9kczpUcmFuc2Zvcm1zPjxkczpEaWdlc3RNZXRob2QgQW" +
+            "xnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwLzA5L3htbGRzaWcjc2hhMSIvPjxkczpEaWdlc3RWYWx1ZT4zNndSZGFDWlE" +
+            "1dFZST011Q0l5WHVYV2Q4ZXc9PC9kczpEaWdlc3RWYWx1ZT48L2RzOlJlZmVyZW5jZT48L2RzOlNpZ25lZEluZm8+PGRzOlNpZ25h" +
+            "dHVyZVZhbHVlPlRPNkNFV3oxVng4NmRuZE9rMzNpS3VuSzFJWlJmRzJ1cU1PY3dLTEl2WEl6aWovVm11VjQ5Y1NsSFBWc2xIV1pMd" +
+            "HBzU2VZc0lyQisyUzZmTUs4ZzliQSttRnR6aURKbVhFNUNuT0hEQjd3bTcwRGFJTDZrYUhyWGl6S0RhVmgzdGxaeC9weTlHQTJtU2" +
+            "NGdjdyclY1UElvdzhodkpBQVpOVTNmMmdzZjhrUlJVeE9CbFJ0RHZ2Q1VURCtnUlVoVWloaStYMmxkSUFvZHN6QUNuR2c5NVpIRzB" +
+            "SVmtXY0RuSndwYm9RbW1pTnNCZGxDdHhsNXBXbHk2VWFKWWR0RzZhWkVTM2JGNmx4RTY2WDY5MUp0VWdZNThxL2p0NzRlekFtdEtx" +
+            "STkvUjJ1MnFWMjM0Z0FvM0FrN0xiK3BKNkZDZWFFTFpVRTdCNUJiSFIvTk5MZ0NlUT09PC9kczpTaWduYXR1cmVWYWx1ZT48ZHM6S" +
+            "2V5SW5mbz48ZHM6WDUwOURhdGE+PGRzOlg1MDlDZXJ0aWZpY2F0ZT5NSUlEU1RDQ0FqR2dBd0lCQWdJRUFvTFEvVEFOQmdrcWhraU" +
+            "c5dzBCQVFzRkFEQlZNUXN3Q1FZRFZRUUdFd0pWVXpFTE1Ba0dBMVVFQ0JNQ1EwRXhGakFVQmdOVkJBY1REVTF2ZFc1MFlXbHVJRlp" +
+            "wWlhjeERUQUxCZ05WQkFvVEJGZFRUekl4RWpBUUJnTlZCQU1UQ1d4dlkyRnNhRzl6ZERBZUZ3MHhOekEzTVRrd05qVXlOVEZhRncw" +
+            "eU56QTNNVGN3TmpVeU5URmFNRlV4Q3pBSkJnTlZCQVlUQWxWVE1Rc3dDUVlEVlFRSUV3SkRRVEVXTUJRR0ExVUVCeE1OVFc5MWJuU" +
+            "mhhVzRnVm1sbGR6RU5NQXNHQTFVRUNoTUVWMU5QTWpFU01CQUdBMVVFQXhNSmJHOWpZV3hvYjNOME1JSUJJakFOQmdrcWhraUc5dz" +
+            "BCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBbHVaRmRXMXluaXR6dGtXTEM2eEtlZ2JSV3hreSs1UDBwNFNoWUVPa0hzMzBRSTJWQ3V" +
+            "SNlFvNEJ6NXJUZ0xCcmt5MDNXMUdBVnJaeHV2S1JHajlWOStQbWpkR3RhdTRDVFh1OXBMTGNxbnJ1YWN6b1NkdkJZQTNsUzlhN3pn" +
+            "RlUwK3M2a01sMkVoQityazdnWGx1RWVwN2xJT2VuemZsMmY2SW9US2EyZlZnVmQzWUtpU0dzeUw0dHp0Uzcwdm1tWDEyMXFtMHNUS" +
+            "mRLV1A0SHhYeXFLOW5lb2xYSTlmWXlIT1lJTFZOWjY5ei83M09PVmhraC9tdlRtV1pMTTdHTTZzQXBteUxYNk9YVXA4ejBwa1krdl" +
+            "QvOSt6Unh4UXM3R3VyQzQvQzFuSzNySS8weVNVZ0dFYWZPMWF0TmpZbWxGTitNM3RaWDZuRWNBNmc5NElhdnlRSURBUUFCb3lFd0h" +
+            "6QWRCZ05WSFE0RUZnUVV0UzhrSVl4UThVVnZWclpTZGd5aWRlOU9IeFV3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUJmazVtcXNW" +
+            "VXJwRkNZVFpaaE94VFJScEdYcW9XMUcwNWJPeEh4czQyUGF4dzhyQUowNlB0eTlqcU0xQ2dSUHBxdlphMmxQUUJRcVpySGtkREUwN" +
+            "nE0TkcwRHFNSDhOVCt0TmtYQmU5WVRyZTNFSkNTZnN2c3d0TFZEWjdHRHZUSEtvakpqUXZkVkN6Umo2WEg1VHJ1d2VmYjRCSno5QV" +
+            "B0bmx5Skl2akhrMWhkb3pxeU9uaVZaZDBRT3hMQWJjZHQ5NDZjaE5kUXZDbTZhVU9wdXRwOFhvZ3IwS0JuRXkzVThlczJjQWZOWmF" +
+            "Fa1BVOFZhNWJVNlhqbnk4ekdRblhDWHhQS3A3c01wZ085M25QQnQvbGlYMXFmeVhNN3hFb3RXb3htbTZIWng4b1dROFU1YWlYalo1" +
+            "UktEV0NDcTRadVhsNndWc1V6MWlFNjFzdU81eVdpOD08L2RzOlg1MDlDZXJ0aWZpY2F0ZT48L2RzOlg1MDlEYXRhPjwvZHM6S2V5S" +
+            "W5mbz48L2RzOlNpZ25hdHVyZT48c2FtbDJwOk5hbWVJRFBvbGljeSBBbGxvd0NyZWF0ZT0idHJ1ZSIgRm9ybWF0PSJ1cm46b2FzaX" +
+            "M6bmFtZXM6dGM6U0FNTDoyLjA6bmFtZWlkLWZvcm1hdDpwZXJzaXN0ZW50IiBTUE5hbWVRdWFsaWZpZXI9Iklzc3VlciIgeG1sbnM" +
+            "6c2FtbDJwPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6cHJvdG9jb2wiLz48c2FtbDJwOlJlcXVlc3RlZEF1dGhuQ29udGV4" +
+            "dCBDb21wYXJpc29uPSJleGFjdCIgeG1sbnM6c2FtbDJwPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6cHJvdG9jb2wiPjxzY" +
+            "W1sOkF1dGhuQ29udGV4dENsYXNzUmVmIHhtbG5zOnNhbWw9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDphc3NlcnRpb24iPn" +
+            "VybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDphYzpjbGFzc2VzOlBhc3N3b3JkUHJvdGVjdGVkVHJhbnNwb3J0PC9zYW1sOkF1dGh" +
+            "uQ29udGV4dENsYXNzUmVmPjwvc2FtbDJwOlJlcXVlc3RlZEF1dGhuQ29udGV4dD48L3NhbWxwOkF1dGhuUmVxdWVzdD4=";
+
+    public static final String ENCODED_POST_LOGOUT_REQUEST = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4" +
             "KPHNhbWwycDpMb2dvdXRSZXF1ZXN0IERlc3RpbmF0aW9uPSJodHRwczovL2xvY2FsaG9zdDo5NDQzL3NhbWxzc28iIElEPSJk" +
             "ZGtsZ29lZ29kYWxobmFucHBjZGFnb2JoaGNqbWlkYWplaGRsaWFmIiBJc3N1ZUluc3RhbnQ9IjIwMTctMDktMjZUMDk6Mjc6M" +
             "DYuNDg0WiIgTm90T25PckFmdGVyPSIyMDE3LTA5LTI2VDA5OjMyOjA2LjQ4NFoiIFJlYXNvbj0iU2luZ2xlIExvZ291dCIgVm" +
@@ -126,7 +185,7 @@ public class TestConstants {
             "29tQGlzLmNvbTwvc2FtbDI6TmFtZUlEPjxzYW1sMnA6U2Vzc2lvbkluZGV4PjhjODM1NGQ1LTRlZWEtNDk0Mi04NjUxLWNlMT" +
             "JmYTQ2MjZlYTwvc2FtbDJwOlNlc3Npb25JbmRleD48L3NhbWwycDpMb2dvdXRSZXF1ZXN0Pg==";
 
-    public static final String DECODED_POST_AUTHN_REQUEST = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    public static final String DECODED_POST_LOGOUT_REQUEST = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<saml2p:LogoutRequest Destination=\"https://localhost:9443/samlsso\" " +
             "ID=\"ddklgoegodalhnanppcdagobhhcjmidajehdliaf\" IssueInstant=\"2017-09-26T09:27:06.484Z\" " +
             "NotOnOrAfter=\"2017-09-26T09:32:06.484Z\" Reason=\"Single Logout\" Version=\"2.0\" " +
@@ -160,4 +219,23 @@ public class TestConstants {
             "Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:entity\" " +
             "xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">egon@got.com@is.com</saml2:NameID>" +
             "<saml2p:SessionIndex>8c8354d5-4eea-4942-8651-ce12fa4626ea</saml2p:SessionIndex></saml2p:LogoutRequest>";
+
+    public static final String ENCODED_REDIRECT_LOGOUT_REQUEST = "nZJLa8MwEITv/RVGdye249S2iB0CoRDoA5q0h94Ua/1ILa2rV" +
+            "Ur77ysnTZ/QQ0HosMx+zAw7m7+oznsGQy3qnIWjgHmgS5StrnN2t7nwUzYvzmYkVBf1/BJr3NtbeNoDWW/pvlYLe1htrO2Jj8cdlqJ" +
+            "rkCzP4ngyHhaJkHmrZc4e+1L2XdeoWukd9Eo2VV01rcRdKYWq6ma3BXxE5dREe1hpskLbnEVBmPhh4N4mSHkc8Uk0CtP4gXnXaG/0j" +
+            "VlUFswvXfKpuwVBg8u1y9WBd8zBvPtT8GgI7qrQxI9Rc7Y3mqOglrgWCojbkq8XV5fcSXlv0GKJHSuOzfCDX/OV8DdAEIEZimOFNeI" +
+            "ZXGutfR2VqGbjr8QT/9oRVkvvAo0S9m/0MGmlXx2kHLR1YPYvZ0KqVp/8HB0Up0tYAw3NrbSEl0JOk22anUd+sq0CP5aQ+WmSTf1tI" +
+            "CciDKHKouk758fmx/TbZRVv";
+
+    public static final String ENCODED_QUERY_STRING_FOR_REDIRECT_LOGOUT_REQUEST = "SAMLRequest=nZJLa8MwEITv%2FRVGdy" +
+            "e249S2iB0CoRDoA5q0h94Ua%2F1ILa2rVUr77ysnTZ%2FQQ0HosMx%2BzAw7m7%2BoznsGQy3qnIWjgHmgS5StrnN2t7nwUzYvzmYk" +
+            "VBf1%2FBJr3NtbeNoDWW%2FpvlYLe1htrO2Jj8cdlqJrkCzP4ngyHhaJkHmrZc4e%2B1L2XdeoWukd9Eo2VV01rcRdKYWq6ma3BXxE" +
+            "5dREe1hpskLbnEVBmPhh4N4mSHkc8Uk0CtP4gXnXaG%2F0jVlUFswvXfKpuwVBg8u1y9WBd8zBvPtT8GgI7qrQxI9Rc7Y3mqOglrgW" +
+            "Cojbkq8XV5fcSXlv0GKJHSuOzfCDX%2FOV8DdAEIEZimOFNeIZXGutfR2VqGbjr8QT%2F9oRVkvvAo0S9m%2F0MGmlXx2kHLR1YPYv" +
+            "Z0KqVp%2F8HB0Up0tYAw3NrbSEl0JOk22anUd%2Bsq0CP5aQ%2BWmSTf1tICciDKHKouk758fmx%2FTbZRVv&SigAlg=http%3A%2F" +
+            "%2Fwww.w3.org%2F2000%2F09%2Fxmldsig%23rsa-sha1&Signature=aiBu%2Bj6WVD5Ph8rm1Df75KZwNQTobwiGPL8M6UtIH3g" +
+            "R2Q%2FzMScrBr9L2x9mHhjWvpRi7eLAXPxt40dD2naSSjDyVTRI%2FhbE8kRAHo7%2FNxUmelsYnsGnuVbJhZTDRD0CvD1hmhdigvt" +
+            "cqCVFngYf6BjG2O%2FAaWdwl%2BZKqWnLrNxYubYPRSNE9po3SOV4OvZOdAWrJcnz4%2F9EdcF1FXWgosNhSeDEBms%2Bee0Hdg3Dl" +
+            "4yw04nUgT%2FGg3CNu78WW4VR%2FbX9ip5batCvBNbQviJJl0cSThI9NL4qjgrliP%2Fy6y9XEA2KsydV%2BmvJVouSuQMejwpAxRb" +
+            "jz2Qto0ABA6B1fg%3D%3D";
 }

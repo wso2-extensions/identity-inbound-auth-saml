@@ -33,7 +33,7 @@ public class SAMLSSOUtilMarshallTest {
     @Test
     public void testUnmarshall() throws Exception {
 
-        XMLObject xmlObject = SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_AUTHN_REQUEST);
+        XMLObject xmlObject = SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST);
         assertEquals(xmlObject.getDOM().getAttributeNode("Destination").getValue(),
                 "https://localhost:9443/samlsso",
                 "Destination node value of unmarshalled Post Authentication Request is as not expected.");
@@ -50,8 +50,8 @@ public class SAMLSSOUtilMarshallTest {
     @Test
     public void testMarshall() throws Exception {
 
-        assertEquals(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_AUTHN_REQUEST)),
-                TestConstants.DECODED_POST_AUTHN_REQUEST,
+        assertEquals(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST)),
+                TestConstants.DECODED_POST_LOGOUT_REQUEST,
                 "Marshaled Post Authentication Request is not as expected.");
     }
 
