@@ -29,6 +29,7 @@
             <class name="org.wso2.carbon.identity.sso.saml.util.SigningTests" />
             <class name="org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManagerTest" />
             <class name="org.wso2.carbon.identity.sso.saml.session.SessionInfoDataTest" />
+            <class name="org.wso2.carbon.identity.sso.saml.admin.SAMLSSOConfigAdminTest" />
         </classes>
     </test>
 </suite>
