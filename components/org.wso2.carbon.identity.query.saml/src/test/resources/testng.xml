@@ -28,7 +28,11 @@
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLValidatorFactoryTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLIDRequestValidatorTest"/>
             <class name="org.wso2.carbon.identity.query.saml.validation.SAMLSubjectQueryValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLAuthQueryValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLAttributeQueryValidatorTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.validation.SAMLAuthzDecisionValidatorTest"/>
             <class name="org.wso2.carbon.identity.query.saml.X509CredentialImplTest"/>
+            <class name="org.wso2.carbon.identity.query.saml.QueryResponseBuilderTest"/>
         </classes>
     </test>
 </suite>

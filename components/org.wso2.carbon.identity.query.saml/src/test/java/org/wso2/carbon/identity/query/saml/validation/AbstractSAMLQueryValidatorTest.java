@@ -230,5 +230,4 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         testclass.validateIssuer(requestt);
     }
 
-
 }
