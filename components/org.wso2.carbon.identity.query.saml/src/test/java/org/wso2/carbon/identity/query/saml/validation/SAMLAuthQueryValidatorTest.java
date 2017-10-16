@@ -48,13 +48,16 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+
+import static org.testng.AssertJUnit.assertEquals;
 import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivilegedCarbonContext;
 
 /**
- * Test Class for the SAMLAuthQueryValidator
+ * Test Class for the SAMLAuthQueryValidator.
  */
-@PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class, SAMLQueryRequestUtil.class, OpenSAML3Util.class})
+@PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class,
+        SAMLQueryRequestUtil.class, OpenSAML3Util.class})
 public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
 
     @Mock
@@ -76,11 +79,11 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
     @AfterClass
     public void tearDown() {
 
-        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        stopPrivilegedCarbonContext();
     }
 
     @DataProvider(name = "provideAuthn")
-    public Object[][] createSubject() {
+    public Object[][] createAuthnQuery() {
 
         DummyNameID dumID1 = new DummyNameID();
         DummyNameID dumID2 = new DummyNameID();

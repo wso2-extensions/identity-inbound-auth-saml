@@ -22,18 +22,21 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * Test Class for the InvalidItemDTO
+ * Test Class for the InvalidItemDTO.
  */
 public class InvalidItemDTOTest {
+
     InvalidItemDTO invalidItemDTO = new InvalidItemDTO("testType", "testMsg");
 
     @Test
     public void testGetMessage() throws Exception {
+
         Assert.assertEquals(invalidItemDTO.getMessage(), "testMsg");
     }
 
     @Test
     public void testGetValidationType() throws Exception {
+
         Assert.assertEquals(invalidItemDTO.getValidationType(), "testType");
     }
 

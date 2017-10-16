@@ -20,7 +20,11 @@ package org.wso2.carbon.identity.query.saml.validation;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
-import org.opensaml.saml.saml2.core.*;
+import org.opensaml.saml.saml2.core.AssertionIDRequest;
+import org.opensaml.saml.saml2.core.AttributeQuery;
+import org.opensaml.saml.saml2.core.AuthnQuery;
+import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.opensaml.saml.saml2.core.SubjectQuery;
 import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
@@ -30,9 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Test Class for the SAMLValidatorFactory
+ * Test Class for the SAMLValidatorFactory.
  */
 public class SAMLValidatorFactoryTest {
+
     List<InvalidItemDTO> testInvalidItems = new ArrayList<>();
     RequestAbstractType testrequest;
     SAMLQueryValidator testSamlQueryValidator;
@@ -41,6 +46,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorAssertionIDRequest() {
+
         testrequest = Mockito.mock(AssertionIDRequest.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testSamlQueryValidator instanceof SAMLIDRequestValidator);
@@ -48,6 +54,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorAttributeQuery() {
+
         testrequest = Mockito.mock(AttributeQuery.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testSamlQueryValidator instanceof SAMLAttributeQueryValidator);
@@ -55,6 +62,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorAuthnQuery() {
+
         testrequest = Mockito.mock(AuthnQuery.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testSamlQueryValidator instanceof SAMLAuthQueryValidator);
@@ -62,6 +70,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorAuthzDecisionQueryImpl() {
+
         testrequest = Mockito.mock(AuthzDecisionQueryImpl.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testSamlQueryValidator instanceof SAMLAuthzDecisionValidator);
@@ -69,6 +78,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorSubjectQuery() {
+
         testrequest = Mockito.mock(SubjectQuery.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testSamlQueryValidator instanceof SAMLSubjectQueryValidator);
@@ -76,6 +86,7 @@ public class SAMLValidatorFactoryTest {
 
     @Test
     public void testGetValidatorOther() {
+
         testrequest = Mockito.mock(RequestAbstractType.class, Mockito.CALLS_REAL_METHODS);
         testSamlQueryValidator = SAMLValidatorFactory.getValidator(testInvalidItems, testrequest);
         Assert.assertTrue(testInvalidItems.get(0).getMessage().equals(testInvalidItemDTO.getMessage()));

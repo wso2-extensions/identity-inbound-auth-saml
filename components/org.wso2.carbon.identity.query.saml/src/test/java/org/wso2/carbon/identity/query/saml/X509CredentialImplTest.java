@@ -28,12 +28,13 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Test Class for the X509CredentialImpl
+ * Test Class for the X509CredentialImpl.
  */
 public class X509CredentialImplTest {
     String modulusString = "00d56047acf652298e3fcdbb8cecbc32214722aa1625f88480cf570cee373ada932b140c29b00dc" +
@@ -46,7 +47,8 @@ public class X509CredentialImplTest {
 
     X509CredentialImpl testclass = new X509CredentialImpl(modulus, exponent);
 
-    public X509CredentialImplTest() throws InvalidKeySpecException, NoSuchAlgorithmException, CertificateParsingException {
+    public X509CredentialImplTest() throws InvalidKeySpecException,
+            NoSuchAlgorithmException, CertificateParsingException {
     }
 
     @Test
@@ -103,7 +105,7 @@ public class X509CredentialImplTest {
     @Test
     public void testGetEntityCertificateChain() {
 
-        assertTrue(testequalarray((ArrayList) testclass.getEntityCertificateChain(), new ArrayList<X509Certificate>()));
+        assertTrue(testEqualArray((ArrayList) testclass.getEntityCertificateChain(), new ArrayList<X509Certificate>()));
     }
 
     @Test
@@ -111,14 +113,9 @@ public class X509CredentialImplTest {
         assertEquals(testclass.getCRLs(), null);
     }
 
-    private boolean testequalarray(ArrayList actual, ArrayList expected) {
+    private boolean testEqualArray(ArrayList actual, ArrayList expected) {
 
-        for (int i = 0; i < actual.size(); i++) {
-            if (!actual.get(i).equals(expected.get(i))) {
-                return false;
-            }
-        }
-        return true;
+        return Arrays.deepEquals(actual.toArray(), expected.toArray());
     }
 
 }

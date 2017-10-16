@@ -18,29 +18,21 @@
 
 package org.wso2.carbon.identity.query.saml.processor;
 
-import org.opensaml.saml.saml2.core.NameID;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.impl.IssuerImpl;
-import org.opensaml.saml.saml2.core.impl.NameIDImpl;
-import org.opensaml.saml.saml2.core.impl.SubjectImpl;
 import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
-import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
-import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * Test Class for the SAMLSubjectQueryProcessor
+ * Test Class for the SAMLSubjectQueryProcessor.
  */
 @PrepareForTest({MultitenantUtils.class})
 public class SAMLSubjectQueryProcessorTest extends PowerMockTestCase {
@@ -96,51 +88,6 @@ public class SAMLSubjectQueryProcessorTest extends PowerMockTestCase {
             super("testNSU", "testELN", "testNSP");
         }
 
-    }
-
-    class DummySubject extends SubjectImpl {
-
-        protected DummySubject() {
-            super("testNSU", "testELN", "testNSP");
-        }
-
-        NameID nameID;
-
-        @Override
-        public void setNameID(NameID newNameID) {
-            nameID = newNameID;
-        }
-
-        @Override
-        public NameID getNameID() {
-            return nameID;
-        }
-    }
-
-    class DummyNameID extends NameIDImpl {
-
-        protected DummyNameID() {
-            super("testNSU", "testELN", "testNSP");
-        }
-
-        String format;
-        String value;
-
-        @Override
-        public void setFormat(String newFormat) {
-            format = newFormat;
-            value = newFormat;
-        }
-
-        @Override
-        public String getFormat() {
-            return format;
-        }
-
-        @Override
-        public String getValue() {
-            return value;
-        }
     }
 
 }

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.saml.common;
 
-
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -27,7 +26,7 @@ import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
 import static org.testng.Assert.assertEquals;
 
 /**
- * Test Class for the Util
+ * Test Class for the Util.
  */
 public class UtilTest {
 
@@ -120,7 +119,8 @@ public class UtilTest {
     public void testDoFilter(SAMLSSOServiceProviderDTO[] serviceProviderSet,
                              SAMLSSOServiceProviderDTO[] serviceProviderSetpattern) throws Exception {
 
-        SAMLSSOServiceProviderDTO[] returnServiceProviderSet = Util.doFilter("^([A-Za-z0-9+/])*=$", serviceProviderSet);
+        SAMLSSOServiceProviderDTO[] returnServiceProviderSet =
+                Util.doFilter("^([A-Za-z0-9+/])*=$", serviceProviderSet);
         Assert.assertTrue(assertSSOproviderArray(returnServiceProviderSet, serviceProviderSetpattern));
     }
 

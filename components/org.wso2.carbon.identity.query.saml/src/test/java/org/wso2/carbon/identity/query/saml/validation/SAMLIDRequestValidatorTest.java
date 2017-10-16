@@ -49,10 +49,14 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivilegedCarbonContext;
+
 
 /**
- * Test Class for the SAMLIDRequestValidator
+ * Test Class for the SAMLIDRequestValidator.
  */
 @PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
 @PowerMockIgnore({"java.net.*", "org.opensaml.*"})
@@ -69,7 +73,7 @@ public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
     @AfterMethod
     public void tearDown() {
 
-        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        stopPrivilegedCarbonContext();
     }
 
     @Test
@@ -129,16 +133,6 @@ public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
         protected DummyAssertion() {
             super("testNSU", "testELN", "testNSP");
         }
-    }
-
-    private void initPrivilegedCarbonContext(String tenantDomain, int tenantID, String userName) throws Exception {
-
-        String carbonHome = Paths.get(System.getProperty("newuser.dir"), "target").toString();
-        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
     }
 
 }

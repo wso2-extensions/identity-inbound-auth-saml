@@ -18,9 +18,20 @@
 package org.wso2.carbon.identity.query.saml.validation;
 
 import org.opensaml.core.xml.util.XMLObjectChildrenList;
-import org.opensaml.saml.saml2.core.*;
-import org.opensaml.saml.saml2.core.impl.*;
 
+import org.opensaml.saml.saml2.core.Action;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.NameID;
+import org.opensaml.saml.saml2.core.Subject;
+import org.opensaml.saml.saml2.core.impl.ActionImpl;
+import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefImpl;
+import org.opensaml.saml.saml2.core.impl.AuthnQueryImpl;
+import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
+import org.opensaml.saml.saml2.core.impl.IssuerImpl;
+import org.opensaml.saml.saml2.core.impl.NameIDImpl;
+import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextImpl;
+import org.opensaml.saml.saml2.core.impl.SubjectImpl;
+import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
@@ -28,7 +39,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * Utilclasses for testcases
+ * Utilclasses for testcases.
  */
 public class TestUtil {
 
@@ -42,7 +53,14 @@ public class TestUtil {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
     }
+
+    public static void stopPrivilegedCarbonContext() {
+        PrivilegedCarbonContext.endTenantFlow();
+        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+    }
+
 }
+
 class DummySubjectQuery extends SubjectQueryImpl {
 
     protected DummySubjectQuery() {
@@ -114,6 +132,7 @@ class DummyIssuer extends IssuerImpl {
     }
 
 }
+
 class DummyAuthn extends AuthnQueryImpl {
 
     protected DummyAuthn() {
@@ -130,7 +149,8 @@ class DummyAuthn extends AuthnQueryImpl {
         return nameID;
     }
 }
-class DummyReqAuthnContext extends RequestedAuthnContextImpl{
+
+class DummyReqAuthnContext extends RequestedAuthnContextImpl {
 
     private final XMLObjectChildrenList<AuthnContextClassRef> authnContextClassRefs = new XMLObjectChildrenList(this);
 
@@ -138,8 +158,8 @@ class DummyReqAuthnContext extends RequestedAuthnContextImpl{
         super("testNSU", "testELN", "testNSP");
     }
 
-    public void  setAuthnContextClassRefs(){
-        DummyAuthContext sample =new DummyAuthContext();
+    public void setAuthnContextClassRefs() {
+        DummyAuthContext sample = new DummyAuthContext();
         this.authnContextClassRefs.add(sample);
     }
 
@@ -148,20 +168,22 @@ class DummyReqAuthnContext extends RequestedAuthnContextImpl{
         return authnContextClassRefs;
     }
 }
-class DummyAuthContext extends AuthnContextClassRefImpl{
+
+class DummyAuthContext extends AuthnContextClassRefImpl {
 
     protected DummyAuthContext() {
         super("testNSU", "testELN", "testNSP");
     }
 }
 
-class DummyAuthDecisionQuery extends AuthzDecisionQueryImpl{
+class DummyAuthDecisionQuery extends AuthzDecisionQueryImpl {
     private final XMLObjectChildrenList<Action> actions = new XMLObjectChildrenList(this);
     String resource;
 
     protected DummyAuthDecisionQuery() {
         super("testNSU", "testELN", "testNSP");
     }
+
     NameID nameID;
 
     public void setNameID(NameID newNameID) {
@@ -172,10 +194,11 @@ class DummyAuthDecisionQuery extends AuthzDecisionQueryImpl{
         return nameID;
     }
 
-    public void setactions(){
+    public void setactions() {
         DummyActions dummyaction = new DummyActions();
         actions.add(dummyaction);
     }
+
     public List<Action> getActions() {
         return this.actions;
     }
@@ -191,14 +214,10 @@ class DummyAuthDecisionQuery extends AuthzDecisionQueryImpl{
     }
 }
 
-class DummyActions extends ActionImpl{
+class DummyActions extends ActionImpl {
 
     protected DummyActions() {
         super("testNSU", "testELN", "testNSP");
     }
 }
-
-
-
-
 

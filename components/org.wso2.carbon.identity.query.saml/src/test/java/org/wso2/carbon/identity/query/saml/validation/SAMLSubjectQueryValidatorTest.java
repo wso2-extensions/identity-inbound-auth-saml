@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.query.saml.validation;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.NameID;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
@@ -34,8 +33,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.CarbonBaseConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -49,22 +46,22 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
-import static org.wso2.carbon.identity.query.saml.validation.TestUtil.*;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivilegedCarbonContext;
+
 
 /**
- * Test Class for the SAMLSubjectQueryValidator
+ * Test Class for the SAMLSubjectQueryValidator.
  */
 @PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class, SAMLQueryRequestUtil.class, OpenSAML3Util.class})
 public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
@@ -88,12 +85,12 @@ public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
     @AfterClass
     public void tearDown() {
 
-        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        stopPrivilegedCarbonContext();
     }
 
 
     @DataProvider(name = "provideSubectQuery")
-    public Object[][] createSubject() {
+    public Object[][] createSubjectQuery() {
 
         DummyNameID dumID1 = new DummyNameID();
         DummyNameID dumID2 = new DummyNameID();

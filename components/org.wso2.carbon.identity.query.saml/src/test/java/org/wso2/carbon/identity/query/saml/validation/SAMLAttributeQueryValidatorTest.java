@@ -19,19 +19,12 @@ package org.wso2.carbon.identity.query.saml.validation;
 
 import org.mockito.Mock;
 import org.opensaml.saml.common.SAMLVersion;
-import org.opensaml.saml.saml2.core.NameID;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
-import org.opensaml.saml.saml2.core.Subject;
-import org.opensaml.saml.saml2.core.impl.IssuerImpl;
-import org.opensaml.saml.saml2.core.impl.NameIDImpl;
-import org.opensaml.saml.saml2.core.impl.SubjectImpl;
-import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -45,7 +38,6 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,12 +46,12 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.wso2.carbon.identity.query.saml.validation.TestUtil.*;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
+import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivilegedCarbonContext;
 
-import static org.testng.Assert.*;
 
 /**
- * Test Class for the SAMLAttributeQueryValidator
+ * Test Class for the SAMLAttributeQueryValidator.
  */
 @PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class, SAMLQueryRequestUtil.class, OpenSAML3Util.class})
 public class SAMLAttributeQueryValidatorTest extends PowerMockTestCase {
@@ -83,7 +75,7 @@ public class SAMLAttributeQueryValidatorTest extends PowerMockTestCase {
     @AfterClass
     public void tearDown() {
 
-        System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        stopPrivilegedCarbonContext();
     }
 
     @Test

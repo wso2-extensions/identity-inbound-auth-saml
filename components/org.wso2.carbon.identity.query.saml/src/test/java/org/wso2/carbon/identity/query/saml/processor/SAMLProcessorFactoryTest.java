@@ -18,57 +18,65 @@
 
 package org.wso2.carbon.identity.query.saml.processor;
 
-import org.opensaml.saml.saml2.core.impl.*;
-import org.testng.annotations.DataProvider;
+
+import org.opensaml.saml.saml2.core.impl.AssertionIDRequestImpl;
+import org.opensaml.saml.saml2.core.impl.AttributeQueryImpl;
+import org.opensaml.saml.saml2.core.impl.AuthnQueryImpl;
+import org.opensaml.saml.saml2.core.impl.AuthzDecisionQueryImpl;
+import org.opensaml.saml.saml2.core.impl.LogoutRequestImpl;
+import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
 
 /**
- * Test Class for the SAMLProcessorFactory
+ * Test Class for the SAMLProcessorFactory.
  */
 public class SAMLProcessorFactoryTest {
 
-    @DataProvider(name = "requestProvider")
-    public Object[][] createRequest() {
-        DummyAssertionIDRequest dummy1 = new DummyAssertionIDRequest();
-        DummyAttributeQueryImpl dummy2 = new DummyAttributeQueryImpl();
-        DummyAuthnQueryImpl dummy3 = new DummyAuthnQueryImpl();
-        DummyAuthzDecisionQueryImpl dummy4 = new DummyAuthzDecisionQueryImpl();
-        DummySubjectQueryImpl dummy5 = new DummySubjectQueryImpl();
-        DummyLogoutRequestImpl dummy6 =new DummyLogoutRequestImpl();
-        return new Object[][]{
-                {dummy1, 1},
-                {dummy2, 2},
-                {dummy3, 3},
-                {dummy4, 4},
-                {dummy5, 5},
-                {dummy6, 6},
-        };
+    @Test
+    public void testGetProcessorForSAMLIDRequest() {
+
+
+        DummyAssertionIDRequest dummy = new DummyAssertionIDRequest();
+        assertTrue(SAMLProcessorFactory.getProcessor(dummy) instanceof SAMLIDRequestProcessor);
     }
 
-    @Test(dataProvider = "requestProvider")
-    public void testGetProcessor(Object dumrequest, int value) throws Exception {
+    @Test
+    public void testGetProcessorForAttributeQueryImpl() {
 
-        if (value == 1) {
-            assertTrue(SAMLProcessorFactory.getProcessor((DummyAssertionIDRequest) dumrequest)
-                    instanceof SAMLIDRequestProcessor);
-        } else if (value == 2) {
-            assertTrue(SAMLProcessorFactory.getProcessor((DummyAttributeQueryImpl) dumrequest)
-                    instanceof SAMLAttributeQueryProcessor);
-        } else if (value == 3) {
-            assertTrue(SAMLProcessorFactory.getProcessor((DummyAuthnQueryImpl) dumrequest)
-                    instanceof SAMLAuthnQueryProcessor);
-        } else if (value == 4) {
-            assertTrue(SAMLProcessorFactory.getProcessor((DummyAuthzDecisionQueryImpl) dumrequest)
-                    instanceof SAMLAuthzDecisionProcessor);
-        } else if (value == 5) {
-            assertTrue(SAMLProcessorFactory.getProcessor((DummySubjectQueryImpl) dumrequest)
-                    instanceof SAMLSubjectQueryProcessor);
-        }else{
-            assertEquals(SAMLProcessorFactory.getProcessor((DummyLogoutRequestImpl) dumrequest),null);
-        }
+        DummyAttributeQueryImpl dummy = new DummyAttributeQueryImpl();
+        assertTrue(SAMLProcessorFactory.getProcessor(dummy) instanceof SAMLAttributeQueryProcessor);
+    }
 
+    @Test
+    public void testGetProcessorForAuthnQueryImpl() {
+
+        DummyAuthnQueryImpl dummy = new DummyAuthnQueryImpl();
+        assertTrue(SAMLProcessorFactory.getProcessor(dummy) instanceof SAMLAuthnQueryProcessor);
+    }
+
+    @Test
+    public void testGetProcessorForAuthzDecisionQueryImpl() {
+
+        DummyAuthzDecisionQueryImpl dummy = new DummyAuthzDecisionQueryImpl();
+        assertTrue(SAMLProcessorFactory.getProcessor(dummy) instanceof SAMLAuthzDecisionProcessor);
+    }
+
+    @Test
+    public void testGetProcessorForSubjectQueryImpl() {
+
+        DummySubjectQueryImpl dummy = new DummySubjectQueryImpl();
+        assertTrue(SAMLProcessorFactory.getProcessor(dummy) instanceof SAMLSubjectQueryProcessor);
+    }
+
+    @Test
+    public void testGetProcessorFornull() {
+
+        DummyLogoutRequestImpl dummy = new DummyLogoutRequestImpl();
+        assertEquals(SAMLProcessorFactory.getProcessor(dummy), null);
     }
 
     class DummyAssertionIDRequest extends AssertionIDRequestImpl {

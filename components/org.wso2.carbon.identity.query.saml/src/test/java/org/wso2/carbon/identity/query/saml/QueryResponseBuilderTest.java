@@ -25,13 +25,10 @@ import org.opensaml.saml.saml2.core.Status;
 import org.opensaml.saml.saml2.core.impl.AssertionImpl;
 import org.opensaml.saml.saml2.core.impl.IssuerImpl;
 import org.opensaml.saml.saml2.core.impl.ResponseImpl;
-import org.opensaml.saml.saml2.core.impl.StatusImpl;
-import org.opensaml.security.x509.X509Credential;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -49,10 +46,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.wso2.carbon.identity.query.saml.validation.TestUtil.*;
-
 /**
- * Test Class for the QueryResponseBuilder
+ * Test Class for the QueryResponseBuilder.
  */
 @PrepareForTest({OpenSAML3Util.class, QueryResponseBuilder.class})
 public class QueryResponseBuilderTest extends PowerMockTestCase {
@@ -69,7 +64,8 @@ public class QueryResponseBuilderTest extends PowerMockTestCase {
 
         mockStatic(OpenSAML3Util.class);
         when(OpenSAML3Util.getIssuer(anyString())).thenReturn(issuer);
-        when(OpenSAML3Util.setSignature(any(Response.class), anyString(), anyString(), any(SignKeyDataHolder.class))).thenReturn(response);
+        when(OpenSAML3Util.setSignature(any(Response.class), anyString(),
+                anyString(), any(SignKeyDataHolder.class))).thenReturn(response);
 
         SignKeyDataHolder testSign = Mockito.mock(SignKeyDataHolder.class);
         whenNew(SignKeyDataHolder.class).withAnyArguments().thenReturn(testSign);
@@ -108,8 +104,8 @@ public class QueryResponseBuilderTest extends PowerMockTestCase {
         assertEquals(dummyStatus2.getStatusCode().getValue(), "teststatus2");
     }
 
-    @DataProvider(name = "provideStatusCode")
-    public Object[][] createSubject() {
+    @DataProvider(name = "provideValidationType")
+    public Object[][] createValidationType() {
 
         String VAL_MESSAGE_BODY = "Validation Message Body";
         String INTERNAL_SERVER_ERROR = "Internal Server Error";
@@ -156,7 +152,7 @@ public class QueryResponseBuilderTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "provideStatusCode")
+    @Test(dataProvider = "provideValidationType")
     public void testFilterStatusCode(String status, String response)  {
 
         assertEquals(QueryResponseBuilder.filterStatusCode(status), response);
