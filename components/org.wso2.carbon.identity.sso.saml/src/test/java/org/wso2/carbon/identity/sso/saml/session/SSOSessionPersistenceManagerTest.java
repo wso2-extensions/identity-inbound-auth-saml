@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCache;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheEntry;
@@ -99,13 +100,12 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     @Test
     public void testAddSessionInfoDataToCache() throws Exception {
 
-        SessionInfoData actualSessionInfoData = null;
         SessionInfoData sessionInfoData = new SessionInfoData();
         SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionId", sessionInfoData);
         SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey("sessionId");
         SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
         Assert.assertNotNull(cacheEntry);
-        actualSessionInfoData = cacheEntry.getSessionInfoData();
+        SessionInfoData actualSessionInfoData = cacheEntry.getSessionInfoData();
         Assert.assertEquals(actualSessionInfoData, sessionInfoData);
     }
 
@@ -210,16 +210,18 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public void testPersistSession() throws Exception {
 
         String issuer = "testUser";
-        String assertionConsumerUrl = "localhost.com:8080/avis.com/home.jsp";
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(issuer);
         SSOSessionPersistenceManager.addSessionInfoDataToCache("samlTokenId", new SessionInfoData());
-        ssoSessionPersistenceManager.persistSession("samlTokenId", "subject", samlssoServiceProviderDO, "rpSessionId", issuer, assertionConsumerUrl);
+        ssoSessionPersistenceManager.persistSession("samlTokenId", "subject", samlssoServiceProviderDO,
+                "rpSessionId", issuer, TestConstants.ACS_URL);
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfoDataFromCache("samlTokenId");
+
         Assert.assertEquals(sessionInfoData.getSubject(issuer), "subject");
         Assert.assertFalse(sessionInfoData.getRPSessionsList().isEmpty());
         Assert.assertEquals(sessionInfoData.getServiceProviderList().get(issuer), samlssoServiceProviderDO);
-        Assert.assertEquals(sessionInfoData.getServiceProviderList().get(issuer).getAssertionConsumerUrl(), assertionConsumerUrl);
+        Assert.assertEquals(sessionInfoData.getServiceProviderList().get(issuer).getAssertionConsumerUrl(),
+                TestConstants.ACS_URL);
     }
 
     public static void initializeData() throws IdentityException {
@@ -227,21 +229,27 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         String sessionIndex = "sessionIndex";
         String subject = "subject";
         String issuer = "issuer";
+
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(issuer);
         samlssoServiceProviderDO.setDoSingleLogout(true);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", sessionIndex);
-        SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject, samlssoServiceProviderDO, null, issuer, null);
+        SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject,
+                samlssoServiceProviderDO, null, issuer, null);
+
         SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO1.setIssuer("issuer1");
         samlssoServiceProviderDO1.setDoSingleLogout(true);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId1", "sessionIndex2");
-        SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex2", subject, samlssoServiceProviderDO1, null, "issuer1", null);
+        SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex2", subject,
+                samlssoServiceProviderDO1, null, "issuer1", null);
+
         SAMLSSOServiceProviderDO samlssoServiceProviderDO2 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO2.setIssuer("issuer2");
         samlssoServiceProviderDO2.setDoSingleLogout(false);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId2", sessionIndex);
-        SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject, samlssoServiceProviderDO2, null, "issuer2", null);
+        SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject,
+                samlssoServiceProviderDO2, null, "issuer2", null);
 
     }
 
@@ -272,7 +280,8 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setIssuer("issuer");
         samlssoServiceProviderDO.setDoSingleLogout(true);
         SSOSessionPersistenceManager.addSessionIndexToCache("sessionId", "sessionIndex");
-        SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex", "sub", samlssoServiceProviderDO, null, "issuer", null);
+        SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex", "sub",
+                samlssoServiceProviderDO, null, "issuer", null);
         SSOSessionPersistenceManager.removeSession("sessionId", "issuer");
     }
 
