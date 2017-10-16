@@ -129,6 +129,11 @@ public class Util {
 
         return filteredProviders;
     }
+
+    /**
+     * This method is not used
+     *
+     */
     @Deprecated
     public static String getUserNameFromOpenID(String openid) throws IdentityException {
         String caller = null;
