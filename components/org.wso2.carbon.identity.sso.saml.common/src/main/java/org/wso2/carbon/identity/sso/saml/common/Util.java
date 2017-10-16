@@ -42,6 +42,7 @@ public class Util {
 
     private static final Set<Character> UNRESERVED_CHARACTERS = new HashSet<Character>();
     private static final Log log = LogFactory.getLog(Util.class);
+
     static {
         for (char c = 'a'; c <= 'z'; c++)
             UNRESERVED_CHARACTERS.add(Character.valueOf(c));
@@ -57,6 +58,7 @@ public class Util {
         UNRESERVED_CHARACTERS.add(Character.valueOf('_'));
         UNRESERVED_CHARACTERS.add(Character.valueOf('~'));
     }
+
     private static int singleLogoutRetryCount = 5;
     private static long singleLogoutRetryInterval = 60000;
 
@@ -132,7 +134,6 @@ public class Util {
 
     /**
      * This method is not used
-     *
      */
     @Deprecated
     public static String getUserNameFromOpenID(String openid) throws IdentityException {
@@ -156,7 +157,7 @@ public class Util {
      *
      * @param userName User name
      * @return OpenID corresponding the given user name.
-     * @throws org.wso2.carbon.identity.base.IdentityException
+     * @throws org.wso2.carbon.identity.base.IdentityException this is deprecated because this repo is saml and this is a openid method
      */
     @Deprecated
     public static String getOpenID(String userName) throws IdentityException {
@@ -168,7 +169,7 @@ public class Util {
      *
      * @param user User
      * @return Generated OpenID
-     * @throws org.wso2.carbon.identity.base.IdentityException
+     * @throws org.wso2.carbon.identity.base.IdentityException this is deprecated because this repo is saml and this is a openID method
      */
     @Deprecated
     public static String generateOpenID(String user) throws IdentityException {
@@ -196,6 +197,7 @@ public class Util {
         return openID;
     }
 
+    //this is deprecated because this repo is saml and this is a openID method
     @Deprecated
     private static String normalizeUrlEncoding(String text) {
 
@@ -217,7 +219,7 @@ public class Util {
                     else
                         normalized.append(percentCode);
                 } catch (UnsupportedEncodingException e) {
-                    if(log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("Url Encoding not supported.", e);
                     }
                     normalized.append(percentCode);
