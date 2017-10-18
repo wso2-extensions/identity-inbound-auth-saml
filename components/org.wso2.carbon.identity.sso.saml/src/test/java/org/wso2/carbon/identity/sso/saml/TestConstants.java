@@ -23,6 +23,11 @@ package org.wso2.carbon.identity.sso.saml;
  */
 public class TestConstants {
 
+    public static final String DEFAULT_SSO_ENCRYPTOR = "org.wso2.carbon.identity.sso.saml.builders.encryption" +
+            ".DefaultSSOEncrypter";
+    public static final String ASSERTION_ENCRYPTION_ALGO = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+    public static final String KEY_ENCRYPTION_ALGO = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+
     public static final String SP_ENTITY_ID_WITH_TENANT_DOMAIN = "travelocity.com@tenant.com";
     public static final String SP_ENTITY_ID = "travelocity.com";
     public static final String SAML_SSO_IDP_URL = "https://localhost:9443/samlsso";

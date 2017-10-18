@@ -678,7 +678,7 @@ public class SAMLSSOUtil {
 
             synchronized (Runtime.getRuntime().getClass()) {
                 ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAMLSSOEncrypter").trim()).newInstance();
+                        SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH).trim()).newInstance();
                 ssoEncrypter.init();
             }
             return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, assertionEncryptionAlgorithm,
