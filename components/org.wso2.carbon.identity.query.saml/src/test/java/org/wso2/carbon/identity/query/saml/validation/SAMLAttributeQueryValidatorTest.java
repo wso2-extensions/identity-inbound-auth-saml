@@ -53,7 +53,12 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
 /**
  * Test Class for the SAMLAttributeQueryValidator.
  */
-@PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class, SAMLQueryRequestUtil.class, OpenSAML3Util.class})
+@PrepareForTest({
+        MultitenantUtils.class,
+        SAMLQueryServiceComponent.class,
+        SAMLQueryRequestUtil.class,
+            OpenSAML3Util.class
+        })
 public class SAMLAttributeQueryValidatorTest extends PowerMockTestCase {
 
     @Mock
@@ -83,7 +88,7 @@ public class SAMLAttributeQueryValidatorTest extends PowerMockTestCase {
 
         DummyNameID dumID2 = new DummyNameID();
         DummySubject dumSub = new DummySubject();
-        DummySubjectQuery dumSQ2 = new DummySubjectQuery();
+        DummySubjectQueryImpl dumSQ2 = new DummySubjectQueryImpl();
         dumID2.setFormat("test");
         dumSub.setNameID(dumID2);
         dumSQ2.setSubject(dumSub);

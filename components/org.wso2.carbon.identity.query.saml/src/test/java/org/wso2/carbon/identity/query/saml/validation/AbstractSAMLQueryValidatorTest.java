@@ -188,7 +188,7 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
     }
 
     @Test(expectedExceptions = IdentitySAML2QueryException.class)
-    public void testIdentitySAML2QueryExceptionforValidateIssuer() throws Exception {
+    public void testIdentitySAML2QueryExceptionforValidateIssuer() throws IdentitySAML2QueryException {
 
         DummyIssuer issuer = new DummyIssuer();
         DummyRequest request = new DummyRequest();

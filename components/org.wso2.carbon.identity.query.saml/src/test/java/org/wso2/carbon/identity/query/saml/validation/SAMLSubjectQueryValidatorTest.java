@@ -176,26 +176,26 @@ public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "provideSubectQuery")
-    public void testValidate(Object SubQ, boolean value, Object ssoP)
+    public void testValidate(Object SubQ, boolean expectedValue, Object SAMLSSOServiceProviderDO)
             throws IdentitySAML2QueryException, org.wso2.carbon.user.api.UserStoreException {
 
         mockStatic(SAMLQueryRequestUtil.class);
         mockStatic(MultitenantUtils.class);
         mockStatic(SAMLQueryServiceComponent.class);
         mockStatic(OpenSAML3Util.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig(anyString())).thenReturn((SAMLSSOServiceProviderDO) ssoP);
+        when(SAMLQueryRequestUtil.getServiceProviderConfig(anyString())).thenReturn((SAMLSSOServiceProviderDO) SAMLSSOServiceProviderDO);
         when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
                 .thenReturn(true);
         when(MultitenantUtils.getTenantAwareUsername(anyString())).thenReturn("test");
         when(testuserStoreManager.isExistingUser(anyString())).thenReturn(false);
-        if (value) {
+        if (expectedValue) {
             when(testuserStoreManager.isExistingUser(anyString())).thenReturn(true);
         }
         when(testRealmService.getTenantUserRealm(anyInt())).thenReturn(testUserRealm);
         when(testUserRealm.getUserStoreManager()).thenReturn(testuserStoreManager);
         when(SAMLQueryServiceComponent.getRealmservice()).thenReturn(testRealmService);
 
-        assertEquals(testsamlSubjectQueryValidator.validate(invalidItems, (DummySubjectQuery) SubQ), value);
+        assertEquals(testsamlSubjectQueryValidator.validate(invalidItems, (DummySubjectQuery) SubQ), expectedValue);
     }
 
     @Test

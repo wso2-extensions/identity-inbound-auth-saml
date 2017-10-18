@@ -26,7 +26,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -127,11 +126,11 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
         issuer4.setFormat(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT);
         issuer5.setFormat(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT);
 
-        DummyAuthn dumSQ1 = new DummyAuthn();
-        DummyAuthn dumSQ2 = new DummyAuthn();
-        DummyAuthn dumSQ3 = new DummyAuthn();
-        DummyAuthn dumSQ4 = new DummyAuthn();
-        DummyAuthn dumSQ5 = new DummyAuthn();
+        dummyAuthnQueryImpl dumSQ1 = new dummyAuthnQueryImpl();
+        dummyAuthnQueryImpl dumSQ2 = new dummyAuthnQueryImpl();
+        dummyAuthnQueryImpl dumSQ3 = new dummyAuthnQueryImpl();
+        dummyAuthnQueryImpl dumSQ4 = new dummyAuthnQueryImpl();
+        dummyAuthnQueryImpl dumSQ5 = new dummyAuthnQueryImpl();
 
         dumSQ1.setSubject(dumSub1);
         dumSQ2.setSubject(dumSub2);
@@ -180,7 +179,7 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
 
 
     @Test(dataProvider = "provideAuthn")
-    public void testValidate(Object dummy, boolean value) throws IdentitySAML2QueryException, UserStoreException {
+    public void testValidate(Object dummy, boolean expectedValue) throws IdentitySAML2QueryException, UserStoreException {
 
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
         ssoIdpConfigs.setNameIDFormat("test");
@@ -198,7 +197,7 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
         when(testUserRealm.getUserStoreManager()).thenReturn(testuserStoreManager);
         when(SAMLQueryServiceComponent.getRealmservice()).thenReturn(testRealmService);
         when(testuserStoreManager.isExistingUser(anyString())).thenReturn(true);
-        assertEquals(testclass.validate(invalidItems, (DummyAuthn) dummy), value);
+        assertEquals(testclass.validate(invalidItems, (dummyAuthnQueryImpl) dummy), expectedValue);
     }
 
 }

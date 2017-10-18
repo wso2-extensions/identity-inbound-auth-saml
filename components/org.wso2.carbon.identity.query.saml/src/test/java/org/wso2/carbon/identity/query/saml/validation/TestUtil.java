@@ -61,9 +61,9 @@ public class TestUtil {
 
 }
 
-class DummySubjectQuery extends SubjectQueryImpl {
+class DummySubjectQueryImpl extends SubjectQueryImpl {
 
-    protected DummySubjectQuery() {
+    protected DummySubjectQueryImpl() {
         super("testNSU", "testELN", "testNSP");
     }
 
@@ -133,9 +133,9 @@ class DummyIssuer extends IssuerImpl {
 
 }
 
-class DummyAuthn extends AuthnQueryImpl {
+class dummyAuthnQueryImpl extends AuthnQueryImpl {
 
-    protected DummyAuthn() {
+    protected dummyAuthnQueryImpl() {
         super("testNSU", "testELN", "testNSP");
     }
 

@@ -23,6 +23,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -126,12 +129,8 @@ public class UtilTest {
 
     public boolean assertSSOproviderArray(SAMLSSOServiceProviderDTO[] actual, SAMLSSOServiceProviderDTO[] expected) {
 
-        for (int i = 0; i < actual.length; i++) {
-            if (!actual[i].equals(expected[i])) {
-                return false;
-            }
-        }
-        return true;
+        SAMLSSOServiceProviderDTO[] expectedaArray = Arrays.copyOfRange(expected, 0, actual.length);
+        return Arrays.deepEquals(actual, expectedaArray);
     }
 
 }
