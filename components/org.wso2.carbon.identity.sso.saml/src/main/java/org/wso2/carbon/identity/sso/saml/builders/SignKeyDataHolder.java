@@ -125,7 +125,7 @@ public class SignKeyDataHolder implements X509Credential {
                         SECURITY_KEY_STORE_KEY_ALIAS);
                 if (StringUtils.isBlank(keyAlias)) {
                     throw new IdentityException("Invalid security configurations in the carbon.xml," +
-                            " The keyAlias is not found for the KeyStore of the tenant domain:" + tenantDomain );
+                            " The keyAlias is not found for the KeyStore of the tenant domain: " + tenantDomain );
                 }
 
                 keyAdmin = new KeyStoreAdmin(tenantID,
@@ -152,15 +152,15 @@ public class SignKeyDataHolder implements X509Credential {
             }
 
         } catch (IdentityException e) {
-            throw new IdentityException("Unable to access the realm service of the tenant domain:" + tenantDomain, e);
+            throw new IdentityException("Unable to access the realm service of the tenant domain: " + tenantDomain, e);
         } catch (KeyStoreException e) {
-            throw new IdentityException("Unable to load keystore of the tenant domain:" + tenantDomain, e);
+            throw new IdentityException("Unable to load keystore of the tenant domain: " + tenantDomain, e);
         } catch (UserStoreException e) {
-            throw new IdentityException("Unable to load user store of the tenant domain:" + tenantDomain, e);
+            throw new IdentityException("Unable to load user store of the tenant domain: " + tenantDomain, e);
         } catch (RegistryException e) {
-            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
+            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain: " + tenantDomain);
         } catch (Exception e) {
-            throw new IdentityException("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
+            throw new IdentityException("Unable to get primary keystore of the tenant domain: " + tenantDomain, e);
         }
 
     }
