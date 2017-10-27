@@ -69,6 +69,22 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>
         </operation>
+        <operation name="getAssertionEncryptionAlgorithmURIs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getAssertionEncryptionAlgorithmURIByConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getKeyEncryptionAlgorithmURIs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getKeyEncryptionAlgorithmURIByConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
         <operation name="removeServiceProvider">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/delete
             </parameter>

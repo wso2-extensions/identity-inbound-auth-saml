@@ -62,7 +62,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
@@ -247,9 +247,8 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
                 //Need to check if the claim has multiple values
                 if (userAttributeSeparator != null && claimValue.contains(userAttributeSeparator)) {
-                    StringTokenizer st = new StringTokenizer(claimValue, userAttributeSeparator);
-                    while (st.hasMoreElements()) {
-                        String attValue = st.nextElement().toString();
+                    String[] claimValues = claimValue.split(Pattern.quote(userAttributeSeparator));
+                    for (String attValue : claimValues) {
                         if (attValue != null && attValue.trim().length() > 0) {
                             stringValue = stringBuilder.buildObject(AttributeValue.DEFAULT_ELEMENT_NAME, XSString.TYPE_NAME);
                             stringValue.setValue(attValue);

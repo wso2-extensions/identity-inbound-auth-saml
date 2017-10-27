@@ -71,9 +71,11 @@ public class DefaultResponseBuilder implements ResponseBuilder {
 
             String domainName = authReqDTO.getTenantDomain();
             String alias = authReqDTO.getCertAlias();
+            String assertionEncryptionAlgorithm = authReqDTO.getAssertionEncryptionAlgorithmUri();
+            String keyEncryptionAlgorithm = authReqDTO.getKeyEncryptionAlgorithmUri();
             if (alias != null) {
                 EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
-                        EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES256, alias, domainName);
+                        assertionEncryptionAlgorithm, keyEncryptionAlgorithm, alias, domainName);
                 response.getEncryptedAssertions().add(encryptedAssertion);
             }
         } else {

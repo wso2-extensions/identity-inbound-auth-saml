@@ -85,6 +85,10 @@
                 SAML_SSO_SIGNING_ALGORITHM));
         serviceProviderDTO.setDigestAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
                 SAML_SSO_DIGEST_ALGORITHM));
+        serviceProviderDTO.setAssertionEncryptionAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
+                SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM));
+        serviceProviderDTO.setKeyEncryptionAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
+                SAML_SSO_KEY_ENCRYPTION_ALGORITHM));
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SINGLE_LOGOUT))) {
             serviceProviderDTO.setDoSingleLogout(true);
