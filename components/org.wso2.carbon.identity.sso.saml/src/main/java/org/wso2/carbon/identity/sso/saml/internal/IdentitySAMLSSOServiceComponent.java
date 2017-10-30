@@ -27,6 +27,8 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.sso.saml.SAMLLogoutListener;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
@@ -154,6 +156,9 @@ public class IdentitySAMLSSOServiceComponent {
         } finally {
             IdentityIOStreamUtils.closeInputStream(fis);
         }
+
+        ctxt.getBundleContext().registerService(AbstractEventHandler.class.getName(),
+                 new SAMLLogoutListener(), null);
 
     }
 
