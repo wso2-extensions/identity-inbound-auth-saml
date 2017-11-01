@@ -73,7 +73,7 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.event</artifactId>
-                <version>${carbon.identity.framework.version}</version>
+                <version>5.10.13-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
