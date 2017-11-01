@@ -24,8 +24,10 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
         String samlssoTokenId = null;
         if (StringUtils.equals(event.getEventName(), IdentityEventConstants.Event.SESSION_TERMINATE)) {
-            HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(IdentityEventConstants.EventProperty.REQUEST);
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get(IdentityEventConstants.EventProperty.CONTEXT);
+            HttpServletRequest request = (HttpServletRequest) event.getEventProperties()
+                    .get(IdentityEventConstants.EventProperty.REQUEST);
+            AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
+                    .get(IdentityEventConstants.EventProperty.CONTEXT);
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
@@ -48,7 +50,6 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
     @Override
     public String getName() {
-
         return "SAML_LOGOUT_LISTENER";
     }
 

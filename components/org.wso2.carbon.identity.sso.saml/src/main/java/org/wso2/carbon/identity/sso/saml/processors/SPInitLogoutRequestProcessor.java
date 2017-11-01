@@ -135,8 +135,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                             issuer);
                 }
 
-//                SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
-
                 if (sessionInfoData == null) {
                     String message = "No Established Sessions corresponding to Session Indexes provided.";
                     log.error(message);
@@ -172,8 +170,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 }
                 subject = sessionInfoData.getSubject(issuer);
 
-//                Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData
-//                        .getServiceProviderList();
                 SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
 
                 if (logoutReqIssuer.isDoSingleLogout()) {
@@ -224,47 +220,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 }
 
                 SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
-//                Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
-//                List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<SingleLogoutRequestDTO>();
-
-//                for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-//                    String key = entry.getKey();
-//                    SAMLSSOServiceProviderDO value = entry.getValue();
-
-//                    if (key.equals(issuer)) {
-//                        reqValidationResponseDTO.setIssuer(value.getIssuer());
-//                        reqValidationResponseDTO.setDoSignResponse(value.isDoSignResponse());
-//                        reqValidationResponseDTO.setSigningAlgorithmUri(value.getSigningAlgorithmUri());
-//                        reqValidationResponseDTO.setDigestAlgorithmUri(value.getDigestAlgorithmUri());
-//                        if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-//                            reqValidationResponseDTO.setAssertionConsumerURL(value.getSloResponseURL());
-//                        } else {
-//                            reqValidationResponseDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
-//                        }
-//                    } else if (value.isDoSingleLogout()) {
-//                        SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
-//                        if (StringUtils.isNotBlank(value.getSloRequestURL())) {
-//                            logoutReqDTO.setAssertionConsumerURL(value.getSloRequestURL());
-//                        } else if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-//                            logoutReqDTO.setAssertionConsumerURL(value.getSloResponseURL());
-//                        } else {
-//                            logoutReqDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
-//                        }
-
-//                        LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(key)
-//                                , sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
-//                                        .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(),
-//                                value.getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
-//                        String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
-//                        logoutReqDTO.setLogoutResponse(logoutReqString);
-//                        logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
-//                        singleLogoutReqDTOs.add(logoutReqDTO);
-                //    }
-             //   }
-
-//                reqValidationResponseDTO.setLogoutRespDTO(singleLogoutReqDTOs.toArray(
-//                        new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
-
                 LogoutResponse logoutResponse = logoutMsgBuilder.buildLogoutResponse(
                         logoutRequest.getID(),
                         SAMLSSOConstants.StatusCodes.SUCCESS_CODE,

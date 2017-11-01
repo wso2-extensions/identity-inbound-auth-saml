@@ -216,12 +216,12 @@ public class SAMLSSOService {
                 .getPersistenceManager();
         String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
-
         Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData
                 .getServiceProviderList();
         SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
         Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
-        List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<SingleLogoutRequestDTO>();
+
+        List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
 
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
@@ -249,14 +249,16 @@ public class SAMLSSOService {
             }
         }
 
+        //send logout requests to all SAML participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
 
         if (!sessionIndex.isEmpty()) {
             SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey(sessionIndex);
-            SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
-            if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
-
+            SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance()
+                    .getValueFromCache(cacheKey);
+            if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData()
+                    .getServiceProviderList() != null) {
                 Set<String> sloSupportedIssuers = new HashSet<>();
                 //Filter out service providers which enabled the single logout
                 for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
@@ -270,7 +272,8 @@ public class SAMLSSOService {
                 for (String sloSupportedIssuer : sloSupportedIssuers) {
                     cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
                     if (log.isDebugEnabled()) {
-                        log.debug("Removed SLO supported service provider from session info data  with name " + sloSupportedIssuer);
+                        log.debug("Removed SLO supported service provider from session info data  with name "
+                                + sloSupportedIssuer);
                     }
                 }
 

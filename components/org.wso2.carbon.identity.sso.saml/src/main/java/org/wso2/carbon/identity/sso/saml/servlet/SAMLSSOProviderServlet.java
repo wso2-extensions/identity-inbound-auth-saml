@@ -908,8 +908,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (validationResponseDTO != null) {
-            // sending LogoutRequests to other session participants
-//            LogoutRequestSender.getInstance().sendLogoutRequests(validationResponseDTO.getLogoutRespDTO());
             SAMLSSOUtil.removeSession(sessionDTO.getSessionId(), validationResponseDTO.getIssuer());
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
@@ -928,11 +926,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                              sessionDTO.getTenantDomain());
             }
         } else {
-//            try {
-//                samlSsoService.doSingleLogout(request.getSession().getId());
-//            } catch (IdentityException e) {
-//                log.error("Error when processing the logout request!", e);
-//            }
 
             String acsUrl = sessionDTO.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
