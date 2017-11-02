@@ -190,23 +190,6 @@ public class SAMLSSOService {
     }
 
     /**
-     * Invalidates the SSO session for the given session ID
-     *
-     * @param sessionId
-     * @return
-     * @throws IdentityException
-     */
-    public SAMLSSOReqValidationResponseDTO doSingleLogout(String sessionId)
-            throws IdentityException {
-        SPInitLogoutRequestProcessor logoutReqProcessor = SAMLSSOUtil.getSPInitLogoutRequestProcessor();
-        SAMLSSOReqValidationResponseDTO validationResponseDTO =
-                logoutReqProcessor.process(null,
-                        sessionId,
-                        null);
-        return validationResponseDTO;
-    }
-
-    /**
      * Gets all the session participants from session ID send logout requests to them
      *
      * @param sessionId
