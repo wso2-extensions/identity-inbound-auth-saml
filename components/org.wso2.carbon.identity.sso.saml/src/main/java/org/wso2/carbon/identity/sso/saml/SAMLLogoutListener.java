@@ -58,7 +58,7 @@ public class SAMLLogoutListener extends AbstractEventHandler {
             }
             String issuer = context.getServiceProviderName();
 
-            if (!samlssoTokenId.isEmpty() && !issuer.isEmpty()) {
+            if (!samlssoTokenId.isEmpty()) {
                 try {
                     samlSsoService.doSingleLogout(samlssoTokenId, issuer);
                 } catch (IdentityException e) {
