@@ -206,6 +206,14 @@ public class SAMLSSOService {
         return validationResponseDTO;
     }
 
+    /**
+     * Gets all the session participants from session ID send logout requests to them
+     *
+     * @param sessionId
+     * @param issuer
+     * @throws IdentityException
+     */
+
     public void doSingleLogout(String sessionId, String issuer)
             throws IdentityException {
 
@@ -226,7 +234,7 @@ public class SAMLSSOService {
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO value = entry.getValue();
-
+            // if issuer is SAML based SP then not send the logout request to issuer.
             if (!key.equals(issuer)) {
                 SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
                 if (StringUtils.isNotBlank(value.getSloRequestURL())) {
@@ -249,7 +257,7 @@ public class SAMLSSOService {
             }
         }
 
-        //send logout requests to all SAML participants
+        //send logout requests to all session participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
 

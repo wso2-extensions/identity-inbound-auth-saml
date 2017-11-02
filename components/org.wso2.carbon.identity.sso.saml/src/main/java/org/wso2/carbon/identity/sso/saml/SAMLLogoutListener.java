@@ -43,7 +43,7 @@ public class SAMLLogoutListener extends AbstractEventHandler {
     public void handleEvent(Event event) throws IdentityEventException {
 
         String samlssoTokenId = null;
-        if (StringUtils.equals(event.getEventName(), IdentityEventConstants.Event.SESSION_TERMINATE)) {
+        if (StringUtils.equals(event.getEventName(), IdentityEventConstants.EventName.SESSION_TERMINATE.toString())) {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties()
                     .get(IdentityEventConstants.EventProperty.REQUEST);
             AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
@@ -56,13 +56,13 @@ public class SAMLLogoutListener extends AbstractEventHandler {
                     }
                 }
             }
-            String serviceProvider = context.getServiceProviderName();
+            String issuer = context.getServiceProviderName();
 
-            if (!samlssoTokenId.isEmpty() && !serviceProvider.isEmpty()) {
+            if (!samlssoTokenId.isEmpty() && !issuer.isEmpty()) {
                 try {
-                    samlSsoService.doSingleLogout(samlssoTokenId, serviceProvider);
+                    samlSsoService.doSingleLogout(samlssoTokenId, issuer);
                 } catch (IdentityException e) {
-                    log.error("Error while doing single logout for " + serviceProvider + ".", e);
+                    log.error("Error while doing single logout for " + issuer + ".", e);
                 }
             }
         }
