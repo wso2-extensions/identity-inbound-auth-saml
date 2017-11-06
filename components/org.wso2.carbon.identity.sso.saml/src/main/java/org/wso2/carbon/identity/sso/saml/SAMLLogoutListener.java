@@ -43,11 +43,10 @@ public class SAMLLogoutListener extends AbstractEventHandler {
     public void handleEvent(Event event) throws IdentityEventException {
 
         String samlssoTokenId = null;
+        String issuer = null;
         if (StringUtils.equals(event.getEventName(), IdentityEventConstants.EventName.SESSION_TERMINATE.toString())) {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties()
                     .get(IdentityEventConstants.EventProperty.REQUEST);
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
-                    .get(IdentityEventConstants.EventProperty.CONTEXT);
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
@@ -56,13 +55,23 @@ public class SAMLLogoutListener extends AbstractEventHandler {
                     }
                 }
             }
-            String issuer = context.getServiceProviderName();
 
-            if (!samlssoTokenId.isEmpty()) {
-                try {
-                    samlSsoService.doSingleLogout(samlssoTokenId, issuer);
-                } catch (IdentityException e) {
-                    log.error("Error while doing single logout for " + issuer + ".", e);
+            if (samlssoTokenId != null) {
+                AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
+                        .get(IdentityEventConstants.EventProperty.CONTEXT);
+                if (context != null) {
+                    issuer = context.getServiceProviderName();
+                }
+                if (samlssoTokenId != null && !samlssoTokenId.isEmpty()) {
+                    try {
+                        samlSsoService.doSingleLogout(samlssoTokenId, issuer);
+                    } catch (IdentityException e) {
+                        log.error("Error while doing single logout for " + issuer + ".", e);
+                    }
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("there is no valid SAML based service providers in the session.");
                 }
             }
         }
