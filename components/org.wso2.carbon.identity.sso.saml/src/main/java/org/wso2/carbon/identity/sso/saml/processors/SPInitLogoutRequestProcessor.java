@@ -76,7 +76,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
 
-            String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+            String sessionIndex = logoutRequest.getSessionIndexes().size() > 0 ? logoutRequest
+                    .getSessionIndexes().get(0).getSessionIndex() : null;
 
             // Only if the logout request is received.
             if (logoutRequest != null) {
@@ -94,9 +95,9 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     issuer = logoutRequest.getIssuer().getValue();
                 }
 
-                if (StringUtils.isBlank(sessionId)) {
+                if (StringUtils.isBlank(sessionIndex)) {
                     String message = "Session was already Expired";
-                    log.error("ssoTokenId cookie not found in the logout request");
+                    log.error("Session Index not found in the logout request");
                     return buildErrorResponse(logoutRequest.getID(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             message, logoutRequest.getDestination(), defaultSigningAlgoUri, defaultDigestAlgoUri,
                             issuer);
@@ -104,7 +105,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
                 if (StringUtils.isBlank(sessionIndex)) {
                     String message = "Error while retrieving the Session Index ";
-                    log.error("Error in retrieving Session Index from ssoTokenId cookie : " + sessionId);
+                    log.error("Error in retrieving sessionIndex : " + sessionIndex);
                     reqValidationResponseDTO = buildErrorResponse(logoutRequest.getID(), SAMLSSOConstants.StatusCodes
                             .REQUESTOR_ERROR, message, null, defaultSigningAlgoUri, defaultDigestAlgoUri, issuer);
                     reqValidationResponseDTO.setLogoutFromAuthFramework(true);
