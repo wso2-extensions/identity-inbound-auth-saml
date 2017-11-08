@@ -21,15 +21,20 @@ package org.wso2.carbon.identity.query.saml.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
- * @scr.component name="identity.query.saml" immediate="true"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
- * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * Service component class for the SAML Query.
  */
-
+@Component(
+        name = "identity.query.saml",
+        immediate = true)
 public class SAMLQueryServiceComponent {
 
     private static Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
@@ -51,7 +56,9 @@ public class SAMLQueryServiceComponent {
      *
      * @param ctxt component context instance
      */
+    @Activate
     protected void activate(ComponentContext ctxt) {
+
         if (log.isDebugEnabled()) {
             log.debug("SAMLQueryServiceComponent is activated with ID: " + ctxt.getUsingBundle().getBundleId());
         }
@@ -63,6 +70,7 @@ public class SAMLQueryServiceComponent {
      *
      * @param ctxt component context instance
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
     }
@@ -72,7 +80,14 @@ public class SAMLQueryServiceComponent {
      *
      * @param realmService <code>RealmService</code>
      */
+    @Reference(
+            name = "user.realmservice.default",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
     protected static void setRealmService(RealmService realmService) {
+
         realmservice = realmService;
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm set in to bundle");
@@ -85,6 +100,7 @@ public class SAMLQueryServiceComponent {
      * @param realmService <code>RealmService</code>
      */
     protected static void unsetRealmService(RealmService realmService) {
+
         realmservice = null;
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm unset in to bundle");
