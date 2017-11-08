@@ -196,7 +196,6 @@ public class SAMLSSOService {
      * @param issuer
      * @throws IdentityException
      */
-
     public void doSingleLogout(String sessionId, String issuer)
             throws IdentityException {
 
@@ -267,9 +266,7 @@ public class SAMLSSOService {
                                 + sloSupportedIssuer);
                     }
                 }
-
             }
-
         }
     }
 

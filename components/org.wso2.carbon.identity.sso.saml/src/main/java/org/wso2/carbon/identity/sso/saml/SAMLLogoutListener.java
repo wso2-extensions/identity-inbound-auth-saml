@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * SAML Logout Handler do Single Logout when session is terminated.
  */
-
 public class SAMLLogoutListener extends AbstractEventHandler {
 
     private static Log log = LogFactory.getLog(org.wso2.carbon.identity.sso.saml.SAMLLogoutListener.class);
