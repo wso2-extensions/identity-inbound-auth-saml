@@ -196,8 +196,7 @@ public class SAMLSSOService {
      * @param issuer
      * @throws IdentityException
      */
-    public void doSingleLogout(String sessionId, String issuer)
-            throws IdentityException {
+    public void doSingleLogout(String sessionId, String issuer) throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         reqValidationResponseDTO.setLogOutReq(true);
@@ -206,17 +205,16 @@ public class SAMLSSOService {
                 .getPersistenceManager();
         String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
-        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData
-                .getServiceProviderList();
-        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
+        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
         Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
 
+        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
         List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
 
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO value = entry.getValue();
-            // if issuer is SAML based SP then not send the logout request to issuer.
+            // if issuer is SAML based SP then not send the logout request to the issuer.
             if (!key.equals(issuer)) {
                 SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
                 if (StringUtils.isNotBlank(value.getSloRequestURL())) {
@@ -227,8 +225,8 @@ public class SAMLSSOService {
                     logoutReqDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
                 }
 
-                LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(key)
-                        , sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
+                LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(key),
+                        sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
                                 .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(), value
                                 .getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
 

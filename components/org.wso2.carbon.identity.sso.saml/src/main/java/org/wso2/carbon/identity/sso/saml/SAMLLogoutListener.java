@@ -21,7 +21,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventConstants.EventName;
+import org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
@@ -34,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class SAMLLogoutListener extends AbstractEventHandler {
 
-    private static Log log = LogFactory.getLog(org.wso2.carbon.identity.sso.saml.SAMLLogoutListener.class);
+    private static Log log = LogFactory.getLog(SAMLLogoutListener.class);
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
 
@@ -43,9 +44,8 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
         String samlssoTokenId = null;
         String issuer = null;
-        if (StringUtils.equals(event.getEventName(), IdentityEventConstants.EventName.SESSION_TERMINATE.toString())) {
-            HttpServletRequest request = (HttpServletRequest) event.getEventProperties()
-                    .get(IdentityEventConstants.EventProperty.REQUEST);
+        if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.toString())) {
+            HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
@@ -55,22 +55,20 @@ public class SAMLLogoutListener extends AbstractEventHandler {
                 }
             }
 
-            if (samlssoTokenId != null) {
+            if (StringUtils.isNotBlank(samlssoTokenId)) {
                 AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
-                        .get(IdentityEventConstants.EventProperty.CONTEXT);
+                        .get(EventProperty.CONTEXT);
                 if (context != null) {
                     issuer = context.getServiceProviderName();
                 }
-                if (samlssoTokenId != null && !samlssoTokenId.isEmpty()) {
-                    try {
-                        samlSsoService.doSingleLogout(samlssoTokenId, issuer);
-                    } catch (IdentityException e) {
-                        log.error("Error while doing single logout for " + issuer + ".", e);
-                    }
+                try {
+                    samlSsoService.doSingleLogout(samlssoTokenId, issuer);
+                } catch (IdentityException e) {
+                    log.error("Error while doing single logout for " + issuer + ".", e);
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("there is no valid SAML based service providers in the session.");
+                    log.debug("There is no valid SAML based service providers in the session.");
                 }
             }
         }
