@@ -678,7 +678,7 @@ public class SAMLSSOUtil {
 
             synchronized (Runtime.getRuntime().getClass()) {
                 ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAMLSSOEncrypter").trim()).newInstance();
+                        SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH).trim()).newInstance();
                 ssoEncrypter.init();
             }
             return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, assertionEncryptionAlgorithm,
@@ -1008,7 +1008,7 @@ public class SAMLSSOUtil {
                         .isEnableAttributesByDefault()) {
                     index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
                 } else {
-                    return null;
+                    return Collections.emptyMap();
                 }
             } else {
                 //SP has provide a AttributeConsumingServiceIndex in the authnReqDTO
@@ -1019,7 +1019,7 @@ public class SAMLSSOUtil {
                     ()) {
                 index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
             } else {
-                return null;
+                return Collections.emptyMap();
             }
 
         }

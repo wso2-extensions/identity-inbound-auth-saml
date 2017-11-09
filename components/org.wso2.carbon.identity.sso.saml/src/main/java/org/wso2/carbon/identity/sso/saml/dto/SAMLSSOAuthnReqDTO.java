@@ -19,8 +19,12 @@ package org.wso2.carbon.identity.sso.saml.dto;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SAMLSSOAuthnReqDTO implements Serializable {
@@ -67,6 +71,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String assertionEncryptionAlgorithmUri;
     private String keyEncryptionAlgorithmUri;
     private boolean isAssertionQueryRequestProfileEnabled;
+    private Map<String, List<AuthenticationContextProperty>> idpAuthenticationContextProperties;
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -449,5 +454,36 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
 
     public boolean isAssertionQueryRequestProfileEnabled() {
         return this.isAssertionQueryRequestProfileEnabled;
+    }
+
+    public Map<String, List<AuthenticationContextProperty>> getIdpAuthenticationContextProperties() {
+
+        if (idpAuthenticationContextProperties == null) {
+            idpAuthenticationContextProperties = new HashMap<>();
+        }
+        return idpAuthenticationContextProperties;
+    }
+
+    public void setIdpAuthenticationContextProperties(Map<String, List<AuthenticationContextProperty>>
+                                                              idpAuthenticationContextProperties) {
+
+        this.idpAuthenticationContextProperties = idpAuthenticationContextProperties;
+    }
+
+    public void addIdpAuthenticationContextProperty(String propertyName, AuthenticationContextProperty
+            authenticationContextProperty) {
+
+        if (idpAuthenticationContextProperties == null) {
+            idpAuthenticationContextProperties = new HashMap<>();
+        }
+
+        List<AuthenticationContextProperty> authenticationContextProperties;
+        if (idpAuthenticationContextProperties.get(propertyName) == null) {
+            authenticationContextProperties = new ArrayList<>();
+            idpAuthenticationContextProperties.put(propertyName, authenticationContextProperties);
+        } else {
+            authenticationContextProperties = idpAuthenticationContextProperties.get(propertyName);
+        }
+        authenticationContextProperties.add(authenticationContextProperty);
     }
 }

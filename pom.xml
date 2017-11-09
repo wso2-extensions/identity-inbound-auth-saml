@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.3.16</version>
+    <version>5.3.42-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -37,9 +37,10 @@
 
     <scm>
         <url>https://github.com/wso2-extensions/identity-inbound-auth-saml.git</url>
-        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git
+        </developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-inbound-auth-saml.git</connection>
-        <tag>v5.3.16</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
@@ -117,9 +118,9 @@
                 <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
-			<dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
-				<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
+                <artifactId>org.wso2.carbon.identity.query.saml</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -195,11 +196,50 @@
                 <artifactId>org.jacoco.agent</artifactId>
                 <classifier>runtime</classifier>
                 <version>${jacoco.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.api.version}</version>
+            </dependency>
+            <!--test setup-->
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <version>${jacoco.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.api.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+                <version>${apache.felix.scr.ds.annotations.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -239,11 +279,23 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-	</repositories>
+    </repositories>
 
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven.bundle.plugin.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <obrRepository>NONE</obrRepository>
+                        <instructions>
+                            <SCM-Revision>${buildNumber}</SCM-Revision>
+                        </instructions>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
@@ -256,18 +308,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <version>${maven.bundle.plugin.version}</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <obrRepository>NONE</obrRepository>
-                        <instructions>
-                            <SCM-Revision>${buildNumber}</SCM-Revision>
-                        </instructions>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -291,8 +331,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -339,7 +379,7 @@
     </pluginRepositories>
 
     <modules>
-		<module>components/org.wso2.carbon.identity.query.saml</module>
+        <module>components/org.wso2.carbon.identity.query.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml</module>
         <module>components/org.wso2.carbon.identity.sso.saml.common</module>
         <module>components/org.wso2.carbon.identity.sso.saml.ui</module>
@@ -347,18 +387,21 @@
         <module>features/org.wso2.carbon.identity.sso.saml.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.server.feature</module>
         <module>features/org.wso2.carbon.identity.sso.saml.ui.feature</module>
-		<module>features/org.wso2.carbon.identity.query.saml.server.feature</module>
+        <module>features/org.wso2.carbon.identity.query.saml.server.feature</module>
     </modules>
 
     <properties>
 
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
-        <carbon.identity.framework.version>5.8.102</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)</carbon.identity.framework.imp.pkg.version.range>
+        <carbon.identity.framework.version>5.8.146</carbon.identity.framework.version>
+        <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)
+        </carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
-        <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}</identity.inbound.auth.saml.exp.version>
-        <identity.inbound.auth.saml.imp.pkg.version.range>[5.0.0, 6.0.0)</identity.inbound.auth.saml.imp.pkg.version.range>
+        <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}
+        </identity.inbound.auth.saml.exp.version>
+        <identity.inbound.auth.saml.imp.pkg.version.range>[5.0.0, 6.0.0)
+        </identity.inbound.auth.saml.imp.pkg.version.range>
         <identity.metadata.saml2.version>1.0.0</identity.metadata.saml2.version>
         <identity.metadata.saml2.imp.pkg.version.range>[1.0.0, 2.0.0)</identity.metadata.saml2.imp.pkg.version.range>
 
@@ -369,7 +412,7 @@
         <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
         <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
 
-        <maven.scr.plugin.version>1.7.2</maven.scr.plugin.version>
+        <maven.scr.plugin.version>1.22.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
@@ -397,21 +440,27 @@
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
-        <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
+        <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)
+        </httpcomponents-httpclient.imp.pkg.version.range>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
 
         <testng.version>6.9.10</testng.version>
         <jacoco.version>0.7.9</jacoco.version>
-        <powermock.version>1.6.6</powermock.version>
+        <powermock.version>1.7.3</powermock.version>
         <slf4j.api.version>1.7.12</slf4j.api.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+
+        <testng.version>6.9.10</testng.version>
+        <jacoco.version>0.7.9</jacoco.version>
+        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+
+        <slf4j.api.version>1.7.12</slf4j.api.version>
+        <mockito.version>1.10.19</mockito.version>
+        <powermock.version>1.6.6</powermock.version>
+
+        <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
     </properties>
 
 </project>
-
-
-
-
-

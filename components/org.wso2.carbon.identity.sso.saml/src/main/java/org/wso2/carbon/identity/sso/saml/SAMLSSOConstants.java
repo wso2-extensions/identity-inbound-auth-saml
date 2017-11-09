@@ -22,11 +22,17 @@ public class SAMLSSOConstants {
     public static final String NAME_ID_POLICY_ENTITY = "urn:oasis:names:tc:SAML:2.0:nameid-format:entity";
     public static final String SUBJECT_CONFIRM_BEARER = "urn:oasis:names:tc:SAML:2.0:cm:bearer";
     public static final String NAME_FORMAT_BASIC = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic";
+    public static final String SAML_ASSERTION_URN = "urn:oasis:names:tc:SAML:2.0:assertion";
+    public static final String NAMEID_FORMAT_PERSISTENT = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent";
+    public static final String PASSWORD_PROTECTED_TRANSPORT_CLASS =
+            "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
+    public static final String SAML_PROTOCOL_URN = "urn:oasis:names:tc:SAML:2.0:protocol";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String FEDERATED_IDP = "federated-idp-domain";
     public static final String ISSUER = "issuer";
     public static final String SAML_REQUEST = "SAMLRequest";
+    public static final String AUTHN_REQUEST = "AuthnRequest";
     public static final String AUTH_MODE = "authMode";
     public static final String ASSRTN_CONSUMER_URL = "ACSUrl";
     public static final String REQ_ID = "id";
@@ -73,6 +79,9 @@ public class SAMLSSOConstants {
     public static final String COM_PROTOCOL = "https";
     public static final String CRYPTO_PROTOCOL = "TLS";
 
+    public static final String AUTHN_CONTEXT_CLASS_REF = "AuthnContextClassRef";
+    public static final String SAML_SSO_ENCRYPTOR_CONFIG_PATH = "SSOService.SAMLSSOEncrypter";
+
     private SAMLSSOConstants() {
     }
 
@@ -82,6 +91,7 @@ public class SAMLSSOConstants {
         public static final String SERVICE_PROVIDERS = "ServiceProviders";
         public static final String SERVICE_PROVIDER = "ServiceProvider";
         public static final String ISSUER = "Issuer";
+        public static final String NAMESPACE_PREFIX = "samlp";
         public static final String ASSERTION_CONSUMER_URL = "AssertionConsumerServiceURL";
         public static final String ACS_URLS = "AssertionConsumerServiceURLs";
         public static final String DEFAULT_ACS_URL= "DefaultAssertionConsumerServiceURL";
