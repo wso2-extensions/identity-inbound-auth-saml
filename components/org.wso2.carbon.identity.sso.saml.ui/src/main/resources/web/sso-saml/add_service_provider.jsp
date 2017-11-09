@@ -38,8 +38,8 @@
 <%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-           prefix="carbon" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
              class="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -1746,7 +1746,7 @@
             <%
                 if (!isEditSP) {
             %>
-            <form method="POST" action="../../fileupload/service"
+            <form method="POST" action="../../fileupload/service?<csrf:tokenname/>=<csrf:tokenvalue/>"
                   id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
                   onsubmit="return doValidation();">
 
