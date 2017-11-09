@@ -23,24 +23,24 @@ public class SingleLogoutRequestDTO implements Serializable {
 
     private static final long serialVersionUID = -5086237688925774301L;
 
-    private String assertionConsumerURL;
-    private String logoutResponse;
+    private String singleLogoutRequestUrl;
+    private String logoutRequest;
     private String rpSessionId;
 
-    public String getAssertionConsumerURL() {
-        return assertionConsumerURL;
+    public String getSingleLogoutRequestURL() {
+        return singleLogoutRequestUrl;
     }
 
-    public void setAssertionConsumerURL(String assertionConsumerURL) {
-        this.assertionConsumerURL = assertionConsumerURL;
+    public void setSingleLogoutRequestURL(String singleLogoutRequestURL) {
+        this.singleLogoutRequestUrl = singleLogoutRequestURL;
     }
 
-    public String getLogoutResponse() {
-        return logoutResponse;
+    public String getLogoutRequest() {
+        return logoutRequest;
     }
 
-    public void setLogoutResponse(String logoutResponse) {
-        this.logoutResponse = logoutResponse;
+    public void setLogoutRequest(String logoutRequest) {
+        this.logoutRequest = logoutRequest;
     }
 
     public String getRpSessionId() {

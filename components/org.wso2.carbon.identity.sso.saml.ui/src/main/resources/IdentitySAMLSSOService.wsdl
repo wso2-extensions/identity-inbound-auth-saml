@@ -86,7 +86,7 @@
                     <xs:element minOccurs="0" name="logOutReq" type="xs:boolean" /> 
                     <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string" /> 
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="logoutRespDTO" nillable="true" type="ax2199:SingleLogoutRequestDTO" /> 
-                    <xs:element minOccurs="0" name="logoutResponse" nillable="true" type="xs:string" /> 
+                    <xs:element minOccurs="0" name="logoutRequest" nillable="true" type="xs:string" />
                     <xs:element minOccurs="0" name="response" nillable="true" type="xs:string" /> 
                     <xs:element minOccurs="0" name="rpSessionId" nillable="true" type="xs:string" /> 
                     <xs:element minOccurs="0" name="subject" nillable="true" type="xs:string" /> 
@@ -96,7 +96,7 @@
             <xs:complexType name="SingleLogoutRequestDTO"> 
                 <xs:sequence> 
                     <xs:element minOccurs="0" name="assertionConsumerURL" nillable="true" type="xs:string" /> 
-                    <xs:element minOccurs="0" name="logoutResponse" nillable="true" type="xs:string" /> 
+                    <xs:element minOccurs="0" name="logoutRequest" nillable="true" type="xs:string" />
                     <xs:element minOccurs="0" name="rpSessionId" nillable="true" type="xs:string" /> 
                 </xs:sequence> 
             </xs:complexType> 

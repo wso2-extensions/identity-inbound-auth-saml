@@ -125,19 +125,19 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 if (value.isDoSingleLogout()) {
                     SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
                     if (StringUtils.isNotBlank(value.getSloRequestURL())) {
-                        logoutReqDTO.setAssertionConsumerURL(value.getSloRequestURL());
+                        logoutReqDTO.setSingleLogoutRequestURL(value.getSloRequestURL());
                     } else if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-                        logoutReqDTO.setAssertionConsumerURL(value.getSloResponseURL());
+                        logoutReqDTO.setSingleLogoutRequestURL(value.getSloResponseURL());
                     } else {
-                        logoutReqDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
+                        logoutReqDTO.setSingleLogoutRequestURL(value.getAssertionConsumerUrl());
                     }
                     LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(value
                             .getIssuer()), sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
-                            .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(), value
+                            .getSingleLogoutRequestURL(), value.getNameIDFormat(), value.getTenantDomain(), value
                             .getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
 
                     String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
-                    logoutReqDTO.setLogoutResponse(logoutReqString);
+                    logoutReqDTO.setLogoutRequest(logoutReqString);
                     logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
                     singleLogoutReqDTOs.add(logoutReqDTO);
                 }
