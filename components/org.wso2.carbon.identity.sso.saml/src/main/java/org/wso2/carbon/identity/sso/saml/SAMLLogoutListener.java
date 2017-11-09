@@ -44,7 +44,10 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
         String samlssoTokenId = null;
         String issuer = null;
-        if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.toString())) {
+        if (!StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.toString())) {
+            return;
+
+        } else {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
@@ -64,7 +67,7 @@ public class SAMLLogoutListener extends AbstractEventHandler {
                 try {
                     samlSsoService.doSingleLogout(samlssoTokenId, issuer);
                 } catch (IdentityException e) {
-                    log.error("Error while doing single logout for " + issuer + ".", e);
+                    log.error("Error while SAML Logout Listener is doing single logout .", e);
                 }
             } else {
                 if (log.isDebugEnabled()) {

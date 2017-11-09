@@ -212,13 +212,11 @@ public class SAMLSSOService {
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO value = entry.getValue();
-            // if issuer is SAML based SP then not send the logout request to the issuer.
+            // if issuer is logout request initiator then not send the logout request to the issuer.
             if (!key.equals(issuer)) {
                 SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
                 if (StringUtils.isNotBlank(value.getSloRequestURL())) {
                     logoutReqDTO.setSingleLogoutRequestURL(value.getSloRequestURL());
-                } else if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-                    logoutReqDTO.setSingleLogoutRequestURL(value.getSloResponseURL());
                 } else {
                     logoutReqDTO.setSingleLogoutRequestURL(value.getAssertionConsumerUrl());
                 }
