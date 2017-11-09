@@ -243,21 +243,13 @@ public class SAMLSSOService {
                     .getValueFromCache(cacheKey);
             if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData()
                     .getServiceProviderList() != null) {
-                Set<String> sloSupportedIssuers = new HashSet<>();
-                //Filter out service providers which enabled the single logout
+                //Remove service providers which enabled the single logout
                 for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
                         getServiceProviderList().entrySet()) {
-                    if (entry.getValue().isDoSingleLogout()) {
-                        sloSupportedIssuers.add(entry.getKey());
-                    }
-                }
-
-                //Remove service providers which enabled the single logout
-                for (String sloSupportedIssuer : sloSupportedIssuers) {
-                    cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
+                    cacheEntry.getSessionInfoData().removeServiceProvider(entry.getKey());
                     if (log.isDebugEnabled()) {
                         log.debug("Removed SLO supported service provider from session info data  with name "
-                                + sloSupportedIssuer);
+                                + entry.getKey());
                     }
                 }
             }
