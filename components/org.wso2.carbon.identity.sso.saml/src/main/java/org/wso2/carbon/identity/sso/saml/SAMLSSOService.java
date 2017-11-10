@@ -253,24 +253,6 @@ public class SAMLSSOService {
         //send logout requests to all session participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
-
-        if (!sessionIndex.isEmpty()) {
-            SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey(sessionIndex);
-            SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance()
-                    .getValueFromCache(cacheKey);
-            if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData()
-                    .getServiceProviderList() != null) {
-                //Remove service providers which enabled the single logout
-                for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
-                        getServiceProviderList().entrySet()) {
-                    cacheEntry.getSessionInfoData().removeServiceProvider(entry.getKey());
-                    if (log.isDebugEnabled()) {
-                        log.debug("Removed SLO supported service provider from session info data  with name "
-                                + entry.getKey());
-                    }
-                }
-            }
-        }
     }
 
 }
