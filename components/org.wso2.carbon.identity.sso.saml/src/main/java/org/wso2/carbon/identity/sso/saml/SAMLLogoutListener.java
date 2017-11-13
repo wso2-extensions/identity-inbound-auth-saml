@@ -44,22 +44,23 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
         String samlssoTokenId = null;
         String issuer = null;
-        if (!StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.toString())) {
+        if (!StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
             return;
 
         } else {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
-                        samlssoTokenId = cookie.getValue();
+            if (request != null) {
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
+                            samlssoTokenId = cookie.getValue();
+                        }
                     }
                 }
             }
-            String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
-
             if (StringUtils.isNotBlank(samlssoTokenId)) {
+                String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
                 AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
                         .get(EventProperty.CONTEXT);
                 //if slo is null then it is IDP initiated logout So make the issuer as null.

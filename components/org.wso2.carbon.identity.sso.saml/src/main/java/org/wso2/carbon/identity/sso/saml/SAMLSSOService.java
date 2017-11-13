@@ -18,8 +18,6 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.xml.XMLObject;
@@ -28,9 +26,6 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
-import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCache;
-import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheEntry;
-import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheKey;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
@@ -47,14 +42,10 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class SAMLSSOService {
-
-    private static Log log = LogFactory.getLog(SAMLSSOService.class);
 
     public static boolean isOpenIDLoginAccepted() {
         if (IdentityUtil.getProperty(IdentityConstants.ServerConfig.ACCEPT_OPENID_LOGIN) != null &&

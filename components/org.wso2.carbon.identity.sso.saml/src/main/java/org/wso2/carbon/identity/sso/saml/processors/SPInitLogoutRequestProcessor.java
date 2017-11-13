@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
@@ -44,7 +43,6 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
