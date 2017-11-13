@@ -57,11 +57,13 @@ public class SAMLLogoutListener extends AbstractEventHandler {
                     }
                 }
             }
+            String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
 
             if (StringUtils.isNotBlank(samlssoTokenId)) {
                 AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
                         .get(EventProperty.CONTEXT);
-                if (context != null) {
+                //if slo is null then it is IDP initiated logout So make the issuer as null.
+                if (context != null && slo == null) {
                     issuer = context.getRelyingParty();
                 }
                 try {
