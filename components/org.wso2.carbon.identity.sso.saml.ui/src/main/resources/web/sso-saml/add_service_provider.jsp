@@ -1866,6 +1866,27 @@
                 }
 
             </script>
+            <script type="text/javascript">
+                
+                // Update the certificate alias list down accessibility according to the enable signature validation
+                // check box.
+                $(document).ready(function () {
+                    var enableSigValidation = $("#enableSigValidation");
+                    updateCertificateAliasListAccess(enableSigValidation.is(':checked'));
+                    enableSigValidation.change(function () {
+                        updateCertificateAliasListAccess(this.checked);
+                    })
+                });
+                
+                function updateCertificateAliasListAccess(enable) {
+                    if (enable) {
+                        $("#alias").prop('disabled', false);
+                    } else {
+                        $("#alias").prop('disabled', 'disabled');
+                    }
+                }
+    
+            </script>
         </div>
 
     </div>
