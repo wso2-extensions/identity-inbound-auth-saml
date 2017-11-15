@@ -960,17 +960,25 @@
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(provider.getCertAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                 value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
@@ -987,17 +995,25 @@
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(samlSsoServuceProviderConfigBean.getCertificateAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
