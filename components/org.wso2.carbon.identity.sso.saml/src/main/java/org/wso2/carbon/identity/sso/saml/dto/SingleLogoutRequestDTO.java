@@ -26,6 +26,8 @@ public class SingleLogoutRequestDTO implements Serializable {
     private String assertionConsumerURL;
     private String logoutResponse;
     private String rpSessionId;
+    private String certificateAlias;
+    private String tenantDomain;
 
     public String getAssertionConsumerURL() {
         return assertionConsumerURL;
@@ -49,5 +51,21 @@ public class SingleLogoutRequestDTO implements Serializable {
 
     public void setRpSessionId(String rpSessionId) {
         this.rpSessionId = rpSessionId;
+    }
+
+    public String getCertificateAlias() {
+        return certificateAlias;
+    }
+
+    public void setCertificateAlias(String certificateAlias) {
+        this.certificateAlias = certificateAlias;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 }

@@ -254,6 +254,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                         String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
                         logoutReqDTO.setLogoutResponse(logoutReqString);
                         logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
+                        logoutReqDTO.setCertificateAlias(value.getCertAlias());
+                        logoutReqDTO.setTenantDomain(value.getTenantDomain());
                         singleLogoutReqDTOs.add(logoutReqDTO);
                     }
                 }

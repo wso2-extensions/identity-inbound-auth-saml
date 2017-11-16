@@ -52,6 +52,11 @@ public class DefaultSSOSigner implements SSOSigner {
     @Override
     public boolean validateXMLSignature(RequestAbstractType request, X509Credential cred,
                                         String alias) throws IdentityException {
+        return validateXMLSignature((SignableXMLObject) request, cred, alias);
+    }
+
+    public boolean validateXMLSignature(SignableXMLObject request, X509Credential cred,
+                                        String alias) throws IdentityException {
 
         boolean isSignatureValid = false;
 
@@ -62,7 +67,7 @@ public class DefaultSSOSigner implements SSOSigner {
                 isSignatureValid = true;
             } catch (ValidationException e) {
                 throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
-                                            "invalid.", e);
+                        "invalid.", e);
             }
         }
         return isSignatureValid;
