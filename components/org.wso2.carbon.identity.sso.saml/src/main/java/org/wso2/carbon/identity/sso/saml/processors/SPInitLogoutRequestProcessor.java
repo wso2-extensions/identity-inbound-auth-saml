@@ -154,7 +154,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     }
                 } else if (serviceProviderDO.isDoSingleLogout()) {
                     SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
-                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key));
+                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                            serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
                     sessionParticipantLogoutReqDTOs.add(logoutReqDTO);
                 }
             }
