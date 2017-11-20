@@ -74,12 +74,14 @@ import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
+import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.builders.assertion.SAMLAssertionBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.sso.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProcessor;
@@ -1599,4 +1601,39 @@ public class SAMLSSOUtil {
         return issuer;
     }
 
+    /**
+     * Create single logout request according to the given parameters.
+     * @param serviceProviderDO Service provider DO.
+     * @param subject Subject identifier.
+     * @param sessionIndex Session index.
+     * @param rpSessionId Relying party session index.
+     * @return SingleLogoutRequestDTO.
+     * @throws IdentityException If creation fails.
+     */
+    public static SingleLogoutRequestDTO createLogoutRequestDTO(SAMLSSOServiceProviderDO serviceProviderDO,
+                                                                String subject, String sessionIndex, String rpSessionId)
+            throws IdentityException {
+
+        SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
+        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
+
+        if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
+        } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+        } else {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+        }
+
+        LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(subject, sessionIndex,
+                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO.getAssertionConsumerURL(),
+                serviceProviderDO.getNameIDFormat(), serviceProviderDO.getTenantDomain(),
+                serviceProviderDO.getSigningAlgorithmUri(), serviceProviderDO.getDigestAlgorithmUri());
+
+        String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
+        logoutReqDTO.setLogoutResponse(logoutReqString);
+        logoutReqDTO.setRpSessionId(rpSessionId);
+
+        return logoutReqDTO;
+    }
 }
