@@ -121,7 +121,8 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 SAMLSSOServiceProviderDO value = entry.getValue();
                 if (value.isDoSingleLogout()) {
                     SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(value,
-                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key));
+                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                            value.getCertAlias(), value.getTenantDomain());
                     singleLogoutReqDTOs.add(logoutReqDTO);
                 }
             }

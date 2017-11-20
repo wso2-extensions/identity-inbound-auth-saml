@@ -1628,7 +1628,8 @@ public class SAMLSSOUtil {
      * @throws IdentityException If creation fails.
      */
     public static SingleLogoutRequestDTO createLogoutRequestDTO(SAMLSSOServiceProviderDO serviceProviderDO,
-                                                                String subject, String sessionIndex, String rpSessionId)
+                                                                String subject, String sessionIndex, String rpSessionId,
+                                                                String certificateAlias, String tenantDomain)
             throws IdentityException {
 
         SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
@@ -1650,6 +1651,8 @@ public class SAMLSSOUtil {
         String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
         logoutReqDTO.setLogoutResponse(logoutReqString);
         logoutReqDTO.setRpSessionId(rpSessionId);
+        logoutReqDTO.setCertificateAlias(certificateAlias);
+        logoutReqDTO.setTenantDomain(tenantDomain);
 
         return logoutReqDTO;
     }
