@@ -25,11 +25,14 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
+import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
@@ -109,6 +112,23 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 validationResponseDTO.setIssuer(logoutReqIssuer.getIssuer());
                 SAMLSSOUtil.setTenantDomainInThreadLocal(logoutReqIssuer.getTenantDomain());
             }
+
+            Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
+            List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
+
+            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+                String key = entry.getKey();
+                SAMLSSOServiceProviderDO value = entry.getValue();
+                if (value.isDoSingleLogout()) {
+                    SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(value,
+                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                            value.getCertAlias(), value.getTenantDomain());
+                    singleLogoutReqDTOs.add(logoutReqDTO);
+                }
+            }
+
+            validationResponseDTO.setLogoutRespDTO(singleLogoutReqDTOs.toArray(
+                    new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
             validationResponseDTO.setValid(true);
 
         } catch (UserStoreException | IdentityException e) {

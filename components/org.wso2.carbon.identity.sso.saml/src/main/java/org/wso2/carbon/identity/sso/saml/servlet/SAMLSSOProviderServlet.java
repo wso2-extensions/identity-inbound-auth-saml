@@ -669,11 +669,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String finalPage = null;
             String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
             String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-            String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'>");
+            String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
             String pageWithAcsResponseRelay = pageWithAcsResponse;
 
             if(relayState != null) {
-                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState)+ "'>");
+                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState)+ "'/>");
             }
 
             if (authenticatedIdPs == null || authenticatedIdPs.isEmpty()) {
@@ -682,7 +682,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 finalPage = pageWithAcsResponseRelay.replace(
                         "<!--$additionalParams-->",
                         "<input type='hidden' name='AuthenticatedIdPs' value='"
-                                + Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+                                + Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
             }
 
             PrintWriter out = resp.getWriter();
@@ -701,15 +701,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             out.println(" If the redirection fails, please click the post button.</p>");
             out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
             out.println("<p>");
-            out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'>");
+            out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
 
             if(relayState != null) {
-                out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'>");
+                out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'/>");
             }
 
             if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
                 out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                        Encode.forHtmlAttribute(authenticatedIdPs) + "'>");
+                        Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
             }
 
             out.println("<button type='submit'>POST</button>");

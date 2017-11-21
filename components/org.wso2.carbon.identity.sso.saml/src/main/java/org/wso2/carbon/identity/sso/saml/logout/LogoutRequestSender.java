@@ -29,7 +29,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.opensaml.saml2.core.LogoutResponse;
+import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.xml.XMLObject;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -226,7 +231,8 @@ public class LogoutRequestSender {
                             log.debug("single logout request is sent to : " + logoutReqDTO.getSingleLogoutRequestURL() +
                                     " is returned with " + HttpStatus.getStatusText(response.getStatusLine().getStatusCode()));
                         }
-                        isSuccessfullyLogout = true;
+                        isSuccessfullyLogout = validateResponse(response, logoutReqDTO.getCertificateAlias(),
+                                logoutReqDTO.getTenantDomain());
                         break;
                     } else {
                         if (statusCode != 0) {
@@ -253,12 +259,66 @@ public class LogoutRequestSender {
                             " times with time interval " + SAMLSSOUtil.getSingleLogoutRetryInterval() + " in milli seconds.");
                 }
 
-            } catch (IOException e) {
+            } catch (IdentityException | IOException e) {
                 log.error("Error sending logout requests to : " + logoutReqDTO.getSingleLogoutRequestURL(), e);
             }
         }
+
+        /**
+         * Validate the LogoutResponse whether it is success.
+         * @param httpResponse Http Response object.
+         * @return True if Logout response state success.
+         * @throws IOException Stream error.
+         * @throws IdentityException Decoding error.
+         */
+        private boolean validateResponse(HttpResponse httpResponse, String certificateAlias, String tenantDomain)
+                throws IOException, IdentityException {
+
+            HttpEntity entity = httpResponse.getEntity();
+            String content = EntityUtils.toString(entity);
+            String decodedContent = SAMLSSOUtil.decodeForPost(content);
+            XMLObject xmlObject = SAMLSSOUtil.unmarshall(decodedContent);
+
+            // This should be a SAML logout response.
+            if (xmlObject instanceof LogoutResponse) {
+
+                LogoutResponse logoutResponse = (LogoutResponse) xmlObject;
+                if (logoutResponse.getIssuer() == null || logoutResponse.getStatus() == null || logoutResponse
+                        .getStatus().getStatusCode() == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Logout response validation failed due to one of given values are null. "  +
+                                "Issuer: " + logoutResponse.getIssuer() +
+                                " Status: " + logoutResponse.getStatus() +
+                                " Status code: " + (logoutResponse.getStatus() != null ? logoutResponse.getStatus()
+                                .getStatusCode() : null));
+                    }
+                    return false;
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Logout response received for issuer: " + logoutResponse.getIssuer()
+                            .getValue() + " for tenant domain: " + tenantDomain);
+                }
+
+                boolean isSignatureValid = true;
+
+                // Certificate alias will be null if signature validation is disabled in the service provider side.
+                if (certificateAlias != null && logoutResponse.isSigned()) {
+                    isSignatureValid = SAMLSSOUtil.validateXMLSignature(logoutResponse, certificateAlias, tenantDomain);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Signature validation result for logout response for issuer: " +
+                                logoutResponse.getIssuer().getValue() + " in tenant domain: " + tenantDomain + " is: " +
+                                isSignatureValid);
+                    }
+                }
+                if (SAMLSSOConstants.StatusCodes.SUCCESS_CODE.equals(logoutResponse.getStatus().getStatusCode()
+                        .getValue()) && isSignatureValid) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
-
-
 }
 
