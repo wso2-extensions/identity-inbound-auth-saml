@@ -1872,9 +1872,13 @@
                 // check box.
                 $(document).ready(function () {
                     var enableSigValidation = $("#enableSigValidation");
-                    updateCertificateAliasListAccess(enableSigValidation.is(':checked'));
+                    var enableAssertionEnc = $("#enableEncAssertion");
+                    updateCertificateAliasListAccess(enableSigValidation.is(':checked') || enableAssertionEnc.is(':checked'));
                     enableSigValidation.change(function () {
-                        updateCertificateAliasListAccess(this.checked);
+                        updateCertificateAliasListAccess(this.checked || enableAssertionEnc.is(':checked'));
+                    })
+                    enableAssertionEnc.change(function () {
+                        updateCertificateAliasListAccess(this.checked || enableSigValidation.is(':checked'));
                     })
                 });
                 
