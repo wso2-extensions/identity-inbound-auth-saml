@@ -1636,20 +1636,20 @@ public class SAMLSSOUtil {
         SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
 
         if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
+            logoutReqDTO.setSingleLogoutRequestURL(serviceProviderDO.getSloRequestURL());
         } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+            logoutReqDTO.setSingleLogoutRequestURL(serviceProviderDO.getSloResponseURL());
         } else {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+            logoutReqDTO.setSingleLogoutRequestURL(serviceProviderDO.getAssertionConsumerUrl());
         }
 
         LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(subject, sessionIndex,
-                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO.getAssertionConsumerURL(),
+                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO.getSingleLogoutRequestURL(),
                 serviceProviderDO.getNameIDFormat(), serviceProviderDO.getTenantDomain(),
                 serviceProviderDO.getSigningAlgorithmUri(), serviceProviderDO.getDigestAlgorithmUri());
 
         String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
-        logoutReqDTO.setLogoutResponse(logoutReqString);
+        logoutReqDTO.setLogoutRequest(logoutReqString);
         logoutReqDTO.setRpSessionId(rpSessionId);
         logoutReqDTO.setCertificateAlias(certificateAlias);
         logoutReqDTO.setTenantDomain(tenantDomain);
