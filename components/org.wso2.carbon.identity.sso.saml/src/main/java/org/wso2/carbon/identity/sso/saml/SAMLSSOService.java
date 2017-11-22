@@ -214,29 +214,17 @@ public class SAMLSSOService {
         Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
         Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
 
-        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
         List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
 
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
-            SAMLSSOServiceProviderDO value = entry.getValue();
+            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
             // if issuer is logout request initiator then not send the logout request to the issuer.
             if (!key.equals(issuer)) {
-                SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
-                if (StringUtils.isNotBlank(value.getSloRequestURL())) {
-                    logoutReqDTO.setSingleLogoutRequestURL(value.getSloRequestURL());
-                } else {
-                    logoutReqDTO.setSingleLogoutRequestURL(value.getAssertionConsumerUrl());
-                }
+                SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
+                        sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                        serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
 
-                LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(key),
-                        sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
-                                .getSingleLogoutRequestURL(), value.getNameIDFormat(), value.getTenantDomain(), value
-                                .getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
-
-                String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
-                logoutReqDTO.setLogoutRequest(logoutReqString);
-                logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
                 singleLogoutReqDTOs.add(logoutReqDTO);
             }
         }
