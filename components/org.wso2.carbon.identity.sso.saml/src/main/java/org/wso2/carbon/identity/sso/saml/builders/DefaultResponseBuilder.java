@@ -30,7 +30,6 @@ import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
-import org.opensaml.xml.encryption.EncryptionConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
@@ -77,6 +76,8 @@ public class DefaultResponseBuilder implements ResponseBuilder {
                 EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
                         assertionEncryptionAlgorithm, keyEncryptionAlgorithm, alias, domainName);
                 response.getEncryptedAssertions().add(encryptedAssertion);
+            } else {
+                log.warn("Certificate alias is not found. Assertion is not encrypted and not included in response");
             }
         } else {
             response.getAssertions().add(assertion);
