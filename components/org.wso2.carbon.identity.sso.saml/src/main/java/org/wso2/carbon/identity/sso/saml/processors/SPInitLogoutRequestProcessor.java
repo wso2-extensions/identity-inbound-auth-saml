@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.LambdaExceptionUtils;
@@ -134,6 +133,17 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 }
             }
 
+            SAMLSSOServiceProviderDO serviceProviderDO = sessionsList.get(issuer);
+            reqValidationResponseDTO.setIssuer(serviceProviderDO.getIssuer());
+            reqValidationResponseDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
+            reqValidationResponseDTO.setSigningAlgorithmUri(serviceProviderDO.getSigningAlgorithmUri());
+            reqValidationResponseDTO.setDigestAlgorithmUri(serviceProviderDO.getDigestAlgorithmUri());
+            if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
+                reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+            } else {
+                reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+            }
+
             SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
             LogoutResponse logoutResponse = logoutMsgBuilder.buildLogoutResponse(
                     logoutRequest.getID(),
@@ -147,18 +157,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             reqValidationResponseDTO.setLogoutResponse(SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutResponse)));
             reqValidationResponseDTO.setValid(true);
-
-            SAMLSSOServiceProviderDO value = sessionsList.get(issuer);
-
-            reqValidationResponseDTO.setIssuer(value.getIssuer());
-            reqValidationResponseDTO.setDoSignResponse(value.isDoSignResponse());
-            reqValidationResponseDTO.setSigningAlgorithmUri(value.getSigningAlgorithmUri());
-            reqValidationResponseDTO.setDigestAlgorithmUri(value.getDigestAlgorithmUri());
-            if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-                reqValidationResponseDTO.setAssertionConsumerURL(value.getSloResponseURL());
-            } else {
-                reqValidationResponseDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
-            }
 
             return reqValidationResponseDTO;
         } catch (UserStoreException | IdentityException | IOException e) {
