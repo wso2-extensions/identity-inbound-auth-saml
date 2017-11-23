@@ -192,7 +192,7 @@ public class LogoutRequestSender {
                 UrlEncodedFormEntity entity =
                         new UrlEncodedFormEntity(logoutReqParams, SAMLSSOConstants.ENCODING_FORMAT);
 
-                HttpPost httpPost = new HttpPost(logoutReqDTO.getassertionConsumerURL());
+                HttpPost httpPost = new HttpPost(logoutReqDTO.getAssertionConsumerURL());
                 httpPost.setEntity(entity);
                 httpPost.addHeader(SAMLSSOConstants.COOKIE_PARAM_KEY, SAMLSSOConstants.SESSION_ID_PARAM_KEY + logoutReqDTO.getRpSessionId());
                 if (isSAMLSOAPBindingEnabled) {
@@ -227,7 +227,7 @@ public class LogoutRequestSender {
                     if (response != null && (SAMLSSOUtil.isHttpSuccessStatusCode(statusCode) || SAMLSSOUtil
                             .isHttpRedirectStatusCode(statusCode))) {
                         if (log.isDebugEnabled()) {
-                            log.debug("single logout request is sent to : " + logoutReqDTO.getassertionConsumerURL() +
+                            log.debug("single logout request is sent to : " + logoutReqDTO.getAssertionConsumerURL() +
                                     " is returned with " + HttpStatus.getStatusText(response.getStatusLine().getStatusCode()));
                         }
                         isSuccessfullyLogout = validateResponse(response, logoutReqDTO.getCertificateAlias(),
@@ -236,7 +236,7 @@ public class LogoutRequestSender {
                     } else {
                         if (statusCode != 0) {
                             log.warn("Failed single logout response from " +
-                                    logoutReqDTO.getassertionConsumerURL() + " with status code " +
+                                    logoutReqDTO.getAssertionConsumerURL() + " with status code " +
                                     HttpStatus.getStatusText(statusCode));
                         }
                         try {
@@ -246,7 +246,7 @@ public class LogoutRequestSender {
                             log.info("Sending single log out request again with retry count " +
                                     (currentRetryCount + 1) + " after waiting for " +
                                     SAMLSSOUtil.getSingleLogoutRetryInterval() + " milli seconds to " +
-                                    logoutReqDTO.getassertionConsumerURL());
+                                    logoutReqDTO.getAssertionConsumerURL());
                         } catch (InterruptedException e) {
                             //Todo: handle this in better way.
                         }
@@ -259,7 +259,7 @@ public class LogoutRequestSender {
                 }
 
             } catch (IdentityException | IOException e) {
-                log.error("Error sending logout requests to : " + logoutReqDTO.getassertionConsumerURL(), e);
+                log.error("Error sending logout requests to : " + logoutReqDTO.getAssertionConsumerURL(), e);
             }
         }
 

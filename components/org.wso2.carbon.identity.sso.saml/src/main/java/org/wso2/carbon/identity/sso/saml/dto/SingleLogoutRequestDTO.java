@@ -29,11 +29,11 @@ public class SingleLogoutRequestDTO implements Serializable {
     private String certificateAlias;
     private String tenantDomain;
 
-    public String getassertionConsumerURL() {
+    public String getAssertionConsumerURL() {
         return assertionConsumerURL;
     }
 
-    public void setassertionConsumerURL(String singleLogoutRequestURL) {
+    public void setAssertionConsumerURL(String singleLogoutRequestURL) {
         this.assertionConsumerURL = singleLogoutRequestURL;
     }
 

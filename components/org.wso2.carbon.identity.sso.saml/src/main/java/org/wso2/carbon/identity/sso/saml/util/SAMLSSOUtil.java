@@ -1636,15 +1636,15 @@ public class SAMLSSOUtil {
         SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
 
         if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
-            logoutReqDTO.setassertionConsumerURL(serviceProviderDO.getSloRequestURL());
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
         } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
-            logoutReqDTO.setassertionConsumerURL(serviceProviderDO.getSloResponseURL());
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
         } else {
-            logoutReqDTO.setassertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
         }
 
         LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(subject, sessionIndex,
-                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO.getassertionConsumerURL(),
+                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO.getAssertionConsumerURL(),
                 serviceProviderDO.getNameIDFormat(), serviceProviderDO.getTenantDomain(),
                 serviceProviderDO.getSigningAlgorithmUri(), serviceProviderDO.getDigestAlgorithmUri());
 
