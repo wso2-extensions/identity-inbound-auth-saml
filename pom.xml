@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.3.40-SNAPSHOT</version>
+    <version>5.3.52-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -231,6 +231,11 @@
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+                <version>${apache.felix.scr.ds.annotations.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -276,6 +281,18 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven.bundle.plugin.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <obrRepository>NONE</obrRepository>
+                        <instructions>
+                            <SCM-Revision>${buildNumber}</SCM-Revision>
+                        </instructions>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
                     <version>${maven.scr.plugin.version}</version>
                     <executions>
@@ -286,18 +303,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <version>${maven.bundle.plugin.version}</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <obrRepository>NONE</obrRepository>
-                        <instructions>
-                            <SCM-Revision>${buildNumber}</SCM-Revision>
-                        </instructions>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -321,8 +326,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -402,7 +407,7 @@
         <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
         <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
 
-        <maven.scr.plugin.version>1.7.2</maven.scr.plugin.version>
+        <maven.scr.plugin.version>1.22.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
@@ -450,11 +455,7 @@
         <mockito.version>1.10.19</mockito.version>
         <powermock.version>1.6.6</powermock.version>
 
+        <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
     </properties>
 
 </project>
-
-
-
-
-

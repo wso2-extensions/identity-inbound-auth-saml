@@ -38,8 +38,8 @@
 <%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-           prefix="carbon" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
              class="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -960,17 +960,25 @@
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(provider.getCertAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                 value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
@@ -987,17 +995,25 @@
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(samlSsoServuceProviderConfigBean.getCertificateAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
@@ -1746,7 +1762,7 @@
             <%
                 if (!isEditSP) {
             %>
-            <form method="POST" action="../../fileupload/service"
+            <form method="POST" action="../../fileupload/service?<csrf:tokenname/>=<csrf:tokenvalue/>"
                   id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
                   onsubmit="return doValidation();">
 
@@ -1849,6 +1865,31 @@
 
                 }
 
+            </script>
+            <script type="text/javascript">
+                
+                // Update the certificate alias list down accessibility according to the enable signature validation
+                // check box.
+                $(document).ready(function () {
+                    var enableSigValidation = $("#enableSigValidation");
+                    var enableAssertionEnc = $("#enableEncAssertion");
+                    updateCertificateAliasListAccess(enableSigValidation.is(':checked') || enableAssertionEnc.is(':checked'));
+                    enableSigValidation.change(function () {
+                        updateCertificateAliasListAccess(this.checked || enableAssertionEnc.is(':checked'));
+                    })
+                    enableAssertionEnc.change(function () {
+                        updateCertificateAliasListAccess(this.checked || enableSigValidation.is(':checked'));
+                    })
+                });
+                
+                function updateCertificateAliasListAccess(enable) {
+                    if (enable) {
+                        $("#alias").prop('disabled', false);
+                    } else {
+                        $("#alias").prop('disabled', 'disabled');
+                    }
+                }
+    
             </script>
         </div>
 

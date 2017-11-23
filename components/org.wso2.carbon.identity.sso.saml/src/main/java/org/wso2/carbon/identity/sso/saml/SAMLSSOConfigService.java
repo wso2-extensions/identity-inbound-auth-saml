@@ -66,7 +66,7 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
 
     public SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigUserRegistry());
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
         } catch (IdentityException e) {
