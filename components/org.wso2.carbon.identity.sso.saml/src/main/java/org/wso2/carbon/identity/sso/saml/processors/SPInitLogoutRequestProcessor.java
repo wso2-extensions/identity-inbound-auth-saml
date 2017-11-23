@@ -109,7 +109,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
-            String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+            String sessionIndex = logoutRequest.getSessionIndexes().size() > 0 ? logoutRequest
+                    .getSessionIndexes().get(0).getSessionIndex() : null;
             SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
@@ -365,7 +366,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
         if (StringUtils.isBlank(sessionIndex)) {
             String message = "Error while retrieving the Session Index ";
-            log.error("Error in retrieving Session Index from ssoTokenId cookie : " + sessionId);
+            log.error("Error in retrieving sessionIndex : " + sessionIndex);
             SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = buildErrorResponse(logoutRequest.getID(),
                     SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, null, defaultSigningAlgoUri,
                     defaultDigestAlgoUri, issuer);
