@@ -53,7 +53,6 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
-import org.wso2.carbon.identity.sso.saml.logout.LogoutRequestSender;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -912,7 +911,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (validationResponseDTO != null) {
-            SAMLSSOUtil.removeSession(sessionDTO.getSessionId(), validationResponseDTO.getIssuer());
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
             if ( SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
