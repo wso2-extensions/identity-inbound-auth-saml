@@ -230,6 +230,7 @@ public class SAMLSSOService {
         //send logout requests to all session participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
+        SAMLSSOUtil.removeSession(sessionId, issuer);
     }
 
 }
