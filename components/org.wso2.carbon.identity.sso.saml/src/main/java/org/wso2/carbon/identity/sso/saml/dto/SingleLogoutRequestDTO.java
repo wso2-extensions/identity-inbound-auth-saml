@@ -33,8 +33,8 @@ public class SingleLogoutRequestDTO implements Serializable {
         return assertionConsumerURL;
     }
 
-    public void setAssertionConsumerURL(String singleLogoutRequestURL) {
-        this.assertionConsumerURL = singleLogoutRequestURL;
+    public void setAssertionConsumerURL(String assertionConsumerURL) {
+        this.assertionConsumerURL = assertionConsumerURL;
     }
 
     public String getLogoutResponse() {
