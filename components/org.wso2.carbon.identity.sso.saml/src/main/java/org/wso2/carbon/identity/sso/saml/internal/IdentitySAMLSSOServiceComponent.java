@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.sso.saml.SAMLLogoutListener;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
@@ -53,7 +55,7 @@ import javax.servlet.Servlet;
  * Service component class for the SAML SSO service.
  */
 @Component(
-         name = "identity.sso.saml.component", 
+         name = "identity.sso.saml.component",
          immediate = true)
 public class IdentitySAMLSSOServiceComponent {
 
@@ -151,6 +153,10 @@ public class IdentitySAMLSSOServiceComponent {
         } finally {
             IdentityIOStreamUtils.closeInputStream(fis);
         }
+
+        ctxt.getBundleContext().registerService(AbstractEventHandler.class.getName(),
+                 new SAMLLogoutListener(), null);
+
     }
 
     @Deactivate
