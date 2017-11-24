@@ -257,20 +257,20 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     public Object[][] data() throws IdentityException {
 
         return new Object[][]{
-                {null, null, null},
-                {"sessionId", null, "sessionIndex",},
-                {"sessionId", "issuer", "sessionIndex"},
-                {"sessionId2", "issuer2", "sessionIndex"},
-                {"sessionId1", "issuer1", null}
+                {null, null},
+                {"sessionId", null},
+                {"sessionId", "issuer"},
+                {"sessionId2", "issuer2"},
+                {"sessionId1", "issuer1"}
         };
     }
 
     @Test(dataProvider = "testRemoveSession1")
-    public void testRemoveSession1(String sessionId, String issuer, String expected) throws Exception {
+    public void testRemoveSession1(String sessionId, String issuer) throws Exception {
 
         initializeData();
         SSOSessionPersistenceManager.removeSession(sessionId, issuer);
-        Assert.assertEquals(SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId), expected);
+        Assert.assertNull(SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId));
     }
 
     @Test
