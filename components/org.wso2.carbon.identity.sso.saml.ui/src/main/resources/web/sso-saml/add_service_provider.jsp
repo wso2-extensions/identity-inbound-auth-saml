@@ -36,6 +36,9 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.context.CarbonContext" %>
 <%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<%@ page import="static org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIUtil.*" %>
+<%@ page import="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIUtil" %>
+
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
@@ -1176,8 +1179,7 @@
                                     <td colspan="2" title="Select Enable Response Signing to sign the SAML2 Responses returned after the authentication process">
                                         <input type="checkbox" name="enableResponseSignature" value="true"
                                                onclick="disableResponseSignature(this);"
-                                                <%=(isEditSP && provider.getDoSignResponse() ? "checked=\"checked\"" : "")%> />
-                                            <%--<input type="hidden" name="enableResponseSignature" value="true"/>--%>
+                                                <%=(isResponseSigningEnabled(isEditSP, provider) ? "checked" : "")%> />
                                         <fmt:message key="do.response.signature"/>
                                     </td>
                                 </tr>
@@ -1186,7 +1188,7 @@
 
                                 <!-- enableSigValidation -->
                                 <%
-                                    if (isEditSP && provider.isDoValidateSignatureInRequestsSpecified() && provider.getDoValidateSignatureInRequests()) {
+                                    if (isSignatureValidateEnabledForRequests(isEditSP, provider)) {
                                 %>
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
@@ -1235,7 +1237,7 @@
                                     <input type="checkbox"
                                                            name="enableSingleLogout" value="true"
                                                            onclick="disableLogoutUrl(this);"
-                                            <%=(isEditSP && provider.getDoSingleLogout()) ? "checked=\"checked\"" : ""%>/>
+                                            <%= isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>/>
                                         <fmt:message
                                                 key="enable.single.logout"/></td>
                                 </tr>
@@ -1281,11 +1283,10 @@
                                 %>
                                 <tr>
                                     <td colspan="2" title="Select Enable Attribute Profile to enable this and add a claim by entering the claim link and clicking the Add Claim button">
-                                        <% if (StringUtils.isNotEmpty(provider.getAttributeConsumingServiceIndex())) { %>
+                                        <% if (SAMLSSOUIUtil.isAttributeProfileEnabled(isEditSP, provider)) {%>
                                         <input type="checkbox"
-                                               name="enableAttributeProfile" id="enableAttributeProfile"
-                                               checked="checked" value="true"
-                                               onclick="disableAttributeProfile(this);"/>
+                                               name="enableAttributeProfile" id="enableAttributeProfile" value="true"
+                                               onclick="disableAttributeProfile(this);" checked/>
                                         <% } else { %>
                                         <input type="checkbox"
                                                name="enableAttributeProfile" id="enableAttributeProfile"

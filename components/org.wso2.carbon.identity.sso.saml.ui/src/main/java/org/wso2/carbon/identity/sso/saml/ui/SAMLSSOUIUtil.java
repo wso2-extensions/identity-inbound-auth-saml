@@ -19,13 +19,19 @@
 package org.wso2.carbon.identity.sso.saml.ui;
 
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
-import org.wso2.carbon.ui.util.CharacterEncoder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 public class SAMLSSOUIUtil {
+
+    public static final boolean DEFAULT_VALUE_FOR_RESPONSE_SIGNING = true;
+    public static final boolean DEFAULT_VALUE_FOR_SIGNATURE_VALIDATE_FOR_REQUESTS = true;
+    public static final boolean DEFAULT_VALUE_FOR_SINGLE_LOGOUT= true;
+    public static final boolean DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE= true;
 
     private SAMLSSOUIUtil() {
     }
@@ -81,4 +87,51 @@ public class SAMLSSOUIUtil {
         return filteredProviders;
     }
 
+    public static boolean isResponseSigningEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getDoSignResponse();
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_RESPONSE_SIGNING;
+        }
+        return false;
+    }
+
+    public static boolean isSignatureValidateEnabledForRequests(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return (provider.isDoValidateSignatureInRequestsSpecified() && provider.getDoValidateSignatureInRequests());
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_SIGNATURE_VALIDATE_FOR_REQUESTS;
+        }
+        return false;
+    }
+
+    public static boolean isSingleLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getDoSingleLogout();
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_SINGLE_LOGOUT;
+        }
+        return false;
+    }
+
+    public static boolean isAttributeProfileEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return isNotEmpty(provider.getAttributeConsumingServiceIndex());
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE;
+        }
+        return false;
+    }
 }
