@@ -1188,7 +1188,7 @@
 
                                 <!-- enableSigValidation -->
                                 <%
-                                    if (isSignatureValidateEnabledForRequests(isEditSP, provider)) {
+                                    if (isSignatureValidationEnabledForRequests(isEditSP, provider)) {
                                 %>
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
