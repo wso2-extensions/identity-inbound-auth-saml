@@ -53,7 +53,6 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
-import org.wso2.carbon.identity.sso.saml.logout.LogoutRequestSender;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -912,9 +911,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (validationResponseDTO != null) {
-            // sending LogoutRequests to other session participants
-            LogoutRequestSender.getInstance().sendLogoutRequests(validationResponseDTO.getLogoutRespDTO());
-            SAMLSSOUtil.removeSession(sessionDTO.getSessionId(), validationResponseDTO.getIssuer());
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
             if ( SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
@@ -932,11 +928,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                              sessionDTO.getTenantDomain());
             }
         } else {
-            try {
-                samlSsoService.doSingleLogout(request.getSession().getId());
-            } catch (IdentityException e) {
-                log.error("Error when processing the logout request!", e);
-            }
 
             String acsUrl = sessionDTO.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {

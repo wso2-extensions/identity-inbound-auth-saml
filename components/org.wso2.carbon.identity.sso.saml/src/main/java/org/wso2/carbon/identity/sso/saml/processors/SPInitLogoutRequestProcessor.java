@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.LambdaExceptionUtils;
@@ -135,35 +134,18 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 }
             }
 
-            SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
-            Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
-            List<SingleLogoutRequestDTO> sessionParticipantLogoutReqDTOs = new ArrayList<>();
-
-            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-                String key = entry.getKey();
-                SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
-
-                if (key.equals(issuer)) {
-                    reqValidationResponseDTO.setIssuer(serviceProviderDO.getIssuer());
-                    reqValidationResponseDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
-                    reqValidationResponseDTO.setSigningAlgorithmUri(serviceProviderDO.getSigningAlgorithmUri());
-                    reqValidationResponseDTO.setDigestAlgorithmUri(serviceProviderDO.getDigestAlgorithmUri());
-                    if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
-                        reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
-                    } else {
-                        reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
-                    }
-                } else if (serviceProviderDO.isDoSingleLogout()) {
-                    SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
-                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
-                            serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
-                    sessionParticipantLogoutReqDTOs.add(logoutReqDTO);
-                }
+            SAMLSSOServiceProviderDO serviceProviderDO = sessionsList.get(issuer);
+            reqValidationResponseDTO.setIssuer(serviceProviderDO.getIssuer());
+            reqValidationResponseDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
+            reqValidationResponseDTO.setSigningAlgorithmUri(serviceProviderDO.getSigningAlgorithmUri());
+            reqValidationResponseDTO.setDigestAlgorithmUri(serviceProviderDO.getDigestAlgorithmUri());
+            if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
+                reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+            } else {
+                reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
             }
 
-            reqValidationResponseDTO.setLogoutRespDTO(sessionParticipantLogoutReqDTOs.toArray(
-                    new SingleLogoutRequestDTO[sessionParticipantLogoutReqDTOs.size()]));
-
+            SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
             LogoutResponse logoutResponse = logoutMsgBuilder.buildLogoutResponse(
                     logoutRequest.getID(),
                     SAMLSSOConstants.StatusCodes.SUCCESS_CODE,
