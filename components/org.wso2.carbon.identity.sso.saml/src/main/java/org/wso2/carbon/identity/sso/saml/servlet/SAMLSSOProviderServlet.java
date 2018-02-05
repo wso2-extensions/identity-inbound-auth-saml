@@ -753,7 +753,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
 
-        if(serviceProviderConfigs != null) {
+        if (serviceProviderConfigs != null) {
             populateAuthnReqDTOWithRequiredServiceProviderConfigs(authnReqDTO, serviceProviderConfigs);
         }
 
