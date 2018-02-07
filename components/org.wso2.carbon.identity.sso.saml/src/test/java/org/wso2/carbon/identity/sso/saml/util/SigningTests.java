@@ -32,16 +32,12 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLTestRequestBuilder;
-import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
@@ -63,8 +59,7 @@ import static org.testng.Assert.assertEquals;
  * Tests request signing functionality.
  */
 @PowerMockIgnore({"javax.net.*"})
-@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
-        SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class, KeyStoreManager.class})
+@PrepareForTest({IdentityUtil.class, IdentityProviderManager.class})
 
 public class SigningTests extends PowerMockTestCase {
 
@@ -77,9 +72,6 @@ public class SigningTests extends PowerMockTestCase {
     private RealmService realmService;
 
     @Mock
-    private IdentityPersistenceManager identityPersistenceManager;
-
-    @Mock
     private TenantManager tenantManager;
 
     @Mock
@@ -89,13 +81,7 @@ public class SigningTests extends PowerMockTestCase {
     private IdentityProvider identityProvider;
 
     @Mock
-    private KeyStoreManager keyStoreManager;
-
-    @Mock
     private FederatedAuthenticatorConfig federatedAuthenticatorConfig;
-
-    @Mock
-    SSOServiceProviderConfigManager ssoServiceProviderConfigManager;
 
     @Mock
     private X509Credential x509Credential;
@@ -129,10 +115,6 @@ public class SigningTests extends PowerMockTestCase {
 
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(eq(MultitenantConstants.SUPER_TENANT_ID))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty(REDIRECT_SIGNATURE_VALIDATOR_PROPERTY)).thenReturn
                 (SAML2_REDIRECT_SIGNATURE_VALIDATOR);
@@ -163,7 +145,8 @@ public class SigningTests extends PowerMockTestCase {
             stringBuilder.append("&Signature=" + signature).append("&SigAlg=" + algorithm);
         }
         samlssoAuthnReqDTO.setQueryString(stringBuilder.toString());
-        assertEquals(expected, SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO), message);
+        assertEquals(expected, SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
+                x509Credential.getEntityCertificate()), message);
     }
 
     @DataProvider
@@ -184,10 +167,6 @@ public class SigningTests extends PowerMockTestCase {
 
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(eq(MultitenantConstants.SUPER_TENANT_ID))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
 
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty("SSOService.SAMLSSOSigner")).thenReturn(ssoSigner);
@@ -212,7 +191,8 @@ public class SigningTests extends PowerMockTestCase {
         samlssoAuthnReqDTO.setCertAlias(TestConstants.WSO2_CARBON);
         samlssoAuthnReqDTO.setStratosDeployment(true);
 
-        assertEquals(SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO), expected, message);
+        assertEquals(SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
+                x509Credential.getEntityCertificate()), expected, message);
     }
 
     private void prepareForGetIssuer() throws Exception {

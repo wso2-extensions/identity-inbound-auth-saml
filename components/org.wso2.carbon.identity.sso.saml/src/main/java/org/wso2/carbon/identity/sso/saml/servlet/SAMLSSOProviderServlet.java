@@ -802,7 +802,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     }
 
                     // Validate signature.
-                    if (!SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO)) {
+                    if (!SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
+                            serviceProviderConfigs.getX509Certificate())) {
                         String msg = "Signature validation of the authentication request failed for issuer : " +
                                 issuer + " in tenant domain : " + tenantDomain;
                         log.warn(msg);

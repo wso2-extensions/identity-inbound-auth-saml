@@ -32,6 +32,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String defaultAssertionConsumerUrl;
     private String assertionConsumerUrl;
     private String certAlias;
+    private String certificateContent;
     private String sloResponseURL;
     private String sloRequestURL;
     private String loginPageURL;
@@ -379,5 +380,15 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
         } else {
             this.idpInitSLOReturnToURLs = null;
         }
+    }
+
+    public void setCertificateContent(String certificateContent) {
+
+        this.certificateContent = certificateContent;
+    }
+
+    public String getCertificateContent() {
+
+        return certificateContent;
     }
 }
