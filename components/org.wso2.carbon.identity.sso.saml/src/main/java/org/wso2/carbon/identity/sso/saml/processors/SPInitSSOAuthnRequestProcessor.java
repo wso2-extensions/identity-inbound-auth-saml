@@ -81,7 +81,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 }
 
                 // validate the signature
-                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO);
+                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
+                        serviceProviderConfigs.getX509Certificate());
 
                 if (!isSignatureValid) {
                     String msg = "Signature validation for Authentication Request failed.";

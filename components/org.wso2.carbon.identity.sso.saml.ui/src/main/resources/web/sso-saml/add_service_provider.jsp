@@ -1849,16 +1849,7 @@
                         CARBON.showWarningDialog("<fmt:message key='sp.metadata.valid.file'/>");
                         return;
                     }
-
-                    <% if (MultitenantConstants.SUPER_TENANT_ID ==
-                    CarbonContext.getThreadLocalCarbonContext().getTenantId()) { %>
-                    CARBON.showConfirmationDialog("<fmt:message key='sp.saml.metadata.certificate.warn'/>",
-                            function () {
-                                document.uploadServiceProvider.submit();
-                            });
-                    <% } else { %>
                     document.uploadServiceProvider.submit();
-                    <% } %>
                 }
 
                 function doCancel() {

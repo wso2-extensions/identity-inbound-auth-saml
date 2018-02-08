@@ -203,6 +203,7 @@
                     <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
