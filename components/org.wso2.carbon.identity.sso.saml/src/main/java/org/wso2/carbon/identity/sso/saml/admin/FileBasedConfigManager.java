@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -34,6 +36,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -171,7 +175,10 @@ public class FileBasedConfigManager {
                     log.warn("Certificate alias for Signature verification or Assertion encryption not specified. " +
                             "Defaulting to \'wso2carbon\'");
                     certAlias = "wso2carbon";
+                } else {
+                    spDO.setX509Certificate(getCertificateFromKeyStore(certAlias));
                 }
+
             }
             if (Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ATTRIBUTE_PROFILE))) {
                 spDO.setEnableAttributesByDefault(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.INCLUDE_ATTRIBUTE)));
@@ -209,6 +216,28 @@ public class FileBasedConfigManager {
             serviceProviders[i] = spDO;
         }
         return serviceProviders;
+    }
+
+    /**
+     *
+     * Retrieves and returns the certificate from keystore.
+     *
+     * @param alias
+     * @return
+     */
+    private X509Certificate getCertificateFromKeyStore(String alias) {
+
+        try {
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
+            KeyStore keyStore = keyStoreManager.getPrimaryKeyStore();
+            X509Certificate certificate = (X509Certificate)keyStore.getCertificate(alias);
+            return certificate;
+        } catch (Exception e) {
+            String errorMsg = String.format("Error occurred while retrieving the certificate for " +
+                    "the alias '%s'." + alias);
+            log.error(errorMsg);
+            return null;
+        }
     }
 
     /**
