@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
@@ -160,6 +161,37 @@ public class IdentitySAMLSSOServiceComponent {
         if (log.isDebugEnabled()) {
             log.info("Identity SAML SSO bundle is deactivated");
         }
+    }
+
+    /**
+     * Set Application management service implementation
+     *
+     * @param applicationMgtService Application management service
+     */
+    @Reference(
+            name = "application.mgt.service",
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationMgtService"
+    )
+    protected void setApplicationMgtService(ApplicationManagementService applicationMgtService) {
+        if (log.isDebugEnabled()) {
+            log.debug("ApplicationManagementService set in SAML SSO bundle");
+        }
+        SAMLSSOUtil.setApplicationMgtService(applicationMgtService);
+    }
+
+    /**
+     * Unset Application management service implementation
+     *
+     * @param applicationMgtService Application management service
+     */
+    protected void unsetApplicationMgtService(ApplicationManagementService applicationMgtService) {
+        if (log.isDebugEnabled()) {
+            log.debug("ApplicationManagementService unset in SAML SSO bundle");
+        }
+        SAMLSSOUtil.setApplicationMgtService(null);
     }
 
     @Reference(
