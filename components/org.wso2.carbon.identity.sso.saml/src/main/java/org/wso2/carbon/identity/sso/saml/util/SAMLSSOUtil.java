@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 
@@ -184,6 +185,7 @@ public class SAMLSSOUtil {
     private static String idPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
+    private static ApplicationManagementService applicationMgtService;
 
     private SAMLSSOUtil() {
     }
@@ -248,6 +250,16 @@ public class SAMLSSOUtil {
 
     public static void setRegistryService(RegistryService registryService) {
         SAMLSSOUtil.registryService = registryService;
+    }
+
+    public static void setApplicationMgtService(ApplicationManagementService applicationMgtService) {
+
+        SAMLSSOUtil.applicationMgtService = applicationMgtService;
+    }
+
+    public static ApplicationManagementService getApplicationMgtService() {
+
+        return applicationMgtService;
     }
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
