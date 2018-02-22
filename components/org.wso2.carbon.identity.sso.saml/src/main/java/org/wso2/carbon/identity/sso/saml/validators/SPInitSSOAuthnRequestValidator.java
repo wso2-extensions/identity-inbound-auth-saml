@@ -25,8 +25,8 @@ import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
 import org.wso2.carbon.identity.base.IdentityException;
-
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
@@ -140,6 +140,13 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             validationResponse.setValid(true);
             validationResponse.setPassive(authnReq.isPassive());
             validationResponse.setForceAuthn(authnReq.isForceAuthn());
+            if (authnReq.getRequestedAuthnContext() != null
+                    && authnReq.getRequestedAuthnContext().getAuthnContextClassRefs() != null) {
+                authnReq.getRequestedAuthnContext().getAuthnContextClassRefs().stream().forEach(ref -> {
+                    validationResponse.addAuthenticationContextClassRef(
+                            new SAMLAuthenticationContextClassRefDTO(ref.getAuthnContextClassRef()));
+                });
+            }
             Integer index = authnReq.getAttributeConsumingServiceIndex();
             if (index !=null && !(index < 1)){              //according the spec, should be an unsigned short
                 validationResponse.setAttributeConsumingServiceIndex(index);

@@ -68,6 +68,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -568,6 +569,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry
                 (authenticationRequest);
         addAuthenticationRequestToRequest(req, authRequest);
+        if (signInRespDTO.getAuthenticationContextClassRefList() != null) {
+            List<String> acrList = signInRespDTO.getAuthenticationContextClassRefList().stream()
+                    .map(acr -> acr.getAuthenticationContextClassReference()).collect(Collectors.toList());
+            req.setAttribute("acr_values", acrList);
+        }
         sendRequestToFramework(req, resp, sessionDataKey, FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO);
     }
 
