@@ -417,18 +417,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil
                                             .getTenantDomainFromThreadLocal(),
                                     SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-                            //for IDP init SLO, priority should be given to SLO response URL over default ACS.
-                            acsUrl = serviceProviderDO.getSloResponseURL();
-                            if (StringUtils.isBlank(acsUrl)) {
-                                acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
-                            }
+                            if (serviceProviderDO != null) {
+                                // For IDP init SLO, priority should be given to SLO response URL over default ACS.
+                                acsUrl = serviceProviderDO.getSloResponseURL();
+                                if (StringUtils.isBlank(acsUrl)) {
+                                    acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                                }
 
-                            //check whether ReturnToUrl query param is included in the configured Urls.
-                            if (StringUtils.isNotBlank(returnToUrl)) {
-                                List<String> returnToUrls = serviceProviderDO.getIdpInitSLOReturnToURLList();
-                                if (returnToUrls.contains(returnToUrl)) {
-                                    acsUrl += "&returnTo=" +
-                                            URLEncoder.encode(returnToUrl, SAMLSSOConstants.ENCODING_FORMAT);
+                                // Check whether ReturnToUrl query param is included in the configured Urls.
+                                if (StringUtils.isNotBlank(returnToUrl)) {
+                                    List<String> returnToUrls = serviceProviderDO.getIdpInitSLOReturnToURLList();
+                                    if (returnToUrls.contains(returnToUrl)) {
+                                        acsUrl += "&returnTo=" +
+                                                URLEncoder.encode(returnToUrl, SAMLSSOConstants.ENCODING_FORMAT);
+                                    }
                                 }
                             }
                         }
@@ -942,9 +944,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
                 SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(),
                         sessionDTO.getIssuer());
-                acsUrl = serviceProviderDO.getSloResponseURL();
-                if (StringUtils.isBlank(acsUrl)) {
-                    acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                if (serviceProviderDO != null) {
+                    acsUrl = serviceProviderDO.getSloResponseURL();
+                    if (StringUtils.isBlank(acsUrl)) {
+                        acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                    }
                 }
             }
             String errorResp = SAMLSSOUtil.buildErrorResponse(
