@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.sso.saml.dto;
 import java.io.Serializable;
 
 /**
- * Keeps Authentication Context class Reference
+ * Keeps SAML Authentication Context Class Reference.
  */
 public class SAMLAuthenticationContextClassRefDTO implements Serializable {
 

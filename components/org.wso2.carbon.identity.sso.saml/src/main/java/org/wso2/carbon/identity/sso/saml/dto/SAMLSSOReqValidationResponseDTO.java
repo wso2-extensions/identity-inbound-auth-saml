@@ -304,6 +304,15 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
         return Collections.unmodifiableList(authenticationContextClassRefList);
     }
 
+    public void setAuthenticationContextClassRefList(List<SAMLAuthenticationContextClassRefDTO>
+                                                             authenticationContextClassRefList) {
+        if (authenticationContextClassRefList == null) {
+            this.authenticationContextClassRefList = authenticationContextClassRefList;
+        } else {
+            this.authenticationContextClassRefList.addAll(authenticationContextClassRefList);
+        }
+    }
+
     public void addAuthenticationContextClassRef(
             SAMLAuthenticationContextClassRefDTO authenticationContextClassRefDTO) {
 

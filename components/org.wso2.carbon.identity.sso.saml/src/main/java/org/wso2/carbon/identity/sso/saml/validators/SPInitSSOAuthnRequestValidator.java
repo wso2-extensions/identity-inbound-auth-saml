@@ -140,13 +140,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             validationResponse.setValid(true);
             validationResponse.setPassive(authnReq.isPassive());
             validationResponse.setForceAuthn(authnReq.isForceAuthn());
-            if (authnReq.getRequestedAuthnContext() != null
-                    && authnReq.getRequestedAuthnContext().getAuthnContextClassRefs() != null) {
-                authnReq.getRequestedAuthnContext().getAuthnContextClassRefs().stream().forEach(ref -> {
-                    validationResponse.addAuthenticationContextClassRef(
-                            new SAMLAuthenticationContextClassRefDTO(ref.getAuthnContextClassRef()));
-                });
-            }
+            setAuthenticationContextClassRef(validationResponse);
             Integer index = authnReq.getAttributeConsumingServiceIndex();
             if (index !=null && !(index < 1)){              //according the spec, should be an unsigned short
                 validationResponse.setAttributeConsumingServiceIndex(index);
@@ -157,6 +151,16 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             return validationResponse;
         } catch (Exception e) {
             throw IdentityException.error("Error validating the authentication request", e);
+        }
+    }
+
+    private void setAuthenticationContextClassRef(SAMLSSOReqValidationResponseDTO validationResponse) {
+        if (authnReq.getRequestedAuthnContext() != null
+                && authnReq.getRequestedAuthnContext().getAuthnContextClassRefs() != null) {
+            authnReq.getRequestedAuthnContext().getAuthnContextClassRefs().stream().forEach(ref -> {
+                validationResponse.addAuthenticationContextClassRef(
+                        new SAMLAuthenticationContextClassRefDTO(ref.getAuthnContextClassRef()));
+            });
         }
     }
 }
