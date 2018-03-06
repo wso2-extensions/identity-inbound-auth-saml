@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.sso.saml.dto;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class SAMLSSOReqValidationResponseDTO implements Serializable {
 
@@ -50,6 +53,7 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
     private int attributeConsumingServiceIndex = 0;
+    private List<SAMLAuthenticationContextClassRefDTO> authenticationContextClassRefList;
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -290,5 +294,31 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
 
     public void setAttributeConsumingServiceIndex(int attributeConsumingServiceIndex) {
         this.attributeConsumingServiceIndex = attributeConsumingServiceIndex;
+    }
+
+    public List<SAMLAuthenticationContextClassRefDTO> getAuthenticationContextClassRefList() {
+
+        if (authenticationContextClassRefList == null) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(authenticationContextClassRefList);
+    }
+
+    public void setAuthenticationContextClassRefList(List<SAMLAuthenticationContextClassRefDTO>
+                                                             authenticationContextClassRefList) {
+        if (authenticationContextClassRefList == null) {
+            this.authenticationContextClassRefList = authenticationContextClassRefList;
+        } else {
+            this.authenticationContextClassRefList.addAll(authenticationContextClassRefList);
+        }
+    }
+
+    public void addAuthenticationContextClassRef(
+            SAMLAuthenticationContextClassRefDTO authenticationContextClassRefDTO) {
+
+        if (authenticationContextClassRefList == null) {
+            authenticationContextClassRefList = new ArrayList<>();
+        }
+        authenticationContextClassRefList.add(authenticationContextClassRefDTO);
     }
 }
