@@ -96,7 +96,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static Log log = LogFactory.getLog(SAMLSSOProviderServlet.class);
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
-    private boolean isCacheAvailable = false;
 
     private static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
@@ -1080,7 +1079,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         AuthenticationResult result = getAuthenticationResultFromRequest(req);
         if (result == null) {
-            isCacheAvailable = true;
             result = getAuthenticationResultFromCache(sessionDataKey);
         }
         return result;
