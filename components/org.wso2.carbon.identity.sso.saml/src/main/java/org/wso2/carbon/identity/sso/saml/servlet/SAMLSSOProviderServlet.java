@@ -937,7 +937,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                              sessionDTO.getTenantDomain());
             }
         } else {
-
             String acsUrl = sessionDTO.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
                 SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(),

@@ -82,7 +82,7 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
     @Override
     public String getName() {
-        return "SAML_LOGOUT_LISTENER";
+        return "SAMLLogoutListener";
     }
 
 }

@@ -144,4 +144,17 @@ public class TestUtils {
         authnReqDTO.getUser().setUserAttributes(userAttributes);
         return authnReqDTO;
     }
+
+
+    public static PrivateKey getPrivateKey(KeyStore keyStore,String alias,String password)
+            throws KeyStoreException,NoSuchAlgorithmException,UnrecoverableKeyException{
+        return (PrivateKey) keyStore.getKey(alias,password.toCharArray());
+    }
+
+    public static Certificate getCertificate(KeyStore keyStore,String alias) throws KeyStoreException{
+        return keyStore.getCertificate(alias);
+    }
+
+
+
 }
