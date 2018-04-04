@@ -33,9 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * SAML Logout Handler do Single Logout when session is terminated.
  */
-public class SAMLLogoutListener extends AbstractEventHandler {
+public class SAMLLogoutHandler extends AbstractEventHandler {
 
-    private static Log log = LogFactory.getLog(SAMLLogoutListener.class);
+    private static Log log = LogFactory.getLog(SAMLLogoutHandler.class);
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
 
@@ -82,7 +82,7 @@ public class SAMLLogoutListener extends AbstractEventHandler {
 
     @Override
     public String getName() {
-        return "SAMLLogoutListener";
+        return "SAMLLogoutHandler";
     }
 
 }

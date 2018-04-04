@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
-import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.opensaml.DefaultBootstrap;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -47,15 +46,14 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.util.HashMap;
 
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -66,16 +64,15 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 
 /**
- * Unit Tests for SAMLLogoutListener.
+ * Unit Tests for SAMLLogoutHandler.
  */
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, DefaultBootstrap.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
         KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class})
-public class SAMLLogoutListenerTest extends PowerMockTestCase {
+public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     private static String SESSION_INDEX = "theSessionIndex";
     private static String SESSION_TOKEN_ID = "samlssoTokenId";
-    private static int exprectedServiceProviders = 2;
     @Mock
     SSLContext sslContext;
     @Mock
@@ -94,6 +91,7 @@ public class SAMLLogoutListenerTest extends PowerMockTestCase {
     UserRegistry registry;
     @Mock
     Collection collection;
+
     private KeyManager[] keyManagers = {new KeyManager() {
     }};
     private TrustManager[] trustManagers = {new TrustManager() {
@@ -103,6 +101,7 @@ public class SAMLLogoutListenerTest extends PowerMockTestCase {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         SAMLSSOServiceProviderDO serviceProviderDOOne = new SAMLSSOServiceProviderDO();
         serviceProviderDOOne.setIssuer("issuerOne");
@@ -163,22 +162,18 @@ public class SAMLLogoutListenerTest extends PowerMockTestCase {
     public void testHandleEvent() throws Exception {
 
         Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_TERMINATE.name(), "issuerOne");
+        SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
+        samlLogoutHandler.handleEvent(eventOne);
         SessionInfoData sessionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX);
-        Map<String, SAMLSSOServiceProviderDO> serviceProviders = sessionInfoData.getServiceProviderList();
-        Assert.assertEquals(serviceProviders.size(), exprectedServiceProviders);
-        SAMLLogoutListener samlLogoutListener = new SAMLLogoutListener();
-        samlLogoutListener.handleEvent(eventOne);
-        sessionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX);
         Assert.assertNull(sessionInfoData);
-//        Assert.assertTrue(checkCookieIsInvalidated(eventOne));
-
     }
 
 
     @Test
     public void testGetName() {
-        SAMLLogoutListener samlLogoutListener = new SAMLLogoutListener();
-        Assert.assertEquals(samlLogoutListener.getName(), "SAMLLogoutListener");
+
+        SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
+        Assert.assertEquals(samlLogoutHandler.getName(), "SAMLLogoutHandler");
     }
 
     private Event setupEvent(String eventName, String issuer) {
@@ -197,25 +192,4 @@ public class SAMLLogoutListenerTest extends PowerMockTestCase {
         return event;
     }
 
-
-    private boolean checkCookieIsInvalidated(Event event) {
-        HttpServletRequest request = (HttpServletRequest) event.getEventProperties()
-                .get(IdentityEventConstants.EventProperty.REQUEST);
-        boolean expired = true;
-
-        if (request != null) {
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (StringUtils.equals(cookie.getName(),"samlssoTokenId")) {
-                        if (cookie.getMaxAge() != 0) {
-                            expired = false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return expired;
-    }
 }
