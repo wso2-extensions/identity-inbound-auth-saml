@@ -71,26 +71,28 @@ import static org.powermock.api.mockito.PowerMockito.when;
         KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
-    private static String SESSION_INDEX = "theSessionIndex";
-    private static String SESSION_TOKEN_ID = "samlssoTokenId";
+    private static String SESSION_INDEX_ONE = "theSessionIndex";
+    private static String SESSION_TOKEN_ID_ONE = "samlssoTokenId";
+    private static String SESSION_INDEX_TWO = "theSessionIndexTwo";
+    private static String SESSION_TOKEN_ID_TWO = "samlssoToeknIdTwo";
     @Mock
-    SSLContext sslContext;
+    private SSLContext sslContext;
     @Mock
-    SecureRandom secureRandom;
+    private SecureRandom secureRandom;
     @Mock
-    ServerConfiguration serverConfiguration;
+    private ServerConfiguration serverConfiguration;
     @Mock
-    IdentityProviderManager identityProviderManager;
+    private IdentityProviderManager identityProviderManager;
     @Mock
-    IdentityProvider identityProvider;
+    private IdentityProvider identityProvider;
     @Mock
-    KeyStoreManager keyStoreManager;
+    private KeyStoreManager keyStoreManager;
     @Mock
-    RegistryService registryService;
+    private RegistryService registryService;
     @Mock
-    UserRegistry registry;
+    private UserRegistry registry;
     @Mock
-    Collection collection;
+    private Collection collection;
 
     private KeyManager[] keyManagers = {new KeyManager() {
     }};
@@ -108,12 +110,18 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         SAMLSSOServiceProviderDO serviceProviderDOTwo = new SAMLSSOServiceProviderDO();
         serviceProviderDOTwo.setIssuer("issuerTwo");
 
-        SessionInfoData sessionInfoData = new SessionInfoData();
-        sessionInfoData.addServiceProvider("issuerOne", serviceProviderDOOne, null);
-        sessionInfoData.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
+        SessionInfoData sessionInfoDataOne = new SessionInfoData();
+        sessionInfoDataOne.addServiceProvider("issuerOne", serviceProviderDOOne, null);
+        sessionInfoDataOne.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
 
-        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID, SESSION_INDEX);
-        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX, sessionInfoData);
+        SessionInfoData sessionInfoDataTwo = new SessionInfoData();
+        sessionInfoDataTwo.addServiceProvider("issuerOne", serviceProviderDOOne, null);
+        sessionInfoDataTwo.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
+
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_ONE, SESSION_INDEX_ONE);
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_INDEX_TWO,SESSION_TOKEN_ID_TWO);
+        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_ONE, sessionInfoDataOne);
+        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_TWO, sessionInfoDataTwo);
 
 
         // creating mocks
@@ -164,8 +172,10 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_TERMINATE.name(), "issuerOne");
         SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
         samlLogoutHandler.handleEvent(eventOne);
-        SessionInfoData sessionInfoData = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX);
-        Assert.assertNull(sessionInfoData);
+        SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE);
+        SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO);
+        Assert.assertNull(sessionInfoDataOne);
+        Assert.assertNotNull(sessionInfoDataTwo);
     }
 
 
@@ -179,17 +189,16 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     private Event setupEvent(String eventName, String issuer) {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        HashMap eventProperties = new HashMap();
+        HashMap<String, Object> eventProperties = new HashMap<>();
         AuthenticationContext context = new AuthenticationContext();
         context.setRelyingParty(issuer);
         eventProperties.put(IdentityEventConstants.EventProperty.REQUEST, request);
         eventProperties.put(IdentityEventConstants.EventProperty.CONTEXT, context);
         Cookie[] cookies = new Cookie[1];
-        Cookie cookie = new Cookie("samlssoTokenId", "samlssoTokenId");
+        Cookie cookie = new Cookie("samlssoTokenId", SESSION_TOKEN_ID_ONE);
         cookies[0] = cookie;
         when(request.getCookies()).thenReturn(cookies);
-        Event event = new Event(eventName, eventProperties);
-        return event;
+        return new Event(eventName, eventProperties);
     }
 
 }

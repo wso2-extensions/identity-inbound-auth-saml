@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,29 +44,14 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
         String samlssoTokenId = null;
         String issuer = null;
-        if (!StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
-            return;
 
-        } else {
-            HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-            if (request != null) {
-                Cookie[] cookies = request.getCookies();
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
-                            samlssoTokenId = cookie.getValue();
-                        }
-                    }
-                }
-            }
+        if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
+            samlssoTokenId = getSmlssoTokenIdFromEvent(event);
             if (StringUtils.isNotBlank(samlssoTokenId)) {
-                String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
-                AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
-                        .get(EventProperty.CONTEXT);
-                //if slo is null then it is IDP initiated logout So make the issuer as null.
-                if (context != null && slo == null) {
-                    issuer = context.getRelyingParty();
+                if (!isIDPInitiatedLogoutRequest(event)) {
+                    issuer = this.getIssuerFromContext(event);
                 }
+
                 try {
                     samlSsoService.doSingleLogout(samlssoTokenId, issuer);
                 } catch (IdentityException e) {
@@ -84,5 +69,43 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
     public String getName() {
         return "SAMLLogoutHandler";
     }
+
+
+    private String getSmlssoTokenIdFromEvent(Event event) {
+        String samlssoTokenId = null;
+        HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
+        if (request != null) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (StringUtils.equals(cookie.getName(), SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE)) {
+                        samlssoTokenId = cookie.getValue();
+                    }
+                }
+            }
+        }
+        return samlssoTokenId;
+    }
+
+
+    private boolean isIDPInitiatedLogoutRequest(Event event) {
+        boolean isIdpInitiated = true;
+        HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
+        String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
+        AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
+                .get(EventProperty.CONTEXT);
+
+        if (context != null && slo == null) {
+            isIdpInitiated = false;
+        }
+        return isIdpInitiated;
+    }
+
+
+    private String getIssuerFromContext(Event event) {
+        AuthenticationContext context = (AuthenticationContext) event.getEventProperties();
+        return context.getRelyingParty();
+    }
+
 
 }

@@ -84,6 +84,7 @@ public class SAMLSSOConstants {
     public static final String SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME = "SSOService.SAML2HTTPRedirectSignatureValidator";
     public static final String SAMLSSO_SIGNER_CLASS_NAME = "SSOService.SAMLSSOSigner";
     public static final String INBOUND_AUTH_TYPE_SAML = "samlsso";
+    public static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
 
     private SAMLSSOConstants() {
     }
