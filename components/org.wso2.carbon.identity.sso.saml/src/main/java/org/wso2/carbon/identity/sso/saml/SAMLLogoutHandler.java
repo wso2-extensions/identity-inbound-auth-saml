@@ -37,7 +37,7 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
     private static Log log = LogFactory.getLog(SAMLLogoutHandler.class);
 
-    private SAMLSSOService samlSsoService = new SAMLSSOService();
+    private SAMLSSOService samlSSOService = new SAMLSSOService();
 
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
@@ -46,20 +46,20 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         String issuer = null;
 
         if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
-            samlssoTokenId = getSmlssoTokenIdFromEvent(event);
+            samlssoTokenId = getSamlSSOTokenIdFromEvent(event);
             if (StringUtils.isNotBlank(samlssoTokenId)) {
                 if (!isIDPInitiatedLogoutRequest(event)) {
                     issuer = this.getIssuerFromContext(event);
                 }
 
                 try {
-                    samlSsoService.doSingleLogout(samlssoTokenId, issuer);
+                    samlSSOService.doSingleLogout(samlssoTokenId, issuer);
                 } catch (IdentityException e) {
                     log.error("Error while SAML Logout Listener is doing single logout .", e);
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("There is no valid SAML based service providers in the session.");
+                    log.debug("There are no SAML participants in the session.");
                 }
             }
         }
@@ -67,11 +67,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
     @Override
     public String getName() {
+
         return "SAMLLogoutHandler";
     }
 
+    private String getSamlSSOTokenIdFromEvent(Event event) {
 
-    private String getSmlssoTokenIdFromEvent(Event event) {
         String samlssoTokenId = null;
         HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
         if (request != null) {
@@ -87,8 +88,8 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return samlssoTokenId;
     }
 
-
     private boolean isIDPInitiatedLogoutRequest(Event event) {
+
         boolean isIdpInitiated = true;
         HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
         String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
@@ -101,11 +102,10 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return isIdpInitiated;
     }
 
-
     private String getIssuerFromContext(Event event) {
-        AuthenticationContext context = (AuthenticationContext) event.getEventProperties();
+
+        AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get(EventProperty.CONTEXT);
         return context.getRelyingParty();
     }
-
 
 }

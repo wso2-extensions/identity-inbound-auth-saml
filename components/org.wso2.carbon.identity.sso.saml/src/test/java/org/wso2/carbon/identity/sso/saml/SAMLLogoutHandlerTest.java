@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -46,14 +46,14 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.util.HashMap;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.util.HashMap;
 
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -61,7 +61,6 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
-
 
 /**
  * Unit Tests for SAMLLogoutHandler.
@@ -119,12 +118,17 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         sessionInfoDataTwo.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
 
         SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_ONE, SESSION_INDEX_ONE);
-        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_INDEX_TWO,SESSION_TOKEN_ID_TWO);
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_INDEX_TWO, SESSION_TOKEN_ID_TWO);
         SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_ONE, sessionInfoDataOne);
         SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_TWO, sessionInfoDataTwo);
 
-
         // creating mocks
+        createMocks();
+
+    }
+
+    private void createMocks() throws Exception {
+
         mockStatic(SSLContext.class);
         when(SSLContext.getInstance(anyString())).thenReturn(sslContext);
         doNothing().when(sslContext).init(keyManagers, trustManagers, secureRandom);
@@ -146,7 +150,6 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         when(serverConfiguration.getFirstProperty("Security.KeyStore.Location")).thenReturn("");
         when(serverConfiguration.getFirstProperty("Security.KeyStore.Type")).thenReturn("");
 
-
         mockStatic(KeyStoreUtil.class);
         when(KeyStoreUtil.getKeyStoreFileName(anyString())).thenReturn("wso2carbon");
         when(KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(true);
@@ -163,7 +166,6 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID)).thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(keyStore);
-
     }
 
     @Test
@@ -177,7 +179,6 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         Assert.assertNull(sessionInfoDataOne);
         Assert.assertNotNull(sessionInfoDataTwo);
     }
-
 
     @Test
     public void testGetName() {
