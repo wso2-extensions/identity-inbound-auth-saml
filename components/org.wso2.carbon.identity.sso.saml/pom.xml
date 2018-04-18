@@ -142,6 +142,7 @@
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             javax.xml.namespace,
                             javax.servlet; version="${imp.pkg.version.javax.servlet}",
+                            javax.servlet; version="${imp.pkg.version.javax.servlet}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.eclipse.equinox.http.helper,
                             org.joda.time; version="${joda.wso2.osgi.version.range}",
@@ -239,7 +240,9 @@
                             org.wso2.carbon.user.core.service,
                             org.wso2.carbon.user.core.tenant,
                             org.wso2.carbon.utils,
-                            org.wso2.carbon.utils.multitenancy
+                            org.wso2.carbon.utils.multitenancy,
+                            org.wso2.carbon.identity.event.*
+
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,
