@@ -105,8 +105,7 @@ public class X509CredentialImpl implements X509Credential {
 
     @Override
     public Class<? extends Credential> getCredentialType() {
-        // TODO Auto-generated method stub
-        return null;
+        return X509Credential.class;
     }
 
     @Override

@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
+import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
+import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -133,6 +135,10 @@ public class IdentitySAMLSSOServiceComponent {
             }
 
             FileBasedConfigManager.getInstance().addServiceProviders();
+
+            // Register EidasExtensionProcessor as an OSGi Service
+            ctxt.getBundleContext().registerService(SAMLExtensionProcessor.class.getName(),
+                    new EidasExtensionProcessor(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
@@ -323,4 +329,38 @@ public class IdentitySAMLSSOServiceComponent {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
+
+    /**
+     * Set SAML Extension Processors
+     *
+     * @param extensionProcessor Extension Processor
+     */
+    @Reference(
+            name = "saml.extension.processor",
+            service = SAMLExtensionProcessor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetExtensionProcessor"
+    )
+    protected void setExtensionProcessor(SAMLExtensionProcessor extensionProcessor) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Extension Processor: " + extensionProcessor.getClass() + " set in SAML SSO bundle");
+        }
+        SAMLSSOUtil.addExtensionProcessors(extensionProcessor);
+    }
+
+    /**
+     * Unset SAML Extension Processors
+     *
+     * @param extensionProcessor Extension Processor
+     */
+    protected void unsetExtensionProcessor(SAMLExtensionProcessor extensionProcessor) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Extension Processor: " + extensionProcessor.getClass() + " unset in SAML SSO bundle");
+        }
+        SAMLSSOUtil.removeExtensionProcessors(extensionProcessor);
+    }
+
 }

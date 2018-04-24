@@ -18,25 +18,43 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opensaml.Configuration;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.encryption.Decrypter;
+import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.DecryptionException;
 import org.opensaml.xml.encryption.EncryptedKey;
+import org.opensaml.xml.io.Unmarshaller;
+import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 
 import javax.crypto.SecretKey;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -52,6 +70,8 @@ import java.util.Map;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 public class TestUtils {
+
+    private static Log log = LogFactory.getLog(TestUtils.class);
 
     public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
 
@@ -143,5 +163,41 @@ public class TestUtils {
         }
         authnReqDTO.getUser().setUserAttributes(userAttributes);
         return authnReqDTO;
+    }
+
+    /**
+     * Unmarshalls an element file into its SAMLObject.
+     *
+     * @param elementFile the classpath path to an XML document to unmarshall
+     *
+     * @return the SAMLObject from the file
+     */
+    public static XMLObject unmarshallElement(String elementFile) throws IdentitySAML2SSOException {
+
+        InputStream inputStream = null;
+        try {
+            File file = new File(elementFile);
+            String str = FileUtils.readFileToString(file, "UTF-8");
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
+            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+            inputStream = new ByteArrayInputStream(str.trim().getBytes(StandardCharsets.UTF_8));
+            Document document = docBuilder.parse(inputStream);
+            Element element = document.getDocumentElement();
+            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+            Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+            return unmarshaller.unmarshall(element);
+        } catch (Exception e) {
+            throw new IdentitySAML2SSOException(
+                    "Error in constructing XMLObject from the String ",
+                    e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("Error while closing the stream", e);
+                }
+            }
+        }
     }
 }

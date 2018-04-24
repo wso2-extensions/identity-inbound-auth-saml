@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.mockito.Mock;
 import org.opensaml.saml2.core.Issuer;
+import org.opensaml.saml2.core.Status;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -303,4 +305,28 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
                 .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
     }
 
+    @Test
+    public void testAddExtensionProcessors() {
+        SAMLSSOUtil.addExtensionProcessors(new EidasExtensionProcessor());
+        assertEquals(SAMLSSOUtil.getExtensionProcessors().size(), 1, "Extension processor is not " +
+                "added to the extension processor list.");
+    }
+
+    @Test
+    public void testRemoveExtensionProcessors() {
+        SAMLSSOUtil.removeExtensionProcessors(new EidasExtensionProcessor());
+        assertEquals(SAMLSSOUtil.getExtensionProcessors().size(), 0, "Extension processor is not " +
+                "removed from the extension processor list.");
+    }
+
+    @Test
+    public void testBuildResponseStatus() {
+        String statusCode = "500";
+        String statusMsg = "Internal Server Error";
+        Status status = SAMLSSOUtil.buildResponseStatus(statusCode, statusMsg);
+        assertEquals(status.getStatusCode().getValue(), statusCode, "Status code is not properly set in the Status " +
+                "object.");
+        assertEquals(status.getStatusMessage().getMessage(), statusMsg, "Status Message is not properly set in " +
+                "the Status object.");
+    }
 }

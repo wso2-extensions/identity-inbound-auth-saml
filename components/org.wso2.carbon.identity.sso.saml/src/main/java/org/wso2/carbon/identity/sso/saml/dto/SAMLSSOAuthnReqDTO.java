@@ -20,12 +20,15 @@ package org.wso2.carbon.identity.sso.saml.dto;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class SAMLSSOAuthnReqDTO implements Serializable {
 
@@ -72,6 +75,10 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String keyEncryptionAlgorithmUri;
     private boolean isAssertionQueryRequestProfileEnabled;
     private Map<String, List<AuthenticationContextProperty>> idpAuthenticationContextProperties;
+    private List<SAMLAuthenticationContextClassRefDTO> authenticationContextClassRefList;
+    private String requestedAuthnContextComparison;
+    private List<ClaimMapping> requestedAttributesList;
+    private Properties properties;
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -485,5 +492,114 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
             authenticationContextProperties = idpAuthenticationContextProperties.get(propertyName);
         }
         authenticationContextProperties.add(authenticationContextProperty);
+    }
+
+    /**
+     * Get list of Authentication Context Class Reference.
+     *
+     * @return list of Authentication Context Class Reference
+     */
+    public List<SAMLAuthenticationContextClassRefDTO> getAuthenticationContextClassRefList() {
+
+        if (authenticationContextClassRefList == null) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(authenticationContextClassRefList);
+    }
+
+    /**
+     * Set Authentication Context Class Reference.
+     *
+     * @param authenticationContextClassRefs list of Authentication Context Class Reference
+     */
+    public void setAuthenticationContextClassRefList(List<SAMLAuthenticationContextClassRefDTO>
+                                                             authenticationContextClassRefs) {
+
+        if (authenticationContextClassRefList == null) {
+            authenticationContextClassRefList = authenticationContextClassRefs;
+        } else {
+            authenticationContextClassRefList.addAll(authenticationContextClassRefs);
+        }
+    }
+
+    /**
+     * Add Authentication Context Class Reference.
+     *
+     * @param authenticationContextClassRefs Authentication Context Class Reference
+     */
+    public void addAuthenticationContextClassRef(
+            SAMLAuthenticationContextClassRefDTO authenticationContextClassRefs) {
+
+        if (authenticationContextClassRefList == null) {
+            authenticationContextClassRefList = new ArrayList<>();
+        }
+        authenticationContextClassRefList.add(authenticationContextClassRefs);
+    }
+
+    /**
+     * Get Requested Attributes.
+     *
+     * @return list of requested attributes
+     */
+    public List<ClaimMapping> getRequestedAttributes() {
+
+        return requestedAttributesList;
+    }
+
+    /**
+     * Set Requested Attributes.
+     *
+     * @param requestedAttributes list of requested attributes
+     */
+    public void setRequestedAttributes(List<ClaimMapping> requestedAttributes) {
+
+        if (requestedAttributesList == null) {
+            requestedAttributesList = requestedAttributes;
+        } else {
+            requestedAttributesList.addAll(requestedAttributes);
+        }
+    }
+
+    /**
+     * Get Authentication Context Comparison.
+     *
+     * @return Authentication Context Comparison
+     */
+    public String getRequestedAuthnContextComparison() {
+
+        return requestedAuthnContextComparison;
+    }
+
+    /**
+     * Set Authentication Context Comparison.
+     *
+     * @param authnContextComparison Authentication Context Comparison
+     */
+    public void setRequestedAuthnContextComparison(String authnContextComparison) {
+
+        requestedAuthnContextComparison = authnContextComparison;
+    }
+
+    /**
+     * Get properties.
+     *
+     * @return request properties
+     */
+    public Properties getProperties() {
+
+        if (properties == null) {
+            properties = new Properties();
+        }
+        return properties;
+    }
+
+    /**
+     * Set properties.
+     *
+     * @param properties request properties
+     */
+    public void setProperties(Properties properties) {
+
+        this.properties = properties;
     }
 }
