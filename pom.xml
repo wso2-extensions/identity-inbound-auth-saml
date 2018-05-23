@@ -401,7 +401,7 @@
         <identity.metadata.saml2.imp.pkg.version.range>[1.0.0, 2.0.0)</identity.metadata.saml2.imp.pkg.version.range>
 
         <httpcore.version>4.3.3.wso2v1</httpcore.version>
-        <httpcomponents-httpclient.wso2.version>4.3.6.wso2v1</httpcomponents-httpclient.wso2.version>
+        <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
