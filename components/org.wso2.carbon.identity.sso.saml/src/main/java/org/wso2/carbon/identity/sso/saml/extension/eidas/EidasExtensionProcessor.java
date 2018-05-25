@@ -72,8 +72,15 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
     @Override
     public boolean canHandle(RequestAbstractType request) throws IdentitySAML2SSOException {
 
-        return request.getNamespaces().stream().anyMatch(namespace -> namespace.getNamespaceURI()
-                .equals(EidasConstants.EIDAS_NS));
+        boolean canHandle = request.getNamespaces().stream().anyMatch(namespace -> EidasConstants.EIDAS_NS.equals(
+                namespace.getNamespaceURI()));
+        if (canHandle) {
+            if (log.isDebugEnabled()) {
+                log.debug("Request in type: " + request.getClass().getSimpleName() + " can be handled by the " +
+                        "EidasExtensionProcessor.");
+            }
+        }
+        return canHandle;
     }
 
     /**
@@ -87,8 +94,18 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
     public boolean canHandle(StatusResponseType response, Assertion assertion, SAMLSSOAuthnReqDTO authReqDTO)
             throws IdentitySAML2SSOException {
 
-        return authReqDTO.getProperties().getProperty(EidasConstants.EIDAS_REQUEST)
-                .equals(EidasConstants.EIDAS_PREFIX);
+        String requestType = authReqDTO.getProperty(EidasConstants.EIDAS_REQUEST);
+        boolean canHandle = false;
+        if (requestType != null) {
+            canHandle = EidasConstants.EIDAS_PREFIX.equals(requestType);
+            if (canHandle) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Response in type: " + response.getClass().getSimpleName() + " can be handled by the " +
+                            "EidasExtensionProcessor.");
+                }
+            }
+        }
+        return canHandle;
     }
 
     /**
@@ -104,7 +121,8 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
 
         if (request instanceof AuthnRequest) {
             if (log.isDebugEnabled()) {
-                log.debug("Process the extensions for EIDAS message format");
+                log.debug("Process and validate the extensions in SAML request from the issuer : " +
+                        validationResp.getIssuer() + " for EIDAS message format.");
             }
             Extensions extensions = request.getExtensions();
             if (extensions != null) {
@@ -132,7 +150,8 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
 
         if (response instanceof Response) {
             if (log.isDebugEnabled()) {
-                log.debug("Process the extensions for EIDAS message format");
+                log.debug("Process and validate a response against the SAML request with extensions" +
+                        " for EIDAS message format");
             }
             validateMandatoryRequestedAttr((Response) response, assertion, authReqDTO);
             setAuthnContextClassRef(assertion, authReqDTO);
@@ -252,6 +271,9 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
         List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
         if (isNotEmpty(attributeStatements)) {
             for (String mandatoryClaim : mandatoryClaims) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Validating the mandatory claim :" + mandatoryClaim);
+                }
                 for (AttributeStatement attributeStatement : attributeStatements) {
                     if (isNotEmpty(attributeStatement.getAttributes())) {
                         if (attributeStatement.getAttributes().stream().anyMatch(attribute -> attribute.getName()

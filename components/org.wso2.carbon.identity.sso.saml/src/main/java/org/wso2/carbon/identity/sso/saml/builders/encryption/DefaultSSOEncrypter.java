@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders.encryption;
 
+import org.apache.xml.security.utils.Base64;
+import org.opensaml.Configuration;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.encryption.Encrypter;
@@ -94,7 +96,7 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
 
             String value;
             try {
-                value = org.apache.xml.security.utils.Base64.encode(((X509CredentialImpl) cred).getSigningCert().getEncoded());
+                value = Base64.encode(((X509CredentialImpl) cred).getSigningCert().getEncoded());
             } catch (CertificateEncodingException e) {
                 throw IdentityException.error("Error occurred while retrieving encoded cert", e);
             }
@@ -124,7 +126,7 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
      */
     private XMLObject buildXMLObject(QName objectQName) throws IdentityException {
 
-        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);
+        XMLObjectBuilder builder = Configuration.getBuilderFactory().getBuilder(objectQName);
         if (builder == null) {
             throw IdentityException.error("Unable to retrieve builder for object QName " + objectQName);
         }

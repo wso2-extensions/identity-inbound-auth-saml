@@ -401,12 +401,26 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     }
 
     /**
+     * Add a request property.
+     *
+     * @param key key of the properties entry
+     * @param value value of the properties entry
+     */
+    public void addProperty(String key, String value) {
+
+        properties.put(key, value);
+    }
+
+    /**
      * Set properties.
      *
      * @param properties request properties
      */
     public void setProperties(Properties properties) {
 
-        this.properties = properties;
+        if (this.properties == null) {
+            this.properties = new Properties();
+        }
+        this.properties.putAll(properties);
     }
 }

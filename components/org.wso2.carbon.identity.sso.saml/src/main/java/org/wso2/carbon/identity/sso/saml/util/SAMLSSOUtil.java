@@ -1263,7 +1263,7 @@ public class SAMLSSOUtil {
                 if (StringUtils.isNotBlank(spDO.getAttributeConsumingServiceIndex()) && spDO
                         .isEnableAttributesByDefault()) {
                     index = Integer.parseInt(spDO.getAttributeConsumingServiceIndex());
-                } else if(CollectionUtils.isEmpty(authnReqDTO.getRequestedAttributes())) {
+                } else if (CollectionUtils.isEmpty(authnReqDTO.getRequestedAttributes())) {
                     return Collections.emptyMap();
                 }
             } else {

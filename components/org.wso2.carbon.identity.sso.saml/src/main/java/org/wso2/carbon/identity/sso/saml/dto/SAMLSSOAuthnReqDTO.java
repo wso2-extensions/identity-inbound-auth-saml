@@ -590,7 +590,37 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
         if (properties == null) {
             properties = new Properties();
         }
+
         return properties;
+    }
+
+    /**
+     * Get a property.
+     *
+     * @return request property
+     */
+    public String getProperty(String propertyKey) {
+
+        String propertyValue = null;
+        if (properties != null) {
+            propertyValue = (String) properties.get(propertyKey);
+        }
+
+        return propertyValue;
+    }
+
+    /**
+     * Add a request property.
+     *
+     * @param key key of the properties entry
+     * @param value value of the properties entry
+     */
+    public void addProperty(String key, String value) {
+
+        if (this.properties == null) {
+            this.properties = new Properties();
+        }
+        properties.put(key, value);
     }
 
     /**
@@ -600,6 +630,9 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
      */
     public void setProperties(Properties properties) {
 
-        this.properties = properties;
+        if (this.properties == null) {
+            this.properties = new Properties();
+        }
+        this.properties.putAll(properties);
     }
 }
