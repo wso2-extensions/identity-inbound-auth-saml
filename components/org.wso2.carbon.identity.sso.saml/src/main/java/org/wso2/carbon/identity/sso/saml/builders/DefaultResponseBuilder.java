@@ -24,15 +24,10 @@ import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Status;
-import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.saml2.core.StatusMessage;
-import org.opensaml.saml2.core.impl.StatusBuilder;
-import org.opensaml.saml2.core.impl.StatusCodeBuilder;
-import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 public class DefaultResponseBuilder implements ResponseBuilder {
@@ -58,13 +53,19 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             response.setInResponseTo(authReqDTO.getId());
         }
         response.setDestination(authReqDTO.getAssertionConsumerURL());
-        response.setStatus(buildStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
+        response.setStatus(SAMLSSOUtil.buildResponseStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
                 + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
         response.setIssueInstant(issueInstant);
         Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
+
+        for (SAMLExtensionProcessor extensionProcessor : SAMLSSOUtil.getExtensionProcessors()) {
+            if (extensionProcessor.canHandle(response, assertion, authReqDTO)) {
+                extensionProcessor.processSAMLExtensions(response, assertion, authReqDTO);
+            }
+        }
 
         if (authReqDTO.isDoEnableEncryptedAssertion()) {
 
@@ -102,7 +103,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
         response.setID(SAMLSSOUtil.createID());
         response.setInResponseTo(authReqDTO.getId());
         response.setDestination(authReqDTO.getAssertionConsumerURL());
-        response.setStatus(buildStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
+        response.setStatus(SAMLSSOUtil.buildResponseStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
         response.setVersion(SAMLVersion.VERSION_20);
         DateTime issueInstant = new DateTime();
         response.setIssueInstant(issueInstant);
@@ -112,25 +113,6 @@ public class DefaultResponseBuilder implements ResponseBuilder {
                     (), new SignKeyDataHolder(authReqDTO.getUser().getAuthenticatedSubjectIdentifier()));
         }
         return response;
-    }
-
-    private Status buildStatus(String status, String statMsg) {
-
-        Status stat = new StatusBuilder().buildObject();
-
-        // Set the status code
-        StatusCode statCode = new StatusCodeBuilder().buildObject();
-        statCode.setValue(status);
-        stat.setStatusCode(statCode);
-
-        // Set the status Message
-        if (statMsg != null) {
-            StatusMessage statMesssage = new StatusMessageBuilder().buildObject();
-            statMesssage.setMessage(statMsg);
-            stat.setStatusMessage(statMesssage);
-        }
-
-        return stat;
     }
 
 }

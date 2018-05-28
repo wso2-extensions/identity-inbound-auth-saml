@@ -78,11 +78,13 @@ public class SAMLSSOConstants {
     public static final String ENCODING_FORMAT = "UTF-8";
     public static final String COM_PROTOCOL = "https";
     public static final String CRYPTO_PROTOCOL = "TLS";
+    public static final String REQUESTED_ATTRIBUTES = "requested_attributes";
 
     public static final String AUTHN_CONTEXT_CLASS_REF = "AuthnContextClassRef";
     public static final String SAML_SSO_ENCRYPTOR_CONFIG_PATH = "SSOService.SAMLSSOEncrypter";
     public static final String SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME = "SSOService.SAML2HTTPRedirectSignatureValidator";
     public static final String SAMLSSO_SIGNER_CLASS_NAME = "SSOService.SAMLSSOSigner";
+    public static final String SAML_SSO_SP_REQUEST_VALIDATOR_CONFIG_PATH = "SSOService.SAMLSSOSPRequestValidator";
     public static final String INBOUND_AUTH_TYPE_SAML = "samlsso";
 
     private SAMLSSOConstants() {
