@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.ValidationResult;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProcessor{
+public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProcessor {
 
     private static Log log = LogFactory.getLog(SPInitLogoutRequestProcessor.class);
 
@@ -116,8 +117,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
             SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
 
-            // Set the tenant domain to thread local variable if it isn't already set.
-            setTenantDomainToThreadLocal(issuer, sessionInfoData);
+            issuer = getTenantAwareIssuer(issuer, sessionInfoData);
 
             // Validate whether the principle session index we have is same as the logout request session index.
             if (logoutReqIssuer.isDoSingleLogout()) {
@@ -183,6 +183,19 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         }
     }
 
+    private String getTenantAwareIssuer(String issuer, SessionInfoData sessionInfoData) throws UserStoreException,
+            IdentityException {
+
+        String tenantDomain = null;
+        if (StringUtils.isNotBlank(issuer) && issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
+            tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
+            issuer = issuer.substring(0, issuer.lastIndexOf('@'));
+        }
+        // Set the tenant domain to thread local variable if it isn't already set.
+        setTenantDomainToThreadLocal(issuer, sessionInfoData, tenantDomain);
+        return issuer;
+    }
+
     /**
      * Builds the SAML error response and sets the compressed value to the reqValidationResponseDTO
      *
@@ -196,6 +209,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     private SAMLSSOReqValidationResponseDTO buildErrorResponse(String id, String status, String statMsg, String
             destination, String responseSigningAlgorithmUri, String responseDigestAlgorithmUri)
             throws IdentityException {
+
         SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         LogoutResponse logoutResp = new SingleLogoutMessageBuilder().buildLogoutResponse(id, status, statMsg,
                 destination, false, null, responseSigningAlgorithmUri, responseDigestAlgorithmUri);
@@ -211,6 +225,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
     private SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer)
             throws IdentityException {
+
         try {
             SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
                     .getInstance();
@@ -454,22 +469,17 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         return validationResult;
     }
 
-    private void setTenantDomainToThreadLocal(String issuer, SessionInfoData sessionInfoData)
+    private void setTenantDomainToThreadLocal(String issuer, SessionInfoData sessionInfoData, String tenantDomain)
             throws UserStoreException, IdentityException {
 
         if (IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-            if (issuer.contains("@")) {
-                String tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
-                issuer = issuer.substring(0, issuer.lastIndexOf('@'));
-                if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(issuer)) {
-                    SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + "has been " +
-                                "split");
-                    }
+            if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)) {
+                SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
+                if (log.isDebugEnabled()) {
+                    log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + "has been " +
+                            "split");
                 }
-            }
-            if (IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+            } else {
                 SAMLSSOServiceProviderDO serviceProvider = sessionInfoData.getServiceProviderList().get(issuer);
                 if (serviceProvider != null) {
                     SAMLSSOUtil.setTenantDomainInThreadLocal(serviceProvider.getTenantDomain());
