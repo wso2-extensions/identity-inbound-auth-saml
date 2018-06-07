@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.util.concurrent.TimeUnit;
+
 public class SessionDataCache extends BaseCache<SessionDataCacheKey, SessionDataCacheEntry> {
 
     private static final String SESSION_DATA_CACHE_NAME = "SAMLSSOSessionDataCache";
@@ -50,6 +52,8 @@ public class SessionDataCache extends BaseCache<SessionDataCacheKey, SessionData
     public void addToCache(SessionDataCacheKey key, SessionDataCacheEntry entry) {
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
+            long validityPeriod = TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
+            entry.setValidityPeriod(validityPeriod);
             SessionDataStore.getInstance().storeSessionData(key.getSessionDataKey(), SESSION_DATA_CACHE_NAME, entry);
         }
     }
