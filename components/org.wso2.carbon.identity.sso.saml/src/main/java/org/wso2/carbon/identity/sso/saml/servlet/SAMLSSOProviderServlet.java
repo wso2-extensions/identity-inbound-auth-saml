@@ -34,6 +34,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -64,6 +67,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -74,6 +78,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
 /**
  * This is the entry point for authentication process in an SSO scenario. This servlet is registered
@@ -99,6 +105,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
+    private static final String REQUEST_PARAM_SP = "sp";
 
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
@@ -179,6 +186,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 SAMLSSOSessionDTO sessionDTO = getSessionDataFromCache(sessionDataKey);
 
                 if (sessionDTO != null) {
+                    setSPAttributeToRequest(req, sessionDTO.getIssuer(), sessionDTO.getTenantDomain());
                     SAMLSSOUtil.setTenantDomainInThreadLocal(sessionDTO.getTenantDomain());
                     if (sessionDTO.isInvalidLogout()) {
                         String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.
@@ -202,7 +210,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
                         log.warn("Redirecting to default logout page due to an invalid logout request");
                         String defaultLogoutLocation = SAMLSSOUtil.getDefaultLogoutEndpoint();
-                        resp.sendRedirect(defaultLogoutLocation + queryParams);
+                        resp.sendRedirect(FrameworkUtils.getRedirectURL(defaultLogoutLocation + queryParams, req));
                     } else if (sessionDTO.isLogoutReq()) {
                         handleLogoutResponseFromFramework(req, resp, sessionDTO);
                     } else {
@@ -340,7 +348,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
 
         String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
-        resp.sendRedirect(queryAppendedUrl);
+        resp.sendRedirect(FrameworkUtils.getRedirectURL(queryAppendedUrl, req));
     }
 
     private void handleIdPInitSSO(HttpServletRequest req, HttpServletResponse resp, String relayState,
@@ -351,10 +359,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
-        String defaultLogoutLocation = SAMLSSOUtil.getDefaultLogoutEndpoint();
+        String defaultLogoutLocation = FrameworkUtils.getRedirectURL(SAMLSSOUtil.getDefaultLogoutEndpoint(), req);
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateIdPInitSSORequest(
                 relayState, queryString, getQueryParams(req), defaultLogoutLocation, sessionId, rpSessionId,
                 authMode, isLogout);
+        setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) {
             if (signInRespDTO.isValid()) {
@@ -472,6 +481,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateSPInitSSORequest(
                 samlRequest, queryString, sessionId, rpSessionId, authMode, isPost);
+
+        setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) { // an <AuthnRequest> received
             if (signInRespDTO.isValid()) {
@@ -1446,6 +1457,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    private void setSPAttributeToRequest(HttpServletRequest req, String issuer, String tenantDomain) {
+
+        try {
+            String spName = ApplicationManagementService.getInstance()
+                    .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            req.setAttribute(REQUEST_PARAM_SP, spName);
+            req.setAttribute(TENANT_DOMAIN, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                    tenantDomain, e);
         }
     }
 }
