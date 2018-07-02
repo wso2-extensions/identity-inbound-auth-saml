@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
+import java.security.NoSuchAlgorithmException;
+
 public class DefaultResponseBuilder implements ResponseBuilder {
 
     private static Log log = LogFactory.getLog(DefaultResponseBuilder.class);
@@ -40,12 +42,29 @@ public class DefaultResponseBuilder implements ResponseBuilder {
 
     @Override
     public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId)
-            throws IdentityException {
+            throws IdentityException, NoSuchAlgorithmException {
 
         if (log.isDebugEnabled()) {
             log.debug("Building SAML Response for the consumer '"
                     + authReqDTO.getAssertionConsumerURL() + "'");
         }
+
+        DateTime issueInstant = new DateTime();
+        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
+                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+
+        Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
+
+        if (SAMLSSOUtil.isSAMLArtifactBindingEnabled()) {
+            // Build SAML artifact
+            SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
+            String artifact = samlArtifactBuilder.buildSAML2Artifact();
+
+            // Save SAML assertion against artifact
+        } else {
+
+        }
+
         Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
         response.setID(SAMLSSOUtil.createID());
@@ -55,11 +74,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
         response.setDestination(authReqDTO.getAssertionConsumerURL());
         response.setStatus(SAMLSSOUtil.buildResponseStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
         response.setVersion(SAMLVersion.VERSION_20);
-        DateTime issueInstant = new DateTime();
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
-                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
         response.setIssueInstant(issueInstant);
-        Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
 
         for (SAMLExtensionProcessor extensionProcessor : SAMLSSOUtil.getExtensionProcessors()) {
             if (extensionProcessor.canHandle(response, assertion, authReqDTO)) {
