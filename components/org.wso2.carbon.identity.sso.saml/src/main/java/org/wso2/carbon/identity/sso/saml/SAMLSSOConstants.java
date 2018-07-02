@@ -89,6 +89,7 @@ public class SAMLSSOConstants {
 
     // SAML2 Artifact Binding
     public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };
+    public static final String SAML_ART = "SAMLart";
 
     private SAMLSSOConstants() {
     }

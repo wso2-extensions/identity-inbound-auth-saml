@@ -658,6 +658,31 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
+     * Send the Artifact
+     * @param req
+     * @param resp
+     * @param relayState
+     * @param artifact
+     * @param assertionConsumerUrl
+     * @throws IOException
+     */
+    private void sendArtifact(HttpServletRequest req, HttpServletResponse resp, String relayState, String artifact,
+                              String assertionConsumerUrl) throws IOException {
+
+        // Set the HTTP Headers : HTTP proxies and user agents should not cache the artifact
+        resp.addHeader("Pragma", "no-cache");
+        resp.addHeader("Cache-Control", "no-cache");
+        String encodedArtifact = URLEncoder.encode(artifact, "UTF-8");
+
+        String redirectURL = assertionConsumerUrl;
+        String queryParams = "?" + SAMLSSOConstants.SAML_ART + "=" + encodedArtifact;
+        if(relayState != null) {
+            queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" + relayState;
+        }
+        resp.sendRedirect(redirectURL + queryParams);
+    }
+
+    /**
      * Sends the Response message back to the Service Provider.
      *
      * @param req
@@ -919,9 +944,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
-                sendResponse(req, resp, relayState, authRespDTO.getRespString(),
-                        authRespDTO.getAssertionConsumerURL(), authRespDTO.getSubject().getAuthenticatedSubjectIdentifier(),
-                        authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
+                if (SAMLSSOUtil.isSAMLArtifactBindingEnabled()) {
+                    sendArtifact(req, resp, relayState, authRespDTO.getRespString(),
+                            authRespDTO.getAssertionConsumerURL());
+                } else {
+                    sendResponse(req, resp, relayState, authRespDTO.getRespString(),
+                            authRespDTO.getAssertionConsumerURL(),
+                            authRespDTO.getSubject().getAuthenticatedSubjectIdentifier(),
+                            authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
+                }
             } else { // authentication FAILURE
                 String errorResp = authRespDTO.getRespString();
                 sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,

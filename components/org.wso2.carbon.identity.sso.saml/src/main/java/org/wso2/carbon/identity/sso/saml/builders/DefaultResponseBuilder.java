@@ -55,16 +55,6 @@ public class DefaultResponseBuilder implements ResponseBuilder {
 
         Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
 
-        if (SAMLSSOUtil.isSAMLArtifactBindingEnabled()) {
-            // Build SAML artifact
-            SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
-            String artifact = samlArtifactBuilder.buildSAML2Artifact();
-
-            // Save SAML assertion against artifact
-        } else {
-
-        }
-
         Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
         response.setID(SAMLSSOUtil.createID());

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
+import org.wso2.carbon.identity.sso.saml.builders.SAMLArtifactBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
@@ -165,16 +166,32 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 }
 
                 // Build the response for the successful scenario
-                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
                 samlssoRespDTO = new SAMLSSORespDTO();
-                String samlResp = SAMLSSOUtil.marshall(response);
 
-                if (log.isDebugEnabled()) {
-                    log.debug(samlResp);
+                if (SAMLSSOUtil.isSAMLArtifactBindingEnabled()) {
+                    // Build and store SAML artifact
+                    SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
+                    String artifact = samlArtifactBuilder.buildAndSaveSAML2Artifact(authnReqDTO, sessionIndexId);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug(artifact);
+                    }
+
+                    log.info(artifact);
+                    samlssoRespDTO.setRespString(artifact);
+                } else {
+                    // Build response with SAML assertion.
+                    ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                    Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
+                    String samlResp = SAMLSSOUtil.marshall(response);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug(samlResp);
+                    }
+
+                    samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                 }
 
-                samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                 samlssoRespDTO.setSessionEstablished(true);
                 samlssoRespDTO.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
                 samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());

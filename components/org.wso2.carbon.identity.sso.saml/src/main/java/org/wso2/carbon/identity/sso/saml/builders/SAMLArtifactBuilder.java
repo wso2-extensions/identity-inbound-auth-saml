@@ -21,8 +21,12 @@ package org.wso2.carbon.identity.sso.saml.builders;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.utils.Base64;
+import org.joda.time.DateTime;
+import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.dao.SAMLArtifactDAO;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.security.MessageDigest;
@@ -34,7 +38,7 @@ public class SAMLArtifactBuilder {
     private static Log log = LogFactory.getLog(SAMLArtifactBuilder.class);
 
     /**
-     * Build the SAML V2.0 Artifact type of Type Code 0x0004
+     * Build the SAML V2.0 Artifact type of Type Code 0x0004 and save it with SAML assertion, in the database.
      * Artifact length : 44 bytes
      * <p>
      * SAML V2.0 defines an artifact type of type code 0x0004
@@ -49,13 +53,25 @@ public class SAMLArtifactBuilder {
      * SourceID := 20-byte_sequence
      * MessageHandle := 20-byte_sequence
      *
+     * @param authnReqDTO    SAML SSO authentication request.
+     * @param sessionIndexId Session index ID.
      * @return SAML V2.0 Artifact type of Type Code 0x0004
      */
-    public String buildSAML2Artifact() throws IdentityException, NoSuchAlgorithmException {
+    public String buildAndSaveSAML2Artifact(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
+            throws IdentityException, NoSuchAlgorithmException {
 
+        log.debug("Building SAML2 Artifact");
         if (log.isDebugEnabled()) {
-            log.debug("Building Artifact");
+            log.debug("Building SAML2 Artifact");
         }
+
+        // Creating SAML assertion
+        DateTime issueInstant = new DateTime();
+        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
+                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+
+        Assertion samlAssertion = SAMLSSOUtil.buildSAMLAssertion(authnReqDTO, notOnOrAfter, sessionIndexId);
+
         //Endpoint Index
         byte[] endpointIndex = {0, 0};
 
@@ -66,14 +82,19 @@ public class SAMLArtifactBuilder {
 
         //MessageHandle
         SecureRandom secureRandom = new SecureRandom();
-        byte[] messageHandle = new byte[20];
-        secureRandom.nextBytes(messageHandle);
+        byte[] messageHandler = new byte[20];
+        secureRandom.nextBytes(messageHandler);
 
         byte[] artifactByteArray = new byte[44];
         System.arraycopy(SAMLSSOConstants.SAML2_ARTIFACT_TYPE_CODE, 0, artifactByteArray, 0, 2);
         System.arraycopy(endpointIndex, 0, artifactByteArray, 2, 2);
         System.arraycopy(sourceID, 0, artifactByteArray, 4, 20);
-        System.arraycopy(messageHandle, 0, artifactByteArray, 24, 20);
+        System.arraycopy(messageHandler, 0, artifactByteArray, 24, 20);
+
+        // Storing artifact details
+        SAMLArtifactDAO samlArtifactDAO = new SAMLArtifactDAO();
+        samlArtifactDAO.storeArtifact(SAMLSSOConstants.SAML2_ARTIFACT_TYPE_CODE, endpointIndex, sourceID,
+                messageHandler, samlAssertion, "INITIATED");
 
         return Base64.encode(artifactByteArray);
     }
