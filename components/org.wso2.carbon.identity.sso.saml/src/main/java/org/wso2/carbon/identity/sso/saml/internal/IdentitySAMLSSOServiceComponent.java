@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
+import org.wso2.carbon.identity.sso.saml.servlet.SAMLArtifactResolveServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -85,6 +86,18 @@ public class IdentitySAMLSSOServiceComponent {
             httpService.registerServlet(SAMLSSOConstants.SAMLSSO_URL, samlSSOServlet, null, null);
         } catch (Exception e) {
             String errMsg = "Error when registering SAML SSO Servlet via the HttpService.";
+            log.error(errMsg, e);
+            throw new RuntimeException(errMsg, e);
+        }
+
+        // Register SAML artifact resolve servlet
+        Servlet samlArtifactResolveServlet = new ContextPathServletAdaptor(new SAMLArtifactResolveServlet(),
+                SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL);
+        try {
+            httpService.registerServlet(SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL, samlArtifactResolveServlet,
+                    null, null);
+        } catch (Exception e) {
+            String errMsg = "Error when registering SAML Artifact Resolve Servlet via the HttpService.";
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
