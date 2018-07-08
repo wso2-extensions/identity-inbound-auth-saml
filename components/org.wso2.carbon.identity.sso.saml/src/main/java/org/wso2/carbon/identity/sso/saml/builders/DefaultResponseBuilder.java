@@ -42,7 +42,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
 
     @Override
     public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId)
-            throws IdentityException, NoSuchAlgorithmException {
+            throws IdentityException {
 
         if (log.isDebugEnabled()) {
             log.debug("Building SAML Response for the consumer '"

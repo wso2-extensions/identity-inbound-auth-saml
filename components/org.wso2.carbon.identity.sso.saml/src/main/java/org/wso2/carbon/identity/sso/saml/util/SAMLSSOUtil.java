@@ -88,8 +88,12 @@ import org.wso2.carbon.identity.sso.saml.builders.assertion.SAMLAssertionBuilder
 import org.wso2.carbon.identity.sso.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.sso.saml.builders.signature.SSOSigner;
+import org.wso2.carbon.identity.sso.saml.cache.SessionDataCache;
+import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheEntry;
+import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
@@ -113,6 +117,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
@@ -1929,8 +1934,68 @@ public class SAMLSSOUtil {
         return stat;
     }
 
-    public static boolean isSAMLArtifactBindingEnabled() {
-        // TODO: 7/1/18 Implement method body
-        return true;
+    /**
+     * Populate and return SAMLSSOAuthnReqDTO object using SAMLSSOSessionDTO.
+     *
+     * @param sessionDTO SAMLSSOSessionDTO object.
+     * @return Populated SAMLSSOAuthnReqDTO
+     */
+    public static SAMLSSOAuthnReqDTO populateAuthnReqDTOWithCachedSessionEntry(SAMLSSOSessionDTO sessionDTO) {
+
+        SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
+
+        authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());
+        authnReqDTO.setId(sessionDTO.getRequestID());
+        authnReqDTO.setIssuer(SAMLSSOUtil.splitAppendedTenantDomain(sessionDTO.getIssuer()));
+        authnReqDTO.setSubject(sessionDTO.getSubject());
+        authnReqDTO.setRpSessionId(sessionDTO.getRelyingPartySessionId());
+        authnReqDTO.setRequestMessageString(sessionDTO.getRequestMessageString());
+        authnReqDTO.setQueryString(sessionDTO.getHttpQueryString());
+        authnReqDTO.setDestination(sessionDTO.getDestination());
+        authnReqDTO.setIdPInitSSOEnabled(sessionDTO.isIdPInitSSO());
+        authnReqDTO.setTenantDomain(sessionDTO.getTenantDomain());
+        authnReqDTO.setIdPInitSLOEnabled(sessionDTO.isIdPInitSLO());
+        if (!(sessionDTO.getAttributeConsumingServiceIndex() < 1)) {
+            authnReqDTO.setAttributeConsumingServiceIndex(sessionDTO.getAttributeConsumingServiceIndex());
+        }
+        authnReqDTO.setAuthenticationContextClassRefList(sessionDTO.getAuthenticationContextClassRefList());
+        authnReqDTO.setRequestedAttributes(sessionDTO.getRequestedAttributes());
+        authnReqDTO.setRequestedAuthnContextComparison(sessionDTO.getRequestedAuthnContextComparison());
+        authnReqDTO.setProperties(sessionDTO.getProperties());
+
+        return authnReqDTO;
+    }
+
+    /**
+     * Extract session data from cache given the session data key.
+     *
+     * @param sessionDataKey Session Data Key for the cache entry.
+     * @return Session data as a SAMLSSOSessionDTO object.
+     */
+    public static SAMLSSOSessionDTO getSessionDataFromCache(String sessionDataKey) {
+        SAMLSSOSessionDTO sessionDTO = null;
+        SessionDataCacheKey cacheKey = new SessionDataCacheKey(sessionDataKey);
+        SessionDataCacheEntry cacheEntry = SessionDataCache.getInstance().getValueFromCache(cacheKey);
+
+        if (cacheEntry != null) {
+            sessionDTO = cacheEntry.getSessionDTO();
+        }
+
+        return sessionDTO;
+    }
+
+    /**
+     * In federated and multi steps scenario there is a redirection from commonauth to samlsso so have to get
+     * session data key from query parameter
+     *
+     * @param req Http servlet request
+     * @return Session data key
+     */
+    public static String getSessionDataKey(HttpServletRequest req) {
+        String sessionDataKey = (String) req.getAttribute(SAMLSSOConstants.SESSION_DATA_KEY);
+        if (sessionDataKey == null) {
+            sessionDataKey = req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY);
+        }
+        return sessionDataKey;
     }
 }

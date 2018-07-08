@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.builders;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.utils.Base64;
@@ -29,6 +30,7 @@ import org.wso2.carbon.identity.sso.saml.dao.SAMLArtifactDAO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -58,7 +60,7 @@ public class SAMLArtifactBuilder {
      * @return SAML V2.0 Artifact type of Type Code 0x0004
      */
     public String buildAndSaveSAML2Artifact(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
-            throws IdentityException, NoSuchAlgorithmException {
+            throws IdentityException, NoSuchAlgorithmException, IOException {
 
         log.debug("Building SAML2 Artifact");
         if (log.isDebugEnabled()) {
@@ -71,6 +73,7 @@ public class SAMLArtifactBuilder {
                 + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
 
         Assertion samlAssertion = SAMLSSOUtil.buildSAMLAssertion(authnReqDTO, notOnOrAfter, sessionIndexId);
+        String deflatedSAML = SAMLSSOUtil.compressResponse(SAMLSSOUtil.marshall(samlAssertion));
 
         //Endpoint Index
         byte[] endpointIndex = {0, 0};
@@ -94,7 +97,7 @@ public class SAMLArtifactBuilder {
         // Storing artifact details
         SAMLArtifactDAO samlArtifactDAO = new SAMLArtifactDAO();
         samlArtifactDAO.storeArtifact(SAMLSSOConstants.SAML2_ARTIFACT_TYPE_CODE, endpointIndex, sourceID,
-                messageHandler, samlAssertion, "INITIATED");
+                messageHandler, deflatedSAML, "INITIATED");
 
         return Base64.encode(artifactByteArray);
     }
