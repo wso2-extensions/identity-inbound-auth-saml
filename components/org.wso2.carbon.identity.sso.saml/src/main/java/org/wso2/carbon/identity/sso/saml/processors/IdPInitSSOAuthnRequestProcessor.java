@@ -249,6 +249,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
         authnReqDTO.setAssertionEncryptionAlgorithmUri(ssoIdpConfigs.getAssertionEncryptionAlgorithmUri());
         authnReqDTO.setKeyEncryptionAlgorithmUri(ssoIdpConfigs.getKeyEncryptionAlgorithmUri());
         authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
+        authnReqDTO.setEnableSAML2ArtifactBinding(ssoIdpConfigs.isEnableSAML2ArtifactBinding());
     }
 
     /**

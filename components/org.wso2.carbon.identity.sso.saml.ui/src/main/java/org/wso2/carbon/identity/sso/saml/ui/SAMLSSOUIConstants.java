@@ -56,6 +56,7 @@ public class SAMLSSOUIConstants {
     public static final String ENABLE_ASSERTION_QUERY_REQUEST_PROFILE = "enableAssertionQueryRequestProfile";
     public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "supportedAssertionQueryRequestTypes";
     public static final String DEFAULT_CERTIFICATE_ALIAS = "wso2carbon";
+    public static final String ENABLE_SAML2_ARTIFACT_BINDING = "enableSAML2ArtifactBinding";
 
     public static final String SESSION_ATTRIBUTE_NAME_APPLICATION_CERTIFICATE = "applicationCertificate";
 

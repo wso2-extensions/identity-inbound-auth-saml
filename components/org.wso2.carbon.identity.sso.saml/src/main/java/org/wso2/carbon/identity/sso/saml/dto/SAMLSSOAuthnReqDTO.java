@@ -74,6 +74,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String assertionEncryptionAlgorithmUri;
     private String keyEncryptionAlgorithmUri;
     private boolean isAssertionQueryRequestProfileEnabled;
+    private boolean enableSAML2ArtifactBinding;
     private Map<String, List<AuthenticationContextProperty>> idpAuthenticationContextProperties;
     private List<SAMLAuthenticationContextClassRefDTO> authenticationContextClassRefList;
     private String requestedAuthnContextComparison;
@@ -461,6 +462,16 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
 
     public boolean isAssertionQueryRequestProfileEnabled() {
         return this.isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isEnableSAML2ArtifactBinding() {
+
+        return enableSAML2ArtifactBinding;
     }
 
     public Map<String, List<AuthenticationContextProperty>> getIdpAuthenticationContextProperties() {

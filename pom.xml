@@ -388,7 +388,7 @@
     <properties>
 
         <carbon.kernel.version>4.4.22</carbon.kernel.version>
-        <carbon.identity.framework.version>5.11.263</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.12.22</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 

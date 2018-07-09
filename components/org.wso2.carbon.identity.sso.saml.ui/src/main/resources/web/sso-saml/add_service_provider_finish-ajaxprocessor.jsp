@@ -112,6 +112,11 @@
             serviceProviderDTO.setSupportedAssertionQueryRequestTypes(request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
         }
 
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ARTIFACT_BINDING))) {
+
+            serviceProviderDTO.setEnableSAML2ArtifactBinding(true);
+        }
+
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_SIGNATURE))) {
             serviceProviderDTO.setDoSignAssertions(true);
         }

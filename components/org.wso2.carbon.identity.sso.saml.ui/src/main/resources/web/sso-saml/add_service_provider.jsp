@@ -1734,6 +1734,26 @@
                                 </tr>
                                 <%}%>
 
+                                <!-- Enable SAML2 Artifact Binding -->
+                                <% if (isEditSP && provider.getEnableSAML2ArtifactBinding()) {
+                                %>
+                                <tr>
+                                    <td colspan="2" title="Used for artifact binding following SAML2.0 specification">
+                                        <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                               name="enableSAML2ArtifactBinding" value="true" checked="checked"/>
+                                        <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                    </td>
+                                </tr>
+                                <% } else {%>
+                                <tr>
+                                    <td colspan="2" title="Used for artifact binding following SAML2.0 specification">
+                                        <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                               name="enableSAML2ArtifactBinding" value="true"/>
+                                        <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                    </td>
+                                </tr>
+                                <%}%>
+
                             </table>
                         </td>
                     </tr>
