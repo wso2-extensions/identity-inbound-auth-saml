@@ -58,6 +58,17 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String digestAlgorithmURI;
     private String assertionEncryptionAlgorithmURI;
     private String keyEncryptionAlgorithmURI;
+    private boolean enableSAML2ArtifactBinding;
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isEnableSAML2ArtifactBinding() {
+
+        return enableSAML2ArtifactBinding;
+    }
 
     public SAMLSSOServiceProviderDTO() {
         signingAlgorithmURI = IdentityApplicationManagementUtil.getSigningAlgoURIByConfig();

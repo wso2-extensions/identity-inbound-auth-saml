@@ -205,6 +205,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setAssertionQueryRequestProfileEnabled(serviceProviderDTO
                 .isAssertionQueryRequestProfileEnabled());
         serviceProviderDO.setSupportedAssertionQueryRequestTypes(serviceProviderDTO.getSupportedAssertionQueryRequestTypes());
+        serviceProviderDO.setEnableSAML2ArtifactBinding(serviceProviderDTO.isEnableSAML2ArtifactBinding());
 
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -294,6 +295,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setSupportedAssertionQueryRequestTypes(serviceProviderDO
                 .getSupportedAssertionQueryRequestTypes());
         serviceProviderDTO.setEnableAttributesByDefault(serviceProviderDO.isEnableAttributesByDefault());
+        serviceProviderDTO.setEnableSAML2ArtifactBinding(serviceProviderDO.isEnableSAML2ArtifactBinding());
 
         if (serviceProviderDO.getNameIDFormat() == null) {
             serviceProviderDO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -353,6 +355,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
                 providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
                 providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
+                providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());
 
                 if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
                     providerDTO.setLoginPageURL("");
