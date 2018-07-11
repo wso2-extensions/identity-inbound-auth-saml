@@ -24,7 +24,6 @@ import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
-//import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -181,7 +180,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 } else {
                     // Build response with SAML assertion.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                    Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
+                    Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null, null);
                     String samlResp = SAMLSSOUtil.marshall(response);
 
                     if (log.isDebugEnabled()) {
@@ -293,6 +292,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setAssertionEncryptionAlgorithmUri(ssoIdpConfigs.getAssertionEncryptionAlgorithmUri());
         authnReqDTO.setKeyEncryptionAlgorithmUri(ssoIdpConfigs.getKeyEncryptionAlgorithmUri());
         authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
+        authnReqDTO.setEnableSAML2ArtifactBinding(ssoIdpConfigs.isEnableSAML2ArtifactBinding());
     }
 
     /**

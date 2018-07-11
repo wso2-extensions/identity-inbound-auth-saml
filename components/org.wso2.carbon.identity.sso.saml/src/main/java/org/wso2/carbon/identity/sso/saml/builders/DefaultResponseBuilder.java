@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
-import java.security.NoSuchAlgorithmException;
-
 public class DefaultResponseBuilder implements ResponseBuilder {
 
     private static Log log = LogFactory.getLog(DefaultResponseBuilder.class);
@@ -41,17 +39,20 @@ public class DefaultResponseBuilder implements ResponseBuilder {
     }
 
     @Override
-    public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId)
-            throws IdentityException {
+    public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId, DateTime issueInstant,
+                                  DateTime notOnOrAfter) throws IdentityException {
 
         if (log.isDebugEnabled()) {
             log.debug("Building SAML Response for the consumer '"
                     + authReqDTO.getAssertionConsumerURL() + "'");
         }
 
-        DateTime issueInstant = new DateTime();
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
-                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+        if (issueInstant == null) {
+
+            issueInstant = new DateTime();
+            notOnOrAfter = new DateTime(issueInstant.getMillis()
+                    + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+        }
 
         Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
 

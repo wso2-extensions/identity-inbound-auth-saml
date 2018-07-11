@@ -25,9 +25,8 @@ import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.common.SAMLObjectBuilder;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.saml2.core.ArtifactResolve;
 import org.opensaml.saml2.core.ArtifactResponse;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
@@ -37,13 +36,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOSoapMessageService;
-import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
-import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactResolutionException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
-import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.ui.CarbonUIUtil;
 
@@ -52,7 +46,6 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.UUID;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,103 +57,79 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 /**
- * TODO: Class level comments
+ * This is the SAML2 artifact resolve end point for authentication process in an SSO scenario.
+ * This servlet is registered with the URL pattern /samlartresolve.
  */
 public class SAMLArtifactResolveServlet extends HttpServlet {
 
-    private static final long serialVersionUID = -5182312441482721905L;
+    private static final long serialVersionUID = -2505199341482721905L;
     private static Log log = LogFactory.getLog(SAMLArtifactResolveServlet.class);
+    private static final String ARTIFACT_RESOLVE_NODE_NAME = "saml2p:ArtifactResolve";
 
     @Override
-    protected void doGet(HttpServletRequest httpServletRequest,
-                         HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        try {
-            handleRequest(httpServletRequest, httpServletResponse, false);
-        } finally {
-            SAMLSSOUtil.removeSaaSApplicationThreaLocal();
-            SAMLSSOUtil.removeUserTenantDomainThreaLocal();
-            SAMLSSOUtil.removeTenantDomainFromThreadLocal();
-        }
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        handleRequest(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        try {
-            handleRequest(req, resp, true);
-        } finally {
-            SAMLSSOUtil.removeSaaSApplicationThreaLocal();
-            SAMLSSOUtil.removeUserTenantDomainThreaLocal();
-            SAMLSSOUtil.removeTenantDomainFromThreadLocal();
-        }
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        handleRequest(req, resp);
     }
 
     /**
-     * All requests are handled by this handleRequest method. In case of SAMLRequest the user
-     * will be redirected to commonAuth servlet for authentication. Based on successful
-     * authentication of the user a SAMLResponse is sent back to service provider.
-     * In case of logout requests, the IDP will send logout requests
-     * to the other session participants and then send the logout response back to the initiator.
+     * All requests are handled by this handleRequest method. Request should come with a soap envelop that
+     * wraps an ArtifactResolve object. First we try to extract resolve object and if successful, call
+     * handle artifact method.
      *
-     * @param req
-     * @param resp
+     * @param req  HttpServletRequest object received.
+     * @param resp HttpServletResponse object to be sent.
      * @throws ServletException
      * @throws IOException
      */
-    private void handleRequest(HttpServletRequest req, HttpServletResponse resp, boolean isPost)
+    private void handleRequest(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String sessionId = null;
-        Cookie ssoTokenIdCookie = getTokenIdCookie(req);
-
-        if (ssoTokenIdCookie != null) {
-            sessionId = ssoTokenIdCookie.getValue();
-        }
-
-        String queryString = req.getQueryString();
-        if (log.isDebugEnabled()) {
-            log.debug("Query string : " + queryString);
-        }
-
-        String id = null;
-        String samlArtifact = null;
-        String issueInstant = null;
         try {
-            MessageFactory messageFactory = MessageFactory.newInstance();
-            InputStream inStream = req.getInputStream();
-            SOAPMessage soapMessage = messageFactory.createMessage(new MimeHeaders(), inStream);
-            SOAPBody soapBody = soapMessage.getSOAPBody();
-            Iterator iterator = soapBody.getChildElements();
-            while (iterator.hasNext()) {
-                SOAPBodyElement artifactResolveElement = (SOAPBodyElement) iterator.next();
-                id = artifactResolveElement.getAttribute("ID");
-                issueInstant = artifactResolveElement.getAttribute("IssueInstant");
-                SOAPBodyElement issuerElement = (SOAPBodyElement) artifactResolveElement.getFirstChild();
-                SOAPBodyElement artifactElement = (SOAPBodyElement) issuerElement.getNextSibling();
-                samlArtifact = artifactElement.getFirstChild().getNodeValue();
-                // TODO: 7/4/18 check whether we can convert above to ArtifactResolve object directly
-            }
-        } catch (SOAPException e) {
-            log.error("Invalid SAML Artifact Resolve request received.");
-        }
+            String id = null;
+            String samlArtifact = null;
+            String issueInstant = null;
+            try {
+                MessageFactory messageFactory = MessageFactory.newInstance();
+                InputStream inStream = req.getInputStream();
+                SOAPMessage soapMessage = messageFactory.createMessage(new MimeHeaders(), inStream);
+                SOAPBody soapBody = soapMessage.getSOAPBody();
+                Iterator iterator = soapBody.getChildElements();
 
-        if (samlArtifact != null) {
-            handleArtifact(req, resp, samlArtifact, id, issueInstant);
-        } else {
-            log.error("Invalid SAML Artifact Resolve request received.");
-        }
-    }
+                while (iterator.hasNext()) {
+                    SOAPBodyElement artifactResolveElement = (SOAPBodyElement) iterator.next();
 
-    private Cookie getTokenIdCookie(HttpServletRequest req) {
-        Cookie[] cookies = req.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
-                    return cookie;
+                    if (StringUtils.equals(ARTIFACT_RESOLVE_NODE_NAME, artifactResolveElement.getNodeName())) {
+
+                        id = artifactResolveElement.getAttribute("ID");
+                        issueInstant = artifactResolveElement.getAttribute("IssueInstant");
+
+                        SOAPBodyElement issuerElement = (SOAPBodyElement) artifactResolveElement.getFirstChild();
+                        SOAPBodyElement artifactElement = (SOAPBodyElement) issuerElement.getNextSibling();
+                        samlArtifact = artifactElement.getFirstChild().getNodeValue();
+                    }
                 }
+            } catch (SOAPException e) {
+                log.error("Invalid SAML Artifact Resolve request received.");
             }
+
+            if (samlArtifact != null) {
+                handleArtifact(req, resp, samlArtifact, id, issueInstant);
+            } else {
+                log.error("Invalid SAML Artifact Resolve request received.");
+            }
+
+        } finally {
+            SAMLSSOUtil.removeSaaSApplicationThreaLocal();
+            SAMLSSOUtil.removeUserTenantDomainThreaLocal();
+            SAMLSSOUtil.removeTenantDomainFromThreadLocal();
         }
-        return null;
     }
 
     /**
@@ -180,14 +149,8 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         }
 
         try {
-            Assertion assertion = new SAMLSSOArtifactResolver().resolveArtifact(samlArt);
 
-            // Building response object.
-            String sessionDataKey = SAMLSSOUtil.getSessionDataKey(req);
-            SAMLSSOSessionDTO sessionDTO = SAMLSSOUtil.getSessionDataFromCache(sessionDataKey);
-            SAMLSSOAuthnReqDTO authnReqDTO = SAMLSSOUtil.populateAuthnReqDTOWithCachedSessionEntry(sessionDTO);
-
-            Response response = buildResponse(assertion, authnReqDTO, issueInstant);
+            Response response = new SAMLSSOArtifactResolver().resolveArtifact(samlArt);
 
             if (log.isDebugEnabled()) {
                 log.debug(SAMLSSOUtil.marshall(response));
@@ -218,7 +181,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
             log.error("Error while resolving artifact", e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
-        } catch (Exception e) {
+        } catch (ArtifactResolutionException e) {
             log.error("Error while creating SOAP request message", e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
@@ -286,57 +249,5 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         resp.sendRedirect(redirectURL + queryParams);
     }
 
-    /**
-     * Build Response object wrapping SAML assertion.
-     *
-     * @param assertion    Assertion to be sent.
-     * @param authReqDTO   Authentication Request DTO object to get information.
-     * @param issueInstant Issue instant came with the request.
-     * @return Built Response object.
-     * @throws IdentityException
-     */
-    private Response buildResponse(Assertion assertion, SAMLSSOAuthnReqDTO authReqDTO, String issueInstant)
-            throws IdentityException {
 
-        // TODO: 7/10/18 Double check information relevancy.
-        Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
-        response.setIssuer(SAMLSSOUtil.getIssuer());
-        response.setID(SAMLSSOUtil.createID());
-        if (!authReqDTO.isIdPInitSSOEnabled()) {
-            response.setInResponseTo(authReqDTO.getId());
-        }
-        response.setDestination(authReqDTO.getAssertionConsumerURL());
-        response.setStatus(SAMLSSOUtil.buildResponseStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
-        response.setVersion(SAMLVersion.VERSION_20);
-        response.setIssueInstant(new DateTime(issueInstant));
-
-        for (SAMLExtensionProcessor extensionProcessor : SAMLSSOUtil.getExtensionProcessors()) {
-            if (extensionProcessor.canHandle(response, assertion, authReqDTO)) {
-                extensionProcessor.processSAMLExtensions(response, assertion, authReqDTO);
-            }
-        }
-
-        if (authReqDTO.isDoEnableEncryptedAssertion()) {
-
-            String domainName = authReqDTO.getTenantDomain();
-            String alias = authReqDTO.getCertAlias();
-            String assertionEncryptionAlgorithm = authReqDTO.getAssertionEncryptionAlgorithmUri();
-            String keyEncryptionAlgorithm = authReqDTO.getKeyEncryptionAlgorithmUri();
-            if (alias != null) {
-                EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
-                        assertionEncryptionAlgorithm, keyEncryptionAlgorithm, alias, domainName);
-                response.getEncryptedAssertions().add(encryptedAssertion);
-            } else {
-                log.warn("Certificate alias is not found. Assertion is not encrypted and not included in response");
-            }
-        } else {
-            response.getAssertions().add(assertion);
-        }
-
-        if (authReqDTO.isDoSignResponse()) {
-            SAMLSSOUtil.setSignature(response, authReqDTO.getSigningAlgorithmUri(), authReqDTO.getDigestAlgorithmUri
-                    (), new SignKeyDataHolder(authReqDTO.getUser().getAuthenticatedSubjectIdentifier()));
-        }
-        return response;
-    }
 }
