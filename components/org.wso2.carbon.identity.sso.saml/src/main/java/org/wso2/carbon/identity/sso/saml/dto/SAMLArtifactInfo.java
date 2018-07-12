@@ -23,14 +23,32 @@ import org.joda.time.DateTime;
 /**
  * This class is used to transfer artifact resolve data.
  */
-public class SAMLArtifactResolveDTO {
+public class SAMLArtifactInfo {
 
+    private int id;
     private byte[] sourceId;
     private byte[] messageHandler;
     private SAMLSSOAuthnReqDTO authnReqDTO;
     private String sessionID;
     private DateTime initTimestamp;
     private DateTime expTimestamp;
+
+    public SAMLArtifactInfo() {
+    }
+
+    public SAMLArtifactInfo(int id, SAMLSSOAuthnReqDTO authnReqDTO, String sessionID, DateTime initTimestamp,
+                            DateTime expTimestamp) {
+        this.id = id;
+        this.authnReqDTO = authnReqDTO;
+        this.sessionID = sessionID;
+        this.initTimestamp = initTimestamp;
+        this.expTimestamp = expTimestamp;
+    }
+
+    public void setId(int id) {
+
+        this.id = id;
+    }
 
     public void setSourceId(byte[] sourceId) {
 
@@ -60,6 +78,11 @@ public class SAMLArtifactResolveDTO {
     public void setExpTimestamp(DateTime expTimestamp) {
 
         this.expTimestamp = expTimestamp;
+    }
+
+    public int getId() {
+
+        return id;
     }
 
     public byte[] getSourceId() {

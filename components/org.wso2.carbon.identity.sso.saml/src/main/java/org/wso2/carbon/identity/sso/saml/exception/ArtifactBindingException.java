@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.sso.saml.exception;
 /**
  * This class is used to denote exceptions thrown from the SAML2 Artifact Resolution
  */
-public class ArtifactResolutionException extends Exception {
+public class ArtifactBindingException extends Exception {
 
-    public ArtifactResolutionException(String message) {
+    public ArtifactBindingException(String message) {
         super(message);
     }
 
-    public ArtifactResolutionException(String message, Throwable cause) {
+    public ArtifactBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

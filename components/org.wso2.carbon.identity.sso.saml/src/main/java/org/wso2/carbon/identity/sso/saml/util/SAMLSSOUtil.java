@@ -71,12 +71,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -88,12 +86,8 @@ import org.wso2.carbon.identity.sso.saml.builders.assertion.SAMLAssertionBuilder
 import org.wso2.carbon.identity.sso.saml.builders.encryption.SSOEncrypter;
 import org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner;
 import org.wso2.carbon.identity.sso.saml.builders.signature.SSOSigner;
-import org.wso2.carbon.identity.sso.saml.cache.SessionDataCache;
-import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheEntry;
-import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
@@ -117,9 +111,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -148,6 +139,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class SAMLSSOUtil {
 
@@ -1382,11 +1375,7 @@ public class SAMLSSOUtil {
                         .loadClass(responseBuilderClassName);
                 return (ResponseBuilder) clazz.newInstance();
 
-            } catch (ClassNotFoundException e) {
-                log.error("Error while instantiating the SAMLResponseBuilder ", e);
-            } catch (InstantiationException e) {
-                log.error("Error while instantiating the SAMLResponseBuilder ", e);
-            } catch (IllegalAccessException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 log.error("Error while instantiating the SAMLResponseBuilder ", e);
             }
         }
@@ -1932,5 +1921,34 @@ public class SAMLSSOUtil {
             stat.setStatusMessage(statMesssage);
         }
         return stat;
+    }
+
+    /**
+     * Append a query param map to the URL (URL may already contain query params)
+     *
+     * @param url         URL string to append the params.
+     * @param queryParams Map of query params to be append.
+     * @return Built URL with query params.
+     */
+    public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams) {
+
+        StringBuilder queryAppendedUrl = new StringBuilder(url);
+
+        // check whether the URL already contains query params.
+        if (!url.contains("?")) {
+            queryAppendedUrl.append("?");
+        }
+
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            queryAppendedUrl.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+        }
+
+        // Removing last '&' character.
+        String out = queryAppendedUrl.toString();
+        if (out.startsWith("&")) {
+            out = out.substring(1);
+        }
+
+        return out;
     }
 }

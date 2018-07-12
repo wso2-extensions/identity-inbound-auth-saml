@@ -469,7 +469,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
         this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
     }
 
-    public boolean isEnableSAML2ArtifactBinding() {
+    public boolean isSAML2ArtifactBindingEnabled() {
 
         return enableSAML2ArtifactBinding;
     }

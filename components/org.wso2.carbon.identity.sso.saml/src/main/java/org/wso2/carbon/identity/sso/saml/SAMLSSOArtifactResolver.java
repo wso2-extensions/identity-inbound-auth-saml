@@ -25,8 +25,10 @@ import org.apache.xml.security.utils.Base64;
 import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
-import org.wso2.carbon.identity.sso.saml.dao.SAMLArtifactDAO;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLArtifactResolveDTO;
+import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
+import org.wso2.carbon.identity.sso.saml.dao.impl.SAMLArtidactInfoDAOImpl;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLArtifactInfo;
+import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.security.NoSuchAlgorithmException;
@@ -58,20 +60,22 @@ public class SAMLSSOArtifactResolver {
             System.arraycopy(artifactArray, 24, messageHandler, 0, 20);
 
             // Get SAML artifact data from the database.
-            SAMLArtifactResolveDTO artifactResolveDTO = new SAMLArtifactResolveDTO();
-            artifactResolveDTO.setSourceId(sourceID);
-            artifactResolveDTO.setMessageHandler(messageHandler);
+            SAMLArtifactInfo samlArtifactInfo = new SAMLArtifactInfo();
+            samlArtifactInfo.setSourceId(sourceID);
+            samlArtifactInfo.setMessageHandler(messageHandler);
 
-            SAMLArtifactDAO samlArtifactDAO = new SAMLArtifactDAO();
-            artifactResolveDTO = samlArtifactDAO.getSAMLResponse(artifactResolveDTO);
+            SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAMLArtidactInfoDAOImpl();
+            samlArtifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
 
             // Build Response.
-            ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-            response = respBuilder.buildResponse(artifactResolveDTO.getAuthnReqDTO(),
-                    artifactResolveDTO.getSessionID(), artifactResolveDTO.getInitTimestamp(),
-                    artifactResolveDTO.getExpTimestamp());
+            if (samlArtifactInfo != null) {
+                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                response = respBuilder.buildResponse(samlArtifactInfo.getAuthnReqDTO(),
+                        samlArtifactInfo.getSessionID(), samlArtifactInfo.getInitTimestamp(),
+                        samlArtifactInfo.getExpTimestamp());
+            }
 
-        } catch (IdentityException | NoSuchAlgorithmException | Base64DecodingException e) {
+        } catch (IdentityException | NoSuchAlgorithmException | Base64DecodingException | ArtifactBindingException e) {
             log.warn("Invalid SAML artifact : " + artifact);
         }
 

@@ -91,10 +91,10 @@ public class SAMLSSOConstants {
     public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };
     public static final String SAML_ART = "SAMLart";
     public static final String SAML_ARTIFACT_RESOLVE_URL = "/samlartresolve";
-    public static final String ACCEPT_PARAM_KEY = "Accept";
     public static final String CONTENT_TYPE_PARAM_KEY = "Content-Type";
     public static final String PRAGMA_PARAM_KEY = "Pragma";
     public static final String CACHE_CONTROL_PARAM_KEY = "Cache-Control";
+    public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
 
     private SAMLSSOConstants() {
     }

@@ -23,20 +23,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
+import org.opensaml.common.SAMLObject;
 import org.opensaml.common.SAMLObjectBuilder;
 import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.ArtifactResolve;
 import org.opensaml.saml2.core.ArtifactResponse;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.ws.soap.common.SOAPObjectBuilder;
+import org.opensaml.ws.soap.soap11.Body;
 import org.opensaml.ws.soap.soap11.Envelope;
 import org.opensaml.xml.XMLObjectBuilderFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOSoapMessageService;
-import org.wso2.carbon.identity.sso.saml.exception.ArtifactResolutionException;
+import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.ui.CarbonUIUtil;
@@ -116,7 +117,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                     }
                 }
             } catch (SOAPException e) {
-                log.error("Invalid SAML Artifact Resolve request received.");
+                throw new ServletException("Invalid SAML Artifact Resolve request received.", e);
             }
 
             if (samlArtifact != null) {
@@ -145,7 +146,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                                 String issueInstant) throws IOException, ServletException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Resolving SAML artifact : " + samlArt);
+            log.debug("Resolving SAML2 artifact: " + samlArt);
         }
 
         try {
@@ -153,26 +154,28 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
             Response response = new SAMLSSOArtifactResolver().resolveArtifact(samlArt);
 
             if (log.isDebugEnabled()) {
-                log.debug(SAMLSSOUtil.marshall(response));
+                String responseString = null;
+                if (response != null) {
+                    responseString = SAMLSSOUtil.marshall(response);
+                }
+                log.debug("Generated SAML2 artifact response for the artifact: [" + samlArt +
+                        "] -> " + responseString);
             }
 
-            // Build ArtifactResponse.
             ArtifactResponse artifactResponse = buildArtifactResponse(response, id, issueInstant);
-
-            SAMLSSOSoapMessageService soapMessageService = new SAMLSSOSoapMessageService();
-            Envelope envelope = soapMessageService.buildSOAPMessage(artifactResponse);
+            Envelope envelope = buildSOAPMessage(artifactResponse);
 
             String envelopeElement;
-
             try {
                 envelopeElement = SAMLSSOUtil.marshall(envelope);
             } catch (IdentitySAML2SSOException e) {
-                throw new ArtifactResolutionException("Encountered error marshalling SOAP message with artifact" +
+                throw new ArtifactBindingException("Encountered error marshalling SOAP message with artifact" +
                         " response, into its DOM representation", e);
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("Artifact Response as a SOAP Message: " + envelopeElement);
+                log.debug("Artifact Response as a SOAP Message for the artifact: [" + samlArt +
+                        "] -> " + envelopeElement);
             }
 
             resp.getWriter().write(envelopeElement);
@@ -181,7 +184,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
             log.error("Error while resolving artifact", e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
-        } catch (ArtifactResolutionException e) {
+        } catch (ArtifactBindingException e) {
             log.error("Error while creating SOAP request message", e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
@@ -221,11 +224,32 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         Status status = statusBuilder.buildObject();
         status.setStatusCode(statusCode);
         artifactResponse.setStatus(status);
-
         artifactResponse.setMessage(response);
 
         // TODO: 7/6/18 Sign response
         return artifactResponse;
+    }
+
+    /**
+     * Build a SOAP Message.
+     *
+     * @param samlMessage SAMLObject.
+     * @return Envelope soap envelope
+     */
+    private Envelope buildSOAPMessage(SAMLObject samlMessage) {
+
+        XMLObjectBuilderFactory builderFactory = org.opensaml.xml.Configuration.getBuilderFactory();
+
+        SOAPObjectBuilder<Envelope> envBuilder = (SOAPObjectBuilder<Envelope>) builderFactory.getBuilder(
+                Envelope.DEFAULT_ELEMENT_NAME);
+        Envelope envelope = envBuilder.buildObject();
+
+        SOAPObjectBuilder<Body> bodyBuilder = (SOAPObjectBuilder<Body>) builderFactory.getBuilder(
+                Body.DEFAULT_ELEMENT_NAME);
+        Body body = bodyBuilder.buildObject();
+        body.getUnknownXMLObjects().add(samlMessage);
+        envelope.setBody(body);
+        return envelope;
     }
 
     /**
@@ -248,6 +272,4 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                 SAMLSSOConstants.STATUS_MSG + "=" + message;
         resp.sendRedirect(redirectURL + queryParams);
     }
-
-
 }

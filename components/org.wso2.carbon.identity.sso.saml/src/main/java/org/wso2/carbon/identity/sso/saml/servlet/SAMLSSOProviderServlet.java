@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.servlet;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,7 +71,9 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -78,6 +81,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
 /**
@@ -669,15 +673,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                               String assertionConsumerUrl) throws IOException {
 
         // Set the HTTP Headers: HTTP proxies and user agents should not cache the artifact
-        resp.addHeader("Pragma", "no-cache");
-        resp.addHeader("Cache-Control", "no-cache");
-        String encodedArtifact = URLEncoder.encode(artifact, "UTF-8");
+        resp.addHeader(SAMLSSOConstants.PRAGMA_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
+        resp.addHeader(SAMLSSOConstants.CACHE_CONTROL_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
+        String encodedArtifact = URLEncoder.encode(artifact, SAMLSSOConstants.ENCODING_FORMAT);
 
-        String queryParams = "?" + SAMLSSOConstants.SAML_ART + "=" + encodedArtifact;
-        if(relayState != null) {
-            queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" + relayState;
-        }
-        resp.sendRedirect(assertionConsumerUrl + queryParams);
+        Map<String, String> queryParams = new HashMap<>();
+        queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
+        queryParams.put(SAMLSSOConstants.RELAY_STATE, relayState);
+
+        resp.sendRedirect(SAMLSSOUtil.appendQueryParamsToUrl(assertionConsumerUrl, queryParams));
     }
 
     /**
@@ -942,7 +946,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
-                if (authnReqDTO.isEnableSAML2ArtifactBinding()) {
+                if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
                     sendArtifact(resp, relayState, authRespDTO.getRespString(), authRespDTO.getAssertionConsumerURL());
                 } else {
                     sendResponse(req, resp, relayState, authRespDTO.getRespString(),

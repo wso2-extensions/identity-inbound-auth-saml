@@ -167,27 +167,34 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 // Build the response for the successful scenario
                 samlssoRespDTO = new SAMLSSORespDTO();
 
-                if (authnReqDTO.isEnableSAML2ArtifactBinding()) {
+                if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
                     // Build and store SAML artifact
                     SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
                     String artifact = samlArtifactBuilder.buildAndSaveSAML2Artifact(authnReqDTO, sessionIndexId);
 
                     if (log.isDebugEnabled()) {
-                        log.debug(artifact);
+                        log.debug("Built SAML2 artifact for SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() + ". Artifact: " +
+                                artifact);
                     }
 
                     samlssoRespDTO.setRespString(artifact);
                 } else {
                     // Build response with SAML assertion.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                    Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null, null);
-                    String samlResp = SAMLSSOUtil.marshall(response);
+                    if (respBuilder != null) {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug(samlResp);
+                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null, null);
+                        String samlResp = SAMLSSOUtil.marshall(response);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug(samlResp);
+                        }
+
+                        samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
+                    } else {
+                        throw new Exception("Response builder was null.");
                     }
-
-                    samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                 }
 
                 samlssoRespDTO.setSessionEstablished(true);
