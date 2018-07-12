@@ -70,9 +70,9 @@ public class SAMLArtifactBuilder {
                     ", subject: " + authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain());
         }
 
-        DateTime issueInstant = new DateTime();
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
-                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+        DateTime initTimestamp = new DateTime();
+        DateTime expTimestamp = new DateTime(initTimestamp.getMillis()
+                + SAMLSSOUtil.getSAML2ArtifactValidityPeriod() * 60 * 1000L);
 
         byte[] endpointIndex = {0, 0};
 
@@ -96,8 +96,8 @@ public class SAMLArtifactBuilder {
         samlArtifactInfo.setMessageHandler(messageHandler);
         samlArtifactInfo.setAuthnReqDTO(authnReqDTO);
         samlArtifactInfo.setSessionID(sessionIndexId);
-        samlArtifactInfo.setInitTimestamp(issueInstant);
-        samlArtifactInfo.setExpTimestamp(notOnOrAfter);
+        samlArtifactInfo.setInitTimestamp(initTimestamp);
+        samlArtifactInfo.setExpTimestamp(expTimestamp);
 
         SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAMLArtidactInfoDAOImpl();
         saml2ArtifactInfoDAO.storeArtifactInfo(samlArtifactInfo);

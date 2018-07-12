@@ -26,7 +26,7 @@ import java.security.NoSuchAlgorithmException;
 
 public interface ResponseBuilder {
 
-    Response buildResponse(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId, DateTime initTime, DateTime expTime)
+    Response buildResponse(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId, DateTime initTime)
             throws IdentityException, NoSuchAlgorithmException;
 
 }

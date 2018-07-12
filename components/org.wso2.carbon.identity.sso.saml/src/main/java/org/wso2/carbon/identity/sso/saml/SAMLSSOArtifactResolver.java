@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
+import org.joda.time.DateTime;
 import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
@@ -67,14 +68,19 @@ public class SAMLSSOArtifactResolver {
             SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAMLArtidactInfoDAOImpl();
             samlArtifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
 
-            // Build Response.
             if (samlArtifactInfo != null) {
-                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                response = respBuilder.buildResponse(samlArtifactInfo.getAuthnReqDTO(),
-                        samlArtifactInfo.getSessionID(), samlArtifactInfo.getInitTimestamp(),
-                        samlArtifactInfo.getExpTimestamp());
-            }
+                // Checking for artifact validity period.
+                DateTime curTime = new DateTime();
 
+                if (samlArtifactInfo.getExpTimestamp().isAfter(curTime)) {
+                    // Build Response.
+                    ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                    response = respBuilder.buildResponse(samlArtifactInfo.getAuthnReqDTO(),
+                            samlArtifactInfo.getSessionID(), samlArtifactInfo.getInitTimestamp());
+                } else {
+                    log.warn("Artifact validity period has been exceeded for artifact: " + artifact);
+                }
+            }
         } catch (IdentityException | NoSuchAlgorithmException | Base64DecodingException | ArtifactBindingException e) {
             log.warn("Invalid SAML artifact : " + artifact);
         }

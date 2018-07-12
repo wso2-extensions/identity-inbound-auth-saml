@@ -162,7 +162,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
                     if (respBuilder != null) {
 
-                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null, null);
+                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null);
                         String samlResp = SAMLSSOUtil.marshall(response);
 
                         if (log.isDebugEnabled()) {

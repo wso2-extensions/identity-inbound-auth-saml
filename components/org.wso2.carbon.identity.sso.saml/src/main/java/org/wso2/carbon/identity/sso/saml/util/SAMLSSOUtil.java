@@ -1347,6 +1347,19 @@ public class SAMLSSOUtil {
         }
     }
 
+    /**
+     * Return validity period for SAML2 artifacts defined in identity.xml file.
+     * @return Validity period in minutes.
+     */
+    public static int getSAML2ArtifactValidityPeriod() {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML2_ARTIFACT_VALIDITY_PERIOD))) {
+            return Integer.parseInt(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SAML2_ARTIFACT_VALIDITY_PERIOD).trim());
+        } else {
+            return 5;
+        }
+    }
+
     public static int getSingleLogoutRetryCount() {
         return singleLogoutRetryCount;
     }

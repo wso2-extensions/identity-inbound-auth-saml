@@ -31,7 +31,7 @@ public interface SAML2ArtifactInfoDAO {
      *
      * @param samlArtifactInfo SAMLArtifactInfo object with all data.
      */
-    public void storeArtifactInfo(SAMLArtifactInfo samlArtifactInfo) throws ArtifactBindingException;
+    void storeArtifactInfo(SAMLArtifactInfo samlArtifactInfo) throws ArtifactBindingException;
 
     /**
      * Return the SAML2 artifact data of a given SAML2 artifact. Return null otherwise.
@@ -40,6 +40,6 @@ public interface SAML2ArtifactInfoDAO {
      * @param messageHandler Extracted message handler of the SAML2 artifact.
      * @return SAMLArtifactInfo object with data in the database.
      */
-    public SAMLArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
+    SAMLArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
             throws ArtifactBindingException;
 }
