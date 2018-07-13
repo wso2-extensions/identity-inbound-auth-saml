@@ -26,6 +26,8 @@ import org.opensaml.Configuration;
 import org.opensaml.common.SAMLObject;
 import org.opensaml.common.SAMLObjectBuilder;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.common.xml.SAMLConstants;
+import org.opensaml.saml2.core.ArtifactResolve;
 import org.opensaml.saml2.core.ArtifactResponse;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
@@ -34,6 +36,7 @@ import org.opensaml.ws.soap.common.SOAPObjectBuilder;
 import org.opensaml.ws.soap.soap11.Body;
 import org.opensaml.ws.soap.soap11.Envelope;
 import org.opensaml.xml.XMLObjectBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -44,12 +47,16 @@ import org.wso2.carbon.ui.CarbonUIUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
@@ -103,6 +110,9 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                 SOAPBody soapBody = soapMessage.getSOAPBody();
                 Iterator iterator = soapBody.getChildElements();
 
+                QName qname = new QName(SAMLConstants.SAML20P_NS, ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME, SAMLConstants.SAML20P_PREFIX);
+//                ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME
+                soapBody.getChildElements(qname);
                 while (iterator.hasNext()) {
                     SOAPBodyElement artifactResolveElement = (SOAPBodyElement) iterator.next();
 
@@ -195,12 +205,12 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
      * Build ArtifactResponse object wrapping response inside.
      *
      * @param response     Response object to be sent.
-     * @param id           ID of the SAMl ArtifactResolve object. Goes back as the InResponseTo in ArtifactResponse.
+     * @param requestId           ID of the SAMl ArtifactResolve object. Goes back as the InResponseTo in ArtifactResponse.
      * @param issueInstant Issue instance came with SAMl ArtifactResolve object.
      * @return Built artifact response object.
      * @throws IdentityException
      */
-    private ArtifactResponse buildArtifactResponse(Response response, String id, String issueInstant)
+    private ArtifactResponse buildArtifactResponse(Response response, String requestId, String issueInstant)
             throws IdentityException {
 
         XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
@@ -212,7 +222,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         artifactResponse.setVersion(SAMLVersion.VERSION_20);
         artifactResponse.setID(UUID.randomUUID().toString());
         artifactResponse.setIssueInstant(new DateTime(issueInstant));
-        artifactResponse.setInResponseTo(id);
+        artifactResponse.setInResponseTo(requestId);
         artifactResponse.setIssuer(SAMLSSOUtil.getIssuer());
 
         SAMLObjectBuilder<StatusCode> statusCodeBuilder =
@@ -263,13 +273,13 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
     private void sendNotification(String status, String message, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        // TODO: 7/4/18 recheck
         String redirectURL = CarbonUIUtil.getAdminConsoleURL(req);
         redirectURL = redirectURL.replace("samlsso/carbon/",
                 "authenticationendpoint/samlsso_notification.do");
         //TODO Send status codes rather than full messages in the GET request
-        String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + status + "&" +
-                SAMLSSOConstants.STATUS_MSG + "=" + message;
-        resp.sendRedirect(redirectURL + queryParams);
+        Map<String, String> queryParams = new HashMap<>();
+        queryParams.put(SAMLSSOConstants.STATUS, status);
+        queryParams.put(SAMLSSOConstants.STATUS_MSG, message);
+        resp.sendRedirect(FrameworkUtils.appendQueryParamsToUrl(redirectURL, queryParams));
     }
 }

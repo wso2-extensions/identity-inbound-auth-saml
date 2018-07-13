@@ -53,6 +53,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             issueInstant = new DateTime();
         }
 
+        // TODO: 7/12/18 change api
         DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
                 + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
 

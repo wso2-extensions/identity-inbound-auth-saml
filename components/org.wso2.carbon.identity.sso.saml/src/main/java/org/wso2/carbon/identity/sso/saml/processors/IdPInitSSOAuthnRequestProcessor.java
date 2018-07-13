@@ -41,7 +41,7 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
+public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
     private static Log log = LogFactory.getLog(IdPInitSSOAuthnRequestProcessor.class);
 
@@ -148,12 +148,12 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
                     // Build and store SAML artifact
                     SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
-                    String artifact = samlArtifactBuilder.buildAndSaveSAML2Artifact(authnReqDTO, sessionIndexId);
+                    String artifact = samlArtifactBuilder.buildSAML2Artifact(authnReqDTO, sessionIndexId);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Built SAML2 artifact for SP: " + authnReqDTO.getIssuer() + ", subject: " +
-                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() + ". Artifact: " +
-                                artifact);
+                        log.debug("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                                "] -> Artifact: " + artifact);
                     }
 
                     samlssoRespDTO.setRespString(artifact);
@@ -171,7 +171,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
                         samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                     } else {
-                        throw new Exception("Response builder was null.");
+                        throw new Exception("Response builder not available.");
                     }
                 }
 

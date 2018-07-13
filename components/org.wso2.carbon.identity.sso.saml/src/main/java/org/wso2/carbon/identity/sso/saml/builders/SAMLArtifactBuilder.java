@@ -25,8 +25,8 @@ import org.joda.time.DateTime;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
-import org.wso2.carbon.identity.sso.saml.dao.impl.SAMLArtidactInfoDAOImpl;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLArtifactInfo;
+import org.wso2.carbon.identity.sso.saml.dao.impl.SAML2ArtifactInfoDAOImpl;
+import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
@@ -62,7 +62,7 @@ public class SAMLArtifactBuilder {
      * @param sessionIndexId Session index ID.
      * @return SAML V2.0 Artifact, type of TypeCode 0x0004
      */
-    public String buildAndSaveSAML2Artifact(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
+    public String buildSAML2Artifact(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
             throws IdentityException, NoSuchAlgorithmException, ArtifactBindingException {
 
         if (log.isDebugEnabled()) {
@@ -90,18 +90,30 @@ public class SAMLArtifactBuilder {
         System.arraycopy(sourceID, 0, artifactByteArray, 4, 20);
         System.arraycopy(messageHandler, 0, artifactByteArray, 24, 20);
 
-        // Storing artifact details
-        SAMLArtifactInfo samlArtifactInfo = new SAMLArtifactInfo();
-        samlArtifactInfo.setSourceId(sourceID);
-        samlArtifactInfo.setMessageHandler(messageHandler);
-        samlArtifactInfo.setAuthnReqDTO(authnReqDTO);
-        samlArtifactInfo.setSessionID(sessionIndexId);
-        samlArtifactInfo.setInitTimestamp(initTimestamp);
-        samlArtifactInfo.setExpTimestamp(expTimestamp);
-
-        SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAMLArtidactInfoDAOImpl();
-        saml2ArtifactInfoDAO.storeArtifactInfo(samlArtifactInfo);
+        persistSAML2ArtifactInfo(sourceID, messageHandler, authnReqDTO, sessionIndexId, initTimestamp, expTimestamp);
 
         return Base64.encode(artifactByteArray);
+    }
+
+    private void persistSAML2ArtifactInfo(byte[] sourceID, byte[] messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
+                                          String sessionIndexId, DateTime initTimestamp, DateTime expTimestamp)
+            throws ArtifactBindingException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Persisting SAML2 Artifact for SP: " + authnReqDTO.getIssuer() +
+                    ", subject: " + authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain());
+        }
+
+        // Storing artifact details
+        SAML2ArtifactInfo saml2ArtifactInfo = new SAML2ArtifactInfo();
+        saml2ArtifactInfo.setSourceId(sourceID);
+        saml2ArtifactInfo.setMessageHandler(messageHandler);
+        saml2ArtifactInfo.setAuthnReqDTO(authnReqDTO);
+        saml2ArtifactInfo.setSessionID(sessionIndexId);
+        saml2ArtifactInfo.setInitTimestamp(initTimestamp);
+        saml2ArtifactInfo.setExpTimestamp(expTimestamp);
+
+        SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
+        saml2ArtifactInfoDAO.storeArtifactInfo(saml2ArtifactInfo);
     }
 }

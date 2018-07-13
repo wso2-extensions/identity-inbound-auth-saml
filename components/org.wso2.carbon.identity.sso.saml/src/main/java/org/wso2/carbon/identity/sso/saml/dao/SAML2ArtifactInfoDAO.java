@@ -18,28 +18,28 @@
 
 package org.wso2.carbon.identity.sso.saml.dao;
 
-import org.wso2.carbon.identity.sso.saml.dto.SAMLArtifactInfo;
+import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 
 /**
- * DAO class to perform CRUD operations on SAMLArtifactInfo.
+ * DAO class to perform CRUD operations on SAML2ArtifactInfo.
  */
 public interface SAML2ArtifactInfoDAO {
 
     /**
      * Store SAML artifact in the database.
      *
-     * @param samlArtifactInfo SAMLArtifactInfo object with all data.
+     * @param saml2ArtifactInfo SAML2ArtifactInfo object with all data.
      */
-    void storeArtifactInfo(SAMLArtifactInfo samlArtifactInfo) throws ArtifactBindingException;
+    void storeArtifactInfo(SAML2ArtifactInfo saml2ArtifactInfo) throws ArtifactBindingException;
 
     /**
      * Return the SAML2 artifact data of a given SAML2 artifact. Return null otherwise.
      *
      * @param sourceId Extracted source ID of the SAML2 artifact.
      * @param messageHandler Extracted message handler of the SAML2 artifact.
-     * @return SAMLArtifactInfo object with data in the database.
+     * @return SAML2ArtifactInfo object with data in the database.
      */
-    SAMLArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
+    SAML2ArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
             throws ArtifactBindingException;
 }

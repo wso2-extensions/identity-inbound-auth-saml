@@ -170,12 +170,12 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
                     // Build and store SAML artifact
                     SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
-                    String artifact = samlArtifactBuilder.buildAndSaveSAML2Artifact(authnReqDTO, sessionIndexId);
+                    String artifact = samlArtifactBuilder.buildSAML2Artifact(authnReqDTO, sessionIndexId);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Built SAML2 artifact for SP: " + authnReqDTO.getIssuer() + ", subject: " +
-                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() + ". Artifact: " +
-                                artifact);
+                        log.debug("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                                "] -> Artifact: " + artifact);
                     }
 
                     samlssoRespDTO.setRespString(artifact);

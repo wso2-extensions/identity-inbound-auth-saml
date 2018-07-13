@@ -69,6 +69,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -675,13 +676,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         // Set the HTTP Headers: HTTP proxies and user agents should not cache the artifact
         resp.addHeader(SAMLSSOConstants.PRAGMA_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
         resp.addHeader(SAMLSSOConstants.CACHE_CONTROL_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
-        String encodedArtifact = URLEncoder.encode(artifact, SAMLSSOConstants.ENCODING_FORMAT);
+        String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
+        String encodedRelayState = URLEncoder.encode(relayState, StandardCharsets.UTF_8.name());
 
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
-        queryParams.put(SAMLSSOConstants.RELAY_STATE, relayState);
+        queryParams.put(SAMLSSOConstants.RELAY_STATE, encodedRelayState);
 
-        resp.sendRedirect(SAMLSSOUtil.appendQueryParamsToUrl(assertionConsumerUrl, queryParams));
+        resp.sendRedirect(FrameworkUtils.appendQueryParamsToUrl(assertionConsumerUrl, queryParams));
     }
 
     /**

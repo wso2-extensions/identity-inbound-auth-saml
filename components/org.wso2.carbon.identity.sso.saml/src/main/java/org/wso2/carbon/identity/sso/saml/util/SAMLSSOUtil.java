@@ -1935,33 +1935,4 @@ public class SAMLSSOUtil {
         }
         return stat;
     }
-
-    /**
-     * Append a query param map to the URL (URL may already contain query params)
-     *
-     * @param url         URL string to append the params.
-     * @param queryParams Map of query params to be append.
-     * @return Built URL with query params.
-     */
-    public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams) {
-
-        StringBuilder queryAppendedUrl = new StringBuilder(url);
-
-        // check whether the URL already contains query params.
-        if (!url.contains("?")) {
-            queryAppendedUrl.append("?");
-        }
-
-        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            queryAppendedUrl.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-        }
-
-        // Removing last '&' character.
-        String out = queryAppendedUrl.toString();
-        if (out.startsWith("&")) {
-            out = out.substring(1);
-        }
-
-        return out;
-    }
 }

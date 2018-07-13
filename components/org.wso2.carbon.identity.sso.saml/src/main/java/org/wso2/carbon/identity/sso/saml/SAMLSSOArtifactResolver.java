@@ -27,9 +27,10 @@ import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
-import org.wso2.carbon.identity.sso.saml.dao.impl.SAMLArtidactInfoDAOImpl;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLArtifactInfo;
+import org.wso2.carbon.identity.sso.saml.dao.impl.SAML2ArtifactInfoDAOImpl;
+import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.security.NoSuchAlgorithmException;
@@ -47,7 +48,7 @@ public class SAMLSSOArtifactResolver {
      * @param artifact SAML artifact given by the requester.
      * @return Built ArtifactResponse object.
      */
-    public Response resolveArtifact(String artifact) {
+    public Response resolveArtifact(String artifact) throws ArtifactBindingException {
 
         Response response = null;
 
@@ -61,28 +62,31 @@ public class SAMLSSOArtifactResolver {
             System.arraycopy(artifactArray, 24, messageHandler, 0, 20);
 
             // Get SAML artifact data from the database.
-            SAMLArtifactInfo samlArtifactInfo = new SAMLArtifactInfo();
-            samlArtifactInfo.setSourceId(sourceID);
-            samlArtifactInfo.setMessageHandler(messageHandler);
+            SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
+            SAML2ArtifactInfo saml2ArtifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
 
-            SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAMLArtidactInfoDAOImpl();
-            samlArtifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
-
-            if (samlArtifactInfo != null) {
+            if (saml2ArtifactInfo != null) {
                 // Checking for artifact validity period.
-                DateTime curTime = new DateTime();
+                DateTime currentTime = new DateTime();
 
-                if (samlArtifactInfo.getExpTimestamp().isAfter(curTime)) {
+                if (saml2ArtifactInfo.getExpTimestamp().isAfter(currentTime)) {
                     // Build Response.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                    response = respBuilder.buildResponse(samlArtifactInfo.getAuthnReqDTO(),
-                            samlArtifactInfo.getSessionID(), samlArtifactInfo.getInitTimestamp());
+                    if (respBuilder != null) {
+                        response = respBuilder.buildResponse(saml2ArtifactInfo.getAuthnReqDTO(),
+                                saml2ArtifactInfo.getSessionID(), saml2ArtifactInfo.getInitTimestamp());
+                    } else {
+                        throw new ArtifactBindingException("Response builder not available.");
+                    }
                 } else {
                     log.warn("Artifact validity period has been exceeded for artifact: " + artifact);
                 }
             }
-        } catch (IdentityException | NoSuchAlgorithmException | Base64DecodingException | ArtifactBindingException e) {
-            log.warn("Invalid SAML artifact : " + artifact);
+        } catch (IdentityException | NoSuchAlgorithmException e) {
+            throw new ArtifactBindingException("Error while building response for SAML2 artifact: " + artifact, e);
+        }
+        catch (Base64DecodingException e) {
+            throw new ArtifactBindingException("Error while Base64 decoding SAML2 artifact: " + artifact, e);
         }
 
         return response;
