@@ -22,8 +22,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.utils.Base64;
 import org.joda.time.DateTime;
+import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.builders.assertion.ExtendedDefaultAssertionBuilder;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
 import org.wso2.carbon.identity.sso.saml.dao.impl.SAML2ArtifactInfoDAOImpl;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
@@ -90,13 +92,21 @@ public class SAMLArtifactBuilder {
         System.arraycopy(sourceID, 0, artifactByteArray, 4, 20);
         System.arraycopy(messageHandler, 0, artifactByteArray, 24, 20);
 
-        persistSAML2ArtifactInfo(sourceID, messageHandler, authnReqDTO, sessionIndexId, initTimestamp, expTimestamp);
+        // Saving assertion to enable querying assertions.
+        String assertionId = null;
+        if (authnReqDTO.isAssertionQueryRequestProfileEnabled()) {
+            Assertion assertion = persistAssertion(authnReqDTO, initTimestamp, sessionIndexId);
+            assertionId = assertion.getID();
+        }
+        persistSAML2ArtifactInfo(sourceID, messageHandler, authnReqDTO, sessionIndexId, initTimestamp,
+                expTimestamp, assertionId);
 
         return Base64.encode(artifactByteArray);
     }
 
     private void persistSAML2ArtifactInfo(byte[] sourceID, byte[] messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
-                                          String sessionIndexId, DateTime initTimestamp, DateTime expTimestamp)
+                                          String sessionIndexId, DateTime initTimestamp, DateTime expTimestamp,
+                                          String assertionID)
             throws ArtifactBindingException {
 
         if (log.isDebugEnabled()) {
@@ -104,7 +114,7 @@ public class SAMLArtifactBuilder {
                     ", subject: " + authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain());
         }
 
-        // Storing artifact details
+        // Storing artifact details.
         SAML2ArtifactInfo saml2ArtifactInfo = new SAML2ArtifactInfo();
         saml2ArtifactInfo.setSourceId(sourceID);
         saml2ArtifactInfo.setMessageHandler(messageHandler);
@@ -112,8 +122,19 @@ public class SAMLArtifactBuilder {
         saml2ArtifactInfo.setSessionID(sessionIndexId);
         saml2ArtifactInfo.setInitTimestamp(initTimestamp);
         saml2ArtifactInfo.setExpTimestamp(expTimestamp);
+        saml2ArtifactInfo.setAssertionID(assertionID);
 
         SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
         saml2ArtifactInfoDAO.storeArtifactInfo(saml2ArtifactInfo);
+    }
+
+    private Assertion persistAssertion(SAMLSSOAuthnReqDTO authnReqDTO, DateTime issueInstant, String sessionId)
+            throws IdentityException {
+
+        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
+                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+
+        ExtendedDefaultAssertionBuilder assertionBuilder = new ExtendedDefaultAssertionBuilder();
+        return assertionBuilder.buildAssertion(authnReqDTO, notOnOrAfter, sessionId);
     }
 }

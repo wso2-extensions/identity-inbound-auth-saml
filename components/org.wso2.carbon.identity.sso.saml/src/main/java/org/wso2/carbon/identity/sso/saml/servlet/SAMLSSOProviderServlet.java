@@ -676,12 +676,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         // Set the HTTP Headers: HTTP proxies and user agents should not cache the artifact
         resp.addHeader(SAMLSSOConstants.PRAGMA_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
         resp.addHeader(SAMLSSOConstants.CACHE_CONTROL_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
-        String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
-        String encodedRelayState = URLEncoder.encode(relayState, StandardCharsets.UTF_8.name());
 
         Map<String, String> queryParams = new HashMap<>();
+
+        String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
         queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
-        queryParams.put(SAMLSSOConstants.RELAY_STATE, encodedRelayState);
+
+        if (relayState != null) {
+            String encodedRelayState = URLEncoder.encode(relayState, StandardCharsets.UTF_8.name());
+            queryParams.put(SAMLSSOConstants.RELAY_STATE, encodedRelayState);
+        }
 
         resp.sendRedirect(FrameworkUtils.appendQueryParamsToUrl(assertionConsumerUrl, queryParams));
     }

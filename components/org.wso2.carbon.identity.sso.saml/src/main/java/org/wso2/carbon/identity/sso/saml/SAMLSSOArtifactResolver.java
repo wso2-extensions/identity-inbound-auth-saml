@@ -63,18 +63,19 @@ public class SAMLSSOArtifactResolver {
 
             // Get SAML artifact data from the database.
             SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
-            SAML2ArtifactInfo saml2ArtifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
+            SAML2ArtifactInfo artifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceID, messageHandler);
 
-            if (saml2ArtifactInfo != null) {
+            if (artifactInfo != null) {
                 // Checking for artifact validity period.
                 DateTime currentTime = new DateTime();
 
-                if (saml2ArtifactInfo.getExpTimestamp().isAfter(currentTime)) {
+                if (artifactInfo.getExpTimestamp().isAfter(currentTime)) {
                     // Build Response.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
                     if (respBuilder != null) {
-                        response = respBuilder.buildResponse(saml2ArtifactInfo.getAuthnReqDTO(),
-                                saml2ArtifactInfo.getSessionID(), saml2ArtifactInfo.getInitTimestamp());
+                        response = respBuilder.buildResponse(artifactInfo.getAuthnReqDTO(),
+                                artifactInfo.getSessionID(), artifactInfo.getInitTimestamp(),
+                                artifactInfo.getAssertionID());
                     } else {
                         throw new ArtifactBindingException("Response builder not available.");
                     }

@@ -184,7 +184,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
                     if (respBuilder != null) {
 
-                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId, null);
+                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
                         String samlResp = SAMLSSOUtil.marshall(response);
 
                         if (log.isDebugEnabled()) {
@@ -201,12 +201,6 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 samlssoRespDTO.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
                 samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());
                 samlssoRespDTO.setSubject(authnReqDTO.getUser());
-            }
-
-            if (samlssoRespDTO.getRespString() != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug(samlssoRespDTO.getRespString());
-                }
             }
 
             return samlssoRespDTO;

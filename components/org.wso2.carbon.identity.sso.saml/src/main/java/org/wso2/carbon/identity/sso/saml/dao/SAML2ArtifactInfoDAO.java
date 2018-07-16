@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.dao;
 
+import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 
@@ -42,4 +43,12 @@ public interface SAML2ArtifactInfoDAO {
      */
     SAML2ArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
             throws ArtifactBindingException;
+
+    /**
+     * Get the SAML assertion from IDN_SAML2_ASSERTION_STORE table. Used when SAML assertion query profile is enabled.
+     *
+     * @param assertionId ID of the SAML assertion.
+     * @return Assertion
+     */
+    Assertion getSAMLAssertion(String assertionId) throws ArtifactBindingException;
 }

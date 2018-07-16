@@ -48,6 +48,8 @@ import org.wso2.carbon.ui.CarbonUIUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -72,7 +74,6 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
 
     private static final long serialVersionUID = -2505199341482721905L;
     private static Log log = LogFactory.getLog(SAMLArtifactResolveServlet.class);
-    private static final String ARTIFACT_RESOLVE_NODE_NAME = "saml2p:ArtifactResolve";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -110,20 +111,22 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                 SOAPBody soapBody = soapMessage.getSOAPBody();
                 Iterator iterator = soapBody.getChildElements();
 
-                QName qname = new QName(SAMLConstants.SAML20P_NS, ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME, SAMLConstants.SAML20P_PREFIX);
-//                ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME
-                soapBody.getChildElements(qname);
                 while (iterator.hasNext()) {
                     SOAPBodyElement artifactResolveElement = (SOAPBodyElement) iterator.next();
 
-                    if (StringUtils.equals(ARTIFACT_RESOLVE_NODE_NAME, artifactResolveElement.getNodeName())) {
+                    if (StringUtils.equals(SAMLConstants.SAML20P_NS, artifactResolveElement.getNamespaceURI()) &&
+                            StringUtils.equals(ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME,
+                                    artifactResolveElement.getLocalName())) {
 
-                        id = artifactResolveElement.getAttribute("ID");
-                        issueInstant = artifactResolveElement.getAttribute("IssueInstant");
+                        id = URLDecoder.decode(artifactResolveElement.getAttribute("ID"),
+                                StandardCharsets.UTF_8.name());
+                        issueInstant = URLDecoder.decode(artifactResolveElement.getAttribute("IssueInstant"),
+                                StandardCharsets.UTF_8.name());
 
                         SOAPBodyElement issuerElement = (SOAPBodyElement) artifactResolveElement.getFirstChild();
                         SOAPBodyElement artifactElement = (SOAPBodyElement) issuerElement.getNextSibling();
-                        samlArtifact = artifactElement.getFirstChild().getNodeValue();
+                        samlArtifact = URLDecoder.decode(artifactElement.getFirstChild().getNodeValue(),
+                                StandardCharsets.UTF_8.name());
                     }
                 }
             } catch (SOAPException e) {
@@ -205,7 +208,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
      * Build ArtifactResponse object wrapping response inside.
      *
      * @param response     Response object to be sent.
-     * @param requestId           ID of the SAMl ArtifactResolve object. Goes back as the InResponseTo in ArtifactResponse.
+     * @param requestId    ID of the SAMl ArtifactResolve object. Goes back as the InResponseTo in ArtifactResponse.
      * @param issueInstant Issue instance came with SAMl ArtifactResolve object.
      * @return Built artifact response object.
      * @throws IdentityException

@@ -32,12 +32,14 @@ public class SAML2ArtifactInfo {
     private String sessionID;
     private DateTime initTimestamp;
     private DateTime expTimestamp;
+    private String assertionID;
 
     public SAML2ArtifactInfo() {
     }
 
     public SAML2ArtifactInfo(int id, SAMLSSOAuthnReqDTO authnReqDTO, String sessionID, DateTime initTimestamp,
                              DateTime expTimestamp) {
+
         this.id = id;
         this.authnReqDTO = authnReqDTO;
         this.sessionID = sessionID;
@@ -80,6 +82,11 @@ public class SAML2ArtifactInfo {
         this.expTimestamp = expTimestamp;
     }
 
+    public void setAssertionID(String assertionID) {
+
+        this.assertionID = assertionID;
+    }
+
     public int getId() {
 
         return id;
@@ -113,5 +120,10 @@ public class SAML2ArtifactInfo {
     public DateTime getExpTimestamp() {
 
         return expTimestamp;
+    }
+
+    public String getAssertionID() {
+
+        return assertionID;
     }
 }

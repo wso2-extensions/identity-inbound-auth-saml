@@ -19,13 +19,17 @@
 package org.wso2.carbon.identity.sso.saml.dao.impl;
 
 import org.joda.time.DateTime;
+import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,7 +38,9 @@ import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
@@ -46,12 +52,13 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
     @Override
     public void storeArtifactInfo(SAML2ArtifactInfo saml2ArtifactInfo) throws ArtifactBindingException {
 
-        final String ARTIFACT_STORE_SQL = "INSERT INTO IDN_SAML2_ARTIFACT_STORE(SOURCE_ID, " +
-                "MESSAGE_HANDLER, AUTHN_REQ_DTO, SESSION_ID, INIT_TIMESTAMP, EXP_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?)";
+        final String ARTIFACT_INFO_STORE_SQL = "INSERT INTO IDN_SAML2_ARTIFACT_STORE(SOURCE_ID, " +
+                "MESSAGE_HANDLER, AUTHN_REQ_DTO, SESSION_ID, INIT_TIMESTAMP, EXP_TIMESTAMP, ASSERTION_ID) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            jdbcTemplate.executeInsert(ARTIFACT_STORE_SQL, (preparedStatement -> {
+            jdbcTemplate.executeInsert(ARTIFACT_INFO_STORE_SQL, (preparedStatement -> {
                 preparedStatement.setBytes(1, saml2ArtifactInfo.getSourceId());
                 preparedStatement.setBytes(2, saml2ArtifactInfo.getMessageHandler());
                 try {
@@ -62,6 +69,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                 preparedStatement.setString(4, saml2ArtifactInfo.getSessionID());
                 preparedStatement.setTimestamp(5, new Timestamp(saml2ArtifactInfo.getInitTimestamp().getMillis()));
                 preparedStatement.setTimestamp(6, new Timestamp(saml2ArtifactInfo.getExpTimestamp().getMillis()));
+                preparedStatement.setString(7, saml2ArtifactInfo.getAssertionID());
             }), saml2ArtifactInfo, true);
         } catch (DataAccessException e) {
             throw new ArtifactBindingException("Error while storing SAML2 artifact information.");
@@ -71,14 +79,14 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
     @Override
     public SAML2ArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler) throws ArtifactBindingException {
 
-        final String ASSERTION_RETRIEVE_SQL = "SELECT ID, AUTHN_REQ_DTO, SESSION_ID, INIT_TIMESTAMP, " +
+        final String ARTIFACT_INFO_RETRIEVE_SQL = "SELECT ID, AUTHN_REQ_DTO, SESSION_ID, INIT_TIMESTAMP, " +
                 "EXP_TIMESTAMP FROM IDN_SAML2_ARTIFACT_STORE WHERE SOURCE_ID=? AND MESSAGE_HANDLER=?";
         final String ASSERTION_DELETE_SQL = "DELETE FROM IDN_SAML2_ARTIFACT_STORE WHERE ID=?";
         SAML2ArtifactInfo saml2ArtifactInfo;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            saml2ArtifactInfo = jdbcTemplate.fetchSingleRecord(ASSERTION_RETRIEVE_SQL, (resultSet, rowNumber) ->
+            saml2ArtifactInfo = jdbcTemplate.fetchSingleRecord(ARTIFACT_INFO_RETRIEVE_SQL, (resultSet, rowNumber) ->
                     {
                         try {
                             return new SAML2ArtifactInfo(resultSet.getInt(1),
@@ -111,6 +119,29 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
         }
 
         return saml2ArtifactInfo;
+    }
+
+    @Override
+    public Assertion getSAMLAssertion(String assertionId) throws ArtifactBindingException {
+
+        final String ASSERTION_RETRIVE_QUERY =
+                "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        Assertion assertion;
+
+        try {
+            String assertionString = jdbcTemplate.fetchSingleRecord(ASSERTION_RETRIVE_QUERY, (resultSet, rowNumber) ->
+                            resultSet.getString(1), preparedStatement ->
+                    preparedStatement.setString(1, assertionId));
+            assertion = (Assertion) SAMLSSOUtil.unmarshall(assertionString);
+        } catch (DataAccessException e) {
+            throw new ArtifactBindingException("Error while retrieving SAML2 artifact information.", e);
+        } catch (IdentityException e) {
+            throw new ArtifactBindingException("Error while unmarshalling SAML assertion.", e);
+        }
+
+        return assertion;
     }
 
     /**
