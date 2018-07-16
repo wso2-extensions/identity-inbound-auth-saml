@@ -57,8 +57,8 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         return 15;
     }
 
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
+    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
+            IdentityApplicationManagementException {
 
         if (serviceProvider.getInboundAuthenticationConfig() != null &&
                 serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
@@ -68,13 +68,13 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                 if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
                     String inboundConfiguration = authConfig.getInboundConfiguration();
                     if (inboundConfiguration != null) {
-                        validateSAMLSP(authConfig, serviceProvider.getApplicationName(), tenantDomain);
+                        validateSAMLSP(authConfig, serviceProvider.getApplicationName(),
+                                serviceProvider.getOwner().getTenantDomain(), isUpdate);
                     }
-                    break;
+                    return;
                 }
             }
         }
-        return true;
     }
 
     public void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
@@ -185,10 +185,11 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
      * @param authConfig      saml auth config
      * @param applicationName application name
      * @param tenantDomain    tenant domain
+     * @param isUpdate        whether the application update or create
      * @throws IdentityApplicationManagementValidationException throws if the config is not valid or already key exists.
      */
     private void validateSAMLSP(InboundAuthenticationRequestConfig authConfig, String applicationName, String
-            tenantDomain) throws IdentityApplicationManagementValidationException {
+            tenantDomain, boolean isUpdate) throws IdentityApplicationManagementValidationException {
 
         List<String> validationMsg = new ArrayList<>();
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO;
@@ -203,6 +204,24 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
                             "is not match with SAML issuer %s.", authConfig.getInboundAuthKey(),
                     samlssoServiceProviderDTO.getIssuer()));
+        }
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+
+        if (!isUpdate) {
+            try {
+                SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
+                if (serviceProviderInfoDTOs != null) {
+                    for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
+                        if (sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
+                            validationMsg.add(String.format("Already a SAML configuration available with %s",
+                                    authConfig.getInboundAuthKey()));
+                            break;
+                        }
+                    }
+                }
+            } catch (IdentityException e) {
+                // Do nothing, the issuer does exists.
+            }
         }
         if (!validationMsg.isEmpty()) {
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
