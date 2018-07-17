@@ -146,6 +146,10 @@ public class FileBasedConfigManager {
             spDO.setLoginPageURL(IdentityUtil
                     .fillURLPlaceholders(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.CUSTOM_LOGIN_PAGE)));
 
+            if ((getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.NAME_ID_FORMAT)) != null) {
+                spDO.setNameIDFormat(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.NAME_ID_FORMAT));
+            }
+
             if ((getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.SINGLE_LOGOUT)) != null) {
                 singleLogout = Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.SINGLE_LOGOUT));
                 spDO.setSloResponseURL(IdentityUtil
