@@ -34,16 +34,18 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 /**
  * This class is used to resolve a previously issued SAML2 artifact.
  */
 public class SAMLSSOArtifactResolver {
 
-    private static Log log = LogFactory.getLog(SAMLSSOArtifactResolver.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOArtifactResolver.class);
 
     /**
-     * Build and return an ArtifactResponse object when SAML artifact is given.
+     * Build and return an ArtifactResponse object when SAML artifact is given, according to the section
+     * 3.5 of <a href="http://saml.xml.org/saml-specifications">SAML2 core specification</a>.
      *
      * @param artifact SAML artifact given by the requester.
      * @return Built ArtifactResponse object.
@@ -55,11 +57,8 @@ public class SAMLSSOArtifactResolver {
         try {
             // Decode and depart SAML artifact.
             byte[] artifactArray = Base64.decode(artifact);
-            byte[] sourceID = new byte[20];
-            byte[] messageHandler = new byte[20];
-
-            System.arraycopy(artifactArray, 4, sourceID, 0, 20);
-            System.arraycopy(artifactArray, 24, messageHandler, 0, 20);
+            byte[] sourceID = Arrays.copyOfRange(artifactArray, 4, 24);
+            byte[] messageHandler = Arrays.copyOfRange(artifactArray, 24, 44);
 
             // Get SAML artifact data from the database.
             SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
@@ -77,13 +76,15 @@ public class SAMLSSOArtifactResolver {
                                 artifactInfo.getSessionID(), artifactInfo.getInitTimestamp(),
                                 artifactInfo.getAssertionID());
                     } else {
-                        throw new ArtifactBindingException("Response builder not available.");
+                        throw new ArtifactBindingException("Could not create a ResponseBuilder for SAML artifact " +
+                                "resolution.");
                     }
                 } else {
-                    log.warn("Artifact validity period has been exceeded for artifact: " + artifact);
+                    log.warn("Artifact validity period (" + artifactInfo.getExpTimestamp() + ") has been " +
+                            "exceeded for artifact: " + artifact);
                 }
             }
-        } catch (IdentityException | NoSuchAlgorithmException e) {
+        } catch (IdentityException e) {
             throw new ArtifactBindingException("Error while building response for SAML2 artifact: " + artifact, e);
         }
         catch (Base64DecodingException e) {

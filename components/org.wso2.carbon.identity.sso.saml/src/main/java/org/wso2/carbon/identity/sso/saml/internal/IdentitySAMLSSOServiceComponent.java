@@ -97,9 +97,7 @@ public class IdentitySAMLSSOServiceComponent {
             httpService.registerServlet(SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL, samlArtifactResolveServlet,
                     null, null);
         } catch (Exception e) {
-            String errMsg = "Error when registering SAML Artifact Resolve Servlet via the HttpService.";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
+            throw new RuntimeException("Error when registering SAML Artifact Resolve Servlet via the HttpService.", e);
         }
 
         // Register a SSOServiceProviderConfigManager object as an OSGi Service

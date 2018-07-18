@@ -36,6 +36,9 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.util.Date;
 
+/**
+ * This class is used to build the default SAML response.
+ */
 public class DefaultResponseBuilder implements ResponseBuilder {
 
     private static Log log = LogFactory.getLog(DefaultResponseBuilder.class);
@@ -67,7 +70,8 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             try {
                 assertion = saml2ArtifactInfoDAO.getSAMLAssertion(assertionId);
             } catch (ArtifactBindingException e) {
-                throw new IdentityException("Error while retrieving SAML assertion from the database.", e);
+                throw new IdentityException("Error while retrieving SAML assertion from the database. AssertionId : " +
+                        assertionId, e);
             }
         } else {
             DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()

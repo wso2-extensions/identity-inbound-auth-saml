@@ -1390,7 +1390,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-    private static void populateAuthnReqDTOWithCachedSessionEntry(SAMLSSOAuthnReqDTO authnReqDTO, SAMLSSOSessionDTO
+    private void populateAuthnReqDTOWithCachedSessionEntry(SAMLSSOAuthnReqDTO authnReqDTO, SAMLSSOSessionDTO
             sessionDTO) {
 
         authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());

@@ -42,7 +42,7 @@ import java.security.SecureRandom;
  */
 public class SAMLArtifactBuilder {
 
-    private static Log log = LogFactory.getLog(SAMLArtifactBuilder.class);
+    private static final Log log = LogFactory.getLog(SAMLArtifactBuilder.class);
 
     /**
      * Build the SAML V2.0 Artifact type of Type Code 0x0004 and save it with SAML assertion, in the database.
@@ -65,7 +65,7 @@ public class SAMLArtifactBuilder {
      * @return SAML V2.0 Artifact, type of TypeCode 0x0004
      */
     public String buildSAML2Artifact(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
-            throws IdentityException, NoSuchAlgorithmException, ArtifactBindingException {
+            throws IdentityException, ArtifactBindingException {
 
         if (log.isDebugEnabled()) {
             log.debug("Building SAML2 Artifact for SP: " + authnReqDTO.getIssuer() +
@@ -78,7 +78,12 @@ public class SAMLArtifactBuilder {
 
         byte[] endpointIndex = {0, 0};
 
-        MessageDigest sha1Digester = MessageDigest.getInstance("SHA-1");
+        MessageDigest sha1Digester = null;
+        try {
+            sha1Digester = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw new ArtifactBindingException("Couldn't get Message digest instance with algorithm SHA-1.", e);
+        }
         String issuerID = SAMLSSOUtil.getIssuer().getValue();
         byte[] sourceID = sha1Digester.digest(issuerID.getBytes());
 

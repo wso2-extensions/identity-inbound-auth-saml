@@ -64,7 +64,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                 try {
                     setBlobObject(preparedStatement, saml2ArtifactInfo.getAuthnReqDTO(), 3);
                 } catch (IOException e) {
-                    throw new SQLException(e);
+                    throw new SQLException("Could not set Saml2ArtifactInfo.AuthnReqDTO as a Blob.", e);
                 }
                 preparedStatement.setString(4, saml2ArtifactInfo.getSessionID());
                 preparedStatement.setTimestamp(5, new Timestamp(saml2ArtifactInfo.getInitTimestamp().getMillis()));
@@ -94,8 +94,12 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                                     resultSet.getString(3),
                                     new DateTime(resultSet.getTimestamp(4)),
                                     new DateTime(resultSet.getTimestamp(5)));
-                        } catch (IOException | ClassNotFoundException e) {
-                            throw new SQLException(e);
+                        } catch (IOException e) {
+                            throw new SQLException("Error in reading the AUTHN_REQ_DTO blob from the database for " +
+                                    "sourceId: " + sourceId + ", messageHandler: " + messageHandler, e);
+                        } catch (ClassNotFoundException e) {
+                            throw new SQLException("Unable to deserialize the object from blob..for " +
+                                    "sourceId: " + sourceId + ", messageHandler: " + messageHandler, e);
                         }
                     },
                     preparedStatement -> {
@@ -114,7 +118,8 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                 jdbcTemplate.executeUpdate(ASSERTION_DELETE_SQL, preparedStatement ->
                         preparedStatement.setInt(1, saml2ArtifactInfo.getId()));
             } catch (DataAccessException e) {
-                throw new ArtifactBindingException("Error while retrieving SAML2 artifact information.", e);
+                throw new ArtifactBindingException("Error while deleting SAML2 artifact information for ID: " +
+                        saml2ArtifactInfo.getId(), e);
             }
         }
 
@@ -136,7 +141,8 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                     preparedStatement.setString(1, assertionId));
             assertion = (Assertion) SAMLSSOUtil.unmarshall(assertionString);
         } catch (DataAccessException e) {
-            throw new ArtifactBindingException("Error while retrieving SAML2 artifact information.", e);
+            throw new ArtifactBindingException("Error while retrieving SAML2 artifact information for the SAML2_ID: " +
+                    assertionId, e);
         } catch (IdentityException e) {
             throw new ArtifactBindingException("Error while unmarshalling SAML assertion.", e);
         }

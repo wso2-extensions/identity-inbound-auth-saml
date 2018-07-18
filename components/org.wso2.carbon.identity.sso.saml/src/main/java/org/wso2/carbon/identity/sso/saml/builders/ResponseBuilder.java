@@ -26,12 +26,30 @@ import java.security.NoSuchAlgorithmException;
 
 public interface ResponseBuilder {
 
+    /**
+     * Build response using SAMLSSOAuthnReqDTO and session index.
+     *
+     * @param authnReqDTO    SAML sso authentication request DTO.
+     * @param sessionIndexId Session index ID.
+     * @return Built response object.
+     * @throws IdentityException
+     * @deprecated Use {@link #buildResponse(SAMLSSOAuthnReqDTO, String, DateTime, String)} instead.
+     */
     @Deprecated
-    Response buildResponse(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId)
-            throws IdentityException, NoSuchAlgorithmException;
+    Response buildResponse(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId) throws IdentityException;
 
+    /**
+     * Build response using SAMLSSOAuthnReqDTO, session index, initiated time and assertion ID.
+     *
+     * @param authnReqDTO    SAML sso authentication request DTO.
+     * @param sessionIndexId Session index ID.
+     * @param initTime       Initiated timestamp of the response.
+     * @param assetionId     SAML Assertion ID of the response.
+     * @return Built response object.
+     * @throws IdentityException
+     */
     default Response buildResponse(SAMLSSOAuthnReqDTO authnReqDTO, String sessionIndexId, DateTime initTime,
-                                   String assetionId) throws IdentityException, NoSuchAlgorithmException {
+                                   String assetionId) throws IdentityException {
 
         return buildResponse(authnReqDTO, sessionIndexId);
     }

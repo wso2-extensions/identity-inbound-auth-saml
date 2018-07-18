@@ -73,7 +73,7 @@ import javax.xml.soap.SOAPMessage;
 public class SAMLArtifactResolveServlet extends HttpServlet {
 
     private static final long serialVersionUID = -2505199341482721905L;
-    private static Log log = LogFactory.getLog(SAMLArtifactResolveServlet.class);
+    private static final Log log = LogFactory.getLog(SAMLArtifactResolveServlet.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -194,11 +194,13 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
             resp.getWriter().write(envelopeElement);
 
         } catch (IdentityException e) {
-            log.error("Error while resolving artifact", e);
+            log.error("Error while resolving artifact: " + samlArt + ", issueInstant: " + issueInstant +
+                    ", ID: " + id, e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
         } catch (ArtifactBindingException e) {
-            log.error("Error while creating SOAP request message", e);
+            log.error("Error while creating SOAP request message for the artifact: " + samlArt +
+                    ", issueInstant: " + issueInstant + ", ID: " + id, e);
             sendNotification(SAMLSSOConstants.Notification.EXCEPTION_STATUS_ARTIFACT_RESOLVE,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, req, resp);
         }
