@@ -114,6 +114,7 @@ public class SAMLSSOConstants {
         public static final String ENABLE_IDP_INIT_SLO = "EnableIdPInitSLO";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SAMLDefaultDigestAlgorithmURI";
+        public static final String NAME_ID_FORMAT = "NameIDFormat";
 
         public static final String CERT_ALIAS = "CertAlias";
         public static final String LOGOUT_URL = "LogoutURL";
