@@ -32,12 +32,18 @@ import org.opensaml.saml2.core.ArtifactResponse;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.ws.soap.common.SOAPObjectBuilder;
 import org.opensaml.ws.soap.soap11.Body;
 import org.opensaml.ws.soap.soap11.Envelope;
 import org.opensaml.xml.XMLObjectBuilderFactory;
+import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.signature.SignatureValidator;
+import org.opensaml.xml.signature.impl.SignatureImpl;
+import org.opensaml.xml.validation.ValidationException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
@@ -47,7 +53,7 @@ import org.wso2.carbon.ui.CarbonUIUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -58,13 +64,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPBodyElement;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * This is the SAML2 artifact resolve end point for authentication process in an SSO scenario.
@@ -103,7 +112,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         try {
             String id = null;
             String samlArtifact = null;
-            String issueInstant = null;
+            DateTime issueInstant = null;
             try {
                 MessageFactory messageFactory = MessageFactory.newInstance();
                 InputStream inStream = req.getInputStream();
@@ -118,19 +127,29 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                             StringUtils.equals(ArtifactResolve.DEFAULT_ELEMENT_LOCAL_NAME,
                                     artifactResolveElement.getLocalName())) {
 
-                        id = URLDecoder.decode(artifactResolveElement.getAttribute("ID"),
-                                StandardCharsets.UTF_8.name());
-                        issueInstant = URLDecoder.decode(artifactResolveElement.getAttribute("IssueInstant"),
-                                StandardCharsets.UTF_8.name());
+                        DOMSource source = new DOMSource(artifactResolveElement);
+                        StringWriter stringResult = new StringWriter();
+                        TransformerFactory.newInstance().newTransformer().transform(
+                                source, new StreamResult(stringResult));
+                        ArtifactResolve artifactResolve =
+                                (ArtifactResolve) SAMLSSOUtil.unmarshall(stringResult.toString());
 
-                        SOAPBodyElement issuerElement = (SOAPBodyElement) artifactResolveElement.getFirstChild();
-                        SOAPBodyElement artifactElement = (SOAPBodyElement) issuerElement.getNextSibling();
-                        samlArtifact = URLDecoder.decode(artifactElement.getFirstChild().getNodeValue(),
+                        validateArtifactResolve(artifactResolve);
+
+                        id = URLDecoder.decode(artifactResolve.getID(), StandardCharsets.UTF_8.name());
+                        issueInstant = artifactResolve.getIssueInstant();
+                        samlArtifact = URLDecoder.decode(artifactResolve.getArtifact().getArtifact(),
                                 StandardCharsets.UTF_8.name());
                     }
                 }
             } catch (SOAPException e) {
-                throw new ServletException("Invalid SAML Artifact Resolve request received.", e);
+                throw new ServletException("Error while extracting SOAP body from the request.", e);
+            } catch (TransformerException e) {
+                throw new ServletException("Error while extracting ArtifactResponse from the request.", e);
+            } catch (IdentityException e) {
+                throw new ServletException("Error while unmarshalling ArtifactResponse  from the request.", e);
+            } catch (ArtifactBindingException e) {
+                throw new ServletException("Error while validating ArtifactResolve signature.", e);
             }
 
             if (samlArtifact != null) {
@@ -146,17 +165,49 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         }
     }
 
+    private void validateArtifactResolve(ArtifactResolve artifactResolve)
+            throws IdentityException, ArtifactBindingException {
+
+        SignatureImpl signImpl = (SignatureImpl)artifactResolve.getSignature();
+
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(
+                tenantDomain, SAMLSSOUtil.splitAppendedTenantDomain(artifactResolve.getIssuer().getValue()));
+
+        try {
+            SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
+            signatureProfileValidator.validate(signImpl);
+        } catch (ValidationException e) {
+            throw new ArtifactBindingException("Signature do not confirm to SAML signature profile. Possible XML " +
+                    "Signature Wrapping Attack!", e);
+        }
+
+        if (serviceProviderDO.getSigningCertificate() == null || serviceProviderDO.getSigningCertificate().isEmpty()) {
+            throw new ArtifactBindingException("Artifact resolve signature validation is enabled, but SP " +
+                    "doesn't have a certificate");
+        }
+
+        try {
+            SignatureValidator validator = new SignatureValidator((Credential) serviceProviderDO.getX509Certificate());
+            validator.validate(signImpl);
+        } catch (ValidationException e) {
+            throw new ArtifactBindingException("Signature validation failed for SAML Response", e);
+        }
+    }
+
     /**
      * Resolve the received SAML artifact.
      *
-     * @param req         HttpServletRequest.
-     * @param resp        HttpServletResponse.
-     * @param samlArt     Received SAMl artifact.
+     * @param req          HttpServletRequest.
+     * @param resp         HttpServletResponse.
+     * @param samlArt      Received SAMl artifact.
+     * @param id           Received Id of the resolve request.
+     * @param issueInstant Received issue instant of the resolve request.
      * @throws IOException
      * @throws ServletException
      */
     private void handleArtifact(HttpServletRequest req, HttpServletResponse resp, String samlArt, String id,
-                                String issueInstant) throws IOException, ServletException {
+                                DateTime issueInstant) throws IOException, ServletException {
 
         if (log.isDebugEnabled()) {
             log.debug("Resolving SAML2 artifact: " + samlArt);
@@ -215,7 +266,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
      * @return Built artifact response object.
      * @throws IdentityException
      */
-    private ArtifactResponse buildArtifactResponse(Response response, String requestId, String issueInstant)
+    private ArtifactResponse buildArtifactResponse(Response response, String requestId, DateTime issueInstant)
             throws IdentityException {
 
         XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
@@ -226,7 +277,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
         // Build ArtifactResponse object
         artifactResponse.setVersion(SAMLVersion.VERSION_20);
         artifactResponse.setID(UUID.randomUUID().toString());
-        artifactResponse.setIssueInstant(new DateTime(issueInstant));
+        artifactResponse.setIssueInstant(issueInstant);
         artifactResponse.setInResponseTo(requestId);
         artifactResponse.setIssuer(SAMLSSOUtil.getIssuer());
 
