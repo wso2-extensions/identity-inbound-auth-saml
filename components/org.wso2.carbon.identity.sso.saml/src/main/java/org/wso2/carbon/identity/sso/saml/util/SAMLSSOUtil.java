@@ -71,12 +71,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -113,8 +111,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -143,6 +139,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 public class SAMLSSOUtil {
 
@@ -1349,6 +1347,19 @@ public class SAMLSSOUtil {
         }
     }
 
+    /**
+     * Return validity period for SAML2 artifacts defined in identity.xml file.
+     * @return Validity period in minutes.
+     */
+    public static int getSAML2ArtifactValidityPeriod() {
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML2_ARTIFACT_VALIDITY_PERIOD))) {
+            return Integer.parseInt(IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SAML2_ARTIFACT_VALIDITY_PERIOD).trim());
+        } else {
+            return 5;
+        }
+    }
+
     public static int getSingleLogoutRetryCount() {
         return singleLogoutRetryCount;
     }
@@ -1377,11 +1388,7 @@ public class SAMLSSOUtil {
                         .loadClass(responseBuilderClassName);
                 return (ResponseBuilder) clazz.newInstance();
 
-            } catch (ClassNotFoundException e) {
-                log.error("Error while instantiating the SAMLResponseBuilder ", e);
-            } catch (InstantiationException e) {
-                log.error("Error while instantiating the SAMLResponseBuilder ", e);
-            } catch (IllegalAccessException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 log.error("Error while instantiating the SAMLResponseBuilder ", e);
             }
         }

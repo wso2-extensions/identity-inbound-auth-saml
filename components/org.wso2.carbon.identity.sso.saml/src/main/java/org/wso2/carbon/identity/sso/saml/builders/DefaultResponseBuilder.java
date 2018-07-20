@@ -26,10 +26,19 @@ import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
+import org.wso2.carbon.identity.sso.saml.dao.impl.SAML2ArtifactInfoDAOImpl;
+import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
+import java.util.Date;
+
+/**
+ * This class is used to build the default SAML response.
+ */
 public class DefaultResponseBuilder implements ResponseBuilder {
 
     private static Log log = LogFactory.getLog(DefaultResponseBuilder.class);
@@ -42,10 +51,35 @@ public class DefaultResponseBuilder implements ResponseBuilder {
     public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId)
             throws IdentityException {
 
+        DateTime issueInstant = new DateTime();
+        return buildResponse(authReqDTO, sessionId, issueInstant, null);
+    }
+
+    @Override
+    public Response buildResponse(SAMLSSOAuthnReqDTO authReqDTO, String sessionId, DateTime issueInstant,
+                                  String assertionId) throws IdentityException {
+
         if (log.isDebugEnabled()) {
             log.debug("Building SAML Response for the consumer '"
                     + authReqDTO.getAssertionConsumerURL() + "'");
         }
+
+        Assertion assertion;
+        if (authReqDTO.isAssertionQueryRequestProfileEnabled() && assertionId != null) {
+            SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
+            try {
+                assertion = saml2ArtifactInfoDAO.getSAMLAssertion(assertionId);
+            } catch (ArtifactBindingException e) {
+                throw new IdentityException("Error while retrieving SAML assertion from the database. AssertionId : " +
+                        assertionId, e);
+            }
+        } else {
+            DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
+                    + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
+
+            assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
+        }
+
         Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
         response.setID(SAMLSSOUtil.createID());
@@ -55,11 +89,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
         response.setDestination(authReqDTO.getAssertionConsumerURL());
         response.setStatus(SAMLSSOUtil.buildResponseStatus(SAMLSSOConstants.StatusCodes.SUCCESS_CODE, null));
         response.setVersion(SAMLVersion.VERSION_20);
-        DateTime issueInstant = new DateTime();
-        DateTime notOnOrAfter = new DateTime(issueInstant.getMillis()
-                + SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L);
         response.setIssueInstant(issueInstant);
-        Assertion assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
 
         for (SAMLExtensionProcessor extensionProcessor : SAMLSSOUtil.getExtensionProcessors()) {
             if (extensionProcessor.canHandle(response, assertion, authReqDTO)) {

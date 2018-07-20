@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.servlet;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,11 +68,13 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -79,6 +82,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
 /**
@@ -658,6 +662,35 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
+     * Send the Artifact as a response to a SAML authentication request.
+     *
+     * @param resp                 Response object to be sent.
+     * @param relayState           Relay state of the request.
+     * @param artifact             Generated SAML2 artifact.
+     * @param assertionConsumerUrl ACU to be sent.
+     * @throws IOException
+     */
+    private void sendArtifact(HttpServletResponse resp, String relayState, String artifact,
+                              String assertionConsumerUrl) throws IOException {
+
+        // Set the HTTP Headers: HTTP proxies and user agents should not cache the artifact
+        resp.addHeader(SAMLSSOConstants.PRAGMA_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
+        resp.addHeader(SAMLSSOConstants.CACHE_CONTROL_PARAM_KEY, SAMLSSOConstants.CACHE_CONTROL_VALUE_NO_CACHE);
+
+        Map<String, String> queryParams = new HashMap<>();
+
+        String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
+        queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
+
+        if (relayState != null) {
+            String encodedRelayState = URLEncoder.encode(relayState, StandardCharsets.UTF_8.name());
+            queryParams.put(SAMLSSOConstants.RELAY_STATE, encodedRelayState);
+        }
+
+        resp.sendRedirect(FrameworkUtils.appendQueryParamsToUrl(assertionConsumerUrl, queryParams));
+    }
+
+    /**
      * Sends the Response message back to the Service Provider.
      *
      * @param req
@@ -919,9 +952,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
-                sendResponse(req, resp, relayState, authRespDTO.getRespString(),
-                        authRespDTO.getAssertionConsumerURL(), authRespDTO.getSubject().getAuthenticatedSubjectIdentifier(),
-                        authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
+                if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
+                    sendArtifact(resp, relayState, authRespDTO.getRespString(), authRespDTO.getAssertionConsumerURL());
+                } else {
+                    sendResponse(req, resp, relayState, authRespDTO.getRespString(),
+                            authRespDTO.getAssertionConsumerURL(),
+                            authRespDTO.getSubject().getAuthenticatedSubjectIdentifier(),
+                            authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
+                }
             } else { // authentication FAILURE
                 String errorResp = authRespDTO.getRespString();
                 sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,

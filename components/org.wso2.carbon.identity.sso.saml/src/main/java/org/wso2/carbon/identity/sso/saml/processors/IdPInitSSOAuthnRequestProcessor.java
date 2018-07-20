@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
+import org.wso2.carbon.identity.sso.saml.builders.SAMLArtifactBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
@@ -40,7 +41,7 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
+public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
     private static Log log = LogFactory.getLog(IdPInitSSOAuthnRequestProcessor.class);
 
@@ -142,16 +143,38 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                 }
 
                 // Build the response for the successful scenario
-                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
                 samlssoRespDTO = new SAMLSSORespDTO();
-                String samlResp = SAMLSSOUtil.marshall(response);
 
-                if (log.isDebugEnabled()) {
-                    log.debug(samlResp);
+                if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
+                    // Build and store SAML artifact
+                    SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
+                    String artifact = samlArtifactBuilder.buildSAML2Artifact(authnReqDTO, sessionIndexId);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                                "] -> Artifact: " + artifact);
+                    }
+
+                    samlssoRespDTO.setRespString(artifact);
+                } else {
+                    // Build response with SAML assertion.
+                    ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                    if (respBuilder != null) {
+
+                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
+                        String samlResp = SAMLSSOUtil.marshall(response);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug(samlResp);
+                        }
+
+                        samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
+                    } else {
+                        throw new Exception("Response builder not available.");
+                    }
                 }
 
-                samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                 samlssoRespDTO.setSessionEstablished(true);
                 samlssoRespDTO.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
                 samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());

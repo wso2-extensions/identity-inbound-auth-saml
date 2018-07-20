@@ -87,6 +87,15 @@ public class SAMLSSOConstants {
     public static final String SAML_SSO_SP_REQUEST_VALIDATOR_CONFIG_PATH = "SSOService.SAMLSSOSPRequestValidator";
     public static final String INBOUND_AUTH_TYPE_SAML = "samlsso";
 
+    // SAML2 Artifact Binding
+    public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };
+    public static final String SAML_ART = "SAMLart";
+    public static final String SAML_ARTIFACT_RESOLVE_URL = "/samlartresolve";
+    public static final String CONTENT_TYPE_PARAM_KEY = "Content-Type";
+    public static final String PRAGMA_PARAM_KEY = "Pragma";
+    public static final String CACHE_CONTROL_PARAM_KEY = "Cache-Control";
+    public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
+
     private SAMLSSOConstants() {
     }
 
@@ -196,6 +205,7 @@ public class SAMLSSOConstants {
         public static final String INVALID_TENANT_DOMAIN = "Service provider tenant domain '%s' is invalid";
         public static final String ERROR_RETRIEVE_SP_CONFIG = "Error occurred while loading Service Provider " +
                                                               "configurations";
+        public static final String EXCEPTION_STATUS_ARTIFACT_RESOLVE = "Error while resolving SAML artifact";
 
         private Notification() {
         }
