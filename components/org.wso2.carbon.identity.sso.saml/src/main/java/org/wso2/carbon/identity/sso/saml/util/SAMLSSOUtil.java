@@ -26,6 +26,7 @@ import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
+import org.opensaml.saml2.core.ArtifactResponse;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.EncryptedAssertion;
@@ -668,6 +669,22 @@ public class SAMLSSOUtil {
             digestAlgorithm, X509Credential cred) throws IdentityException {
 
         return (LogoutRequest) doSetSignature(request, signatureAlgorithm, digestAlgorithm, cred);
+    }
+
+    /**
+     * Sign SAML2 Artifact Response.
+     *
+     * @param request            ArtifactResponse object to be signed.
+     * @param signatureAlgorithm Signature algorithm.
+     * @param digestAlgorithm    Digest algorithm.
+     * @param cred               X509 Credential.
+     * @return Signed Artifact Response object.
+     * @throws IdentityException
+     */
+    public static ArtifactResponse setSignature(ArtifactResponse request, String signatureAlgorithm, String
+            digestAlgorithm, X509Credential cred) throws IdentityException {
+
+        return (ArtifactResponse) doSetSignature(request, signatureAlgorithm, digestAlgorithm, cred);
     }
 
     /**

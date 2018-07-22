@@ -136,6 +136,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
                     spDO.setAssertionEncryptionAlgorithmUri(authnReqDTO.getAssertionEncryptionAlgorithmUri());
                     spDO.setKeyEncryptionAlgorithmUri(authnReqDTO.getKeyEncryptionAlgorithmUri());
+                    spDO.setEnableSAML2ArtifactBinding(authnReqDTO.isSAML2ArtifactBindingEnabled());
+                    spDO.setDoValidateSignatureInArtifactResolve(authnReqDTO.isDoValidateSignatureInArtifactResolve());
                     sessionPersistenceManager.persistSession(sessionIndexId,
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(), spDO,
                             authnReqDTO.getRpSessionId(), authnReqDTO.getIssuer(),
@@ -273,6 +275,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
         authnReqDTO.setKeyEncryptionAlgorithmUri(ssoIdpConfigs.getKeyEncryptionAlgorithmUri());
         authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
         authnReqDTO.setEnableSAML2ArtifactBinding(ssoIdpConfigs.isEnableSAML2ArtifactBinding());
+        authnReqDTO.setDoValidateSignatureInArtifactResolve(ssoIdpConfigs.isDoValidateSignatureInArtifactResolve());
     }
 
     /**

@@ -207,6 +207,14 @@
             }
 
         }
+
+        function disableArtifactResolveSignatureValidation(chkbx) {
+            if (!chkbx.checked) {
+                document.addServiceProvider.enableSignatureValidationInArtifactResolve.checked = false;
+            }
+            document.addServiceProvider.enableSignatureValidationInArtifactResolve.disabled = (!chkbx.checked);
+        }
+
         function disableAudienceRestriction(chkbx) {
             document.addServiceProvider.audience.disabled = (chkbx.checked) ? false
                     : true;
@@ -1735,25 +1743,44 @@
                                 <%}%>
 
                                 <!-- Enable SAML2 Artifact Binding -->
-                                <% if (isEditSP && provider.getEnableSAML2ArtifactBinding()) {
-                                %>
                                 <tr>
                                     <td colspan="2" title="Used for artifact binding following SAML2.0 specification">
-                                        <input type="checkbox" id="enableSAML2ArtifactBinding"
-                                               name="enableSAML2ArtifactBinding" value="true" checked="checked"/>
-                                        <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                        <label>
+                                            <% if (isEditSP && provider.getEnableSAML2ArtifactBinding()) { %>
+                                            <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                                   name="enableSAML2ArtifactBinding" value="true" checked="checked"
+                                                   onclick="disableArtifactResolveSignatureValidation(this);"/>
+                                            <% } else {%>
+                                            <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                                   name="enableSAML2ArtifactBinding"
+                                                   onclick="disableArtifactResolveSignatureValidation(this);"/>
+                                            <% } %>
+                                            <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                        </label>
                                     </td>
                                 </tr>
-                                <% } else {%>
                                 <tr>
-                                    <td colspan="2" title="Used for artifact binding following SAML2.0 specification">
-                                        <input type="checkbox" id="enableSAML2ArtifactBinding"
-                                               name="enableSAML2ArtifactBinding" value="true"/>
-                                        <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"
+                                        colspan="2">
+                                        <label>
+                                            <% if (isEditSP && provider.getDoValidateSignatureInArtifactResolve()) { %>
+                                            <input type="checkbox"
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"
+                                                   checked="checked" value="true"/>
+                                            <% } else if (isEditSP && provider.getEnableSAML2ArtifactBinding()) { %>
+                                            <input type="checkbox"
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"/>
+                                            <% } else { %>
+                                            <input type="checkbox" disabled
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"/>
+                                            <% } %>
+                                            <fmt:message key="sp.enable.signature.validation.artifact.resolve"/>
+                                        </label>
                                     </td>
                                 </tr>
-                                <%}%>
-
                             </table>
                         </td>
                     </tr>

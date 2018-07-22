@@ -41,7 +41,7 @@ public interface SAML2ArtifactInfoDAO {
      * @param messageHandler Extracted message handler of the SAML2 artifact.
      * @return SAML2ArtifactInfo object with data in the database.
      */
-    SAML2ArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler)
+    SAML2ArtifactInfo getSAMLArtifactInfo(String sourceId, String messageHandler)
             throws ArtifactBindingException;
 
     /**
