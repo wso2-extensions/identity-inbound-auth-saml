@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
@@ -139,8 +140,8 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
     /**
      * Process and Validate a response against the SAML request with extensions for EIDAS message format.
      *
-     * @param response    SAML response
-     * @param assertion   SAML assertion
+     * @param response   SAML response
+     * @param assertion  SAML assertion
      * @param authReqDTO Authentication request data object
      * @throws IdentitySAML2SSOException
      */
@@ -153,8 +154,18 @@ public class EidasExtensionProcessor implements SAMLExtensionProcessor {
                 log.debug("Process and validate a response against the SAML request with extensions" +
                         " for EIDAS message format");
             }
+            assertion.setSignature(null);
             validateMandatoryRequestedAttr((Response) response, assertion, authReqDTO);
             setAuthnContextClassRef(assertion, authReqDTO);
+            if (authReqDTO.getDoSignAssertions()) {
+                try {
+                    SAMLSSOUtil.setSignature(assertion, authReqDTO.getSigningAlgorithmUri(), authReqDTO
+                            .getDigestAlgorithmUri(), new SignKeyDataHolder(authReqDTO.getUser()
+                            .getAuthenticatedSubjectIdentifier()));
+                } catch (IdentityException e) {
+                    throw new IdentitySAML2SSOException("Error in signing SAML Assertion.", e);
+                }
+            }
         }
     }
 
