@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -30,6 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
@@ -57,7 +59,7 @@ import javax.servlet.Servlet;
  * Service component class for the SAML SSO service.
  */
 @Component(
-         name = "identity.sso.saml.component", 
+         name = "identity.sso.saml.component",
          immediate = true)
 public class IdentitySAMLSSOServiceComponent {
 
@@ -151,6 +153,15 @@ public class IdentitySAMLSSOServiceComponent {
             ctxt.getBundleContext().registerService(SAMLExtensionProcessor.class.getName(),
                     new EidasExtensionProcessor(), null);
 
+            ServiceRegistration oauthApplicationMgtListener = ctxt.getBundleContext()
+                    .registerService(ApplicationMgtListener.class.getName(), new SAMLApplicationMgtListener(), null);
+            if (oauthApplicationMgtListener != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("SAML - ApplicationMgtListener registered.");
+                }
+            } else {
+                log.error("SAML - ApplicationMgtListener could not be registered.");
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
             }

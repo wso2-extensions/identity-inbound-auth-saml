@@ -22,12 +22,21 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class SAMLSSOServiceProviderDTO implements Serializable {
 
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
+    @XmlElementWrapper(name="assertionConsumerUrls")
+    @XmlElement(name = "assertionConsumerUrl")
     private String[] assertionConsumerUrls;
     private String defaultAssertionConsumerUrl;
     private String assertionConsumerUrl;
@@ -40,8 +49,14 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private boolean doSingleLogout;
     private boolean doSignAssertions;
     private boolean doSignResponse;
+    @XmlElementWrapper(name="requestedClaims")
+    @XmlElement(name = "requestedClaim")
     private String[] requestedClaims;
+    @XmlElementWrapper(name="requestedAudiences")
+    @XmlElement(name = "requestedAudience")
     private String[] requestedAudiences;
+    @XmlElementWrapper(name="requestedRecipients")
+    @XmlElement(name = "requestedRecipient")
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
     private boolean isAssertionQueryRequestProfileEnabled;
@@ -51,6 +66,8 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String nameIDFormat;
     private boolean idPInitSSOEnabled;
     private boolean idPInitSLOEnabled;
+    @XmlElementWrapper(name="idpInitSLOReturnToURLs")
+    @XmlElement(name = "idpInitSLOReturnToURL")
     private String[] idpInitSLOReturnToURLs;
     private boolean doEnableEncryptedAssertion;
     private boolean doValidateSignatureInRequests;
