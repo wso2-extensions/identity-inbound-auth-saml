@@ -197,7 +197,10 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(authConfig.getInboundConfiguration(),
                     applicationName, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
-            validationMsg.add("SAML inbound configuration in the file is not valid.");
+            String errorMsg = String.format("SAML inbound configuration in the file is not valid for the " +
+                    "application %s", applicationName);
+            log.error(errorMsg, e);
+            validationMsg.add(errorMsg);
             return;
         }
         if (!authConfig.getInboundAuthKey().equals(samlssoServiceProviderDTO.getIssuer())) {
