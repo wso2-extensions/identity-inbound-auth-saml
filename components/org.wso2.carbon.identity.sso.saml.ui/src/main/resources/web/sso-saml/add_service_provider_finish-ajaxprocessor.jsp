@@ -112,9 +112,14 @@
             serviceProviderDTO.setSupportedAssertionQueryRequestTypes(request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
         }
 
-        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ARTIFACT_BINDING))) {
+        if (request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ARTIFACT_BINDING) != null) {
 
             serviceProviderDTO.setEnableSAML2ArtifactBinding(true);
+        }
+
+        if (request.getParameter(SAMLSSOUIConstants.ENABLE_SIGNATURE_VALIDATION_IN_ARTIFACT_RESOLVE) != null) {
+
+            serviceProviderDTO.setDoValidateSignatureInArtifactResolve(true);
         }
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_SIGNATURE))) {

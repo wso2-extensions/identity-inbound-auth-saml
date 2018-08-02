@@ -26,8 +26,8 @@ import org.joda.time.DateTime;
 public class SAML2ArtifactInfo {
 
     private int id;
-    private byte[] sourceId;
-    private byte[] messageHandler;
+    private String sourceId;
+    private String messageHandler;
     private SAMLSSOAuthnReqDTO authnReqDTO;
     private String sessionID;
     private DateTime initTimestamp;
@@ -52,12 +52,12 @@ public class SAML2ArtifactInfo {
         this.id = id;
     }
 
-    public void setSourceId(byte[] sourceId) {
+    public void setSourceId(String sourceId) {
 
         this.sourceId = sourceId;
     }
 
-    public void setMessageHandler(byte[] messageHandler) {
+    public void setMessageHandler(String messageHandler) {
 
         this.messageHandler = messageHandler;
     }
@@ -92,12 +92,12 @@ public class SAML2ArtifactInfo {
         return id;
     }
 
-    public byte[] getSourceId() {
+    public String getSourceId() {
 
         return sourceId;
     }
 
-    public byte[] getMessageHandler() {
+    public String getMessageHandler() {
 
         return messageHandler;
     }

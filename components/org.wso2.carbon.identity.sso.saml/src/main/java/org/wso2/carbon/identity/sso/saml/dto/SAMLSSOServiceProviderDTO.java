@@ -76,6 +76,17 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String assertionEncryptionAlgorithmURI;
     private String keyEncryptionAlgorithmURI;
     private boolean enableSAML2ArtifactBinding;
+    private boolean doValidateSignatureInArtifactResolve;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
 
     public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
 

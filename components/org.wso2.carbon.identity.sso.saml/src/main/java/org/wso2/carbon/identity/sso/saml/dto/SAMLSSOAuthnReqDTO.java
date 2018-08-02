@@ -80,6 +80,17 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String requestedAuthnContextComparison;
     private List<ClaimMapping> requestedAttributesList;
     private Properties properties;
+    private boolean doValidateSignatureInArtifactResolve;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;

@@ -26,6 +26,7 @@ import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
+import org.opensaml.saml2.core.ArtifactResponse;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.EncryptedAssertion;
@@ -668,6 +669,22 @@ public class SAMLSSOUtil {
             digestAlgorithm, X509Credential cred) throws IdentityException {
 
         return (LogoutRequest) doSetSignature(request, signatureAlgorithm, digestAlgorithm, cred);
+    }
+
+    /**
+     * Sign SAML2 Artifact Response.
+     *
+     * @param request            ArtifactResponse object to be signed.
+     * @param signatureAlgorithm Signature algorithm.
+     * @param digestAlgorithm    Digest algorithm.
+     * @param cred               X509 Credential.
+     * @return Signed Artifact Response object.
+     * @throws IdentityException
+     */
+    public static ArtifactResponse setSignature(ArtifactResponse request, String signatureAlgorithm, String
+            digestAlgorithm, X509Credential cred) throws IdentityException {
+
+        return (ArtifactResponse) doSetSignature(request, signatureAlgorithm, digestAlgorithm, cred);
     }
 
     /**
@@ -1934,5 +1951,53 @@ public class SAMLSSOUtil {
             stat.setStatusMessage(statMesssage);
         }
         return stat;
+    }
+
+    /**
+     * Get service provider config.
+     *
+     * @param tenantDomain
+     * @param issuerName
+     * @return
+     * @throws IdentityException
+     */
+    public static SAMLSSOServiceProviderDO getSPConfig(String tenantDomain, String issuerName) throws
+            IdentityException {
+
+        SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager.getInstance();
+        SAMLSSOServiceProviderDO serviceProvider = stratosIdpConfigManager.getServiceProvider(issuerName);
+        if (serviceProvider != null) {
+            return serviceProvider;
+        }
+
+        int tenantId;
+        try {
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                tenantId = MultitenantConstants.SUPER_TENANT_ID;
+            } else {
+                tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+                    tenantDomain, e);
+        }
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+            privilegedCarbonContext.setTenantId(tenantId, true);
+
+            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+            Registry registry = (Registry) privilegedCarbonContext.getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+            SAMLSSOServiceProviderDO spDO = persistenceManager.getServiceProvider(registry, issuerName);
+            return spDO;
+
+        } catch (IdentityException e) {
+            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 }

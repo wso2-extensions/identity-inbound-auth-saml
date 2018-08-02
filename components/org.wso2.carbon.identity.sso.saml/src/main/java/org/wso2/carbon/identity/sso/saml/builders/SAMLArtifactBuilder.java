@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -86,10 +88,12 @@ public class SAMLArtifactBuilder {
         }
         String issuerID = SAMLSSOUtil.getIssuer().getValue();
         byte[] sourceID = sha1Digester.digest(issuerID.getBytes());
+        String sourceIDString = String.format("%040x", new BigInteger(1, sourceID));
 
         SecureRandom secureRandom = new SecureRandom();
         byte[] messageHandler = new byte[20];
         secureRandom.nextBytes(messageHandler);
+        String messageHandlerString = String.format("%040x", new BigInteger(1, messageHandler));
 
         byte[] artifactByteArray = new byte[44];
         System.arraycopy(SAMLSSOConstants.SAML2_ARTIFACT_TYPE_CODE, 0, artifactByteArray, 0, 2);
@@ -103,13 +107,13 @@ public class SAMLArtifactBuilder {
             Assertion assertion = persistAssertion(authnReqDTO, initTimestamp, sessionIndexId);
             assertionId = assertion.getID();
         }
-        persistSAML2ArtifactInfo(sourceID, messageHandler, authnReqDTO, sessionIndexId, initTimestamp,
+        persistSAML2ArtifactInfo(sourceIDString, messageHandlerString, authnReqDTO, sessionIndexId, initTimestamp,
                 expTimestamp, assertionId);
 
         return Base64.encode(artifactByteArray);
     }
 
-    private void persistSAML2ArtifactInfo(byte[] sourceID, byte[] messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
+    private void persistSAML2ArtifactInfo(String sourceID, String messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
                                           String sessionIndexId, DateTime initTimestamp, DateTime expTimestamp,
                                           String assertionID)
             throws ArtifactBindingException {

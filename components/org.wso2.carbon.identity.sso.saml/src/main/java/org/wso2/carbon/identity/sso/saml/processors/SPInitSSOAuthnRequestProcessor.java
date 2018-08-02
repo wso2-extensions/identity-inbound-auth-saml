@@ -156,6 +156,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     spDO.setSigningAlgorithmUri(authnReqDTO.getSigningAlgorithmUri());
                     spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
                     spDO.setAssertionEncryptionAlgorithmUri(authnReqDTO.getAssertionEncryptionAlgorithmUri());
+                    spDO.setEnableSAML2ArtifactBinding(authnReqDTO.isSAML2ArtifactBindingEnabled());
+                    spDO.setDoValidateSignatureInArtifactResolve(authnReqDTO.isDoValidateSignatureInArtifactResolve());
                     spDO.setKeyEncryptionAlgorithmUri(authnReqDTO.getKeyEncryptionAlgorithmUri());
                     sessionPersistenceManager.persistSession(sessionIndexId,
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
@@ -294,6 +296,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setKeyEncryptionAlgorithmUri(ssoIdpConfigs.getKeyEncryptionAlgorithmUri());
         authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
         authnReqDTO.setEnableSAML2ArtifactBinding(ssoIdpConfigs.isEnableSAML2ArtifactBinding());
+        authnReqDTO.setDoValidateSignatureInArtifactResolve(ssoIdpConfigs.isDoValidateSignatureInArtifactResolve());
     }
 
     /**

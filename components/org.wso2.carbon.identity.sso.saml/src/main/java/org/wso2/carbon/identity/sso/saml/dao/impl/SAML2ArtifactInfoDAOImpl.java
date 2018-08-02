@@ -59,8 +59,8 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
 
         try {
             jdbcTemplate.executeInsert(ARTIFACT_INFO_STORE_SQL, (preparedStatement -> {
-                preparedStatement.setBytes(1, saml2ArtifactInfo.getSourceId());
-                preparedStatement.setBytes(2, saml2ArtifactInfo.getMessageHandler());
+                preparedStatement.setString(1, saml2ArtifactInfo.getSourceId());
+                preparedStatement.setString(2, saml2ArtifactInfo.getMessageHandler());
                 try {
                     setBlobObject(preparedStatement, saml2ArtifactInfo.getAuthnReqDTO(), 3);
                 } catch (IOException e) {
@@ -77,7 +77,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
     }
 
     @Override
-    public SAML2ArtifactInfo getSAMLArtifactInfo(byte[] sourceId, byte[] messageHandler) throws ArtifactBindingException {
+    public SAML2ArtifactInfo getSAMLArtifactInfo(String sourceId, String messageHandler) throws ArtifactBindingException {
 
         final String ARTIFACT_INFO_RETRIEVE_SQL = "SELECT ID, AUTHN_REQ_DTO, SESSION_ID, INIT_TIMESTAMP, " +
                 "EXP_TIMESTAMP FROM IDN_SAML2_ARTIFACT_STORE WHERE SOURCE_ID=? AND MESSAGE_HANDLER=?";
@@ -103,8 +103,8 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                         }
                     },
                     preparedStatement -> {
-                        preparedStatement.setBytes(1, sourceId);
-                        preparedStatement.setBytes(2, messageHandler);
+                        preparedStatement.setString(1, sourceId);
+                        preparedStatement.setString(2, messageHandler);
 
                     });
         } catch (DataAccessException e) {
