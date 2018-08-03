@@ -58,8 +58,8 @@ public class SAMLArtifactBuilder {
      * EndpointIndex := Byte1Byte2
      * <p>
      * TypeCode := 0x0004
-     * RemainingArtifact := SourceID MessageHandle
-     * SourceID := 20-byte_sequence
+     * RemainingArtifact := SourceId MessageHandle
+     * SourceId := 20-byte_sequence
      * MessageHandle := 20-byte_sequence
      *
      * @param authnReqDTO    SAML SSO authentication request.
@@ -87,8 +87,8 @@ public class SAMLArtifactBuilder {
             throw new ArtifactBindingException("Couldn't get Message digest instance with algorithm SHA-1.", e);
         }
         String issuerID = SAMLSSOUtil.getIssuer().getValue();
-        byte[] sourceID = sha1Digester.digest(issuerID.getBytes());
-        String sourceIDString = String.format("%040x", new BigInteger(1, sourceID));
+        byte[] sourceId = sha1Digester.digest(issuerID.getBytes());
+        String sourceIdString = String.format("%040x", new BigInteger(1, sourceId));
 
         SecureRandom secureRandom = new SecureRandom();
         byte[] messageHandler = new byte[20];
@@ -98,7 +98,7 @@ public class SAMLArtifactBuilder {
         byte[] artifactByteArray = new byte[44];
         System.arraycopy(SAMLSSOConstants.SAML2_ARTIFACT_TYPE_CODE, 0, artifactByteArray, 0, 2);
         System.arraycopy(endpointIndex, 0, artifactByteArray, 2, 2);
-        System.arraycopy(sourceID, 0, artifactByteArray, 4, 20);
+        System.arraycopy(sourceId, 0, artifactByteArray, 4, 20);
         System.arraycopy(messageHandler, 0, artifactByteArray, 24, 20);
 
         // Saving assertion to enable querying assertions.
@@ -107,13 +107,13 @@ public class SAMLArtifactBuilder {
             Assertion assertion = persistAssertion(authnReqDTO, initTimestamp, sessionIndexId);
             assertionId = assertion.getID();
         }
-        persistSAML2ArtifactInfo(sourceIDString, messageHandlerString, authnReqDTO, sessionIndexId, initTimestamp,
+        persistSAML2ArtifactInfo(sourceIdString, messageHandlerString, authnReqDTO, sessionIndexId, initTimestamp,
                 expTimestamp, assertionId);
 
         return Base64.encode(artifactByteArray);
     }
 
-    private void persistSAML2ArtifactInfo(String sourceID, String messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
+    private void persistSAML2ArtifactInfo(String sourceId, String messageHandler, SAMLSSOAuthnReqDTO authnReqDTO,
                                           String sessionIndexId, DateTime initTimestamp, DateTime expTimestamp,
                                           String assertionID)
             throws ArtifactBindingException {
@@ -125,7 +125,7 @@ public class SAMLArtifactBuilder {
 
         // Storing artifact details.
         SAML2ArtifactInfo saml2ArtifactInfo = new SAML2ArtifactInfo();
-        saml2ArtifactInfo.setSourceId(sourceID);
+        saml2ArtifactInfo.setSourceId(sourceId);
         saml2ArtifactInfo.setMessageHandler(messageHandler);
         saml2ArtifactInfo.setAuthnReqDTO(authnReqDTO);
         saml2ArtifactInfo.setSessionID(sessionIndexId);

@@ -46,8 +46,10 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.ui.CarbonUIUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -110,6 +112,11 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
                 MessageFactory messageFactory = MessageFactory.newInstance();
                 InputStream inStream = req.getInputStream();
                 SOAPMessage soapMessage = messageFactory.createMessage(new MimeHeaders(), inStream);
+                if (log.isDebugEnabled()) {
+                    OutputStream outputStream = new ByteArrayOutputStream();
+                    soapMessage.writeTo(outputStream);
+                    log.debug("SAML2 Artifact Resolve request received: " + outputStream.toString());
+                }
                 SOAPBody soapBody = soapMessage.getSOAPBody();
                 Iterator iterator = soapBody.getChildElements();
 
