@@ -74,14 +74,14 @@ public class SAMLSSOArtifactResolver {
         try {
             // Decode and depart SAML artifactResolve.
             byte[] artifactArray = Base64.decode(artifact);
-            byte[] sourceID = Arrays.copyOfRange(artifactArray, 4, 24);
-            String sourceIDString = String.format("%040x", new BigInteger(1, sourceID));
+            byte[] sourceId = Arrays.copyOfRange(artifactArray, 4, 24);
+            String sourceIdString = String.format("%040x", new BigInteger(1, sourceId));
             byte[] messageHandler = Arrays.copyOfRange(artifactArray, 24, 44);
             String messageHandlerString = String.format("%040x", new BigInteger(1, messageHandler));
 
             // Get SAML artifactResolve data from the database.
             SAML2ArtifactInfoDAO saml2ArtifactInfoDAO = new SAML2ArtifactInfoDAOImpl();
-            SAML2ArtifactInfo artifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceIDString,
+            SAML2ArtifactInfo artifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceIdString,
                     messageHandlerString);
 
             if (artifactInfo != null && validateArtifactResolve(artifactResolve, artifactInfo)) {
@@ -119,14 +119,12 @@ public class SAMLSSOArtifactResolver {
     private boolean validateArtifactResolve(ArtifactResolve artifactResolve, SAML2ArtifactInfo artifactInfo)
             throws IdentityException, ArtifactBindingException {
 
-        boolean isValid = true;
-
         // Checking for artifactResolve validity period.
         DateTime currentTime = new DateTime();
         if (!artifactInfo.getExpTimestamp().isAfter(currentTime)) {
             log.warn("Artifact validity period (" + artifactInfo.getExpTimestamp() + ") has been " +
-                    "exceeded for artifact: " + artifactResolve.getArtifact().getArtifact());
-            isValid = false;
+                        "exceeded for artifact: " + artifactResolve.getArtifact().getArtifact());
+            return false;
         }
 
         // Checking for issuer.
@@ -138,14 +136,14 @@ public class SAMLSSOArtifactResolver {
 
             // Checking for signature.
             if (serviceProviderDO.isDoValidateSignatureInArtifactResolve()) {
-                isValid = validateArtifactResolveSignature(artifactResolve, serviceProviderDO);
+                return validateArtifactResolveSignature(artifactResolve, serviceProviderDO);
             }
         } else {
             log.warn("Artifact Resolve Issuer: " + artifactResolve.getIssuer().getValue() + " is not valid.");
-            isValid = false;
+            return false;
         }
 
-        return isValid;
+        return true;
     }
 
     /**
@@ -166,8 +164,9 @@ public class SAMLSSOArtifactResolver {
         }
 
         if (artifactResolve.getSignature() == null) {
-            log.warn("Signature was null in SAML2 Artifact Resolve with artifact: " +
-                    artifactResolve.getArtifact().getArtifact() + " issuer: " + artifactResolve.getIssuer().getValue());
+            log.warn("Signature was not found in the SAML2 Artifact Resolve with artifact: " +
+                        artifactResolve.getArtifact().getArtifact() + " issuer: " +
+                        artifactResolve.getIssuer().getValue());
             return false;
         }
         SignatureImpl signImpl = (SignatureImpl) artifactResolve.getSignature();
@@ -184,12 +183,17 @@ public class SAMLSSOArtifactResolver {
             validator.validate(signImpl);
             return true;
         } catch (ValidationException e) {
-            log.warn("Signature validation failed for SAML2 Artifact Resolve with artifact: " +
-                    artifactResolve.getArtifact().getArtifact() + " issuer: " + artifactResolve.getIssuer().getValue());
+            String message = "Signature validation failed for SAML2 Artifact Resolve with artifact: " +
+                    artifactResolve.getArtifact().getArtifact() + " issuer: " +
+                    artifactResolve.getIssuer().getValue();
+            log.warn(message);
+            // Logging the error only in debug mode since this is an open endpoint.
+            if (log.isDebugEnabled()) {
+                log.debug(message, e);
+            }
             return false;
         }
     }
-
 
     /**
      * Build ArtifactResponse object wrapping response inside.
