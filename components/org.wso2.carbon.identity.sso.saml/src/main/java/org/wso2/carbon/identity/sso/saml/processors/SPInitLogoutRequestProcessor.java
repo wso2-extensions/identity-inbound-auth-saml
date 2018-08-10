@@ -423,7 +423,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             validationResult.setValidationStatus(false);
         }
 
-        if (!SAMLSSOUtil.validateLogoutRequestSignature(logoutRequest, logoutReqIssuer.getCertAlias(), subject,
+        if (!SAMLSSOUtil.validateLogoutRequestSignature(logoutRequest, logoutReqIssuer.getX509Certificate(),
                 queryString)) {
             String message = "Signature validation for Logout Request failed";
             log.error(message);

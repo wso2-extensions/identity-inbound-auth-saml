@@ -251,7 +251,6 @@ public class LogoutRequestSender {
                             //Todo: handle this in better way.
                         }
                     }
-
                 }
                 if (!isSuccessfullyLogout) {
                     log.error("Single logout failed after retrying " + SAMLSSOUtil.getSingleLogoutRetryCount() +

@@ -39,6 +39,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
 import java.security.KeyStore;
+import java.security.cert.CertificateException;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -265,6 +266,18 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
         serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
+
+        try {
+
+            if (serviceProviderDO.getX509Certificate() != null) {
+                serviceProviderDTO.setCertificateContent(IdentityUtil.convertCertificateToPEM(
+                        serviceProviderDO.getX509Certificate()));
+            }
+        } catch (CertificateException e) {
+            throw new IdentityException("An error occurred while converting the application certificate to " +
+                    "PEM content.", e);
+        }
+
         serviceProviderDTO.setDoSingleLogout(serviceProviderDO.isDoSingleLogout());
         serviceProviderDTO.setLoginPageURL(serviceProviderDO.getLoginPageURL());
         serviceProviderDTO.setSloRequestURL(serviceProviderDO.getSloRequestURL());

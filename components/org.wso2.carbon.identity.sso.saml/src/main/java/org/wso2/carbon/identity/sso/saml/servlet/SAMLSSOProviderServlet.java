@@ -67,6 +67,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -94,9 +95,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static Log log = LogFactory.getLog(SAMLSSOProviderServlet.class);
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
-    private boolean isCacheAvailable = false;
 
     private static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
+    private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
 
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
@@ -416,18 +417,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil
                                             .getTenantDomainFromThreadLocal(),
                                     SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-                            //for IDP init SLO, priority should be given to SLO response URL over default ACS.
-                            acsUrl = serviceProviderDO.getSloResponseURL();
-                            if (StringUtils.isBlank(acsUrl)) {
-                                acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
-                            }
+                            if (serviceProviderDO != null) {
+                                // For IDP init SLO, priority should be given to SLO response URL over default ACS.
+                                acsUrl = serviceProviderDO.getSloResponseURL();
+                                if (StringUtils.isBlank(acsUrl)) {
+                                    acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                                }
 
-                            //check whether ReturnToUrl query param is included in the configured Urls.
-                            if (StringUtils.isNotBlank(returnToUrl)) {
-                                List<String> returnToUrls = serviceProviderDO.getIdpInitSLOReturnToURLList();
-                                if (returnToUrls.contains(returnToUrl)) {
-                                    acsUrl += "&returnTo=" +
-                                            URLEncoder.encode(returnToUrl, SAMLSSOConstants.ENCODING_FORMAT);
+                                // Check whether ReturnToUrl query param is included in the configured Urls.
+                                if (StringUtils.isNotBlank(returnToUrl)) {
+                                    List<String> returnToUrls = serviceProviderDO.getIdpInitSLOReturnToURLList();
+                                    if (returnToUrls.contains(returnToUrl)) {
+                                        acsUrl += "&returnTo=" +
+                                                URLEncoder.encode(returnToUrl, SAMLSSOConstants.ENCODING_FORMAT);
+                                    }
                                 }
                             }
                         }
@@ -567,6 +570,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry
                 (authenticationRequest);
         addAuthenticationRequestToRequest(req, authRequest);
+        if (signInRespDTO.getAuthenticationContextClassRefList() != null) {
+            List<String> acrList = signInRespDTO.getAuthenticationContextClassRefList().stream()
+                    .map(acr -> acr.getAuthenticationContextClassReference()).collect(Collectors.toList());
+            req.setAttribute(ACR_VALUES_ATTRIBUTE, acrList);
+        }
         sendRequestToFramework(req, resp, sessionDataKey, FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO);
     }
 
@@ -752,7 +760,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
 
-        if(serviceProviderConfigs != null) {
+        if (serviceProviderConfigs != null) {
             populateAuthnReqDTOWithRequiredServiceProviderConfigs(authnReqDTO, serviceProviderConfigs);
         }
 
@@ -801,7 +809,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     }
 
                     // Validate signature.
-                    if (!SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO)) {
+                    if (!SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
+                            serviceProviderConfigs.getX509Certificate())) {
                         String msg = "Signature validation of the authentication request failed for issuer : " +
                                 issuer + " in tenant domain : " + tenantDomain;
                         log.warn(msg);
@@ -928,14 +937,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                              sessionDTO.getTenantDomain());
             }
         } else {
-
             String acsUrl = sessionDTO.getAssertionConsumerURL();
             if (StringUtils.isBlank(acsUrl) && sessionDTO.getIssuer() != null) {
                 SAMLSSOServiceProviderDO serviceProviderDO = getSPConfig(SAMLSSOUtil.getTenantDomainFromThreadLocal(),
                         sessionDTO.getIssuer());
-                acsUrl = serviceProviderDO.getSloResponseURL();
-                if (StringUtils.isBlank(acsUrl)) {
-                    acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                if (serviceProviderDO != null) {
+                    acsUrl = serviceProviderDO.getSloResponseURL();
+                    if (StringUtils.isBlank(acsUrl)) {
+                        acsUrl = serviceProviderDO.getDefaultAssertionConsumerUrl();
+                    }
                 }
             }
             String errorResp = SAMLSSOUtil.buildErrorResponse(
@@ -1063,7 +1073,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         AuthenticationResult result = getAuthenticationResultFromRequest(req);
         if (result == null) {
-            isCacheAvailable = true;
             result = getAuthenticationResultFromCache(sessionDataKey);
         }
         return result;

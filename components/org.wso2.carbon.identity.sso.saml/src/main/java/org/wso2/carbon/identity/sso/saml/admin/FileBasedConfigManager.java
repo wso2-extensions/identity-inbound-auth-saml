@@ -23,17 +23,27 @@ import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -74,8 +84,10 @@ public class FileBasedConfigManager {
         if (serviceProviders != null) {
             SSOServiceProviderConfigManager configManager = SSOServiceProviderConfigManager.getInstance();
             for (SAMLSSOServiceProviderDO spDO : serviceProviders) {
-                configManager.addServiceProvider(spDO.getIssuer(), spDO);
-                log.info("A SSO Service Provider is registered for : " + spDO.getIssuer());
+                if (spDO != null) {
+                    configManager.addServiceProvider(spDO.getIssuer(), spDO);
+                    log.info("A SSO Service Provider is registered for : " + spDO.getIssuer());
+                }
             }
         }
     }
@@ -166,11 +178,12 @@ public class FileBasedConfigManager {
                 spDO.setDigestAlgorithmUri(IdentityApplicationManagementUtil.getDigestAlgoURIByConfig());
             }
             if (validateSignature || encryptAssertion) {
-                certAlias = getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.CERT_ALIAS);
-                if (certAlias == null) {
-                    log.warn("Certificate alias for Signature verification or Assertion encryption not specified. " +
-                            "Defaulting to \'wso2carbon\'");
-                    certAlias = "wso2carbon";
+
+                boolean couldFillCertificateDetails = fillCertificateDetails(spDO, elem);
+
+                // If the certificate details couldn't be filled don't add this SP. Continue with the next one.
+                if (!couldFillCertificateDetails) {
+                    continue;
                 }
             }
             if (Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ATTRIBUTE_PROFILE))) {
@@ -204,11 +217,103 @@ public class FileBasedConfigManager {
             spDO.setDoEnableEncryptedAssertion(encryptAssertion);
             spDO.setDoSignResponse(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants
                     .FileBasedSPConfig.SIGN_RESPONSE)));
-            spDO.setCertAlias(certAlias);
             spDO.setIdPInitSSOEnabled(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.IDP_INIT)));
             serviceProviders[i] = spDO;
         }
         return serviceProviders;
+    }
+
+    /**
+     *
+     * Fills the certificate details such as the PEM content or the certificate alias from the SP file contents.
+     *
+     * @param spDO
+     * @param element
+     * @return true if the certificate details could be filled, false otherwise.
+     */
+    private boolean fillCertificateDetails(SAMLSSOServiceProviderDO spDO, Element element) {
+
+        // Check whether there is an embedded certificate inside the SP file.
+        // i.e the relevant file in repository/conf/identity/service-providers/
+        try {
+            ServiceProvider serviceProvider = SAMLSSOUtil.getApplicationMgtService()
+                    .getServiceProviderByClientId(spDO.getIssuer(),
+                            SAMLSSOConstants.INBOUND_AUTH_TYPE_SAML, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+            String certificateContent = serviceProvider.getCertificateContent();
+
+            if (certificateContent != null) {
+                spDO.setX509Certificate((X509Certificate) IdentityUtil
+                        .convertPEMEncodedContentToCertificate(certificateContent));
+
+                if (log.isDebugEnabled()){
+                    log.debug(String.format("An application certificate is available for the file based " +
+                            "SAML service provider with the issuer name '%s'", spDO.getIssuer()));
+                }
+
+            } else {
+
+                if (log.isDebugEnabled()){
+                    log.debug(String.format("An application certificate is NOT available for the file based " +
+                                    "SAML service provider with the issuer name '%s'. Alias will be considered",
+                            spDO.getIssuer()));
+                }
+
+                // If not fallback for the alias defined in the entry of repository/conf/identity/sso-idp-config.xml.
+                String certificateAlias = getTextValue(element, SAMLSSOConstants.FileBasedSPConfig.CERT_ALIAS);
+
+                if (certificateAlias != null) {
+
+                    if (log.isDebugEnabled()){
+                        log.debug(String.format("A certificate alias is available for the file based " +
+                                "SAML service provider with the issuer name '%s'", spDO.getIssuer()));
+                    }
+
+                    spDO.setX509Certificate(getCertificateFromKeyStore(certificateAlias));
+                    spDO.setCertAlias(certificateAlias);
+                }
+            }
+
+            if (spDO.getX509Certificate() == null) {
+                String errorMessage = String.format("The file based SAML service provider with the " +
+                        "issuer name '%s' is enabled for signature validation and/or assertion encryption. " +
+                        "But a valid application certificate or a certificate alias has not been configured. " +
+                        "The service provider will NOT be loaded.", spDO.getIssuer());
+                log.error(errorMessage);
+                return false;
+            }
+
+        } catch (IdentityApplicationManagementException | CertificateException e) {
+            String errorMessage = String.format("An error occurred while retrieving the application " +
+                    "certificate for file based SAML service provider with the issuer name '%s'. " +
+                    "The service provider will NOT be loaded.", spDO.getIssuer());
+            log.error(errorMessage);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     *
+     * Retrieves and returns the certificate from keystore.
+     *
+     * @param alias
+     * @return
+     */
+    private X509Certificate getCertificateFromKeyStore(String alias) {
+
+        try {
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
+            KeyStore keyStore = keyStoreManager.getPrimaryKeyStore();
+            X509Certificate certificate = (X509Certificate)keyStore.getCertificate(alias);
+            return certificate;
+        } catch (Exception e) {
+            String errorMsg = String.format("Error occurred while retrieving the certificate for " +
+                    "the alias '%s'." + alias);
+            log.error(errorMsg);
+            return null;
+        }
     }
 
     /**

@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 
@@ -120,6 +121,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -183,6 +185,7 @@ public class SAMLSSOUtil {
     private static String idPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
+    private static ApplicationManagementService applicationMgtService;
 
     private SAMLSSOUtil() {
     }
@@ -247,6 +250,16 @@ public class SAMLSSOUtil {
 
     public static void setRegistryService(RegistryService registryService) {
         SAMLSSOUtil.registryService = registryService;
+    }
+
+    public static void setApplicationMgtService(ApplicationManagementService applicationMgtService) {
+
+        SAMLSSOUtil.applicationMgtService = applicationMgtService;
+    }
+
+    public static ApplicationManagementService getApplicationMgtService() {
+
+        return applicationMgtService;
     }
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
@@ -626,7 +639,7 @@ public class SAMLSSOUtil {
             try {
                 synchronized (Runtime.getRuntime().getClass()) {
                     ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
-                            "SSOService.SAMLSSOSigner").trim()).newInstance();
+                            SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME).trim()).newInstance();
                     ssoSigner.init();
                 }
 
@@ -634,13 +647,13 @@ public class SAMLSSOUtil {
 
             } catch (ClassNotFoundException e) {
                 throw IdentityException.error("Class not found: "
-                                            + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                                            + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
             } catch (InstantiationException e) {
                 throw IdentityException.error("Error while instantiating class: "
-                                            + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                                            + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
             } catch (IllegalAccessException e) {
                 throw IdentityException.error("Illegal access to class: "
-                                            + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                                            + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
             } catch (Exception e) {
                 throw IdentityException.error("Error while signing the XML object.", e);
             }
@@ -813,12 +826,16 @@ public class SAMLSSOUtil {
     }
 
     /**
+     *
+     * @deprecated Use {@link #validateLogoutRequestSignature(LogoutRequest, X509Certificate, String)} instead.
+     *
      * Validates the request message's signature. Validates the signature of
      * both HTTP POST Binding and HTTP Redirect Binding.
      *
      * @param authnReqDTO
      * @return
      */
+    @Deprecated
     public static boolean validateAuthnRequestSignature(SAMLSSOAuthnReqDTO authnReqDTO) {
 
         if (log.isDebugEnabled()) {
@@ -865,6 +882,62 @@ public class SAMLSSOUtil {
     }
 
     /**
+     * Validates the request message's signature. Validates the signature of
+     * both HTTP POST Binding and HTTP Redirect Binding against the given certificate.
+     *
+     * @param authnReqDTO The authentication request.
+     * @param certificate The certificate which used for validation.
+     * @return
+     */
+    public static boolean validateAuthnRequestSignature(SAMLSSOAuthnReqDTO authnReqDTO, X509Certificate certificate) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Validating SAML Request signature");
+        }
+
+        RequestAbstractType request = null;
+        try {
+            String decodedReq = null;
+
+            if (authnReqDTO.getQueryString() != null) {
+                decodedReq = SAMLSSOUtil.decode(authnReqDTO.getRequestMessageString());
+            } else {
+                decodedReq = SAMLSSOUtil.decodeForPost(authnReqDTO.getRequestMessageString());
+            }
+
+            request = (RequestAbstractType) SAMLSSOUtil.unmarshall(decodedReq);
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : " +
+                        "Failed to unmarshall the SAML Assertion", e);
+            }
+        }
+
+        try {
+
+            String issuer = authnReqDTO.getIssuer();
+
+            if (authnReqDTO.getQueryString() != null) {
+                // DEFLATE signature in Redirect Binding
+                return validateDeflateSignature(authnReqDTO.getQueryString(), issuer, certificate);
+            } else {
+                // XML signature in SAML Request message for POST Binding
+                return validateXMLSignature(request, certificate);
+            }
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : " +
+                        "Failed to validate the SAML Assertion", e);
+            }
+            return false;
+        }
+    }
+
+
+    /**
+     *
+     * @deprecated Use {@link #validateLogoutRequestSignature(LogoutRequest, X509Certificate, String)} instead.
+     *
      * Validates the signature of the LogoutRequest message.
      * TODO : for stratos deployment, super tenant key should be used
      * @param logoutRequest
@@ -874,6 +947,7 @@ public class SAMLSSOUtil {
      * @return
      * @throws IdentityException
      */
+    @Deprecated
     public static boolean validateLogoutRequestSignature(LogoutRequest logoutRequest, String alias,
                                                          String subject, String queryString) throws IdentityException {
 
@@ -886,6 +960,30 @@ public class SAMLSSOUtil {
     }
 
     /**
+     * Validates the signature of the LogoutRequest message against the given certificate.
+     * @param logoutRequest The logout request object if available.
+     * @param queryString The request query string if available.
+     * @param certificate The certificate which is used for signature validation.
+     * @return
+     * @throws IdentityException
+     */
+    public static boolean validateLogoutRequestSignature(LogoutRequest logoutRequest, X509Certificate certificate,
+                                                         String queryString) throws IdentityException {
+
+
+        String issuer = logoutRequest.getIssuer().getValue();
+
+        if (queryString != null) {
+            return validateDeflateSignature(queryString, issuer, certificate);
+        } else {
+            return validateXMLSignature(logoutRequest, certificate);
+        }
+    }
+
+    /**
+     *
+     * @deprecated Use {@link #validateDeflateSignature(String, String, X509Certificate)} instead.
+     *
      * Signature validation for HTTP Redirect Binding
      * @param queryString
      * @param issuer
@@ -894,13 +992,14 @@ public class SAMLSSOUtil {
      * @return
      * @throws IdentityException
      */
+    @Deprecated
     public static boolean validateDeflateSignature(String queryString, String issuer,
                                                    String alias, String domainName) throws IdentityException {
         try {
 
             synchronized (Runtime.getRuntime().getClass()) {
                 samlHTTPRedirectSignatureValidator = (SAML2HTTPRedirectSignatureValidator) Class.forName(IdentityUtil.getProperty(
-                        "SSOService.SAML2HTTPRedirectSignatureValidator").trim()).newInstance();
+                        SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME).trim()).newInstance();
                 samlHTTPRedirectSignatureValidator.init();
             }
 
@@ -916,17 +1015,58 @@ public class SAMLSSOUtil {
             return false;
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
         } catch (InstantiationException e) {
             throw IdentityException.error("Error while instantiating class: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
         } catch (IllegalAccessException e) {
             throw IdentityException.error("Illegal access to class: "
-                    + IdentityUtil.getProperty("SSOService.SAML2HTTPRedirectSignatureValidator"), e);
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
         }
     }
 
     /**
+     * Validates the signature of the SAML requests sent with HTTP Redirect Binding against the given certificate.
+     *
+     * @param queryString SAML request
+     * @param issuer      Issuer of the SAML request
+     * @param certificate The certificate which is used for signature validation.
+     * @return true if the signature is valid, false otherwise.
+     * @throws IdentityException if something goes wrong during signature validation.
+     */
+    public static boolean validateDeflateSignature(String queryString, String issuer,
+                                                   java.security.cert.X509Certificate certificate)
+            throws IdentityException {
+        try {
+
+            synchronized (Runtime.getRuntime().getClass()) {
+                samlHTTPRedirectSignatureValidator = (SAML2HTTPRedirectSignatureValidator) Class.forName(
+                        IdentityUtil.getProperty(SAMLSSOConstants
+                                .SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME).trim()).newInstance();
+                samlHTTPRedirectSignatureValidator.init();
+            }
+
+            return samlHTTPRedirectSignatureValidator.validateSignature(queryString, issuer, certificate);
+
+        } catch (SecurityException e) {
+            log.error("Error validating deflate signature", e);
+            return false;
+        } catch (ClassNotFoundException e) {
+            throw IdentityException.error("Class not found: "
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
+        } catch (InstantiationException e) {
+            throw IdentityException.error("Error while instantiating class: "
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
+        } catch (IllegalAccessException e) {
+            throw IdentityException.error("Illegal access to class: "
+                    + IdentityUtil.getProperty(SAMLSSOConstants.SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME), e);
+        }
+    }
+
+    /**
+     *
+     * @deprecated Use {@link #validateXMLSignature(RequestAbstractType, X509Certificate)} instead.
+     *
      * Validate the signature of an assertion
      *
      * @param request    SAML Assertion, this could be either a SAML Request or a
@@ -935,6 +1075,7 @@ public class SAMLSSOUtil {
      * @param domainName domain name of the subject
      * @return true, if the signature is valid.
      */
+    @Deprecated
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
                                                String domainName) throws IdentityException {
 
@@ -959,7 +1100,7 @@ public class SAMLSSOUtil {
 
                 synchronized (Runtime.getRuntime().getClass()) {
                     ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
-                            "SSOService.SAMLSSOSigner").trim()).newInstance();
+                            SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME).trim()).newInstance();
                     ssoSigner.init();
                 }
 
@@ -982,13 +1123,59 @@ public class SAMLSSOUtil {
                 }
             } catch (ClassNotFoundException e) {
                 throw IdentityException.error("Class not found: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
             } catch (InstantiationException e) {
                 throw IdentityException.error("Error while instantiating class: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
             } catch (IllegalAccessException e) {
                 throw IdentityException.error("Illegal access to class: "
-                        + IdentityUtil.getProperty("SSOService.SAMLSSOSigner"), e);
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
+            }
+        }
+        return isSignatureValid;
+    }
+
+    /**
+     * Validates the signature of an assertion against the given certificate.
+     *
+     * @param request    SAML Assertion, this could be either a SAML Request or a LogoutRequest
+     * @param certificate The certificate which is used for signature validation.
+     * @return true, if the signature is valid.
+     * @throws IdentityException if something goes wrong during signature validation.
+     */
+    public static boolean validateXMLSignature(RequestAbstractType request,
+                                               java.security.cert.X509Certificate certificate) throws IdentityException {
+
+        boolean isSignatureValid = false;
+
+        if (request.getSignature() != null) {
+            try {
+                X509Credential cred = new X509CredentialImpl(certificate);
+
+                synchronized (Runtime.getRuntime().getClass()) {
+                    ssoSigner = (SSOSigner) Class.forName(IdentityUtil.getProperty(
+                            SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME).trim()).newInstance();
+                    ssoSigner.init();
+                }
+
+                return ssoSigner.validateXMLSignature(request, cred, null);
+            } catch (IdentityException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Signature Validation Failed for the SAML Assertion : Signature is invalid.", e);
+                }
+            } catch (ClassNotFoundException e) {
+                throw IdentityException.error("Class not found: "
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
+            } catch (InstantiationException e) {
+                throw IdentityException.error("Error while instantiating class: "
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
+            } catch (IllegalAccessException e) {
+                throw IdentityException.error("Illegal access to class: "
+                        + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while validating XML signature.", e);
+                }
             }
         }
         return isSignatureValid;
