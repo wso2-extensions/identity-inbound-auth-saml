@@ -31,7 +31,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.opensaml.saml2.core.LogoutResponse;
-import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.XMLObject;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -252,7 +251,6 @@ public class LogoutRequestSender {
                             //Todo: handle this in better way.
                         }
                     }
-
                 }
                 if (!isSuccessfullyLogout) {
                     log.error("Single logout failed after retrying " + SAMLSSOUtil.getSingleLogoutRetryCount() +
