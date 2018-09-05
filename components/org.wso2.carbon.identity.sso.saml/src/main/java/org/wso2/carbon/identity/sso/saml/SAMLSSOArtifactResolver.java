@@ -84,20 +84,24 @@ public class SAMLSSOArtifactResolver {
             SAML2ArtifactInfo artifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceIdString,
                     messageHandlerString);
 
-            if (artifactInfo != null && validateArtifactResolve(artifactResolve, artifactInfo)) {
-                // Building Response.
-                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                if (respBuilder != null) {
-                    response = respBuilder.buildResponse(artifactInfo.getAuthnReqDTO(), artifactInfo.getSessionID(),
-                            artifactInfo.getInitTimestamp(), artifactInfo.getAssertionID());
+            if (artifactInfo != null) {
+                if (validateArtifactResolve(artifactResolve, artifactInfo)) {
+                    // Building Response.
+                    ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                    if (respBuilder != null) {
+                        response = respBuilder.buildResponse(artifactInfo.getAuthnReqDTO(), artifactInfo.getSessionID(),
+                                artifactInfo.getInitTimestamp(), artifactInfo.getAssertionID());
 
-                } else {
-                    throw new ArtifactBindingException("Could not create a ResponseBuilder for SAML2 artifact " +
-                            "resolution.");
+                    } else {
+                        throw new ArtifactBindingException("Could not create a ResponseBuilder for SAML2 artifact " +
+                                "resolution.");
+                    }
                 }
+            } else {
+                log.warn("Invalid artifact received to Artifact Resolution endpoint: " + artifact);
             }
 
-            artifactResponse = buildArtifactResponse(response, artifactResolve, artifactInfo.getAuthnReqDTO());
+            artifactResponse = buildArtifactResponse(response, artifactResolve, artifactInfo);
 
         } catch (IdentityException e) {
             throw new ArtifactBindingException("Error while building response for SAML2 artifact: " + artifact, e);
@@ -200,12 +204,12 @@ public class SAMLSSOArtifactResolver {
      *
      * @param response        Response object to be sent.
      * @param artifactResolve Artifact resolve object received.
-     * @param authReqDTO      SAMLSSOAuthnReqDTO object retrieved from the DB.
+     * @param artifactInfo    SAML2ArtifactInfo object constructed from the data on DB.
      * @return Built artifact response object.
      * @throws IdentityException
      */
     private ArtifactResponse buildArtifactResponse(Response response, ArtifactResolve artifactResolve,
-                                                   SAMLSSOAuthnReqDTO authReqDTO) throws IdentityException {
+                                                   SAML2ArtifactInfo artifactInfo) throws IdentityException {
 
         XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
         SAMLObjectBuilder<ArtifactResponse> artifactResolveBuilder =
@@ -230,8 +234,11 @@ public class SAMLSSOArtifactResolver {
         artifactResponse.setStatus(status);
         artifactResponse.setMessage(response);
 
-        SAMLSSOUtil.setSignature(artifactResponse, authReqDTO.getSigningAlgorithmUri(), authReqDTO.getDigestAlgorithmUri
-                (), new SignKeyDataHolder(authReqDTO.getUser().getAuthenticatedSubjectIdentifier()));
+        if (artifactInfo != null) {
+            SAMLSSOAuthnReqDTO authReqDTO = artifactInfo.getAuthnReqDTO();
+            SAMLSSOUtil.setSignature(artifactResponse, authReqDTO.getSigningAlgorithmUri(), authReqDTO.getDigestAlgorithmUri
+                    (), new SignKeyDataHolder(authReqDTO.getUser().getAuthenticatedSubjectIdentifier()));
+        }
 
         return artifactResponse;
     }
