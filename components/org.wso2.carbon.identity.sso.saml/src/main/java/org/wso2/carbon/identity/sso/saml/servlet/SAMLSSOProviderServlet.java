@@ -1441,6 +1441,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void setSPAttributeToRequest(HttpServletRequest req, String issuer, String tenantDomain) {
 
         try {
+            if (StringUtils.isBlank(issuer)) {
+                // This is executing in a single logout flow.( samlsso?slo=true). Here it is not possible to identify
+                // the service provider name from the issuer.
+                return;
+            }
             String spName = ApplicationManagementService.getInstance()
                     .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);

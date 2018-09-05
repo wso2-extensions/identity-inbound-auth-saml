@@ -1883,7 +1883,7 @@ public class SAMLSSOUtil {
 
     public static String splitAppendedTenantDomain(String issuer) {
 
-        if (issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
+        if (StringUtils.isNotBlank(issuer) && issuer.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
             issuer = issuer.substring(0, issuer.lastIndexOf(UserCoreConstants.TENANT_DOMAIN_COMBINER));
         }
 
