@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.event.IdentityEventConstants.EventName;
 import org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty;
@@ -39,6 +40,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
     private SAMLSSOService samlSSOService = new SAMLSSOService();
 
+    /**
+     * Session termination event is handled to do single logout for SAML applications.
+     *
+     * @param event Session termination event
+     * @throws IdentityEventException
+     */
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
@@ -59,7 +66,9 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("There are no SAML participants in the session.");
+                    AuthenticationContext context = (AuthenticationContext) event.getEventProperties().
+                            get(EventProperty.CONTEXT);
+                    log.debug("There are no SAML participants in the session : " + context.getSessionIdentifier());
                 }
             }
         }
@@ -71,38 +80,38 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return "SAMLLogoutHandler";
     }
 
-    private String getSamlSSOTokenIdFromEvent(Event event) {
+    protected String getSamlSSOTokenIdFromEvent(Event event) {
 
         String samlssoTokenId = null;
-        HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-        if (request != null) {
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (StringUtils.equals(cookie.getName(), SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE)) {
-                        samlssoTokenId = cookie.getValue();
-                    }
+        if (event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
+            HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
+            if (request != null) {
+                Cookie cookie = FrameworkUtils.getCookie(request, SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
+                if (cookie != null) {
+                    samlssoTokenId = cookie.getValue();
                 }
             }
         }
         return samlssoTokenId;
     }
 
-    private boolean isIDPInitiatedLogoutRequest(Event event) {
+    protected boolean isIDPInitiatedLogoutRequest(Event event) {
 
         boolean isIdpInitiated = true;
         HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-        String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
-        AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
-                .get(EventProperty.CONTEXT);
+        if (request != null) {
+            String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
+            AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
+                    .get(EventProperty.CONTEXT);
 
-        if (context != null && slo == null) {
-            isIdpInitiated = false;
+            if (context != null && slo == null) {
+                isIdpInitiated = false;
+            }
         }
         return isIdpInitiated;
     }
 
-    private String getIssuerFromContext(Event event) {
+    protected String getIssuerFromContext(Event event) {
 
         AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get(EventProperty.CONTEXT);
         return context.getRelyingParty();

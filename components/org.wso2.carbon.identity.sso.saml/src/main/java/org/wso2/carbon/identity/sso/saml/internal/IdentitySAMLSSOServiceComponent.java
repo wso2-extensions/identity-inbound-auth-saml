@@ -164,6 +164,10 @@ public class IdentitySAMLSSOServiceComponent {
             } else {
                 log.error("SAML - ApplicationMgtListener could not be registered.");
             }
+
+            ctxt.getBundleContext().registerService(AbstractEventHandler.class.getName(),
+                    new SAMLLogoutHandler(), null);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
             }
@@ -182,9 +186,6 @@ public class IdentitySAMLSSOServiceComponent {
         } finally {
             IdentityIOStreamUtils.closeInputStream(fis);
         }
-
-        ctxt.getBundleContext().registerService(AbstractEventHandler.class.getName(),
-                 new SAMLLogoutHandler(), null);
 
     }
 
