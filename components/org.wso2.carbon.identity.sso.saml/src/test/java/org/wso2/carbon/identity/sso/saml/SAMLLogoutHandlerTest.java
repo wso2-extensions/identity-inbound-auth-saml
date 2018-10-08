@@ -100,14 +100,18 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     private FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {};
     private String[] collectionString = {};
 
+    SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
+
     @BeforeMethod
     public void setUp() throws Exception {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         SAMLSSOServiceProviderDO serviceProviderDOOne = new SAMLSSOServiceProviderDO();
         serviceProviderDOOne.setIssuer("issuerOne");
+        serviceProviderDOOne.setDoSingleLogout(true);
         SAMLSSOServiceProviderDO serviceProviderDOTwo = new SAMLSSOServiceProviderDO();
         serviceProviderDOTwo.setIssuer("issuerTwo");
+        serviceProviderDOTwo.setDoSingleLogout(true);
 
         SessionInfoData sessionInfoDataOne = new SessionInfoData();
         sessionInfoDataOne.addServiceProvider("issuerOne", serviceProviderDOOne, null);
@@ -118,13 +122,12 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         sessionInfoDataTwo.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
 
         SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_ONE, SESSION_INDEX_ONE);
-        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_INDEX_TWO, SESSION_TOKEN_ID_TWO);
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_TWO, SESSION_INDEX_TWO);
         SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_ONE, sessionInfoDataOne);
         SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_TWO, sessionInfoDataTwo);
 
         // creating mocks
         createMocks();
-
     }
 
     private void createMocks() throws Exception {
@@ -172,7 +175,6 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     public void testHandleEvent() throws Exception {
 
         Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_TERMINATE.name(), "issuerOne");
-        SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
         samlLogoutHandler.handleEvent(eventOne);
         SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE);
         SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO);
@@ -183,7 +185,6 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     @Test
     public void testGetName() {
 
-        SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
         Assert.assertEquals(samlLogoutHandler.getName(), "SAMLLogoutHandler");
     }
 
@@ -201,5 +202,4 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         when(request.getCookies()).thenReturn(cookies);
         return new Event(eventName, eventProperties);
     }
-
 }

@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.common.Extensions;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.LogoutRequest;
@@ -224,12 +225,12 @@ public class SAMLSSOService {
         for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
-            // if issuer is logout request initiator then not send the logout request to the issuer.
-            if (!key.equals(issuer)) {
+
+            // if issuer is the logout request initiator, then not sending the logout request to the issuer.
+            if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
                 SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
                         sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
                         serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
-
                 singleLogoutReqDTOs.add(logoutReqDTO);
             }
         }
