@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.saml2.common.Extensions;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.LogoutRequest;
@@ -24,18 +25,27 @@ import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.xml.XMLObject;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
+import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
+import org.wso2.carbon.identity.sso.saml.logout.LogoutRequestSender;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
+import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
+import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class SAMLSSOService {
 
@@ -189,6 +199,46 @@ public class SAMLSSOService {
                         sessionId,
                         null);
         return validationResponseDTO;
+    }
+
+    /**
+     * Gets all the session participants from session ID send logout requests to them
+     *
+     * @param sessionId
+     * @param issuer
+     * @throws IdentityException
+     */
+    public void doSingleLogout(String sessionId, String issuer) throws IdentityException {
+
+        SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
+        reqValidationResponseDTO.setLogOutReq(true);
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+        Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
+
+        List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
+
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+            String key = entry.getKey();
+            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+
+            // if issuer is the logout request initiator, then not sending the logout request to the issuer.
+            if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
+                SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
+                        sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                        serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
+                singleLogoutReqDTOs.add(logoutReqDTO);
+            }
+        }
+
+        //send logout requests to all session participants
+        LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
+                new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
+        SAMLSSOUtil.removeSession(sessionId, issuer);
     }
 
 }
