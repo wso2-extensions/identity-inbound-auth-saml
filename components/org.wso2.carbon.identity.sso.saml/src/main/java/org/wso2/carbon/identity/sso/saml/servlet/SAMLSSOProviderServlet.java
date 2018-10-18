@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.sso.saml.servlet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.ws.message.decoder.MessageDecodingException;
+import org.opensaml.xml.XMLObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -58,6 +61,7 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.identity.sso.saml.logout.LogoutRequestSender;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.Registry;
@@ -65,21 +69,23 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.soap.*;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
@@ -114,6 +120,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                          HttpServletResponse httpServletResponse) throws ServletException, IOException {
         try {
             handleRequest(httpServletRequest, httpServletResponse, false);
+        } catch (SOAPException e) {
+            e.printStackTrace();
+        } catch (IdentityException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
         } finally {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
@@ -126,6 +140,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             handleRequest(req, resp, true);
+        } catch (SOAPException e) {
+            e.printStackTrace();
+        } catch (IdentityException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
         } finally {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
@@ -146,7 +168,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      * @throws IOException
      */
     private void handleRequest(HttpServletRequest req, HttpServletResponse resp, boolean isPost)
-            throws ServletException, IOException {
+            throws ServletException, IOException, SOAPException, TransformerException, IdentityException {
+
 
         String sessionId = null;
         Cookie ssoTokenIdCookie = getTokenIdCookie(req);
@@ -304,54 +327,67 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
-
-        //TODO Send status codes rather than full messages in the GET request
-        String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.encode(status, "UTF-8") +
-                "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode(message, "UTF-8");
-
-        if (errorResp != null) {
-            queryParams += "&" + SAMLSSOConstants.SAML_RESP + "=" + URLEncoder.encode(errorResp, "UTF-8");
-        }
-
-        // If the assertion consumer url is null, get it from the session.
-        if (StringUtils.isBlank(acUrl)) {
-            String sessionDataKey = getSessionDataKey(req);
-            SAMLSSOSessionDTO sessionDTO = null;
-            if (StringUtils.isNotBlank(sessionDataKey)) {
-                sessionDTO = getSessionDataFromCache(sessionDataKey);
-            }
-            if (sessionDTO != null) {
-                acUrl = sessionDTO.getAssertionConsumerURL();
+        if (req.getParameter("isECP") == "true"){
+            PrintWriter out = resp.getWriter();
+            log.debug(errorResp);
+            try {
+                log.debug(SAMLSSOUtil.decode(errorResp).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>",""));
+                out.print(SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>",""),acUrl));
+            } catch (IdentityException e) {
+                e.printStackTrace();
             }
         }
 
-        if (StringUtils.isNotBlank(acUrl)) {
-            queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" +
-                    URLEncoder.encode(acUrl, SAMLSSOConstants.ENCODING_FORMAT);
-        }
+        else {
+            String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
 
-        String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
-        // If the request doesn't have a relay state, get it from the session.
-        if (StringUtils.isEmpty(relayState)) {
-            String sessionDataKey = getSessionDataKey(req);
-            SAMLSSOSessionDTO sessionDTO = null;
-            if (StringUtils.isNotEmpty(sessionDataKey)) {
-                sessionDTO = getSessionDataFromCache(sessionDataKey);
+            //TODO Send status codes rather than full messages in the GET request
+            String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.encode(status, "UTF-8") +
+                    "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode(message, "UTF-8");
+
+            if (errorResp != null) {
+                queryParams += "&" + SAMLSSOConstants.SAML_RESP + "=" + URLEncoder.encode(errorResp, "UTF-8");
             }
-            if (sessionDTO != null) {
-                relayState = sessionDTO.getRelayState();
+
+            // If the assertion consumer url is null, get it from the session.
+            if (StringUtils.isBlank(acUrl)) {
+                String sessionDataKey = getSessionDataKey(req);
+                SAMLSSOSessionDTO sessionDTO = null;
+                if (StringUtils.isNotBlank(sessionDataKey)) {
+                    sessionDTO = getSessionDataFromCache(sessionDataKey);
+                }
+                if (sessionDTO != null) {
+                    acUrl = sessionDTO.getAssertionConsumerURL();
+                }
             }
-        }
 
-        if (StringUtils.isNotEmpty(relayState)) {
-            queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" +
-                    URLEncoder.encode(relayState, SAMLSSOConstants.ENCODING_FORMAT);
-        }
+            if (StringUtils.isNotBlank(acUrl)) {
+                queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" +
+                        URLEncoder.encode(acUrl, SAMLSSOConstants.ENCODING_FORMAT);
+            }
 
-        String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
-        resp.sendRedirect(FrameworkUtils.getRedirectURL(queryAppendedUrl, req));
-    }
+            String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
+            // If the request doesn't have a relay state, get it from the session.
+            if (StringUtils.isEmpty(relayState)) {
+                String sessionDataKey = getSessionDataKey(req);
+                SAMLSSOSessionDTO sessionDTO = null;
+                if (StringUtils.isNotEmpty(sessionDataKey)) {
+                    sessionDTO = getSessionDataFromCache(sessionDataKey);
+                }
+                if (sessionDTO != null) {
+                    relayState = sessionDTO.getRelayState();
+                }
+            }
+
+            if (StringUtils.isNotEmpty(relayState)) {
+                queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" +
+                        URLEncoder.encode(relayState, SAMLSSOConstants.ENCODING_FORMAT);
+            }
+
+            String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
+            resp.sendRedirect(FrameworkUtils.getRedirectURL(queryAppendedUrl, req));
+        }
+        }
 
     private void handleIdPInitSSO(HttpServletRequest req, HttpServletResponse resp, String relayState,
                                   String queryString, String authMode, String sessionId,
@@ -720,7 +756,32 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
 
         resp.setContentType("text/html; charset=UTF-8");
+
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
+            //if else statement was done by me for the ECP client. If ecp client return the saml response in a soap envelope.
+            if (req.getParameter("isECP") == "true") {
+                //return the response a soap message.
+                PrintWriter out = resp.getWriter();
+                resp.setContentType("text/xml");
+                resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+                String samlResponse= new String(Base64.getDecoder().decode(response)).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>","");
+                log.debug("This is SOAP");
+                log.debug(SAMLSOAPUtils.createSOAPMessage(samlResponse,acUrl));
+                out.print(SAMLSOAPUtils.createSOAPMessage(samlResponse,acUrl));
+                String soapResponse = "<soap11:Envelope " +
+                        "xmlns:soap11=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                        "<soap11:Header>" +
+                        "<ecp:Response AssertionConsumerServiceURL=\""+acUrl+"\" soap11:actor=\"http://schemas.xmlsoap.org/soap/actor/next\" soap11:mustUnderstand=\"1\" " +
+                        "xmlns:ecp=\"urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp\"/>" +
+                        "<samlec:GeneratedKey soap11:actor=\"http://schemas.xmlsoap.org/soap/actor/next\" " +
+                        "xmlns:samlec=\"urn:ietf:params:xml:ns:samlec\">tgLA80Pa1k/r7jhy3k3ofr6dFsclQiJfLZgtVyPFz3o=" +
+                        "</samlec:GeneratedKey>" +
+                        "</soap11:Header>" +
+                        "<soap11:Body>" + samlResponse + "</soap11:Body>" +
+                        "</soap11:Envelope>";
+                //out.print(soapResponse);
+
+            } else {
 
             String finalPage = null;
             String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
@@ -728,8 +789,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
             String pageWithAcsResponseRelay = pageWithAcsResponse;
 
-            if(relayState != null) {
-                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState)+ "'/>");
+            if (relayState != null) {
+                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'/>");
             }
 
             if (authenticatedIdPs == null || authenticatedIdPs.isEmpty()) {
@@ -745,37 +806,41 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             out.print(finalPage);
 
             if (log.isDebugEnabled()) {
+                log.warn("this is done for ECP clients");
                 log.debug("samlsso_response.html " + finalPage);
-            }
 
+            }
+        // end of the else
+            }
 
         } else {
-            PrintWriter out = resp.getWriter();
-            out.println("<html>");
-            out.println("<body>");
-            out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-            out.println(" If the redirection fails, please click the post button.</p>");
-            out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-            out.println("<p>");
-            out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
+                PrintWriter out = resp.getWriter();
+                out.println("<html>");
+                out.println("<body>");
+                out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
+                out.println(" If the redirection fails, please click the post button.</p>");
+                out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
+                out.println("<p>");
+                out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
 
-            if(relayState != null) {
-                out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'/>");
-            }
+                if (relayState != null) {
+                    out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'/>");
+                }
 
-            if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
-                out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                        Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
-            }
+                if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
+                    out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
+                            Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
+                }
 
-            out.println("<button type='submit'>POST</button>");
-            out.println("</p>");
-            out.println("</form>");
-            out.println("<script type='text/javascript'>");
-            out.println("document.forms[0].submit();");
-            out.println("</script>");
-            out.println("</body>");
-            out.println("</html>");
+                out.println("<button type='submit'>POST</button>");
+                out.println("</p>");
+                out.println("</form>");
+                out.println("<script type='text/javascript'>");
+                out.println("document.forms[0].submit();");
+                out.println("</script>");
+                out.println("</body>");
+                out.println("</html>");
+
         }
     }
 
@@ -805,6 +870,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String issuer = authnReqDTO.getIssuer();
         String authenticationRequestId = authnReqDTO.getId();
         String assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
+        authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter("isECP")));
 
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
@@ -1284,6 +1350,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         CommonAuthRequestWrapper requestWrapper = new CommonAuthRequestWrapper(request);
         requestWrapper.setParameter(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
         requestWrapper.setParameter(FrameworkConstants.RequestParams.TYPE, type);
+        if (request.getParameter("sectoken") != null ) {
+            requestWrapper.setParameter("sectoken",request.getParameter("sectoken"));
+        }
+
+        if (request.getParameter("isECP") != null ) {
+            requestWrapper.setParameter("isECP",request.getParameter("isECP"));
+        }
+
+
 
         CommonAuthResponseWrapper responseWrapper = new CommonAuthResponseWrapper(response);
         commonAuthenticationHandler.doGet(requestWrapper, responseWrapper);

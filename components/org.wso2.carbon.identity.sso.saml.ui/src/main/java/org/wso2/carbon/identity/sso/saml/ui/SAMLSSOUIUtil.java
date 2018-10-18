@@ -32,6 +32,7 @@ public class SAMLSSOUIUtil {
     public static final boolean DEFAULT_VALUE_FOR_SIGNATURE_VALIDATE_FOR_REQUESTS = true;
     public static final boolean DEFAULT_VALUE_FOR_SINGLE_LOGOUT= true;
     public static final boolean DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE= true;
+    public static final boolean DEFAULT_VALUE_FOR_ECP = false;
 
     private SAMLSSOUIUtil() {
     }
@@ -95,6 +96,18 @@ public class SAMLSSOUIUtil {
             }
         } else {
             return DEFAULT_VALUE_FOR_RESPONSE_SIGNING;
+        }
+        return false;
+    }
+
+    public static boolean isSamlECPEnabled(boolean isSpEdit , SAMLSSOServiceProviderDTO provider ){
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getSamlECP();
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_ECP;
         }
         return false;
     }

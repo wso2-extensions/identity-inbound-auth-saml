@@ -81,6 +81,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private List<ClaimMapping> requestedAttributesList;
     private Properties properties;
     private boolean doValidateSignatureInArtifactResolve;
+    private boolean samlECPEnabled;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -483,6 +484,14 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     public boolean isSAML2ArtifactBindingEnabled() {
 
         return enableSAML2ArtifactBinding;
+    }
+
+    public boolean isSamlECPEnabled(){
+        return samlECPEnabled;
+    }
+
+    public void setSamlECPEnabled(boolean samlECPEnabled){
+        this.samlECPEnabled = samlECPEnabled;
     }
 
     public Map<String, List<AuthenticationContextProperty>> getIdpAuthenticationContextProperties() {

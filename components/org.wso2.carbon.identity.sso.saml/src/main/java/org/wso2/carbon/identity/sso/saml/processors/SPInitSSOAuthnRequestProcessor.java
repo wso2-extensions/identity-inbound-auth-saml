@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.processors;
 
+import org.apache.axis2.transport.http.ServletBasedOutTransportInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,6 +63,14 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
 
+            if(authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP()){
+                String msg =
+                        "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not ECP enabled.";
+                log.warn(msg);
+                return buildErrorResponse(authnReqDTO.getId(),
+                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
+            }
+
             // reading the service provider configs
             populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
 
@@ -70,7 +79,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
                 List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(authnReqDTO.getTenantDomain());
 
-                if (authnReqDTO.getDestination() == null
+              if (authnReqDTO.getDestination() == null
                         || !idpUrlSet.contains(authnReqDTO.getDestination())) {
                     String msg = "Destination validation for Authentication Request failed. " +
                             "Received: [" + authnReqDTO.getDestination() + "]." +

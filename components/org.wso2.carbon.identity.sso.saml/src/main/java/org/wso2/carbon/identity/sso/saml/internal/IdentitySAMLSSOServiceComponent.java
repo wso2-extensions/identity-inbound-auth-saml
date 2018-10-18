@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLArtifactResolveServlet;
+import org.wso2.carbon.identity.sso.saml.servlet.SAMLECPProviderServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -91,7 +92,16 @@ public class IdentitySAMLSSOServiceComponent {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
-
+        //register SAML ECP servlet
+        Servlet samlECPServlet = new ContextPathServletAdaptor(new SAMLECPProviderServlet(),
+                SAMLSSOConstants.SAMLECP_URL);
+        try {
+            httpService.registerServlet(SAMLSSOConstants.SAMLECP_URL, samlECPServlet, null, null);
+        } catch (Exception e) {
+            String errMsg = "Error when registering SAML ECP Servlet via the HttpService.";
+            log.error(errMsg, e);
+            throw new RuntimeException(errMsg, e);
+        }
         // Register SAML artifact resolve servlet
         Servlet samlArtifactResolveServlet = new ContextPathServletAdaptor(new SAMLArtifactResolveServlet(),
                 SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL);

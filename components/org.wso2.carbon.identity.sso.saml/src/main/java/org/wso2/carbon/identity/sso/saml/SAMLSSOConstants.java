@@ -63,6 +63,9 @@ public class SAMLSSOConstants {
     public static final String SAML_ENDPOINT = "samlsso/carbon/";
     public static final String DEFAULT_LOGOUT_ENDPOINT = "/authenticationendpoint/samlsso_logout.do";
     public static final String SAMLSSO_URL = "/samlsso";
+    public static final String SAMLECP_URL = "/ecp";
+    public static final String SEC_TOKEN = "sectoken";
+    public static final String SAML_PROTOCOL = "samlp";
     public static final String NOTIFICATION_ENDPOINT ="/authenticationendpoint/samlsso_notification.do";
     public static final String SLO_SAML_SOAP_BINDING_ENABLED = "SSOService.SLOSAMLSOAPBindingEnabled";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
