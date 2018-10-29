@@ -301,13 +301,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        if (req.getParameter("isECP") == "true") {
+        if (req.getParameter(SAMLSSOConstants.ECP_ENABLED) == "true") {
             PrintWriter out = resp.getWriter();
             try {
-                log.info(SAMLSSOUtil.decode(errorResp).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ""));
-                out.print(SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ""), acUrl));
+                String soapResp = SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).
+                        replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ""), acUrl);
+                log.info(soapResp);
+                out.print(soapResp);
             } catch (IdentityException e) {
-                SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), "Server");
+                SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLSOAPUtils.SOAP_FAULT_CODE_CLIENT);
             }
         } else {
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
@@ -729,8 +731,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         resp.setContentType("text/html; charset=UTF-8");
 
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
-            //if else statement was done by me for the ECP client. If ecp client return the saml response in a soap envelope.
-            if (req.getParameter("isECP") == "true") {
+            if (req.getParameter(SAMLSSOConstants.ECP_ENABLED) == "true") {
                 //return the response a soap message.
                 PrintWriter out = resp.getWriter();
                 resp.setContentType("text/xml");
@@ -764,7 +765,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 out.print(finalPage);
 
                 if (log.isDebugEnabled()) {
-                    log.warn("this is done for ECP clients");
                     log.debug("samlsso_response.html " + finalPage);
 
                 }
@@ -828,7 +828,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String issuer = authnReqDTO.getIssuer();
         String authenticationRequestId = authnReqDTO.getId();
         String assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
-        authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter("isECP")));
+        authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter(SAMLSSOConstants.ECP_ENABLED)));
 
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);

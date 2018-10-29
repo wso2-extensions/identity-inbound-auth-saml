@@ -73,21 +73,24 @@ public class SAMLECPProviderServlet extends HttpServlet {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         soapMessage.writeTo(out);
         String strMsg = new String(out.toByteArray(), Charset.forName("UTF-8"));
-            if (log.isDebugEnabled()) {
-                log.debug("ECP Request : " + strMsg);
-            }
+
+        log.info("ECP Request : " + strMsg);
         String samlRequest = SAMLSOAPUtils.decodeSOAPMessage(soapMessage);
         SamlSSORequestWrapper samlSSORequestWrapper = new SamlSSORequestWrapper(req);
         samlSSORequestWrapper.setParameter(SAMLSSOConstants.SAML_REQUEST, samlRequest);
-        samlSSORequestWrapper.setParameter("isECP", "true");
+        samlSSORequestWrapper.setParameter(SAMLSSOConstants.ECP_ENABLED, "true");
         RequestDispatcher dispatcher = req.getRequestDispatcher("/samlsso");
+
         log.info("Forwarding the ECP request to SAMLSSO Servlet");
         dispatcher.forward(samlSSORequestWrapper, resp);
 
-        } catch (Exception e) {
-            SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), "Client");
+        } catch (IdentitySAML2ECPException e) {
+            SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLSOAPUtils.SOAP_FAULT_CODE_CLIENT);
             log.error("Error processing the SOAP request");
 
+        } catch (Exception e) {
+            SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLSOAPUtils.SAOP_FAULT_CODE_SERVER);
+            log.error("Error when forwarding the SOAP Request to the SSO Servlet");
         }
     }
 }

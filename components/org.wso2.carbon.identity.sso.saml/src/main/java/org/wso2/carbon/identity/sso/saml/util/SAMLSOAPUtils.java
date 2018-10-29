@@ -44,7 +44,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 
-
 /**
  * A Utility which provides functionality to handle SOAP requests and responses.
  */
@@ -52,7 +51,16 @@ public class SAMLSOAPUtils {
 
     private static Log log = LogFactory.getLog(SAMLSOAPUtils.class);
     private static boolean isBootStrapped = false;
+    public static final String SOAP_FAULT_CODE_CLIENT = "Client";
+    public static final String SAOP_FAULT_CODE_SERVER = "Server";
 
+    /**
+     *
+     * @param authReqStr Authentication Request
+     * @return
+     * @throws IdentityException
+     * @throws IdentitySAML2ECPException
+     */
     public static XMLObject unmarshall(String authReqStr) throws IdentityException, IdentitySAML2ECPException {
         InputStream inputStream = null;
         doBootstrap();
@@ -73,7 +81,15 @@ public class SAMLSOAPUtils {
         }
     }
 
-
+    /**
+     *
+     * Decode the request recived by the /ecp servlet.
+     * Validate the SOAP message
+     * Check whether the SOAP body contains a valid SAML request
+     * @param soapMessage
+     * @return
+     * @throws IdentitySAML2ECPException
+     */
     public static String decodeSOAPMessage(SOAPMessage soapMessage) throws IdentitySAML2ECPException {
         SOAPBody body = null;
         String samlRequest = null;
@@ -109,7 +125,7 @@ public class SAMLSOAPUtils {
             throw new IdentitySAML2ECPException(e.getMessage());
         }
         if (elementSize == 0) {
-            String err = "The SOAP message body is EMPTY";
+            String err = "The SOAP message body is Empty";
             log.error(err);
             throw new IdentitySAML2ECPException(err);
         } else if (elementSize == 1) {
@@ -128,6 +144,13 @@ public class SAMLSOAPUtils {
         return samlRequest;
     }
 
+    /**
+     *
+     * Creates a SOAP Fault message including the fault coe and fault string.
+     * @param faultString detailed error message
+     * @param faultcode
+     * @return
+     */
     public static String createSOAPFault(String faultString, String faultcode) {
         SOAPMessage soapMsg =  null;
         try {
@@ -151,6 +174,12 @@ public class SAMLSOAPUtils {
         }
     }
 
+    /**
+     *
+     * @param samlRes
+     * @param acUrl
+     * @return
+     */
     public static String createSOAPMessage(String samlRes, String acUrl) {
         SOAPMessage soapMsg = null;
         try {
@@ -179,7 +208,11 @@ public class SAMLSOAPUtils {
         }
     }
 
-
+    /**
+     *Converts a  SOAP Message to String
+     * @param soapMessage
+     * @return
+     */
     public static String convertSOAPToString(SOAPMessage soapMessage) {
         final StringWriter stringWriter = new StringWriter();
         try {
@@ -192,6 +225,12 @@ public class SAMLSOAPUtils {
         return stringWriter.toString();
     }
 
+    /**
+     *Send the SOAP fault with the servlet response.
+     * @param resp Servlet response
+     * @param faultsring SOAP Fault code
+     * @param faultcode SOAP fault code
+     */
     public static void sendSOAPFault(HttpServletResponse resp, String faultsring , String faultcode) {
         PrintWriter out = null;
         try {

@@ -32,7 +32,7 @@ public class SAMLSOAPUtilsTest {
 
     @Test
     public void testCreateSOAPMessage() {
-        String soapMessage = SAMLSOAPUtils.createSOAPMessage(TestConstants.AUTHN_SUCCESS_SAML_RESPONSE, "https://localhost/Shibboleth.sso/SAML2/ECP");
+        String soapMessage = SAMLSOAPUtils.createSOAPMessage(TestConstants.AUTHN_SUCCESS_SAML_RESPONSE, TestConstants.SAML_ECP_ACS_URL);
         assertEquals(soapMessage, TestConstants.SOAP_MESSAGE );
     }
 
