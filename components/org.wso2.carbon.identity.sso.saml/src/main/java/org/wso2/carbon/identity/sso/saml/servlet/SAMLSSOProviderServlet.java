@@ -65,11 +65,16 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -736,7 +741,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 PrintWriter out = resp.getWriter();
                 resp.setContentType("text/xml");
                 resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-                String samlResponse = new String(Base64.getDecoder().decode(response)).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
+                String samlResponse = new String(Base64.getDecoder().decode(response))
+                        .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
                 log.info(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
                 out.print(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
 
@@ -1170,7 +1176,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     /**
      * Get authentication result attribute from request
-     *
      * @param req Http servlet request
      * @return Authentication result
      */
@@ -1181,7 +1186,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     /**
      * Remove authentication result from request
-     *
      * @param req
      */
     private void removeAuthenticationResult(HttpServletRequest req, String sessionDataKey) {
