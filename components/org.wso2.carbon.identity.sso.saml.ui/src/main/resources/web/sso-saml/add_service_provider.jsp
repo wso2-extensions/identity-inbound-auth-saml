@@ -1789,7 +1789,6 @@
                                         </label>
                                     </td>
                                 </tr>
-
                                 <tr>
                                     <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
                                         <input type="checkbox" name="enableSAML2ECP" value="true"
@@ -1797,10 +1796,7 @@
                                                 <%=(isEditSP && provider.getSamlECP() ? "checked=\"checked\"" : "")%> />
                                         <fmt:message key="enable.saml2.ecp"/>
                                     </td>
-
-
                                 </tr>
-
                             </table>
                         </td>
                     </tr>
@@ -1821,8 +1817,6 @@
                                    value="<fmt:message key="saml.sso.cancel"/>"/>
                         </td>
                     </tr>
-
-
                     </tbody>
                 </table>
                 <input type="hidden" id="attributeConsumingServiceIndex" name="attributeConsumingServiceIndex"

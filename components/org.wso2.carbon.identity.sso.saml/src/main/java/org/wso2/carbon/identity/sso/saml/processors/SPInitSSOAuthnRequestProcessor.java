@@ -63,7 +63,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
 
-            if(authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP()){
+            if (authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP()) {
                 String msg =
                         "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not ECP enabled.";
                 log.warn(msg);
@@ -79,7 +79,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
                 List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(authnReqDTO.getTenantDomain());
 
-              if (authnReqDTO.getDestination() == null
+                if (authnReqDTO.getDestination() == null
                         || !idpUrlSet.contains(authnReqDTO.getDestination())) {
                     String msg = "Destination validation for Authentication Request failed. " +
                             "Received: [" + authnReqDTO.getDestination() + "]." +
