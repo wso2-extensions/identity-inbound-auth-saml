@@ -56,7 +56,8 @@ public class SAMLECPProviderServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest httpServletRequest,
                          HttpServletResponse httpServletResponse) throws ServletException, IOException {
-        String soapFault = SAMLSOAPUtils.createSOAPFault("Unsupported Request POST", "Client");
+        String soapFault = SAMLSOAPUtils.createSOAPFault("Unsupported Request POST"
+                , SAMLSOAPUtils.SOAP_FAULT_CODE_CLIENT);
         log.error(soapFault);
         PrintWriter out = httpServletResponse.getWriter();
         httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
