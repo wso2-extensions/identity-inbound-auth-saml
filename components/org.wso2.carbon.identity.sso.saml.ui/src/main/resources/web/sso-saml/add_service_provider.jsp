@@ -590,8 +590,6 @@
                     : false;
         }
 
-
-
         function isContainRaw(tbody) {
             if (tbody.childNodes == null || tbody.childNodes.length == 0) {
                 return false;

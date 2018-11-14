@@ -118,7 +118,6 @@ public class SAMLSOAPUtils {
             log.error("Error Processing the SOAP Mesage");
             throw new IdentitySAML2ECPException(e.getMessage());
         }
-
         int elementSize = 0;
         try {
             Iterator<?> elements = body.getChildElements();
@@ -273,9 +272,4 @@ public class SAMLSOAPUtils {
             }
         }
     }
-
-
-
 }
-
-

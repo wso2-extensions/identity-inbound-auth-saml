@@ -743,7 +743,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
                 log.info(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
                 out.print(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
-
             } else {
 
             String finalPage = null;
@@ -773,7 +772,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
 
             }
-
 
         } else {
             PrintWriter out = resp.getWriter();

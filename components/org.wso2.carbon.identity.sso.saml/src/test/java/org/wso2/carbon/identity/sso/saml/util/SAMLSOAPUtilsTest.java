@@ -45,7 +45,6 @@ public class SAMLSOAPUtilsTest {
     public void testCreateSOAPFault() {
         String fault = SAMLSOAPUtils.createSOAPFault("An error Occured","Client");
         assertEquals(fault ,TestConstants.SOAP_FAULT );
-
     }
 
     @Test
@@ -53,6 +52,4 @@ public class SAMLSOAPUtilsTest {
         String soapMessage = SAMLSOAPUtils.createSOAPMessage(TestConstants.AUTHN_SUCCESS_SAML_RESPONSE, TestConstants.SAML_ECP_ACS_URL);
         assertEquals(soapMessage, TestConstants.SOAP_MESSAGE );
     }
-
-
 }
