@@ -310,7 +310,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             try {
                 String soapResp = SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).
                         replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ""), acUrl);
-                log.info(soapResp);
+                if (log.isDebugEnabled()) {
+                    log.debug(soapResp);
+                }
                 out.print(soapResp);
             } catch (IdentityException e) {
                 SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLSOAPUtils.SOAP_FAULT_CODE_CLIENT);
@@ -741,7 +743,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
                 String samlResponse = new String(Base64.getDecoder().decode(response))
                         .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-                log.info(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
+                if (log.isDebugEnabled()) {
+                    log.debug(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
+                }
                 out.print(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
             } else {
 

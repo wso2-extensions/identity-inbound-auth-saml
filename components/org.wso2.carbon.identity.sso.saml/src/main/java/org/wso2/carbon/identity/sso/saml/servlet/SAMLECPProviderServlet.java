@@ -93,7 +93,9 @@ public class SAMLECPProviderServlet extends HttpServlet {
         soapMessage.writeTo(out);
         String strMsg = new String(out.toByteArray(), Charset.forName("UTF-8"));
 
-        log.info("ECP Request : " + strMsg);
+        if (log.isDebugEnabled()) {
+            log.debug("ECP Request : " + strMsg);
+        }
         String samlRequest = SAMLSOAPUtils.decodeSOAPMessage(soapMessage);
         SamlSSORequestWrapper samlSSORequestWrapper = new SamlSSORequestWrapper(req);
         samlSSORequestWrapper.setParameter(SAMLSSOConstants.SAML_REQUEST, samlRequest);

@@ -71,6 +71,12 @@ public class SAMLSOAPUtils {
     private static boolean isBootStrapped = false;
     public static final String SOAP_FAULT_CODE_CLIENT = "Client";
     public static final String SAOP_FAULT_CODE_SERVER = "Server";
+    public static final String SOAP_ECP_HEADER_LOCAL_NAME = "Response";
+    public static final String SOAP_ECP_HEADER_PREFIX = "ecp";
+    public static final String SOAP_ECP_HEADER_URI = "urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp";
+    public static final String SOAP_NAMESPACE_URI = "http://schemas.xmlsoap.org/soap/envelope/";
+    public static final String SOAP_HEADER_ELEMENT_ACS_URL = "AssertionConsumerServiceURL";
+    public static final String SOAP_HEADER_ELEMENT_ACTOR = "http://schemas.xmlsoap.org/soap/actor/next";
 
     /**
      *
@@ -178,7 +184,7 @@ public class SAMLSOAPUtils {
             SOAPBody body = envelope.getBody();
             SOAPFault fault = body.addFault();
             fault.setFaultString(faultString);
-            fault.setFaultCode(new QName("http://schemas.xmlsoap.org/soap/envelope/", faultcode));
+            fault.setFaultCode(new QName(SOAP_NAMESPACE_URI, faultcode));
 
         } catch (SOAPException e) {
             String err = "SOAP Exception when creating SOAP fault";
@@ -205,12 +211,12 @@ public class SAMLSOAPUtils {
             SOAPPart part = soapMsg.getSOAPPart();
             SOAPEnvelope envelope = part.getEnvelope();
             SOAPHeader header = envelope.getHeader();
-            SOAPHeaderElement soapHeaderElement = header.addHeaderElement(envelope.createName("Response",
-                    "ecp",
-                    "urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp"));
+            SOAPHeaderElement soapHeaderElement = header.addHeaderElement(envelope.createName(SOAP_ECP_HEADER_LOCAL_NAME,
+                    SOAP_ECP_HEADER_PREFIX,
+                    SOAP_ECP_HEADER_URI));
             soapHeaderElement.setMustUnderstand(true);
-            soapHeaderElement.setActor("http://schemas.xmlsoap.org/soap/actor/next");
-            soapHeaderElement.addAttribute(new QName("AssertionConsumerServiceURL"),
+            soapHeaderElement.setActor(SOAP_HEADER_ELEMENT_ACTOR);
+            soapHeaderElement.addAttribute(new QName(SOAP_HEADER_ELEMENT_ACS_URL),
                     acUrl);
             SOAPBody body = envelope.getBody();
             String rawxml = "<![CDATA[" + samlRes + "]]>";
