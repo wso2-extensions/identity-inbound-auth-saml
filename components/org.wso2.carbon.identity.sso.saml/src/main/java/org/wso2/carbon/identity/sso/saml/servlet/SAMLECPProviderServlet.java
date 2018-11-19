@@ -136,10 +136,8 @@ public class SAMLECPProviderServlet extends HttpServlet {
     private String convertSOAPMsgToOutputStream(SOAPMessage soapMessage) throws SOAPException, IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         soapMessage.writeTo(outputStream);
-        //String strMsg = new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
         String strMsg = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
         outputStream.close();
         return strMsg;
     }
-
 }

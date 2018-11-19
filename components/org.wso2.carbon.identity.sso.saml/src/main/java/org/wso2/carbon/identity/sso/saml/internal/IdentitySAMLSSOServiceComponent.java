@@ -103,7 +103,6 @@ public class IdentitySAMLSSOServiceComponent {
         } catch (Exception e) {
             String errMsg = "Error when registering SAML ECP Servlet via the HttpService.";
             log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
         }
         // Register SAML artifact resolve servlet
         Servlet samlArtifactResolveServlet = new ContextPathServletAdaptor(new SAMLArtifactResolveServlet(),
