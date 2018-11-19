@@ -63,9 +63,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
 
-            if (authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP()) {
-                String msg =
-                        "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not ECP enabled.";
+            if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
+                String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
+                                "' is not ECP enabled.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
@@ -334,5 +334,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         samlSSORespDTO.setRespString(encodedResponse);
         samlSSORespDTO.setSessionEstablished(false);
         return samlSSORespDTO;
+    }
+
+    private boolean isECPReqfromECPEnabledSP(SAMLSSOAuthnReqDTO authnReqDTO, SAMLSSOServiceProviderDO serviceProviderConfigs) {
+        return authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP();
     }
 }

@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOService;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -81,6 +82,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.soap.SOAPException;
+import javax.xml.transform.TransformerException;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
@@ -305,7 +308,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        if (req.getParameter(SAMLSSOConstants.ECP_ENABLED) == "true") {
+        if (req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+                req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
             PrintWriter out = resp.getWriter();
             try {
                 String soapResp = SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).
@@ -314,8 +318,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     log.debug(soapResp);
                 }
                 out.print(soapResp);
-            } catch (IdentityException e) {
-                SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLSOAPUtils.SOAP_FAULT_CODE_CLIENT);
+            } catch (IdentityException  e) {
+                SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_CLIENT);
+            } catch (SOAPException | TransformerException e) {
+                SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
+                String err = "Error Generating the SOAP Response";
+                log.error(err, e);
             }
         } else {
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
@@ -736,17 +744,25 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         resp.setContentType("text/html; charset=UTF-8");
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
-            if (req.getParameter(SAMLSSOConstants.ECP_ENABLED) == "true") {
-                //return the response a soap message.
+            if (req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+                    req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
                 PrintWriter out = resp.getWriter();
                 resp.setContentType("text/xml");
                 resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
                 String samlResponse = new String(Base64.getDecoder().decode(response))
                         .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-                if (log.isDebugEnabled()) {
-                    log.debug(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
+                String soapResponse = null;
+                try {
+                    soapResponse = SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl);
+                } catch (TransformerException | SOAPException e) {
+                    SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
+                    String message = "Error Generating the SOAP Response";
+                    log.error(message, e);
                 }
-                out.print(SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl));
+                if (log.isDebugEnabled()) {
+                    log.debug(soapResponse);
+                }
+                out.print(soapResponse);
             } else {
 
             String finalPage = null;
@@ -833,7 +849,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String issuer = authnReqDTO.getIssuer();
         String authenticationRequestId = authnReqDTO.getId();
         String assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
-        authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter(SAMLSSOConstants.ECP_ENABLED)));
+        authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter(SAMLECPConstants.IS_ECP_REQUEST)));
 
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);

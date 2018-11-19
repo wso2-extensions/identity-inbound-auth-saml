@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -96,9 +97,9 @@ public class IdentitySAMLSSOServiceComponent {
         }
         //register SAML ECP servlet
         Servlet samlECPServlet = new ContextPathServletAdaptor(new SAMLECPProviderServlet(),
-                SAMLSSOConstants.SAMLECP_URL);
+                SAMLECPConstants.SAMLECP_URL);
         try {
-            httpService.registerServlet(SAMLSSOConstants.SAMLECP_URL, samlECPServlet, null, null);
+            httpService.registerServlet(SAMLECPConstants.SAMLECP_URL, samlECPServlet, null, null);
         } catch (Exception e) {
             String errMsg = "Error when registering SAML ECP Servlet via the HttpService.";
             log.error(errMsg, e);

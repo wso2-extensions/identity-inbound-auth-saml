@@ -100,7 +100,7 @@ public class SAMLSSOUIUtil {
         return false;
     }
 
-    public static boolean isSamlECPEnabled(boolean isSpEdit , SAMLSSOServiceProviderDTO provider ){
+    public static boolean isSamlECPEnabled(boolean isSpEdit , SAMLSSOServiceProviderDTO provider ) {
 
         if (isSpEdit) {
             if (provider != null) {

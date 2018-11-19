@@ -176,8 +176,7 @@
         }
 
         function disableSamlECP(chkbx){
-            document.addServiceProvider.enableSAML2ECP.value = (chkbx.checked) ? true
-                    : false;
+            document.addServiceProvider.enableSAML2ECP.value = (chkbx.checked) ? true : false;
         }
 
         function disableAssertionSignature(chkbx) {
@@ -1791,7 +1790,7 @@
                                     <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
                                         <input type="checkbox" name="enableSAML2ECP" value="true"
                                                onclick="disableSamlECP(this);"
-                                                <%=(isEditSP && provider.getSamlECP() ? "checked=\"checked\"" : "")%> />
+                                                <%=(isSamlECPEnabled(isEditSP, provider) ? "checked" : "")%> />
                                         <fmt:message key="enable.saml2.ecp"/>
                                     </td>
                                 </tr>

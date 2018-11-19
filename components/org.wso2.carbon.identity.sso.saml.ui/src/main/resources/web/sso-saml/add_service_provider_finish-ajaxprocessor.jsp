@@ -117,7 +117,7 @@
             serviceProviderDTO.setEnableSAML2ArtifactBinding(true);
         }
 
-        if(Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ECP))){
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ECP))) {
             serviceProviderDTO.setSamlECP(true);
         }
 

@@ -18,34 +18,17 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ECPException;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Iterator;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPElement;
@@ -68,100 +51,45 @@ import javax.xml.transform.stream.StreamResult;
 public class SAMLSOAPUtils {
 
     private static Log log = LogFactory.getLog(SAMLSOAPUtils.class);
-    private static boolean isBootStrapped = false;
-    public static final String SOAP_FAULT_CODE_CLIENT = "Client";
-    public static final String SAOP_FAULT_CODE_SERVER = "Server";
-    public static final String SOAP_ECP_HEADER_LOCAL_NAME = "Response";
-    public static final String SOAP_ECP_HEADER_PREFIX = "ecp";
-    public static final String SOAP_ECP_HEADER_URI = "urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp";
-    public static final String SOAP_NAMESPACE_URI = "http://schemas.xmlsoap.org/soap/envelope/";
-    public static final String SOAP_HEADER_ELEMENT_ACS_URL = "AssertionConsumerServiceURL";
-    public static final String SOAP_HEADER_ELEMENT_ACTOR = "http://schemas.xmlsoap.org/soap/actor/next";
 
     /**
      *
-     * @param authReqStr Authentication Request
-     * @return
-     * @throws IdentityException
-     * @throws IdentitySAML2ECPException
-     */
-    public static XMLObject unmarshall(String authReqStr) throws IdentityException, IdentitySAML2ECPException {
-        InputStream inputStream = null;
-        doBootstrap();
-        try {
-            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
-            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            inputStream = new ByteArrayInputStream(authReqStr.trim().getBytes(StandardCharsets.UTF_8));
-            Document document = docBuilder.parse(inputStream);
-            Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
-            Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
-            return unmarshaller.unmarshall(element);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            String err = "Error in Processing the  SAML request";
-            throw new IdentitySAML2ECPException(err);
-        }
-    }
-
-    /**
-     *
-     * Decode the request recived by the /ecp servlet.
+     * Decode the request received by the samlecp servlet.
      * Validate the SOAP message
      * Check whether the SOAP body contains a valid SAML request
      * @param soapMessage
      * @return
      * @throws IdentitySAML2ECPException
      */
-    public static String decodeSOAPMessage(SOAPMessage soapMessage) throws IdentitySAML2ECPException {
-        SOAPBody body = null;
+    public static String decodeSOAPMessage(SOAPMessage soapMessage) throws IdentitySAML2ECPException,
+            TransformerException {
+        SOAPBody body;
         String samlRequest = null;
-        String message = null;
-        try {
-            body = soapMessage.getSOAPPart().getEnvelope().getBody();
-        } catch (SOAPException e) {
-            log.error("Error Processing the SOAP Mesage");
-            throw new IdentitySAML2ECPException(e.getMessage());
-        }
-        int elementSize = 0;
-        try {
+        String strElement;
+        if (soapMessage != null) {
+            try {
+                body = soapMessage.getSOAPPart().getEnvelope().getBody();
+            } catch (SOAPException e) {
+                String err = "Invalid SOAP Request";
+                throw new IdentitySAML2ECPException(err, e);
+            }
+            int elementSize = 0;
             Iterator<?> elements = body.getChildElements();
             while (elements.hasNext()) {
                 SOAPElement element = (SOAPElement) elements.next();
-                DOMSource source = new DOMSource(element);
-                StringWriter stringResult = new StringWriter();
-                try {
-                    TransformerFactory.newInstance().newTransformer().transform(source, new StreamResult(stringResult));
-                } catch (TransformerException e) {
-                    String err = "Transformer Exception";
-                    log.error(err);
-                    throw new IdentitySAML2ECPException(e.getMessage());
-                }
-                message = stringResult.toString().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-                samlRequest = Base64.getEncoder().encodeToString(message.getBytes());
+                strElement = convertSOAPElementToString(element);
+                samlRequest = Base64.getEncoder().encodeToString(strElement.getBytes());
                 elementSize += 1;
             }
-        } catch (NullPointerException e) {
-            String err = "SOAP message body cannot be null";
-            log.error(err);
-            throw new IdentitySAML2ECPException(e.getMessage());
-        }
-        if (elementSize == 0) {
-            String err = "The SOAP message body is Empty";
-            log.error(err);
-            throw new IdentitySAML2ECPException(err);
-        } else if (elementSize == 1) {
-            try {
-                unmarshall(message);
-            } catch (IdentityException e) {
-                String err =  "SOAP Message doesn't contain a valid SAML Request";
-                log.warn(err);
+            if (elementSize == 0) {
+                String err = "SOAP message body cannot be Null";
+                throw new IdentitySAML2ECPException(err);
+            } else if (elementSize > 1) {
+                String err = "SOAP Message body should Only contain a valid SAML Request";
                 throw new IdentitySAML2ECPException(err);
             }
-        } else if (elementSize > 1) {
-            String err = "SOAP Message contains more than one XML Element";
-            log.error(err);
+        } else {
+            String err = "Empty SOAP Request";
             throw new IdentitySAML2ECPException(err);
         }
         return samlRequest;
@@ -169,66 +97,50 @@ public class SAMLSOAPUtils {
 
     /**
      *
-     * Creates a SOAP Fault message including the fault coe and fault string.
+     * Creates a SOAP Fault message including the fault code and fault string.
      * @param faultString detailed error message
      * @param faultcode
      * @return
      */
-    public static String createSOAPFault(String faultString, String faultcode) {
-        SOAPMessage soapMsg =  null;
-        try {
-            MessageFactory factory = MessageFactory.newInstance();
-            soapMsg = factory.createMessage();
-            SOAPPart part = soapMsg.getSOAPPart();
-            SOAPEnvelope envelope = part.getEnvelope();
-            SOAPBody body = envelope.getBody();
-            SOAPFault fault = body.addFault();
-            fault.setFaultString(faultString);
-            fault.setFaultCode(new QName(SOAP_NAMESPACE_URI, faultcode));
-
-        } catch (SOAPException e) {
-            String err = "SOAP Exception when creating SOAP fault";
-            log.error(err);
-        }
-        if (soapMsg != null) {
-            return convertSOAPToString(soapMsg).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-        } else {
-            return null;
-        }
+    public static String createSOAPFault(String faultString, String faultcode) throws TransformerException,
+            SOAPException {
+        SOAPMessage soapMsg;
+        MessageFactory factory = MessageFactory.newInstance();
+        soapMsg = factory.createMessage();
+        SOAPPart part = soapMsg.getSOAPPart();
+        SOAPEnvelope envelope = part.getEnvelope();
+        SOAPBody body = envelope.getBody();
+        SOAPFault fault = body.addFault();
+        fault.setFaultString(faultString);
+        fault.setFaultCode(new QName(SAMLECPConstants.SOAPNamespaceURI.SOAP_NAMESPACE_URI, faultcode));
+        return convertSOAPMsgToString(soapMsg).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
     }
 
     /**
      *
-     * @param samlRes
-     * @param acUrl
+     * @param samlRes SAML Response
+     * @param acUrl Assertion Consumer URL
      * @return
      */
-    public static String createSOAPMessage(String samlRes, String acUrl) {
-        SOAPMessage soapMsg = null;
-        try {
-            MessageFactory factory = MessageFactory.newInstance();
-            soapMsg = factory.createMessage();
-            SOAPPart part = soapMsg.getSOAPPart();
-            SOAPEnvelope envelope = part.getEnvelope();
-            SOAPHeader header = envelope.getHeader();
-            SOAPHeaderElement soapHeaderElement = header.addHeaderElement(envelope.createName(SOAP_ECP_HEADER_LOCAL_NAME,
-                    SOAP_ECP_HEADER_PREFIX,
-                    SOAP_ECP_HEADER_URI));
-            soapHeaderElement.setMustUnderstand(true);
-            soapHeaderElement.setActor(SOAP_HEADER_ELEMENT_ACTOR);
-            soapHeaderElement.addAttribute(new QName(SOAP_HEADER_ELEMENT_ACS_URL),
-                    acUrl);
-            SOAPBody body = envelope.getBody();
-            String rawxml = "<![CDATA[" + samlRes + "]]>";
-            body.addTextNode(rawxml);
-        } catch (SOAPException e) {
-            log.error("SOAP Exception when creating SOAP Response");
-        }
-        if (soapMsg != null) {
-            return convertSOAPToString(soapMsg).replace("<![CDATA[", "").replace("]]>", "");
-        } else {
-            return null;
-        }
+    public static String createSOAPMessage(String samlRes, String acUrl) throws TransformerException, SOAPException {
+        SOAPMessage soapMsg;
+        MessageFactory factory = MessageFactory.newInstance();
+        soapMsg = factory.createMessage();
+        SOAPPart part = soapMsg.getSOAPPart();
+        SOAPEnvelope envelope = part.getEnvelope();
+        SOAPHeader header = envelope.getHeader();
+        SOAPHeaderElement soapHeaderElement = header.addHeaderElement(envelope.createName(
+                SAMLECPConstants.SOAPECPHeaderElements.SOAP_ECP_HEADER_LOCAL_NAME,
+                SAMLECPConstants.SOAPECPHeaderElements.SOAP_ECP_HEADER_PREFIX,
+                SAMLECPConstants.SOAPECPHeaderElements.SOAP_ECP_HEADER_URI));
+        soapHeaderElement.setMustUnderstand(true);
+        soapHeaderElement.setActor(SAMLECPConstants.SOAPHeaderElements.SOAP_HEADER_ELEMENT_ACTOR);
+        soapHeaderElement.addAttribute(new QName(SAMLECPConstants.SOAPHeaderElements.SOAP_HEADER_ELEMENT_ACS_URL),
+                acUrl);
+        SOAPBody body = envelope.getBody();
+        String rawxml = "<![CDATA[" + samlRes + "]]>";
+        body.addTextNode(rawxml);
+        return convertSOAPMsgToString(soapMsg).replace("<![CDATA[", "").replace("]]>", "");
     }
 
     /**
@@ -236,16 +148,13 @@ public class SAMLSOAPUtils {
      * @param soapMessage
      * @return
      */
-    public static String convertSOAPToString(SOAPMessage soapMessage) {
+    public static String convertSOAPMsgToString(SOAPMessage soapMessage) throws TransformerException {
+        String strElement;
         final StringWriter stringWriter = new StringWriter();
-        try {
-            TransformerFactory.newInstance().newTransformer().transform(
-                    new DOMSource(soapMessage.getSOAPPart()),
-                    new StreamResult(stringWriter));
-        } catch (TransformerException e) {
-            throw new RuntimeException(e);
-        }
-        return stringWriter.toString();
+        TransformerFactory.newInstance().newTransformer().transform(
+                new DOMSource(soapMessage.getSOAPPart()), new StreamResult(stringWriter));
+        strElement = stringWriter.toString();
+        return strElement;
     }
 
     /**
@@ -254,28 +163,38 @@ public class SAMLSOAPUtils {
      * @param faultsring SOAP Fault code
      * @param faultcode SOAP fault code
      */
-    public static void sendSOAPFault(HttpServletResponse resp, String faultsring , String faultcode) {
+    public static void sendSOAPFault(HttpServletResponse resp, String faultsring, String faultcode) {
         PrintWriter out = null;
+        String soapFault = null;
         try {
             out = resp.getWriter();
-        } catch (IOException e) {
-            log.error("An IO Exception Occured ");
+            soapFault = SAMLSOAPUtils.createSOAPFault(faultsring, faultcode);
+        } catch (SOAPException | TransformerException | IOException e) {
+            String message = "Error Generating the SOAP Fault";
+            log.error(message, e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("text/html;charset=UTF-8");
         }
-        String soapFault = SAMLSOAPUtils.createSOAPFault(faultsring, faultcode);
         log.error(soapFault);
         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.setContentType("text/html;charset=UTF-8");
-        out.print(soapFault);
+        if (out != null) {
+            out.print(soapFault);
+        }
     }
 
-    public static void doBootstrap() {
-        if (!isBootStrapped) {
-            try {
-                DefaultBootstrap.bootstrap();
-                isBootStrapped = true;
-            } catch (ConfigurationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
-            }
-        }
+    /**
+     * Converts SOAPElement to String.
+     * @param element SOAPElement
+     * @return
+     * @throws TransformerException
+     */
+    public static String convertSOAPElementToString(SOAPElement element) throws TransformerException {
+        String strElement;
+        StringWriter stringWriter = new StringWriter();
+        TransformerFactory.newInstance().newTransformer().transform(
+                new DOMSource(element), new StreamResult(stringWriter));
+        strElement = stringWriter.toString().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
+        return strElement;
     }
 }

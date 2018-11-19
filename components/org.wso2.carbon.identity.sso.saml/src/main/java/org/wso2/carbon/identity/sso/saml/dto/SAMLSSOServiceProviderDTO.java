@@ -432,9 +432,11 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
         return certificateContent;
     }
 
-    public boolean isSamlECP(){ return samlECP;}
+    public boolean isSamlECP() {
+        return samlECP;
+    }
 
-    public void setSamlECP(boolean samlECP){
+    public void setSamlECP(boolean samlECP) {
         this.samlECP = samlECP;
     }
 
