@@ -73,8 +73,10 @@
         if ("editServiceProvider".equals(SAMLSSOUIUtil.getSafeInput(request, "SPAction"))) {
             isEditingSP = true;
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuer"));
+            serviceProviderDTO.setIssuerEntityValue(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuerEntityValue"));
         } else {
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "issuer"));
+            serviceProviderDTO.setIssuerEntityValue(SAMLSSOUIUtil.getSafeInput(request, "issuerEntityValue"));
         }
 
         serviceProviderDTO.setAssertionConsumerUrls(SAMLSSOUIUtil.getSafeInput(request, "assertionConsumerURLs")
@@ -249,6 +251,14 @@
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SIG_VALIDATION))) {
             serviceProviderDTO.setDoValidateSignatureInRequests(true);
             serviceProviderDTO.setCertAlias(SAMLSSOUIUtil.getSafeInput(request, "alias"));
+        }
+
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_IDP_ENTITY_ID_ALIAS))) {
+            if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS))) {
+                serviceProviderDTO.setIdpEntityIDAliasEnabled(true);
+                serviceProviderDTO.setIdpEntityIDAlias(SAMLSSOUIUtil.getSafeInput(request,
+                        SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS));
+            }
         }
 
         if (isEditingSP) {

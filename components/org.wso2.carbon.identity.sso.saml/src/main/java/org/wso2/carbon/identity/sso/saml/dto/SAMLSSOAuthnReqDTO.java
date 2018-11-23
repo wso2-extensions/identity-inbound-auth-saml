@@ -37,6 +37,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private AuthenticatedUser user;
     private String password;
     private String issuer;
+    private String issuerEntityValue;
     private String subject;
     private String assertionConsumerURL;
     private String[] assertionConsumerURLs;
@@ -656,5 +657,23 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
             this.properties = new Properties();
         }
         this.properties.putAll(properties);
+    }
+
+    /**
+     * Get issuer entity value.
+     *
+     * @return issuer entity value
+     */
+    public String getIssuerEntityValue() {
+        return issuerEntityValue;
+    }
+
+    /**
+     * Set issuer entity value..
+     *
+     * @param issuerEntityValue issuer entity value
+     */
+    public void setIssuerEntityValue(String issuerEntityValue) {
+        this.issuerEntityValue = issuerEntityValue;
     }
 }

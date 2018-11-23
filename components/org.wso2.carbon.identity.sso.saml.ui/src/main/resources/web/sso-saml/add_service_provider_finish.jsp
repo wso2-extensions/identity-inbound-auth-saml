@@ -62,8 +62,10 @@
         if ("editServiceProvider".equals(SAMLSSOUIUtil.getSafeInput(request, "SPAction"))) {
             isEditingSP = true;
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuer"));
+            serviceProviderDTO.setIssuerEntityValue(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuerEntityValue"));
         } else {
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "issuer"));
+            serviceProviderDTO.setIssuerEntityValue(SAMLSSOUIUtil.getSafeInput(request, "issuerEntityValue"));
         }
         serviceProviderDTO.setAssertionConsumerUrl(SAMLSSOUIUtil.getSafeInput(request, "assrtConsumerURL"));
         if ("true".equals(request.getParameter("useFullQualifiedUsername"))) {
@@ -200,6 +202,10 @@
         if("true".equals(request.getParameter("enableSigValidation"))){
             serviceProviderDTO.setDoValidateSignatureInRequests(true);
             serviceProviderDTO.setCertAlias(SAMLSSOUIUtil.getSafeInput(request, "alias"));
+        }
+        if("true".equals(request.getParameter("enableIdpEntityIDAlias"))) {
+            serviceProviderDTO.setIdpEntityIDAliasEnabled(true);
+            serviceProviderDTO.setIdpEntityIDAlias(SAMLSSOUIUtil.getSafeInput(request, "idpEntityIDAlias"));
         }
         if (isEditingSP) {
             status = client.updateServiceProvider(serviceProviderDTO);

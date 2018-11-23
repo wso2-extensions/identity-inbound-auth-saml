@@ -86,8 +86,21 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
-            if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
-                                                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+            String issuerUniqueID = SAMLSSOUtil.getIssuerUniqueIDInThreadLocal();
+            if (issuerUniqueID != null && SAMLSSOUtil.isValidSAMLIssuer(splitAppendedTenantDomain(validationResponse
+                    .getIssuer()), issuerUniqueID, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                if (log.isDebugEnabled()) {
+                    String message = "A SAML request with issuerUniqueID: " + issuerUniqueID + " is received. A valid " +
+                            "Service Provider configuration with the Issuer: " + issuerUniqueID +
+                            " and Issuer Entity Value: " + validationResponse.getIssuer() + " is" +
+                            " identified for this issuerUniqueID";
+                    log.debug(message);
+                }
+                //SAML request's Issuer is mapped to SAML SP configurations's Issuer Entity Value
+                validationResponse.setIssuerEntityValue(issuer.getValue());
+                validationResponse.setIssuer(issuerUniqueID);
+            } else if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
                 String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is" +
                                  " not registered. Service Provider should be registered in advance";
                 log.error(message);
@@ -97,6 +110,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setValid(false);
                 return validationResponse;
             }
+
+            SAMLSSOUtil.setIssuerUniqueIdInThreadLocal(validationResponse.getIssuer());
 
             // Issuer Format attribute
             if ((StringUtils.isNotBlank(issuer.getFormat())) &&

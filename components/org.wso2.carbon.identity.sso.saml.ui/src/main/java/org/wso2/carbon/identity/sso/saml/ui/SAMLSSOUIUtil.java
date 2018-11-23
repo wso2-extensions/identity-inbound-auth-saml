@@ -134,4 +134,15 @@ public class SAMLSSOUIUtil {
         }
         return false;
     }
+
+    public static boolean isIdpEntityIdAliasProvided(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getIdpEntityIDAliasEnabled();
+            }
+        }
+        return false;
+    }
 }
+

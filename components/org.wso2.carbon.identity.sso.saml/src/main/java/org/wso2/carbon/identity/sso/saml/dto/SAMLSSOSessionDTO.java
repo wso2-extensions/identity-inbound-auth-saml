@@ -35,6 +35,7 @@ public class SAMLSSOSessionDTO implements Serializable {
     private String relayState;
     private String requestMessageString;
     private String issuer;
+    private String issuerEntityValue;
     private String requestID;
     private String subject;
     private String relyingPartySessionId;
@@ -337,5 +338,23 @@ public class SAMLSSOSessionDTO implements Serializable {
             this.properties = new Properties();
         }
         this.properties.putAll(properties);
+    }
+
+    /**
+     * Get issuer entity value.
+     *
+     * @return issuer entity value
+     */
+    public String getIssuerEntityValue() {
+        return issuerEntityValue;
+    }
+
+    /**
+     * Set issuer entity value..
+     *
+     * @param issuerEntityValue issuer entity value
+     */
+    public void setIssuerEntityValue(String issuerEntityValue) {
+        this.issuerEntityValue = issuerEntityValue;
     }
 }

@@ -181,14 +181,16 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
     protected void setConditions(SAMLSSOAuthnReqDTO authReqDTO,  DateTime currentTime, DateTime notOnOrAfter,  Assertion samlAssertion) {
         AudienceRestriction audienceRestriction = new AudienceRestrictionBuilder()
                 .buildObject();
-        Audience issuerAudience = new AudienceBuilder().buildObject();
-        issuerAudience.setAudienceURI(authReqDTO.getIssuerWithDomain());
-        audienceRestriction.getAudiences().add(issuerAudience);
+        addAudience(audienceRestriction, authReqDTO.getIssuerWithDomain());
+        if (StringUtils.isNotEmpty(authReqDTO.getIssuerEntityValue())) {
+            addAudience(audienceRestriction, authReqDTO.getIssuerEntityValue());
+        }
         if (authReqDTO.getRequestedAudiences() != null) {
             for (String requestedAudience : authReqDTO.getRequestedAudiences()) {
                 Audience audience = new AudienceBuilder().buildObject();
                 audience.setAudienceURI(requestedAudience);
                 audienceRestriction.getAudiences().add(audience);
+                addAudience(audienceRestriction, requestedAudience);
             }
         }
         Conditions conditions = new ConditionsBuilder().buildObject();
@@ -197,6 +199,12 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         conditions.getAudienceRestrictions().add(audienceRestriction);
 
         samlAssertion.setConditions(conditions);
+    }
+
+    private void addAudience(AudienceRestriction audienceRestriction, String requestedAudience) {
+        Audience audience = new AudienceBuilder().buildObject();
+        audience.setAudienceURI(requestedAudience);
+        audienceRestriction.getAudiences().add(audience);
     }
 
     protected void addAttributeStatements(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion) throws IdentityException{

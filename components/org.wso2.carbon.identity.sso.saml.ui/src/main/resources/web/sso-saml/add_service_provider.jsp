@@ -79,6 +79,15 @@
                 return false;
             }
 
+            var field = document.getElementsByName("issuerEntityValue")[0];
+            var entityValue = field.value;
+            if (entityValue.indexOf("@") > -1) {
+                CARBON.showWarningDialog(
+                    "<fmt:message key='sp.entity.value.cannot.have.at'/>", null,
+                    null);
+                return false;
+            }
+
             var assertionConsumerURLs = null;
             if ($("#assertionConsumerURLTblRow").length) {
                 assertionConsumerURLs = $('#assertionConsumerURLs').val();
@@ -150,6 +159,18 @@
             }
 
         }
+
+        function disableIdpEntityIDAlias(chkbx) {
+            if ($(chkbx).is(':checked')) {
+                $("#idpEntityIDAlias").prop('disabled', false);
+                document.addServiceProvider.enableIdpEntityIDAlias.value = true;
+            } else {
+                $("#idpEntityIDAlias").prop('disabled', true);
+                $("#idpEntityIDAlias").val("");
+                document.addServiceProvider.enableIdpEntityIDAlias.value = false;
+            }
+        }
+
         function doValidationUrl() {
             var fld = document.getElementsByName("metadataFromUrl")[0];
             var value = fld.value;
@@ -777,6 +798,28 @@
                                                value="<%=isEditSP? Encode.forHtmlAttribute(provider.getIssuer()):""%>"/>
                                     </td>
                                 </tr>
+                                <%
+                                    if (!isEditSP || (isEditSP && StringUtils.isNotEmpty(provider.getIssuerEntityValue()))) { %>
+                                <tr>
+                                    <td style="width: 300px;"
+                                        +
+                                        title="Identifier of the service provider specified in the SAML Authentication Request">
+                                        <fmt:message key="sp.issuer.entity.value"/>
+                                    </td>
+                                    <td><input type="text" id="issuerEntityValue" name="issuerEntityValue"
+                                               maxlength="100"
+                                               class="text-box-big"
+                                               value="<%=isEditSP && provider.getIssuerEntityValue() != null ?
+                                               Encode.forHtmlAttribute(provider.getIssuerEntityValue()):""%>" <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
+                                        <input type="hidden" id="hiddenIssuerEntityValue" name="hiddenIssuerEntityValue"
+                                               value="<%=isEditSP && provider.getIssuerEntityValue() != null ?
+                                               Encode.forHtmlAttribute(provider.getIssuerEntityValue()):""%>"/>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sp.issuer.entity.value.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <%}%>
                                 <tr id="assertionConsumerURLInputRow">
                                     <td title="URL to which the browser should be redirected to after the authentication is successful">
                                         <fmt:message key="sp.assertionConsumerURLs"/>
@@ -1779,6 +1822,32 @@
                                             <% } %>
                                             <fmt:message key="sp.enable.signature.validation.artifact.resolve"/>
                                         </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2"
+                                        title="Enable IDP Entity ID Alias, so that the issuer of the SAML response is overidden.">
+                                        <input type="checkbox"
+                                               name="enableIdpEntityIDAlias"
+                                               value="<%=isIdpEntityIdAliasProvided(isEditSP, provider) ? "true" : "false"%>"
+                                               onclick="disableIdpEntityIDAlias(this);"
+                                                <%= isIdpEntityIdAliasProvided(isEditSP, provider) ? "checked" : ""%>/>
+                                        <fmt:message
+                                                key="enable.idp.entity.id.alias"/></td>
+                                </tr>
+                                <tr>
+                                    <td
+                                            style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <fmt:message key="idp.entity.id.alias"/>
+                                    </td>
+                                    <td><input type="text" id="idpEntityIDAlias" name="idpEntityIDAlias"
+                                               value="<%=(isEditSP && StringUtils.isNotBlank(provider.getIdpEntityIDAlias())) ?
+                                               Encode.forHtmlAttribute(provider.getIdpEntityIDAlias()) : ""%>"
+                                               class="text-box-big" <%=(isEditSP && provider.getIdpEntityIDAliasEnabled()) ? "" :
+                                               "disabled=\"disabled\""%>>
+                                        <div class="sectionHelp" style="margin-top: 2px;">
+                                            <fmt:message key="enable.idp.entity.id.alias.help"/>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>

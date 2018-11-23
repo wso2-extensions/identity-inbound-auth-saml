@@ -187,7 +187,14 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error(message);
         }
 
+        if (serviceProviderDO.getIssuerEntityValue() != null && serviceProviderDO.getIssuerEntityValue().contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Entity Value";
+            log.error(message);
+            throw IdentityException.error(message);
+        }
+
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
+        serviceProviderDO.setIssuerEntityValue(serviceProviderDTO.getIssuerEntityValue());
         serviceProviderDO.setAssertionConsumerUrls(serviceProviderDTO.getAssertionConsumerUrls());
         serviceProviderDO.setDefaultAssertionConsumerUrl(serviceProviderDTO.getDefaultAssertionConsumerUrl());
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
@@ -246,6 +253,8 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setIdpInitSLOReturnToURLs(serviceProviderDTO.getIdpInitSLOReturnToURLs());
         serviceProviderDO.setDoEnableEncryptedAssertion(serviceProviderDTO.isDoEnableEncryptedAssertion());
         serviceProviderDO.setDoValidateSignatureInRequests(serviceProviderDTO.isDoValidateSignatureInRequests());
+        serviceProviderDO.setIdpEntityIDAliasEnabled(serviceProviderDTO.isIdpEntityIDAliasEnabled());
+        serviceProviderDO.setIdpEntityIDAlias(serviceProviderDTO.getIdpEntityIDAlias());
         return serviceProviderDO;
     }
 
@@ -265,7 +274,14 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error(message);
         }
 
+        if (serviceProviderDO.getIssuerEntityValue() != null && serviceProviderDO.getIssuerEntityValue().contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Entity Value";
+            log.error(message);
+            throw IdentityException.error(message);
+        }
+
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
+        serviceProviderDTO.setIssuerEntityValue(serviceProviderDO.getIssuerEntityValue());
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
         serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
@@ -325,7 +341,8 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setIdPInitSSOEnabled(serviceProviderDO.isIdPInitSSOEnabled());
         serviceProviderDTO.setDoEnableEncryptedAssertion(serviceProviderDO.isDoEnableEncryptedAssertion());
         serviceProviderDTO.setDoValidateSignatureInRequests(serviceProviderDO.isDoValidateSignatureInRequests());
-
+        serviceProviderDTO.setIdpEntityIDAliasEnabled(serviceProviderDO.isIdpEntityIDAliasEnabled());
+        serviceProviderDTO.setIdpEntityIDAlias(serviceProviderDO.getIdpEntityIDAlias());
         return serviceProviderDTO;
     }
 
@@ -346,6 +363,7 @@ public class SAMLSSOConfigAdmin {
                 SAMLSSOServiceProviderDO providerDO = providersSet[i];
                 SAMLSSOServiceProviderDTO providerDTO = new SAMLSSOServiceProviderDTO();
                 providerDTO.setIssuer(providerDO.getIssuer());
+                providerDTO.setIssuerEntityValue(providerDO.getIssuerEntityValue());
                 providerDTO.setAssertionConsumerUrls(providerDO.getAssertionConsumerUrls());
                 providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
                 providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
@@ -388,6 +406,8 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setIdpInitSLOReturnToURLs(providerDO.getIdpInitSLOReturnToURLs());
                 providerDTO.setDoEnableEncryptedAssertion(providerDO.isDoEnableEncryptedAssertion());
                 providerDTO.setDoValidateSignatureInRequests(providerDO.isDoValidateSignatureInRequests());
+                providerDTO.setIdpEntityIDAliasEnabled(providerDO.isIdpEntityIDAliasEnabled());
+                providerDTO.setIdpEntityIDAlias(providerDO.getIdpEntityIDAlias());
                 serviceProviders[i] = providerDTO;
             }
         } catch (IdentityException e) {

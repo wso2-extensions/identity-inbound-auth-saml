@@ -189,6 +189,7 @@ public class SAMLSSOUtil {
     private static String sPInitSSOAuthnRequestValidatorClassName = null;
     private static String iDPInitSSOAuthnRequestValidatorClassName = null;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
+    private static ThreadLocal issuerUniqueId = new ThreadLocal();
     private static String idPInitLogoutRequestProcessorClassName = null;
     private static String idPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
@@ -518,6 +519,11 @@ public class SAMLSSOUtil {
 
     public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {
 
+        Issuer issuerAliasFromCurrentSP = getIssuerAliasFromSP(tenantDomain);
+        if (issuerAliasFromCurrentSP != null) {
+            return issuerAliasFromCurrentSP;
+        }
+
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = null;
         IdentityProvider identityProvider;
@@ -560,6 +566,28 @@ public class SAMLSSOUtil {
         issuer.setValue(idPEntityId);
         issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
         return issuer;
+    }
+
+    /**
+     * Override Issuer value with IdPEntityIDAlias
+     *
+     * @param tenantDomain
+     * @return issuer with its value set to IdP Entity ID Alias if entityID overriding is enabled, or null otherwise
+     * @throws IdentityException
+     */
+    private static Issuer getIssuerAliasFromSP(String tenantDomain) throws IdentityException {
+        String currentSP = getIssuerUniqueIDInThreadLocal();
+        if (StringUtils.isEmpty(currentSP)) {
+            return null;
+        }
+        SAMLSSOServiceProviderDO sp = getSAMLSSOServiceProvider(currentSP, tenantDomain);
+        if (sp != null && sp.isIdpEntityIDAliasEnabled() && StringUtils.isNotEmpty(sp.getIdpEntityIDAlias())) {
+            Issuer issuer = new IssuerBuilder().buildObject();
+            issuer.setValue(sp.getIdpEntityIDAlias());
+            issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
+            return issuer;
+        }
+        return null;
     }
 
     /**
@@ -1549,6 +1577,24 @@ public class SAMLSSOUtil {
         SAMLSSOUtil.tenantDomainInThreadLocal.remove();
     }
 
+    public static String getIssuerUniqueIDInThreadLocal () {
+        if (SAMLSSOUtil.issuerUniqueId == null) {
+            // this is the default behavior.
+            return null;
+        }
+        return (String) SAMLSSOUtil.issuerUniqueId.get();
+    }
+
+    public static void setIssuerUniqueIdInThreadLocal (String issuerUniqueIdInThreadLocal){
+        if (issuerUniqueIdInThreadLocal != null) {
+            SAMLSSOUtil.issuerUniqueId.set(issuerUniqueIdInThreadLocal);
+        }
+    }
+
+    public static void removeIssuerUniqueIdInThreadLocal() {
+        SAMLSSOUtil.issuerUniqueId.remove();
+    }
+
     public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
 
         if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain.trim())) {
@@ -1662,7 +1708,67 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
-    }
+        }
+
+    /**
+     * Check whether an SP with an Issuer Entity Value similar to the Issuer of SAML request exists.
+     *
+     * @param issuerName    Issuer of SAML request.
+     * @param issuerUniqueID Issuer specified in SP's inbound SAML SSO configuration.
+     * @param tenantDomain
+     * @return true, if an SP exists with an IssuerEntityValue similar to the Issuer of SAML request, false otherwise.
+     */
+        public static boolean isValidSAMLIssuer (String issuerName, String issuerUniqueID, String tenantDomain)
+                 throws IdentitySAML2SSOException {
+            if (isSAMLIssuerExists(issuerUniqueID, tenantDomain)) {
+                SAMLSSOServiceProviderDO sp = getSAMLSSOServiceProvider(issuerUniqueID, tenantDomain);
+                return issuerName.equals(sp.getIssuerEntityValue());
+            }
+            return false;
+        }
+
+    /**
+     * Get SAML SSO SP with given Issuer value in given tenant domain from registry.
+     *
+     * @param issuerName
+     * @param tenantDomain
+     * @return SAMLSSOServiceProviderDO
+     * @exception IdentitySAML2SSOException
+     */
+        private static SAMLSSOServiceProviderDO getSAMLSSOServiceProvider (String issuerName, String tenantDomain)
+                    throws IdentitySAML2SSOException {
+
+            int tenantId;
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                tenantId = MultitenantConstants.SUPER_TENANT_ID;
+            } else {
+                try {
+                    tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+                } catch (UserStoreException e) {
+                    throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
+                            tenantDomain, e);
+                }
+            }
+
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                privilegedCarbonContext.setTenantId(tenantId);
+                privilegedCarbonContext.setTenantDomain(tenantDomain);
+
+                IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                        (RegistryType.SYSTEM_CONFIGURATION);
+                return persistenceManager.getServiceProvider(registry, issuerName);
+            } catch (IdentityException e) {
+                throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
+                        "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
 
     public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws
             IdentityException {

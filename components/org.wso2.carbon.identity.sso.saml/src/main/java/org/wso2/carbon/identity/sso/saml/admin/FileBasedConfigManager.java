@@ -28,8 +28,6 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -133,7 +131,9 @@ public class FileBasedConfigManager {
             Element elem = (Element) nodeSet.item(i);
             SAMLSSOServiceProviderDO spDO = new SAMLSSOServiceProviderDO();
             spDO.setIssuer(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ISSUER));
-
+            if ((getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ISSUER_ENTITY_VALUE)) != null) {
+                spDO.setIssuerEntityValue(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ISSUER_ENTITY_VALUE));
+            }
             List<String> assertionConsumerUrls = new ArrayList<>();
             for(String assertionConsumerUrl : getTextValueList(elem, SAMLSSOConstants
                     .FileBasedSPConfig.ASSERTION_CONSUMER_URL)) {
@@ -222,6 +222,11 @@ public class FileBasedConfigManager {
             spDO.setDoSignResponse(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants
                     .FileBasedSPConfig.SIGN_RESPONSE)));
             spDO.setIdPInitSSOEnabled(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.IDP_INIT)));
+            if (Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ENABLE_IDP_ENTITY_ID_ALIAS)) &&
+                    (getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.IDP_ENTITY_ID_ALIAS)) != null) {
+                spDO.setIdpEntityIDAliasEnabled(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.ENABLE_IDP_ENTITY_ID_ALIAS)));
+                spDO.setIdpEntityIDAlias(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.IDP_ENTITY_ID_ALIAS));
+            }
             serviceProviders[i] = spDO;
         }
         return serviceProviders;

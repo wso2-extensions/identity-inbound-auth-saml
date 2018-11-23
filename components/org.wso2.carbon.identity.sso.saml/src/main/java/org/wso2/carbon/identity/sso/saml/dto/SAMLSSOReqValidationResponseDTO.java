@@ -34,6 +34,7 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     private boolean isValid;
     private boolean doSingleLogout;
     private String issuer;
+    private String issuerEntityValue;
     private String subject;
     private String assertionConsumerURL;
     private String response;
@@ -423,4 +424,23 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
         }
         this.properties.putAll(properties);
     }
+
+    /**
+     * Get issuer entity value.
+     *
+     * @return issuer entity value
+     */
+    public String getIssuerEntityValue() {
+        return issuerEntityValue;
+    }
+
+    /**
+     * Set issuer entity value.
+     *
+     * @param issuerEntityValue issuer entity value
+     */
+    public void setIssuerEntityValue(String issuerEntityValue) {
+        this.issuerEntityValue = issuerEntityValue;
+    }
+
 }

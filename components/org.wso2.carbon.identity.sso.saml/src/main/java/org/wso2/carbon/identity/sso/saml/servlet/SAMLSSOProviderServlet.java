@@ -117,6 +117,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
             SAMLSSOUtil.removeTenantDomainFromThreadLocal();
+            SAMLSSOUtil.removeIssuerUniqueIdInThreadLocal();
         }
     }
 
@@ -129,6 +130,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
             SAMLSSOUtil.removeTenantDomainFromThreadLocal();
+            SAMLSSOUtil.removeIssuerUniqueIdInThreadLocal();
         }
     }
 
@@ -183,12 +185,18 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
 
+            // 'issuerUniqueId' is the 'Issuer' value in SP's inbound SAML configuration.
+            // Used when 'Issuer' of SAML request is different from 'Issuer' value in SP's inbound SAML configuration.
+            String issuerUniqueId = req.getParameter(SAMLSSOConstants.INBOUND_ISSUER_UNIQUE_ID);
+            SAMLSSOUtil.setIssuerUniqueIdInThreadLocal(issuerUniqueId);
+
             if (sessionDataKey != null) { //Response from common authentication framework.
                 SAMLSSOSessionDTO sessionDTO = getSessionDataFromCache(sessionDataKey);
 
                 if (sessionDTO != null) {
                     setSPAttributeToRequest(req, sessionDTO.getIssuer(), sessionDTO.getTenantDomain());
                     SAMLSSOUtil.setTenantDomainInThreadLocal(sessionDTO.getTenantDomain());
+                    SAMLSSOUtil.setIssuerUniqueIdInThreadLocal(sessionDTO.getIssuer());
                     if (sessionDTO.isInvalidLogout()) {
                         String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.
                                 encode(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
@@ -540,6 +548,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setRelayState(relayState);
         sessionDTO.setRequestMessageString(signInRespDTO.getRequestMessageString());
         sessionDTO.setIssuer(signInRespDTO.getIssuer());
+        sessionDTO.setIssuerEntityValue(signInRespDTO.getIssuerEntityValue());
         sessionDTO.setRequestID(signInRespDTO.getId());
         sessionDTO.setSubject(signInRespDTO.getSubject());
         sessionDTO.setRelyingPartySessionId(signInRespDTO.getRpSessionId());
@@ -1384,6 +1393,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());
         authnReqDTO.setId(sessionDTO.getRequestID());
         authnReqDTO.setIssuer(SAMLSSOUtil.splitAppendedTenantDomain(sessionDTO.getIssuer()));
+        authnReqDTO.setIssuerEntityValue(sessionDTO.getIssuerEntityValue());
         authnReqDTO.setSubject(sessionDTO.getSubject());
         authnReqDTO.setRpSessionId(sessionDTO.getRelyingPartySessionId());
         authnReqDTO.setRequestMessageString(sessionDTO.getRequestMessageString());

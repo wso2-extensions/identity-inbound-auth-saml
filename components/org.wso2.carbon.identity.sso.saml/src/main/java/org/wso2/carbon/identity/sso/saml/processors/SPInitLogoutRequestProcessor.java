@@ -106,6 +106,12 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             String issuer = logoutRequest.getIssuer().getValue();
 
+            // Replace SP's issuer value with the value given as 'Issuer' in SAML2 SSO configuration.
+            String issuerUniqueID = SAMLSSOUtil.getIssuerUniqueIDInThreadLocal();
+            if (issuerUniqueID != null) {
+                issuer = issuerUniqueID;
+            }
+
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();

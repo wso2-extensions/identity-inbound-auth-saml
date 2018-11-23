@@ -35,6 +35,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
+    private String issuerEntityValue;
     @XmlElementWrapper(name="assertionConsumerUrls")
     @XmlElement(name = "assertionConsumerUrl")
     private String[] assertionConsumerUrls;
@@ -77,6 +78,8 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String keyEncryptionAlgorithmURI;
     private boolean enableSAML2ArtifactBinding;
     private boolean doValidateSignatureInArtifactResolve;
+    private  boolean idpEntityIDAliasEnabled;
+    private  String idpEntityIDAlias;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -429,5 +432,29 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     public String getCertificateContent() {
 
         return certificateContent;
+    }
+
+    public String getIssuerEntityValue() {
+        return issuerEntityValue;
+    }
+
+    public void setIssuerEntityValue(String issuerEntityValue) {
+        this.issuerEntityValue = issuerEntityValue;
+    }
+
+    public boolean isIdpEntityIDAliasEnabled() {
+        return idpEntityIDAliasEnabled;
+    }
+
+    public void setIdpEntityIDAliasEnabled(boolean idpEntityIDAliasEnabled) {
+        this.idpEntityIDAliasEnabled = idpEntityIDAliasEnabled;
+    }
+
+    public String getIdpEntityIDAlias() {
+        return idpEntityIDAlias;
+    }
+
+    public void setIdpEntityIDAlias(String idpEntityIDAlias) {
+        this.idpEntityIDAlias = idpEntityIDAlias;
     }
 }
