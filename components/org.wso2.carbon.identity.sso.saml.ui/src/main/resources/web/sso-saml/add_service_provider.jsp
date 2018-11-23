@@ -683,6 +683,26 @@
         }
     %>
 
+    <script>
+        function downloadIDPMetadata() {
+            jQuery('#idp-mgt-get-IDP-form').submit();
+        }
+
+        function setMetadataProperties() {
+            var authReqSigned = 'false';
+            if (document.getElementById("enableSigValidation").checked) {
+                authReqSigned = 'true';
+            }
+            var samlAuthRequestSigned = document.getElementById("samlAuthRequestSigned");
+            samlAuthRequestSigned.value = authReqSigned;
+        }
+    </script>
+    <form id="idp-mgt-get-IDP-form" name="idp-mgt-get-IDP-form" method="post"
+          action="download_metadata_finish-ajaxprocessor.jsp">
+        <input type="hidden" id="samlAuthRequestSigned" name="samlAuthRequestSigned"
+               value=""/>
+    </form>
+
     <div id="middle">
         <h2>
             <fmt:message key="saml.sso.register.service.provider"/>
@@ -1244,7 +1264,8 @@
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
-                                               name="enableSigValidation" value="true" checked="checked"/>
+                                               name="enableSigValidation" value="true" checked="checked"
+                                               onclick="setMetadataProperties()"/>
                                         <fmt:message
                                                 key='validate.signature'/>
                                     </td>
@@ -1253,7 +1274,8 @@
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
-                                               name="enableSigValidation" value="true"/>
+                                               name="enableSigValidation" value="true"
+                                               onclick="setMetadataProperties()"/>
                                         <fmt:message
                                                 key='validate.signature'/>
                                     </td>
@@ -1784,6 +1806,12 @@
                                     </td>
                                 </tr>
                                 <%}%>
+                                <tr>
+                                    <td>
+                                        <input class="button" type="button" onclick="downloadIDPMetadata()"
+                                               value="<fmt:message key="saml.sso.download.metadata"/>"/>
+                                    </td>
+                                </tr>
 
                                 <!-- Enable SAML2 Artifact Binding -->
                                 <tr>
