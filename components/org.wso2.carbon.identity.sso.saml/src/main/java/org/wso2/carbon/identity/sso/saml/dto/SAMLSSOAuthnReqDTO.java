@@ -669,7 +669,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     }
 
     /**
-     * Set issuer entity value..
+     * Set issuer entity value.
      *
      * @param issuerEntityValue issuer entity value
      */

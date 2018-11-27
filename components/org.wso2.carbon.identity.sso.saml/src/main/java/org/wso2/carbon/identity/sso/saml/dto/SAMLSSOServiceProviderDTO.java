@@ -434,26 +434,56 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
         return certificateContent;
     }
 
+    /**
+     * Get issuer entity value.
+     *
+     * @return
+     */
     public String getIssuerEntityValue() {
         return issuerEntityValue;
     }
 
+    /**
+     * Set issuer entity value
+     *
+     * @param issuerEntityValue
+     */
     public void setIssuerEntityValue(String issuerEntityValue) {
         this.issuerEntityValue = issuerEntityValue;
     }
 
+    /**
+     * Get idpEntityIDAliasEnabled
+     *
+     * @return
+     */
     public boolean isIdpEntityIDAliasEnabled() {
         return idpEntityIDAliasEnabled;
     }
 
+    /**
+     * Set idpEntityIDAliasEnabled
+     *
+     * @param idpEntityIDAliasEnabled
+     */
     public void setIdpEntityIDAliasEnabled(boolean idpEntityIDAliasEnabled) {
         this.idpEntityIDAliasEnabled = idpEntityIDAliasEnabled;
     }
 
+    /**
+     * Get idp entity id alias value
+     *
+     * @return
+     */
     public String getIdpEntityIDAlias() {
         return idpEntityIDAlias;
     }
 
+    /**
+     * Set idp entity id alias value
+     *
+     * @param idpEntityIDAlias
+     */
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
         this.idpEntityIDAlias = idpEntityIDAlias;
     }

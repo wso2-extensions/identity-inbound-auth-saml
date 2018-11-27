@@ -187,9 +187,6 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         }
         if (authReqDTO.getRequestedAudiences() != null) {
             for (String requestedAudience : authReqDTO.getRequestedAudiences()) {
-                Audience audience = new AudienceBuilder().buildObject();
-                audience.setAudienceURI(requestedAudience);
-                audienceRestriction.getAudiences().add(audience);
                 addAudience(audienceRestriction, requestedAudience);
             }
         }
