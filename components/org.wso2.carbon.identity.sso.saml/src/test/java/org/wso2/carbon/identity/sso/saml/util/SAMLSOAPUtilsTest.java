@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
-
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
@@ -36,7 +35,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import static org.testng.Assert.assertEquals;
 
-
+/**
+ * Unit test Cases for SAML SOAP Util.
+ */
 public class SAMLSOAPUtilsTest {
 
     @Test
