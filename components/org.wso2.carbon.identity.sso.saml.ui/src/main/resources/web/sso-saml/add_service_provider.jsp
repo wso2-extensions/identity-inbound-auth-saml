@@ -1768,12 +1768,6 @@
                                     </td>
                                 </tr>
                                 <%}%>
-                                <tr>
-                                    <td>
-                                        <input class="button" type="button" onclick="downloadIDPMetadata()"
-                                               value="<fmt:message key="saml.sso.download.metadata"/>"/>
-                                    </td>
-                                </tr>
 
                                 <!-- Enable SAML2 Artifact Binding -->
                                 <tr>
@@ -1820,6 +1814,14 @@
                                                onclick="disableSamlECP(this);"
                                                 <%=(isSamlECPEnabled(isEditSP, provider) ? "checked" : "")%> />
                                         <fmt:message key="enable.saml2.ecp"/>
+                                    </td>
+                                </tr>
+
+                                <!-- IDP Metadata Download button, ***This should be at the bottom of this table -->
+                                <tr>
+                                    <td>
+                                        <input class="button" type="button" onclick="downloadIDPMetadata()"
+                                               value="<fmt:message key="saml.sso.download.metadata"/>"/>
                                     </td>
                                 </tr>
                             </table>
