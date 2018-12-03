@@ -24,8 +24,8 @@ import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.impl.NameIDPolicyImpl;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
@@ -86,8 +86,21 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
-            if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
-                                                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
+            String issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifier(validationResponse.getIssuer(), issuerQualifier);
+            if (issuerWithQualifier != null && SAMLSSOUtil.isValidSAMLIssuer(splitAppendedTenantDomain(validationResponse
+                    .getIssuer()), issuerWithQualifier, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                if (log.isDebugEnabled()) {
+                    String message = "A SAML request with issuer: " + validationResponse.getIssuer() + " is received." +
+                            " A valid Service Provider configuration with the Issuer: " + validationResponse.getIssuer() +
+                            " and Issuer Qualifier: " + issuerQualifier + " is identified by the name: " + issuerWithQualifier;
+                    log.debug(message);
+                }
+                //Validation response's Issuer is set to Issuer With Qualifier
+                validationResponse.setIssuerQualifier(issuerQualifier);
+                validationResponse.setIssuer(issuerWithQualifier);
+            } else if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
                 String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is" +
                                  " not registered. Service Provider should be registered in advance";
                 log.error(message);
@@ -97,6 +110,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setValid(false);
                 return validationResponse;
             }
+
+            SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(validationResponse.getIssuer());
 
             // Issuer Format attribute
             if ((StringUtils.isNotBlank(issuer.getFormat())) &&

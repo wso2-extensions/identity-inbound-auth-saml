@@ -27,6 +27,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -105,6 +106,13 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             }
 
             String issuer = logoutRequest.getIssuer().getValue();
+
+            // Replace SP's issuer value with the actual issuer value in SAML SP registry.
+            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
+            if (issuerQualifier != null) {
+                issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer , issuerQualifier);
+                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
+            }
 
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager

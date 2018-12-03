@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.ui;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
 
 import java.util.ArrayList;
@@ -146,5 +147,18 @@ public class SAMLSSOUIUtil {
             return DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE;
         }
         return false;
+    }
+
+    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
+                SAMLSSOUIConstants.QUALIFIER_ID);
+        return issuerWithoutQualifier;
+    }
+
+    public static String getIssuerWithQualifier(String issuer, String qualifier) {
+
+        String issuerWithQualifier = issuer + SAMLSSOUIConstants.QUALIFIER_ID + qualifier;
+        return issuerWithQualifier;
     }
 }

@@ -50,6 +50,9 @@ public class TestConstants {
     public static final String GENERAL_STRING = "WSO2 is an open source technology provider that increases the " +
             "agility of digital businesses and enterprises engaging in digital transformation.";
     public static final String SAML_ECP_ACS_URL = "https://localhost/Shibboleth.sso/SAML2/ECP";
+    public static final String IDP_ENTITY_ID_ALIAS = "wso2.is.com";
+    public static final String ISSUER_QUALIFIER = "wso2.com";
+    public static final String ISSUER_WITH_QUALIFIER= "travelocity.com:urn:qualifier:wso2.com";
 
     public static final String CLAIM_URI1 = "http://wso2.org/claimuri1";
     public static final String CLAIM_URI2 = "http://wso2.org/claimuri2";

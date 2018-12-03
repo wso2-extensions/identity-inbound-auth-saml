@@ -73,8 +73,10 @@
         if ("editServiceProvider".equals(SAMLSSOUIUtil.getSafeInput(request, "SPAction"))) {
             isEditingSP = true;
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuer"));
+            serviceProviderDTO.setIssuerQualifier(SAMLSSOUIUtil.getSafeInput(request, "hiddenIssuerQualifier"));
         } else {
             serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getSafeInput(request, "issuer"));
+            serviceProviderDTO.setIssuerQualifier(SAMLSSOUIUtil.getSafeInput(request, "issuerQualifier"));
         }
 
         serviceProviderDTO.setAssertionConsumerUrls(SAMLSSOUIUtil.getSafeInput(request, "assertionConsumerURLs")
@@ -254,16 +256,29 @@
             serviceProviderDTO.setDoValidateSignatureInRequests(true);
             serviceProviderDTO.setCertAlias(SAMLSSOUIUtil.getSafeInput(request, "alias"));
         }
+    
+        if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS))) {
+            serviceProviderDTO.setIdpEntityIDAlias(SAMLSSOUIUtil.getSafeInput(request,
+                    SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS));
+        }
 
         if (isEditingSP) {
             client.removeServiceProvier(serviceProviderDTO.getIssuer());
+            if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
+                serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getIssuerWithoutQualifier(serviceProviderDTO.getIssuer()));
+            }
         }
         status = client.addServiceProvider(serviceProviderDTO);
         if (status) {
-            attributeConsumingServiceIndex = client.getServiceProvider(serviceProviderDTO.getIssuer()).getAttributeConsumingServiceIndex();
+            String issuer = serviceProviderDTO.getIssuer();
+            if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
+                issuer = SAMLSSOUIUtil.getIssuerWithQualifier(serviceProviderDTO.getIssuer(),
+                        serviceProviderDTO.getIssuerQualifier());
+            }
+            attributeConsumingServiceIndex = client.getServiceProvider(issuer).getAttributeConsumingServiceIndex();
         }
         samlSsoServuceProviderConfigBean.clearBean();
-
+        
         String message;
         if (status) {
             if (isEditingSP) {
@@ -284,31 +299,35 @@
 <script>
     <%
     boolean applicationComponentFound = CarbonUIUtil.isContextRegistered(config, "/application/");
-
+    String issuerName = serviceProviderDTO.getIssuer();
+    if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())){
+        issuerName = SAMLSSOUIUtil.getIssuerWithQualifier(serviceProviderDTO.getIssuer(),
+        serviceProviderDTO.getIssuerQualifier());
+    }
     if (applicationComponentFound) {
         if (status) {
         if(attributeConsumingServiceIndex != null){
     %>
     location.href = '../application/configure-service-provider.jsp?action=update&display=samlIssuer&spName=' +
     '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&samlIssuer=' +
-    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(serviceProviderDTO.getIssuer()))%>' +
+    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(issuerName))%>' +
     '&attrConServIndex=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(attributeConsumingServiceIndex))%>';
     <%} else {%>
     location.href = '../application/configure-service-provider.jsp?action=update&display=samlIssuer&spName=' +
     '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&samlIssuer=' +
-    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(serviceProviderDTO.getIssuer()))%>';
+    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(issuerName))%>';
     <%}%>
 
     <% } else { if(attributeConsumingServiceIndex != null){ %>
     location.href = '../application/configure-service-provider.jsp?action=delete&display=samlIssuer&spName=' +
     '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&samlIssuer=' +
-    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(serviceProviderDTO.getIssuer()))%>&attrConServIndex=' +
+    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(issuerName))%>&attrConServIndex=' +
     '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(attributeConsumingServiceIndex))%>';
 
     <%}else{%>
     location.href = '../application/configure-service-provider.jsp?action=delete&display=samlIssuer&spName=' +
     '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&samlIssuer=' +
-    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(serviceProviderDTO.getIssuer()))%>';
+    '<%=Encode.forJavaScriptBlock(Encode.forUriComponent(issuerName))%>';
     <%}%>
     <% } } else { %>
     location.href = 'manage_service_providers.jsp';

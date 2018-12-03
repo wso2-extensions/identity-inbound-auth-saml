@@ -187,7 +187,14 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error(message);
         }
 
+        if (serviceProviderDO.getIssuerQualifier() != null && serviceProviderDO.getIssuerQualifier().contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Qualifier Value";
+            log.error(message);
+            throw IdentityException.error(message);
+        }
+
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
+        serviceProviderDO.setIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
         serviceProviderDO.setAssertionConsumerUrls(serviceProviderDTO.getAssertionConsumerUrls());
         serviceProviderDO.setDefaultAssertionConsumerUrl(serviceProviderDTO.getDefaultAssertionConsumerUrl());
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
@@ -246,6 +253,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setIdpInitSLOReturnToURLs(serviceProviderDTO.getIdpInitSLOReturnToURLs());
         serviceProviderDO.setDoEnableEncryptedAssertion(serviceProviderDTO.isDoEnableEncryptedAssertion());
         serviceProviderDO.setDoValidateSignatureInRequests(serviceProviderDTO.isDoValidateSignatureInRequests());
+        serviceProviderDO.setIdpEntityIDAlias(serviceProviderDTO.getIdpEntityIDAlias());
         return serviceProviderDO;
     }
 
@@ -265,7 +273,14 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error(message);
         }
 
+        if (serviceProviderDO.getIssuerQualifier() != null && serviceProviderDO.getIssuerQualifier().contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Qualifier Value";
+            log.error(message);
+            throw IdentityException.error(message);
+        }
+
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
+        serviceProviderDTO.setIssuerQualifier(serviceProviderDO.getIssuerQualifier());
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
         serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
@@ -326,7 +341,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setIdPInitSSOEnabled(serviceProviderDO.isIdPInitSSOEnabled());
         serviceProviderDTO.setDoEnableEncryptedAssertion(serviceProviderDO.isDoEnableEncryptedAssertion());
         serviceProviderDTO.setDoValidateSignatureInRequests(serviceProviderDO.isDoValidateSignatureInRequests());
-
+        serviceProviderDTO.setIdpEntityIDAlias(serviceProviderDO.getIdpEntityIDAlias());
         return serviceProviderDTO;
     }
 
@@ -347,6 +362,7 @@ public class SAMLSSOConfigAdmin {
                 SAMLSSOServiceProviderDO providerDO = providersSet[i];
                 SAMLSSOServiceProviderDTO providerDTO = new SAMLSSOServiceProviderDTO();
                 providerDTO.setIssuer(providerDO.getIssuer());
+                providerDTO.setIssuerQualifier(providerDO.getIssuerQualifier());
                 providerDTO.setAssertionConsumerUrls(providerDO.getAssertionConsumerUrls());
                 providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
                 providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
@@ -390,6 +406,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setIdpInitSLOReturnToURLs(providerDO.getIdpInitSLOReturnToURLs());
                 providerDTO.setDoEnableEncryptedAssertion(providerDO.isDoEnableEncryptedAssertion());
                 providerDTO.setDoValidateSignatureInRequests(providerDO.isDoValidateSignatureInRequests());
+                providerDTO.setIdpEntityIDAlias(providerDO.getIdpEntityIDAlias());
                 serviceProviders[i] = providerDTO;
             }
         } catch (IdentityException e) {

@@ -122,6 +122,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
             SAMLSSOUtil.removeTenantDomainFromThreadLocal();
+            SAMLSSOUtil.removeIssuerWithQualifierInThreadLocal();
         }
     }
 
@@ -134,6 +135,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.removeSaaSApplicationThreaLocal();
             SAMLSSOUtil.removeUserTenantDomainThreaLocal();
             SAMLSSOUtil.removeTenantDomainFromThreadLocal();
+            SAMLSSOUtil.removeIssuerWithQualifierInThreadLocal();
         }
     }
 
@@ -188,12 +190,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
 
+            String issuerQualifier = req.getParameter(SAMLSSOConstants.INBOUND_ISSUER_QUALIFIER);
+            SAMLSSOUtil.setIssuerQualifier(issuerQualifier);
+
             if (sessionDataKey != null) { //Response from common authentication framework.
                 SAMLSSOSessionDTO sessionDTO = getSessionDataFromCache(sessionDataKey);
 
                 if (sessionDTO != null) {
                     setSPAttributeToRequest(req, sessionDTO.getIssuer(), sessionDTO.getTenantDomain());
                     SAMLSSOUtil.setTenantDomainInThreadLocal(sessionDTO.getTenantDomain());
+                    SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(sessionDTO.getIssuer());
                     if (sessionDTO.isInvalidLogout()) {
                         String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.
                                 encode(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
@@ -564,6 +570,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setRelayState(relayState);
         sessionDTO.setRequestMessageString(signInRespDTO.getRequestMessageString());
         sessionDTO.setIssuer(signInRespDTO.getIssuer());
+        sessionDTO.setIssuerQualifier(signInRespDTO.getIssuerQualifier());
         sessionDTO.setRequestID(signInRespDTO.getId());
         sessionDTO.setSubject(signInRespDTO.getSubject());
         sessionDTO.setRelyingPartySessionId(signInRespDTO.getRpSessionId());
@@ -1430,6 +1437,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authnReqDTO.setAssertionConsumerURL(sessionDTO.getAssertionConsumerURL());
         authnReqDTO.setId(sessionDTO.getRequestID());
         authnReqDTO.setIssuer(SAMLSSOUtil.splitAppendedTenantDomain(sessionDTO.getIssuer()));
+        authnReqDTO.setIssuerQualifier(sessionDTO.getIssuerQualifier());
         authnReqDTO.setSubject(sessionDTO.getSubject());
         authnReqDTO.setRpSessionId(sessionDTO.getRelyingPartySessionId());
         authnReqDTO.setRequestMessageString(sessionDTO.getRequestMessageString());
