@@ -49,11 +49,14 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import javax.crypto.SecretKey;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.MessageFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -210,5 +213,24 @@ public class TestUtils {
     public static Certificate getCertificate(KeyStore keyStore,String alias) throws KeyStoreException{
 
         return keyStore.getCertificate(alias);
+    }
+
+    public static SOAPMessage getSOAPBindedSAMLAuthnRequest(){
+        SOAPMessage soapMessage=  null;
+        String stringMsg = "<S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body><samlp:AuthnRequest " +
+                "xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" AssertionConsumerServiceURL=\"https://localhost/Shib" +
+                "boleth.sso/SAML2/ECP\" ID=\"_ec1025e786e6fff206ef63909029202a\" IssueInstant=\"2018-10-22T11:41:10Z\" Pro" +
+                "tocolBinding=\"urn:oasis:names:tc:SAML:2.0:bindings:PAOS\" Version=\"2.0\"><saml:Issuer xmlns:saml=\"urn:" +
+                "oasis:names:tc:SAML:2.0:assertion\">https://localhost/shibboleth</saml:Issuer><samlp:NameIDPolicy AllowCr" +
+                "eate=\"1\"/><samlp:Scoping><samlp:IDPList><samlp:IDPEntry ProviderID=\"https://idp.is.com\"/></samlp:IDPL" +
+                "ist></samlp:Scoping></samlp:AuthnRequest></S:Body></S:Envelope>";
+        try {
+            InputStream is = new ByteArrayInputStream(stringMsg.getBytes(Charset.forName("UTF-8")));
+            soapMessage = MessageFactory.newInstance().createMessage(null, is);
+        } catch (Exception e){
+            log.error("Error Creating the SOAP message");
+        }
+        return soapMessage;
+
     }
 }

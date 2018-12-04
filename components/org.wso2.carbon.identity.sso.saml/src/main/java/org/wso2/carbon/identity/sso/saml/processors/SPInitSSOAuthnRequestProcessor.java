@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.processors;
 
+import org.apache.axis2.transport.http.ServletBasedOutTransportInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,6 +58,14 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 String msg =
                         "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not registered." +
                                 " Service Provider should be registered in advance.";
+                log.warn(msg);
+                return buildErrorResponse(authnReqDTO.getId(),
+                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
+            }
+
+            if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
+                String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
+                                "' is not ECP enabled.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
@@ -325,5 +334,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         samlSSORespDTO.setRespString(encodedResponse);
         samlSSORespDTO.setSessionEstablished(false);
         return samlSSORespDTO;
+    }
+
+    private boolean isECPReqfromECPEnabledSP(SAMLSSOAuthnReqDTO authnReqDTO, SAMLSSOServiceProviderDO serviceProviderConfigs) {
+        return authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP();
     }
 }

@@ -174,6 +174,11 @@
             document.addServiceProvider.enableResponseSignature.value = (chkbx.checked) ? true
                     : false;
         }
+
+        function disableSamlECP(chkbx){
+            document.addServiceProvider.enableSAML2ECP.value = (chkbx.checked) ? true : false;
+        }
+
         function disableAssertionSignature(chkbx) {
             document.addServiceProvider.enableAssertionSignature.value = (chkbx.checked) ? true
                     : false;
@@ -1801,6 +1806,14 @@
                                             <% } %>
                                             <fmt:message key="sp.enable.signature.validation.artifact.resolve"/>
                                         </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
+                                        <input type="checkbox" name="enableSAML2ECP" value="true"
+                                               onclick="disableSamlECP(this);"
+                                                <%=(isSamlECPEnabled(isEditSP, provider) ? "checked" : "")%> />
+                                        <fmt:message key="enable.saml2.ecp"/>
                                     </td>
                                 </tr>
 
