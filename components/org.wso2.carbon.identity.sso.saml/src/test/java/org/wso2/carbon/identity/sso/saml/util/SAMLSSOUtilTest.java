@@ -120,6 +120,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     }
 
     private void prepareForGetSAMLSSOServiceProvider() throws Exception {
+
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(TestConstants.ISSUER_WITH_QUALIFIER);
         samlssoServiceProviderDO.setIssuerQualifier(TestConstants.ISSUER_QUALIFIER);
