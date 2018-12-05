@@ -359,6 +359,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Test
     public void testIsValidSAMLIssuer() throws Exception {
+
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         SAMLSSOUtil.setRealmService(realmService);
@@ -371,6 +372,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Test
     public void testGetIssuerWhenEntityIDAliasEnabled() throws Exception {
+
         SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
         prepareForGetIssuer();
         prepareForGetSAMLSSOServiceProvider();
@@ -378,5 +380,4 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
     }
-
 }
