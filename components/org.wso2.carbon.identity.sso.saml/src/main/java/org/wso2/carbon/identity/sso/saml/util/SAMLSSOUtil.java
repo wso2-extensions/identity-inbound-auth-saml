@@ -1728,7 +1728,8 @@ public class SAMLSSOUtil {
         }
 
     /**
-     * Check whether an SP with an Issuer Entity Value similar to the Issuer of SAML request exists.
+     * Check whether an SP with an "Issuer with qualifier" exists and whether issuer value without qualifier is similar
+     * to the Issuer of SAML request.
      *
      * @param issuerName          Issuer of SAML request.
      * @param issuerWithQualifier Issuer value saved in the registry.
@@ -1740,8 +1741,7 @@ public class SAMLSSOUtil {
             throws IdentitySAML2SSOException {
 
         if (isSAMLIssuerExists(issuerWithQualifier, tenantDomain)) {
-            SAMLSSOServiceProviderDO sp = getSAMLSSOServiceProvider(issuerWithQualifier, tenantDomain);
-            return issuerName.equals(getIssuerWithoutQualifier(sp.getIssuer()));
+            return issuerName.equals(getIssuerWithoutQualifier(issuerWithQualifier));
         }
         return false;
     }

@@ -359,19 +359,6 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testIsValidSAMLIssuer() throws Exception {
-
-        when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        SAMLSSOUtil.setRealmService(realmService);
-        prepareForGetSAMLSSOServiceProvider();
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        boolean isSAMLIssuerValidated = SAMLSSOUtil.isValidSAMLIssuer(TestConstants.TRAVELOCITY_ISSUER,
-                TestConstants.ISSUER_WITH_QUALIFIER, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        assertTrue(isSAMLIssuerValidated, "SAML Issuer should be validated");
-    }
-
-    @Test
     public void testGetIssuerWhenEntityIDAliasEnabled() throws Exception {
 
         SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
