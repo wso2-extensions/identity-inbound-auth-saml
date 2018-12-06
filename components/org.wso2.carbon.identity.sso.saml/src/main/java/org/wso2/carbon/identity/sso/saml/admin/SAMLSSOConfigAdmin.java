@@ -188,7 +188,7 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error(message);
         }
 
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) && serviceProviderDO.getIssuerQualifier()
+        if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier()) && serviceProviderDTO.getIssuerQualifier()
                 .contains("@")) {
             String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
             log.error(message);
