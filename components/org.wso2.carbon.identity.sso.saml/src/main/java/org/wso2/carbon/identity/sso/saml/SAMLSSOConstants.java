@@ -126,7 +126,7 @@ public class SAMLSSOConstants {
         public static final String SERVICE_PROVIDERS = "ServiceProviders";
         public static final String SERVICE_PROVIDER = "ServiceProvider";
         public static final String ISSUER = "Issuer";
-        public static final String ISSUER_QUALIFIER = "IssuerQualifier";
+        public static final String ISSUER_QUALIFIER = "SpQualifier";
         public static final String NAMESPACE_PREFIX = "samlp";
         public static final String ASSERTION_CONSUMER_URL = "AssertionConsumerServiceURL";
         public static final String ACS_URLS = "AssertionConsumerServiceURLs";

@@ -25,6 +25,7 @@ import org.opensaml.saml1.core.NameIdentifier;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -189,7 +190,7 @@ public class SAMLSSOConfigAdmin {
 
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) && serviceProviderDO.getIssuerQualifier()
                 .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Qualifier Value";
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
             log.error(message);
             throw IdentityException.error(message);
         }
@@ -276,7 +277,7 @@ public class SAMLSSOConfigAdmin {
 
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) && serviceProviderDO.getIssuerQualifier()
                 .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Issuer Qualifier Value";
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
             log.error(message);
             throw IdentityException.error(message);
         }
