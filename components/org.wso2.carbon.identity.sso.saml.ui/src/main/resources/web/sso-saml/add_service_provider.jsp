@@ -77,6 +77,11 @@
                         "<fmt:message key='sp.entity.id.cannot.have.at'/>", null,
                         null);
                 return false;
+            } else if (value.includes("urn:sp:qualifier")) {
+                CARBON.showWarningDialog(
+                    "<fmt:message key='sp.entity.id.cannot.have.qualifier.id'/>", null,
+                    null);
+                return false;
             }
 
             var field = document.getElementsByName("issuerQualifier")[0];
