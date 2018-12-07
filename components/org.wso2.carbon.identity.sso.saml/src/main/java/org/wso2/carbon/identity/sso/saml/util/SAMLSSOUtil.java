@@ -584,7 +584,7 @@ public class SAMLSSOUtil {
         if (StringUtils.isEmpty(currentSP)) {
             return null;
         }
-        SAMLSSOServiceProviderDO sp = getSPConfig(currentSP, tenantDomain);
+        SAMLSSOServiceProviderDO sp = getSPConfig(tenantDomain, currentSP);
         if (sp != null && StringUtils.isNotBlank(sp.getIdpEntityIDAlias())) {
             Issuer issuer = new IssuerBuilder().buildObject();
             issuer.setValue(sp.getIdpEntityIDAlias());
