@@ -584,7 +584,7 @@ public class SAMLSSOUtil {
         if (StringUtils.isEmpty(currentSP)) {
             return null;
         }
-        SAMLSSOServiceProviderDO sp = getSAMLSSOServiceProvider(currentSP, tenantDomain);
+        SAMLSSOServiceProviderDO sp = getSPConfig(currentSP, tenantDomain);
         if (sp != null && StringUtils.isNotBlank(sp.getIdpEntityIDAlias())) {
             Issuer issuer = new IssuerBuilder().buildObject();
             issuer.setValue(sp.getIdpEntityIDAlias());
@@ -1744,49 +1744,6 @@ public class SAMLSSOUtil {
             return issuerName.equals(getIssuerWithoutQualifier(issuerWithQualifier));
         }
         return false;
-    }
-
-    /**
-     * Get SAML SSO SP with given Issuer value in given tenant domain from registry.
-     *
-     * @param issuerName
-     * @param tenantDomain
-     * @return SAMLSSOServiceProviderDO
-     * @throws IdentitySAML2SSOException
-     */
-    private static SAMLSSOServiceProviderDO getSAMLSSOServiceProvider(String issuerName, String tenantDomain)
-            throws IdentitySAML2SSOException {
-
-        int tenantId;
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            tenantId = MultitenantConstants.SUPER_TENANT_ID;
-        } else {
-            try {
-                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            } catch (UserStoreException e) {
-                throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the domain : " +
-                        tenantDomain, e);
-            }
-        }
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            privilegedCarbonContext.setTenantId(tenantId);
-            privilegedCarbonContext.setTenantDomain(tenantDomain);
-
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                    (RegistryType.SYSTEM_CONFIGURATION);
-            return persistenceManager.getServiceProvider(registry, issuerName);
-        } catch (IdentityException e) {
-            throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
-                    "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
     }
 
     public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws

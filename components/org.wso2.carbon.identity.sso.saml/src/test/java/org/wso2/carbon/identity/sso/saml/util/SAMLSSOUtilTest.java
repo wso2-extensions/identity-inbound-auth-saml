@@ -119,7 +119,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
     }
 
-    private void prepareForGetSAMLSSOServiceProvider() throws Exception {
+    private void prepareForGetSPConfig() throws Exception {
 
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(TestConstants.ISSUER_WITH_QUALIFIER);
@@ -363,7 +363,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
         prepareForGetIssuer();
-        prepareForGetSAMLSSOServiceProvider();
+        prepareForGetSPConfig();
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
