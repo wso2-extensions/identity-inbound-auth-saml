@@ -82,6 +82,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private Properties properties;
     private boolean doValidateSignatureInArtifactResolve;
     private boolean samlECPEnabled;
+    private long createdTimeStamp;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -665,5 +666,13 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
             this.properties = new Properties();
         }
         this.properties.putAll(properties);
+    }
+
+    public long getCreatedTimeStamp() {
+        return createdTimeStamp;
+    }
+
+    public void setCreatedTimeStamp(long createdTimeStamp) {
+        this.createdTimeStamp = createdTimeStamp;
     }
 }
