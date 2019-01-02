@@ -218,7 +218,13 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
      */
     protected void addAuthStatement(SAMLSSOAuthnReqDTO authReqDTO, String sessionId, Assertion samlAssertion) {
 
-        DateTime authnInstant = new DateTime();
+        DateTime authnInstant;
+
+        if (authReqDTO.getCreatedTimeStamp() != 0L) {
+            authnInstant = new DateTime(authReqDTO.getCreatedTimeStamp());
+        } else {
+            authnInstant = new DateTime();
+        }
 
         if (authReqDTO.getIdpAuthenticationContextProperties().get(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF) != null
                 && !authReqDTO.getIdpAuthenticationContextProperties().get(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF)
