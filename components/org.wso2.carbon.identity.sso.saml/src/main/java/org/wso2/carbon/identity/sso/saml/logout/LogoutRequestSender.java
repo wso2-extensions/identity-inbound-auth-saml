@@ -231,7 +231,7 @@ public class LogoutRequestSender {
                                     " is returned with " + HttpStatus.getStatusText(response.getStatusLine().getStatusCode()));
                         }
                         isSuccessfullyLogout = validateResponse(response, logoutReqDTO.getCertificateAlias(),
-                                logoutReqDTO.getTenantDomain());
+                                logoutReqDTO.getTenantDomain(), logoutReqDTO.getAssertionConsumerURL());
                         break;
                     } else {
                         if (statusCode != 0) {
@@ -269,12 +269,23 @@ public class LogoutRequestSender {
          * @throws IOException Stream error.
          * @throws IdentityException Decoding error.
          */
-        private boolean validateResponse(HttpResponse httpResponse, String certificateAlias, String tenantDomain)
+        private boolean validateResponse(HttpResponse httpResponse, String certificateAlias, String tenantDomain,
+                                         String assertionConsumerURL)
                 throws IOException, IdentityException {
 
             HttpEntity entity = httpResponse.getEntity();
             String content = EntityUtils.toString(entity);
             String decodedContent = SAMLSSOUtil.decodeForPost(content);
+
+            // If the relying party is not sending a valid saml logout response. Ignore this to support backward
+            // compatibility.
+            if (isInvalidLogoutResponse(decodedContent)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No valid SAML logout response received from: " + assertionConsumerURL);
+                }
+                return true;
+            }
+
             XMLObject xmlObject = SAMLSSOUtil.unmarshall(decodedContent);
 
             // This should be a SAML logout response.
@@ -317,6 +328,11 @@ public class LogoutRequestSender {
 
             return false;
         }
+    }
+
+    private boolean isInvalidLogoutResponse(String decodedContent) {
+
+        return decodedContent != null && !decodedContent.contains(LogoutResponse.DEFAULT_ELEMENT_LOCAL_NAME);
     }
 }
 
