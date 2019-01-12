@@ -33,12 +33,17 @@ import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.LogoutResponse;
+import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.SessionIndex;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml2.core.impl.LogoutRequestBuilder;
+import org.opensaml.saml2.core.impl.NameIDBuilder;
+import org.opensaml.saml2.core.impl.SessionIndexBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
@@ -60,6 +65,7 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -97,23 +103,28 @@ import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProces
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
+import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.validators.IdPInitSSOAuthnRequestValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectSignatureValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
+import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -124,8 +135,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,6 +170,7 @@ public class SAMLSSOUtil {
     private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
+    public static final String SECURITY_KEY_STORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
 
     static {
         for (char c = 'a'; c <= 'z'; c++)
@@ -1999,5 +2016,121 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    public static LogoutRequest buildLogoutRequest(SAMLSSOServiceProviderDO serviceProviderDO, String subject,
+                                                   String sessionId) throws IdentityException {
+
+        SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
+
+        if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
+        } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+        } else {
+            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+        }
+
+        LogoutRequest logoutReq = new LogoutRequestBuilder().buildObject();
+
+        logoutReq.setID(SAMLSSOUtil.createID());
+
+        String destination = logoutReqDTO.getAssertionConsumerURL();
+        if (destination != null) {
+            logoutReq.setDestination(destination);
+        }
+
+        DateTime issueInstant = new DateTime();
+        logoutReq.setIssueInstant(issueInstant);
+        logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(serviceProviderDO.getTenantDomain()));
+        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + 5 * 60 * 1000));
+
+        NameID nameId = new NameIDBuilder().buildObject();
+        nameId.setFormat(serviceProviderDO.getNameIDFormat());
+        nameId.setValue(subject);
+        logoutReq.setNameID(nameId);
+
+        SessionIndex sessionIndex = new SessionIndexBuilder().buildObject();
+        sessionIndex.setSessionIndex(sessionId);
+        logoutReq.getSessionIndexes().add(sessionIndex);
+
+        logoutReq.setReason(SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER);
+
+        return logoutReq;
+    }
+
+    // this method is to be removed
+    public static byte[] setSignature(String queryString) throws IdentityException, KeyStoreException {
+
+        byte[] signedString = null;
+
+        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(SECURITY_KEY_STORE_KEY_ALIAS);
+        if (StringUtils.isBlank(keyAlias)) {
+            throw new IdentityException("Invalid file configurations. The key alias is not found.");
+        }
+
+        KeyStoreAdmin keyAdmin = null;
+        try {
+            keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID,
+                    SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
+        } catch (RegistryException e) {
+            log.error("Error in setting keystore admin", e);
+        }
+
+        try {
+            String path = CarbonUtils.getCarbonHome() + "/repository/resources/security/wso2carbon.jks";
+            FileInputStream cert = new FileInputStream(path);
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(cert, "wso2carbon".toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+
+            java.security.Signature instance = java.security.Signature.getInstance("SHA1withRSA");
+            instance.initSign(privateKey);
+            instance.update(queryString.getBytes());
+            signedString = instance.sign();
+        } catch (IOException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | SignatureException e) {
+            log.error("Error in setting signature.", e);
+        }
+
+        return signedString;
+    }
+
+    public static List<SAMLSSOServiceProviderDO> getOtherSessionParticipants(String sessionId, String issuer) {
+
+        SessionInfoData sessionInfoData = getSessionInfoData(sessionId);
+        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = new ArrayList<>();
+
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+            String key = entry.getKey();
+            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+
+            // logout request should not be created for the issuer
+            if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
+                samlssoServiceProviderDOList.add(serviceProviderDO);
+            }
+        }
+
+        return samlssoServiceProviderDOList;
+    }
+
+    public static SessionInfoData getSessionInfoData(String sessionId){
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+
+        return sessionInfoData;
+    }
+
+    public static String getSessionIndex(String sessionId){
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+
+        return sessionIndex;
     }
 }

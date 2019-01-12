@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.sso.saml.servlet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opensaml.saml2.core.LogoutRequest;
+import org.opensaml.saml2.core.impl.LogoutResponseImpl;
+import org.opensaml.xml.XMLObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -58,6 +61,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
+import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -68,8 +72,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -172,6 +178,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String spEntityID = req.getParameter(SAMLSSOConstants.QueryParameter
                 .SP_ENTITY_ID.toString());
         String samlRequest = req.getParameter(SAMLSSOConstants.SAML_REQUEST);
+        String samlResponse = req.getParameter(SAMLSSOConstants.SAML_RESP);
         String sessionDataKey = getSessionDataKey(req);
         String slo = req.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
         Object flowStatus = req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
@@ -218,7 +225,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         String defaultLogoutLocation = SAMLSSOUtil.getDefaultLogoutEndpoint();
                         resp.sendRedirect(FrameworkUtils.getRedirectURL(defaultLogoutLocation + queryParams, req));
                     } else if (sessionDTO.isLogoutReq()) {
-                        handleLogoutResponseFromFramework(req, resp, sessionDTO);
+                        handleLogoutResponseFromFramework(req, resp, sessionDTO, sessionId);
                     } else {
                         handleAuthenticationReponseFromFramework(req, resp, sessionId, sessionDTO);
                     }
@@ -238,6 +245,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 handleIdPInitSSO(req, resp, relayState, queryString, authMode, sessionId, isPost, (slo != null));
             } else if (samlRequest != null) {// SAMLRequest received. SP initiated SSO
                 handleSPInitSSO(req, resp, queryString, relayState, authMode, samlRequest, sessionId, isPost);
+            } else if (samlResponse != null) {// SAMLResponse received.
+                handleSAMLResponse(req, resp, samlResponse);
             } else {
                 log.debug("Invalid request message or single logout message ");
 
@@ -279,6 +288,31 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, null, req, resp);
         }
+    }
+
+    private void handleSAMLResponse(HttpServletRequest req, HttpServletResponse resp, String samlResponse) throws IdentityException {
+
+        XMLObject response;
+
+        response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(samlResponse));
+        String inResponseToId = ((LogoutResponseImpl) response).getInResponseTo();
+
+//        String sessionIndex = SAMLSLOParticipantCache.getInstance().getValueFromCache(inResponseToId);
+//
+//        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+//                .getPersistenceManager();
+//        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+//        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+//
+//        sessionsList.remove(((LogoutResponseImpl) response).getIssuer().getValue());
+//
+//        Boolean hasMoreFrontChannelSPs = false;
+//
+//        if (hasMoreFrontChannelSPs){
+//            // doFrontChannelSLO()
+//        } else {
+//            // send response to initial issuer
+//        }
     }
 
     /**
@@ -1012,9 +1046,35 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-    private void handleLogoutResponseFromFramework(HttpServletRequest request,
-                                                   HttpServletResponse response, SAMLSSOSessionDTO sessionDTO)
+    private void handleLogoutResponseFromFramework(HttpServletRequest request, HttpServletResponse response,
+                                                   SAMLSSOSessionDTO sessionDTO, String sessionId)
             throws ServletException, IOException, IdentityException {
+
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = SAMLSSOUtil.
+                getOtherSessionParticipants(sessionId, sessionDTO.getIssuer());
+
+        // Get the SP list and check for other session participants that have enabled single logout
+        if (samlssoServiceProviderDOList != null) {
+
+            for (SAMLSSOServiceProviderDO entry : samlssoServiceProviderDOList) {
+
+                Boolean isFrontChannelSLOEnabled = true;
+                //check entry.isFrontChannelSLOEnabled()
+                if (isFrontChannelSLOEnabled){
+                    doFrontChannelSLO(response, entry, sessionId, sessionDTO.getIssuer());
+                    break;
+                } else {
+                    // doBackChannelSLO()
+                }
+            }
+        } else {
+            respondToOriginalIssuer(request, response, sessionDTO);
+        }
+    }
+
+    private void respondToOriginalIssuer(HttpServletRequest request, HttpServletResponse response,
+                                         SAMLSSOSessionDTO sessionDTO) throws ServletException, IOException,
+            IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
@@ -1507,4 +1567,66 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     tenantDomain, e);
         }
     }
+
+    private void doFrontChannelSLO(HttpServletResponse response, SAMLSSOServiceProviderDO samlssoServiceProviderDO,
+                                   String sessionId, String issuer) throws IdentityException {
+
+        SessionInfoData sessionInfoData = SAMLSSOUtil.getSessionInfoData(sessionId);
+        String subject = sessionInfoData.getSubject(samlssoServiceProviderDO.getIssuer());
+        String sessionIndex = SAMLSSOUtil.getSessionIndex(sessionId);
+
+        LogoutRequest logoutRequest = SAMLSSOUtil.buildLogoutRequest(samlssoServiceProviderDO, subject, sessionIndex);
+
+        String redirectUrl = createHttpQueryStringForRedirect(logoutRequest, samlssoServiceProviderDO);
+
+        try {
+            response.sendRedirect(redirectUrl);
+        } catch (IOException e) {
+            log.error("Error in sending the redirect.", e);
+        }
+    }
+
+    private String createHttpQueryStringForRedirect(LogoutRequest logoutRequest,
+                                                  SAMLSSOServiceProviderDO serviceProviderDO)
+            throws IdentityException {
+
+        String logoutRequestString = (SAMLSSOUtil.marshall(logoutRequest)).
+                replaceAll(SAMLSSOConstants.XML_TAG_REGEX, "").trim();
+
+        StringBuilder httpQueryString = null;
+        String signatureAlgorithmUri = serviceProviderDO.getSigningAlgorithmUri();
+        try {
+            httpQueryString = new StringBuilder(SAMLSSOConstants.SAML_REQUEST + "=" +
+                    URLEncoder.encode(SAMLSSOUtil.compressResponse(logoutRequestString), "UTF-8"));
+            httpQueryString.append("&" + SAMLSSOConstants.SIG_ALG + "=" +
+                    URLEncoder.encode(signatureAlgorithmUri, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error while encoding the message.", e);
+        } catch (IOException e) {
+            log.error("Error in compressing the SAML request message.", e);
+        }
+
+        // to be revised - setting signature
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(serviceProviderDO.getTenantDomain());
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+            byte[] signedString = SAMLSSOUtil.setSignature(httpQueryString.toString());
+
+            String signature = Base64.getEncoder().encodeToString(signedString);
+
+            httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" + URLEncoder.encode(signature, "UTF-8"));
+        } catch (KeyStoreException e) {
+            log.error("Error in signing the httpQueryString", e);
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error in encoding the signature", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+
+        String redirectUrl = logoutRequest.getDestination() + "?" + httpQueryString.toString();
+
+        return redirectUrl;
+    }
+
 }
