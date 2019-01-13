@@ -118,13 +118,11 @@ import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -137,11 +135,10 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Signature;
 import java.security.SignatureException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -171,6 +168,7 @@ public class SAMLSSOUtil {
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     public static final String SECURITY_KEY_STORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
+    private static final int FIVE_MINUTES = 5 * 60 * 1000;
 
     static {
         for (char c = 'a'; c <= 'z'; c++)
@@ -2018,6 +2016,15 @@ public class SAMLSSOUtil {
         }
     }
 
+    /**
+     * Build SAML logout request.
+     *
+     * @param serviceProviderDO
+     * @param subject
+     * @param sessionId
+     * @return LogoutRequest
+     * @throws IdentityException
+     */
     public static LogoutRequest buildLogoutRequest(SAMLSSOServiceProviderDO serviceProviderDO, String subject,
                                                    String sessionId) throws IdentityException {
 
@@ -2025,10 +2032,22 @@ public class SAMLSSOUtil {
 
         if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
             logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
+            if (log.isDebugEnabled()) {
+                log.debug("Destination of the logout request is set to the " +
+                        "SLO request URL of the SP: " + serviceProviderDO.getSloRequestURL());
+            }
         } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
             logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
+            if (log.isDebugEnabled()) {
+                log.debug("Destination of the logout request is set to the " +
+                        "SLO response URL of the SP: " + serviceProviderDO.getSloResponseURL());
+            }
         } else {
             logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+            if (log.isDebugEnabled()) {
+                log.debug("Destination of the logout request is set to the " +
+                        "ACS URL of the SP: " + serviceProviderDO.getAssertionConsumerUrl());
+            }
         }
 
         LogoutRequest logoutReq = new LogoutRequestBuilder().buildObject();
@@ -2043,7 +2062,7 @@ public class SAMLSSOUtil {
         DateTime issueInstant = new DateTime();
         logoutReq.setIssueInstant(issueInstant);
         logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(serviceProviderDO.getTenantDomain()));
-        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + 5 * 60 * 1000));
+        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + FIVE_MINUTES));
 
         NameID nameId = new NameIDBuilder().buildObject();
         nameId.setFormat(serviceProviderDO.getNameIDFormat());
@@ -2059,8 +2078,8 @@ public class SAMLSSOUtil {
         return logoutReq;
     }
 
-    // this method is to be removed
-    public static byte[] setSignature(String queryString) throws IdentityException, KeyStoreException {
+    // this method is to be removed.
+    public static byte[] setSignature(String queryString) throws IdentityException {
 
         byte[] signedString = null;
 
@@ -2078,23 +2097,29 @@ public class SAMLSSOUtil {
         }
 
         try {
-            String path = CarbonUtils.getCarbonHome() + "/repository/resources/security/wso2carbon.jks";
-            FileInputStream cert = new FileInputStream(path);
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(cert, "wso2carbon".toCharArray());
-            PrivateKey privateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+            PrivateKey privateKey = null;
+            if (keyAdmin != null) {
+                privateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
+            }
 
-            java.security.Signature instance = java.security.Signature.getInstance("SHA1withRSA");
+            Signature instance = Signature.getInstance("SHA1withRSA");
             instance.initSign(privateKey);
             instance.update(queryString.getBytes());
             signedString = instance.sign();
-        } catch (IOException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | SignatureException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             log.error("Error in setting signature.", e);
         }
 
         return signedString;
     }
 
+    /**
+     * Get other session participants for SLO except for the original issuer.
+     *
+     * @param sessionId Session Id
+     * @param issuer    Original issuer
+     * @return SAMLSSOServiceProviderDO List
+     */
     public static List<SAMLSSOServiceProviderDO> getOtherSessionParticipants(String sessionId, String issuer) {
 
         SessionInfoData sessionInfoData = getSessionInfoData(sessionId);
@@ -2106,7 +2131,7 @@ public class SAMLSSOUtil {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
 
-            // logout request should not be created for the issuer
+            // Logout request should not be created for the issuer.
             if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
                 samlssoServiceProviderDOList.add(serviceProviderDO);
             }
@@ -2115,7 +2140,13 @@ public class SAMLSSOUtil {
         return samlssoServiceProviderDOList;
     }
 
-    public static SessionInfoData getSessionInfoData(String sessionId){
+    /**
+     * Get SessionInfoData.
+     *
+     * @param sessionId
+     * @return SessionInfoData
+     */
+    public static SessionInfoData getSessionInfoData(String sessionId) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
@@ -2125,7 +2156,13 @@ public class SAMLSSOUtil {
         return sessionInfoData;
     }
 
-    public static String getSessionIndex(String sessionId){
+    /**
+     * Get Session Index.
+     *
+     * @param sessionId
+     * @return Session Index
+     */
+    public static String getSessionIndex(String sessionId) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
