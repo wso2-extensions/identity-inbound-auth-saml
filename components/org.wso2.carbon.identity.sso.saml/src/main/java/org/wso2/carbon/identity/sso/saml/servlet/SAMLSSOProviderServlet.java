@@ -75,7 +75,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -1053,7 +1052,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = SAMLSSOUtil.
                 getOtherSessionParticipants(sessionId, sessionDTO.getIssuer());
 
-        // Get the SP list and check for other session participants that have enabled single logout
+        // Get the SP list and check for other session participants that have enabled single logout.
         if (samlssoServiceProviderDOList != null) {
 
             for (SAMLSSOServiceProviderDO entry : samlssoServiceProviderDOList) {
@@ -1569,7 +1568,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void doFrontChannelSLO(HttpServletResponse response, SAMLSSOServiceProviderDO samlssoServiceProviderDO,
-                                   String sessionId, String issuer) throws IdentityException {
+                                   String sessionId, String issuer) throws IdentityException, IOException {
 
         SessionInfoData sessionInfoData = SAMLSSOUtil.getSessionInfoData(sessionId);
         String subject = sessionInfoData.getSubject(samlssoServiceProviderDO.getIssuer());
@@ -1579,17 +1578,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         String redirectUrl = createHttpQueryStringForRedirect(logoutRequest, samlssoServiceProviderDO);
 
-        try {
-            response.sendRedirect(redirectUrl);
-        } catch (IOException e) {
-            log.error("Error in sending the redirect.", e);
-        }
+        response.sendRedirect(redirectUrl);
     }
 
     private String createHttpQueryStringForRedirect(LogoutRequest logoutRequest,
                                                   SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
 
+        // Convert the SAML logout request to a string.
         String logoutRequestString = (SAMLSSOUtil.marshall(logoutRequest)).
                 replaceAll(SAMLSSOConstants.XML_TAG_REGEX, "").trim();
 
@@ -1606,7 +1602,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             log.error("Error in compressing the SAML request message.", e);
         }
 
-        // to be revised - setting signature
+        // to be revised - setting signature.
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(serviceProviderDO.getTenantDomain());
@@ -1616,8 +1612,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String signature = Base64.getEncoder().encodeToString(signedString);
 
             httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" + URLEncoder.encode(signature, "UTF-8"));
-        } catch (KeyStoreException e) {
-            log.error("Error in signing the httpQueryString", e);
         } catch (UnsupportedEncodingException e) {
             log.error("Error in encoding the signature", e);
         } finally {
