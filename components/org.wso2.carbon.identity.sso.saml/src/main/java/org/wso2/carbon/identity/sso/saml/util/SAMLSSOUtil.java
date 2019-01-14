@@ -2162,4 +2162,56 @@ public class SAMLSSOUtil {
         }
     }
 
+    /**
+     * Validate whether the LogoutResponse is a success.
+     *
+     * @param response Logout Response object.
+     * @return True if Logout response state success.
+     * @throws IOException       Stream error.
+     * @throws IdentityException Decoding error.
+     */
+    public static boolean validateLogoutResponse(XMLObject response, String certificateAlias, String tenantDomain)
+            throws IdentityException {
+
+        // This should be a SAML logout response.
+        if (response instanceof LogoutResponse) {
+
+            LogoutResponse logoutResponse = (LogoutResponse) response;
+            if (logoutResponse.getIssuer() == null || logoutResponse.getStatus() == null || logoutResponse
+                    .getStatus().getStatusCode() == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Logout response validation failed due to one of given values are null. " +
+                            "Issuer: " + logoutResponse.getIssuer() +
+                            " Status: " + logoutResponse.getStatus() +
+                            " Status code: " + (logoutResponse.getStatus() != null ? logoutResponse.getStatus()
+                            .getStatusCode() : null));
+                }
+                return false;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Logout response received for issuer: " + logoutResponse.getIssuer()
+                        .getValue() + " for tenant domain: " + tenantDomain);
+            }
+
+            boolean isSignatureValid = true;
+
+            // Certificate alias will be null if signature validation is disabled in the service provider side.
+            if (certificateAlias != null && logoutResponse.isSigned()) {
+                isSignatureValid = SAMLSSOUtil.validateXMLSignature(logoutResponse, certificateAlias, tenantDomain);
+                if (log.isDebugEnabled()) {
+                    log.debug("Signature validation result for logout response for issuer: " +
+                            logoutResponse.getIssuer().getValue() + " in tenant domain: " + tenantDomain + " is: " +
+                            isSignatureValid);
+                }
+            }
+            if (SAMLSSOConstants.StatusCodes.SUCCESS_CODE.equals(logoutResponse.getStatus().getStatusCode()
+                    .getValue()) && isSignatureValid) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
