@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOService;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
+import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.cache.SessionDataCache;
 import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.sso.saml.cache.SessionDataCacheKey;
@@ -1059,7 +1060,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
                 Boolean isFrontChannelSLOEnabled = true;
                 //check entry.isFrontChannelSLOEnabled()
-                if (isFrontChannelSLOEnabled){
+                if (isFrontChannelSLOEnabled) {
                     doFrontChannelSLO(response, entry, sessionId, sessionDTO.getIssuer());
                     break;
                 } else {
@@ -1581,44 +1582,47 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         response.sendRedirect(redirectUrl);
     }
 
+    /**
+     * This method is used to prepare a SAML request message as a HTTP query string for HTTP Redirect binding.
+     *
+     * @param logoutRequest     Logout Request
+     * @param serviceProviderDO SAMLSSOServiceProviderDO
+     * @return Redirect URL
+     * @throws IdentityException
+     */
     private String createHttpQueryStringForRedirect(LogoutRequest logoutRequest,
-                                                  SAMLSSOServiceProviderDO serviceProviderDO)
+                                                    SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
 
-        // Convert the SAML logout request to a string.
+        // Convert the SAML logout request object to a string.
         String logoutRequestString = (SAMLSSOUtil.marshall(logoutRequest)).
                 replaceAll(SAMLSSOConstants.XML_TAG_REGEX, "").trim();
 
         StringBuilder httpQueryString = null;
         String signatureAlgorithmUri = serviceProviderDO.getSigningAlgorithmUri();
+
+        String tenantDomain = serviceProviderDO.getTenantDomain();
+        if (StringUtils.isEmpty(tenantDomain) || "null".equals(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
         try {
             httpQueryString = new StringBuilder(SAMLSSOConstants.SAML_REQUEST + "=" +
                     URLEncoder.encode(SAMLSSOUtil.compressResponse(logoutRequestString), "UTF-8"));
             httpQueryString.append("&" + SAMLSSOConstants.SIG_ALG + "=" +
                     URLEncoder.encode(signatureAlgorithmUri, "UTF-8"));
+            SAMLSSOUtil.addSignatureToHTTPQueryString(httpQueryString, signatureAlgorithmUri,
+                    new X509CredentialImpl(tenantDomain));
         } catch (UnsupportedEncodingException e) {
             log.error("Error while encoding the message.", e);
         } catch (IOException e) {
             log.error("Error in compressing the SAML request message.", e);
         }
 
-        // to be revised - setting signature.
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(serviceProviderDO.getTenantDomain());
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-            byte[] signedString = SAMLSSOUtil.setSignature(httpQueryString.toString());
-
-            String signature = Base64.getEncoder().encodeToString(signedString);
-
-            httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" + URLEncoder.encode(signature, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            log.error("Error in encoding the signature", e);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+        String redirectUrl = null;
+        if (httpQueryString != null) {
+            redirectUrl = logoutRequest.getDestination() + "?" + httpQueryString.toString();
         }
-
-        String redirectUrl = logoutRequest.getDestination() + "?" + httpQueryString.toString();
 
         return redirectUrl;
     }
