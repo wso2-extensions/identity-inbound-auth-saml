@@ -54,6 +54,7 @@ import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.security.SecurityException;
+import org.opensaml.xml.security.SigningUtil;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
@@ -65,7 +66,6 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
-import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -110,11 +110,9 @@ import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidat
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -132,13 +130,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Signature;
-import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -2078,41 +2073,6 @@ public class SAMLSSOUtil {
         return logoutReq;
     }
 
-    // this method is to be removed.
-    public static byte[] setSignature(String queryString) throws IdentityException {
-
-        byte[] signedString = null;
-
-        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(SECURITY_KEY_STORE_KEY_ALIAS);
-        if (StringUtils.isBlank(keyAlias)) {
-            throw new IdentityException("Invalid file configurations. The key alias is not found.");
-        }
-
-        KeyStoreAdmin keyAdmin = null;
-        try {
-            keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID,
-                    SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
-        } catch (RegistryException e) {
-            log.error("Error in setting keystore admin", e);
-        }
-
-        try {
-            PrivateKey privateKey = null;
-            if (keyAdmin != null) {
-                privateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
-            }
-
-            Signature instance = Signature.getInstance("SHA1withRSA");
-            instance.initSign(privateKey);
-            instance.update(queryString.getBytes());
-            signedString = instance.sign();
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            log.error("Error in setting signature.", e);
-        }
-
-        return signedString;
-    }
-
     /**
      * Get other session participants for SLO except for the original issuer.
      *
@@ -2170,4 +2130,36 @@ public class SAMLSSOUtil {
 
         return sessionIndex;
     }
+
+    /**
+     * Construct signature for http redirect.
+     *
+     * @param httpQueryString       http query string
+     * @param signatureAlgorithmURI signature algorithm URI
+     * @param credential            X509Credential
+     */
+    public static void addSignatureToHTTPQueryString(StringBuilder httpQueryString,
+                                                     String signatureAlgorithmURI, X509Credential credential) {
+
+        try {
+            byte[] rawSignature = SigningUtil.signWithURI(credential, signatureAlgorithmURI,
+                    httpQueryString.toString().getBytes("UTF-8"));
+
+            String base64Signature = Base64.encodeBytes(rawSignature, Base64.DONT_BREAK_LINES);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Generated digital signature value (base64-encoded) {} " + base64Signature);
+            }
+
+            httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" +
+                    URLEncoder.encode(base64Signature, "UTF-8").trim());
+
+        } catch (org.opensaml.xml.security.SecurityException e) {
+            log.error("Unable to sign query string", e);
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8 encoding is required to be supported by all JVMs.
+            log.error("Error while adding signature to HTTP query string", e);
+        }
+    }
+
 }

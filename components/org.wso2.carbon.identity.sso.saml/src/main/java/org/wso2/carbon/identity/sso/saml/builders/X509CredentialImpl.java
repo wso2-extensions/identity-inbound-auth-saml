@@ -18,23 +18,41 @@
 
 package org.wso2.carbon.identity.sso.saml.builders;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.credential.CredentialContextSet;
 import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
-import javax.crypto.SecretKey;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Collection;
 import java.util.Collections;
+import javax.crypto.SecretKey;
 
 /**
  * X509Credential implementation for signature verification of self issued tokens. The key is
@@ -43,7 +61,152 @@ import java.util.Collections;
 public class X509CredentialImpl implements X509Credential {
 
     private PublicKey publicKey = null;
+    private PrivateKey privateKey = null;
     private X509Certificate signingCert = null;
+
+    private static KeyStore superTenantSignKeyStore = null;
+
+    private static Log log = LogFactory.getLog(X509CredentialImpl.class);
+
+    public static final String SECURITY_SAML_SIGN_KEY_STORE_LOCATION = "Security.SAMLSignKeyStore.Location";
+    public static final String SECURITY_SAML_SIGN_KEY_STORE_TYPE = "Security.SAMLSignKeyStore.Type";
+    public static final String SECURITY_SAML_SIGN_KEY_STORE_PASSWORD = "Security.SAMLSignKeyStore.Password";
+    public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS = "Security.SAMLSignKeyStore.KeyAlias";
+    public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD = "Security.SAMLSignKeyStore.KeyPassword";
+
+    /**
+     * Instantiates X509Credential.
+     * This credential object will hold the private key, public key and the cert for the respective tenant domain.
+     *
+     * @param tenantDomain tenant domain
+     */
+    public X509CredentialImpl(String tenantDomain) throws IdentityException {
+
+        X509Certificate cert = null;
+        int tenantId = 0;
+
+        try {
+            tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityException("Exception occurred while retrieving Tenant ID from tenant domain " +
+                    tenantDomain, e);
+        }
+
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        PrivateKey key = null;
+
+        try {
+            // Get the private key and the cert for the respective tenant domain.
+            if (!tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+                // derive key store name.
+                String ksName = tenantDomain.trim().replace(".", "-");
+                // derive JKS name.
+                String jksName = ksName + ".jks";
+                key = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
+                cert = (X509Certificate) keyStoreManager.getKeyStore(jksName)
+                        .getCertificate(tenantDomain);
+            } else {
+                if (isSignKeyStoreConfigured()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Initializing Key Data for super tenant using separate sign key store.");
+                    }
+
+                    try {
+                        if (superTenantSignKeyStore == null) {
+                            String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
+                                    SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
+                            try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
+                                String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
+                                        SECURITY_SAML_SIGN_KEY_STORE_TYPE);
+                                KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+
+                                char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
+                                        SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
+                                keyStore.load(is, keyStorePassword);
+
+                                superTenantSignKeyStore = keyStore;
+                            } catch (FileNotFoundException e) {
+                                throw new IdentityException("Unable to locate keystore.", e);
+                            } catch (IOException e) {
+                                throw new IdentityException("Unable to read keystore.", e);
+                            } catch (CertificateException e) {
+                                throw new IdentityException("Unable to read certificate.", e);
+                            }
+                        }
+
+                        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
+                                SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS);
+                        char[] keyPassword = ServerConfiguration.getInstance().getFirstProperty(
+                                SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD).toCharArray();
+                        Key privateKey = superTenantSignKeyStore.getKey(keyAlias, keyPassword);
+
+                        Certificate publicKey = superTenantSignKeyStore.getCertificate(keyAlias);
+
+                        if (privateKey instanceof PrivateKey) {
+                            key = (PrivateKey) privateKey;
+                        } else {
+                            throw new IdentityException("Configured signing KeyStore private key is invalid.");
+                        }
+
+                        if (publicKey instanceof X509Certificate) {
+                            cert = (X509Certificate) publicKey;
+                        } else {
+                            throw new IdentityException("Configured signing KeyStore public key is invalid.");
+                        }
+
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new IdentityException("Unable to load algorithm", e);
+                    } catch (UnrecoverableKeyException e) {
+                        throw new IdentityException("Unable to load key", e);
+                    } catch (KeyStoreException e) {
+                        throw new IdentityException("Unable to load keystore", e);
+                    }
+                } else {
+                    key = keyStoreManager.getDefaultPrivateKey();
+                    cert = keyStoreManager.getDefaultPrimaryCertificate();
+                }
+            }
+        } catch (Exception e) {
+            throw new IdentityException("Error retrieving private key and the certificate for tenant " +
+                    tenantDomain, e);
+        }
+
+        if (key == null) {
+            throw new IdentityException("Cannot find the private key for tenant " + tenantDomain);
+        }
+
+        this.privateKey = key;
+
+        if (cert == null) {
+            throw new IdentityException("Cannot find the certificate.");
+        }
+
+        signingCert = cert;
+        publicKey = cert.getPublicKey();
+    }
+
+    /**
+     * Check whether separate configurations for sign KeyStore available.
+     *
+     * @return true if necessary configurations are defined for sign KeyStore; false otherwise.
+     */
+    private boolean isSignKeyStoreConfigured() {
+
+        String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
+        String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_TYPE);
+        String keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_PASSWORD);
+        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS);
+        String keyPassword = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD);
+
+        return StringUtils.isNotBlank(keyStoreLocation) && StringUtils.isNotBlank(keyStoreType)
+                && StringUtils.isNotBlank(keyStorePassword) && StringUtils.isNotBlank(keyAlias)
+                && StringUtils.isNotBlank(keyPassword);
+    }
 
     /**
      * The key is constructed form modulus and exponent.
@@ -122,8 +285,8 @@ public class X509CredentialImpl implements X509Credential {
 
     @Override
     public PrivateKey getPrivateKey() {
-        // TODO Auto-generated method stub
-        return null;
+
+        return privateKey;
     }
 
     @Override
