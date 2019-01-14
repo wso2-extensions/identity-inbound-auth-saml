@@ -290,29 +290,21 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-    private void handleSAMLResponse(HttpServletRequest req, HttpServletResponse resp, String samlResponse) throws IdentityException {
+    private void handleSAMLResponse(HttpServletRequest req, HttpServletResponse resp, String samlResponse)
+            throws IdentityException {
 
         XMLObject response;
 
         response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(samlResponse));
         String inResponseToId = ((LogoutResponseImpl) response).getInResponseTo();
 
-//        String sessionIndex = SAMLSLOParticipantCache.getInstance().getValueFromCache(inResponseToId);
-//
-//        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
-//                .getPersistenceManager();
-//        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
-//        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
-//
-//        sessionsList.remove(((LogoutResponseImpl) response).getIssuer().getValue());
-//
-//        Boolean hasMoreFrontChannelSPs = false;
-//
-//        if (hasMoreFrontChannelSPs){
-//            // doFrontChannelSLO()
-//        } else {
-//            // send response to initial issuer
-//        }
+        String logoutResponseIssuer = ((LogoutResponseImpl) response).getIssuer().getValue();
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SAMLSSOUtil.getSPConfig(tenantDomain,
+                logoutResponseIssuer);
+
+        boolean isSuccesfullyLogout = SAMLSSOUtil.validateLogoutResponse(response,
+                samlssoServiceProviderDO.getCertAlias(), samlssoServiceProviderDO.getTenantDomain());
     }
 
     /**
