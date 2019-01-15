@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.Key;
@@ -82,9 +81,7 @@ public class X509CredentialImpl implements X509Credential {
      */
     public X509CredentialImpl(String tenantDomain) throws IdentityException {
 
-        X509Certificate cert = null;
         int tenantId = 0;
-
         try {
             tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
@@ -93,96 +90,126 @@ public class X509CredentialImpl implements X509Credential {
         }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        PrivateKey key = null;
+
+        // Get the private key and the cert for the respective tenant domain.
+        if (!tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+            initializeCredentialForTenant(tenantDomain, keyStoreManager);
+        } else {
+            if (isSignKeyStoreConfigured()) {
+                initializeCredentialForSuperTenantFromSignKeyStore();
+            } else {
+                initializeCredentialForSuperTenantFromDefaultKeyStore(keyStoreManager);
+            }
+        }
+
+        if (privateKey == null) {
+            throw new IdentityException("Cannot find the private key for tenant " + tenantDomain);
+        }
+
+        if (signingCert == null) {
+            throw new IdentityException("Cannot find the certificate.");
+        }
+
+        publicKey = signingCert.getPublicKey();
+    }
+
+    /**
+     * Set private key and X509Certificate from the default KeyStore.
+     *
+     * @param keyStoreManager keyStore Manager
+     * @throws IdentityException
+     */
+    private void initializeCredentialForSuperTenantFromDefaultKeyStore(KeyStoreManager keyStoreManager)
+            throws IdentityException {
 
         try {
-            // Get the private key and the cert for the respective tenant domain.
-            if (!tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
-                // derive key store name.
-                String ksName = tenantDomain.trim().replace(".", "-");
-                // derive JKS name.
-                String jksName = ksName + ".jks";
-                key = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
-                cert = (X509Certificate) keyStoreManager.getKeyStore(jksName)
-                        .getCertificate(tenantDomain);
-            } else {
-                if (isSignKeyStoreConfigured()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Initializing Key Data for super tenant using separate sign key store.");
-                    }
+            privateKey = keyStoreManager.getDefaultPrivateKey();
+            signingCert = keyStoreManager.getDefaultPrimaryCertificate();
+        } catch (Exception e) {
+            throw new IdentityException("Error retrieving private key and the certificate for tenant " +
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, e);
+        }
+    }
 
-                    try {
-                        if (superTenantSignKeyStore == null) {
-                            String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
-                                    SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
-                            try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
-                                String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
-                                        SECURITY_SAML_SIGN_KEY_STORE_TYPE);
-                                KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+    /**
+     * Set private key and X509Certificate from the Sign KeyStore which is defined under Security.SAMLSignKeyStore
+     * in carbon.xml.
+     *
+     * @throws IdentityException
+     */
+    private void initializeCredentialForSuperTenantFromSignKeyStore() throws IdentityException {
 
-                                char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
-                                        SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
-                                keyStore.load(is, keyStorePassword);
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing Key Data for super tenant using separate sign key store.");
+        }
 
-                                superTenantSignKeyStore = keyStore;
-                            } catch (FileNotFoundException e) {
-                                throw new IdentityException("Unable to locate keystore.", e);
-                            } catch (IOException e) {
-                                throw new IdentityException("Unable to read keystore.", e);
-                            } catch (CertificateException e) {
-                                throw new IdentityException("Unable to read certificate.", e);
-                            }
-                        }
-
-                        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
-                                SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS);
-                        char[] keyPassword = ServerConfiguration.getInstance().getFirstProperty(
-                                SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD).toCharArray();
-                        Key privateKey = superTenantSignKeyStore.getKey(keyAlias, keyPassword);
-
-                        Certificate publicKey = superTenantSignKeyStore.getCertificate(keyAlias);
-
-                        if (privateKey instanceof PrivateKey) {
-                            key = (PrivateKey) privateKey;
-                        } else {
-                            throw new IdentityException("Configured signing KeyStore private key is invalid.");
-                        }
-
-                        if (publicKey instanceof X509Certificate) {
-                            cert = (X509Certificate) publicKey;
-                        } else {
-                            throw new IdentityException("Configured signing KeyStore public key is invalid.");
-                        }
-
-                    } catch (NoSuchAlgorithmException e) {
-                        throw new IdentityException("Unable to load algorithm", e);
-                    } catch (UnrecoverableKeyException e) {
-                        throw new IdentityException("Unable to load key", e);
-                    } catch (KeyStoreException e) {
-                        throw new IdentityException("Unable to load keystore", e);
-                    }
-                } else {
-                    key = keyStoreManager.getDefaultPrivateKey();
-                    cert = keyStoreManager.getDefaultPrimaryCertificate();
+        try {
+            if (superTenantSignKeyStore == null) {
+                String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
+                        SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
+                try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
+                    String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
+                            SECURITY_SAML_SIGN_KEY_STORE_TYPE);
+                    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+                    char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
+                            SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
+                    keyStore.load(is, keyStorePassword);
+                    superTenantSignKeyStore = keyStore;
+                } catch (IOException e) {
+                    throw new IdentityException("Unable to read keystore.", e);
+                } catch (CertificateException e) {
+                    throw new IdentityException("Unable to read certificate.", e);
                 }
             }
+
+            String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
+                    SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS);
+            char[] keyPassword = ServerConfiguration.getInstance().getFirstProperty(
+                    SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD).toCharArray();
+            Key privateKey = superTenantSignKeyStore.getKey(keyAlias, keyPassword);
+            Certificate publicKey = superTenantSignKeyStore.getCertificate(keyAlias);
+
+            if (privateKey instanceof PrivateKey) {
+                this.privateKey = (PrivateKey) privateKey;
+            } else {
+                throw new IdentityException("Configured signing KeyStore private key is invalid.");
+            }
+
+            if (publicKey instanceof X509Certificate) {
+                this.signingCert = (X509Certificate) publicKey;
+            } else {
+                throw new IdentityException("Configured signing KeyStore X509Certificate is invalid.");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new IdentityException("Unable to load algorithm", e);
+        } catch (UnrecoverableKeyException e) {
+            throw new IdentityException("Unable to load key", e);
+        } catch (KeyStoreException e) {
+            throw new IdentityException("Unable to load keystore", e);
+        }
+    }
+
+    /**
+     * Set private key and X509Certificate from the tenant KeyStore.
+     *
+     * @param tenantDomain    tenant domain
+     * @param keyStoreManager KeyStore Manager
+     * @throws IdentityException
+     */
+    private void initializeCredentialForTenant(String tenantDomain, KeyStoreManager keyStoreManager)
+            throws IdentityException {
+
+        try {
+            // derive key store name.
+            String ksName = tenantDomain.trim().replace(".", "-");
+            // derive JKS name.
+            String jksName = ksName + ".jks";
+            privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
+            signingCert = (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);
         } catch (Exception e) {
             throw new IdentityException("Error retrieving private key and the certificate for tenant " +
                     tenantDomain, e);
         }
-
-        if (key == null) {
-            throw new IdentityException("Cannot find the private key for tenant " + tenantDomain);
-        }
-
-        this.privateKey = key;
-
-        if (cert == null) {
-            throw new IdentityException("Cannot find the certificate.");
-        }
-
-        signingCert = cert;
-        publicKey = cert.getPublicKey();
     }
 
     /**
