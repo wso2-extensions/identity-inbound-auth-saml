@@ -2067,15 +2067,19 @@ public class SAMLSSOUtil {
     }
 
     /**
-     * Get other session participants for SLO except for the original issuer.
+     * Get remaining session participants for SLO except for the original issuer.
      *
-     * @param sessionId Session Id
-     * @param issuer    Original issuer
-     * @return SAMLSSOServiceProviderDO List
+     * @param sessionIndex Session index
+     * @param issuer       Original issuer
+     * @return
      */
-    public static List<SAMLSSOServiceProviderDO> getOtherSessionParticipants(String sessionId, String issuer) {
+    public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(String sessionIndex,
+                                                                                       String issuer) {
 
-        SessionInfoData sessionInfoData = getSessionInfoData(sessionId);
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+
         List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = null;
 
         if (sessionInfoData != null) {
@@ -2102,14 +2106,13 @@ public class SAMLSSOUtil {
     /**
      * Get SessionInfoData.
      *
-     * @param sessionId
-     * @return SessionInfoData
+     * @param sessionIndex Session index
+     * @return
      */
-    public static SessionInfoData getSessionInfoData(String sessionId) {
+    public static SessionInfoData getSessionInfoData(String sessionIndex) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
 
         return sessionInfoData;
