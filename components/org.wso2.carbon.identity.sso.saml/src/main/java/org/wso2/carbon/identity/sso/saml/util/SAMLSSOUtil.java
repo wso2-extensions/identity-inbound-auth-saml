@@ -162,8 +162,6 @@ public class SAMLSSOUtil {
     private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
-    public static final String SECURITY_KEY_STORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
-    private static final int FIVE_MINUTES = 5 * 60 * 1000;
 
     static {
         for (char c = 'a'; c <= 'z'; c++)
@@ -2031,12 +2029,6 @@ public class SAMLSSOUtil {
                 log.debug("Destination of the logout request is set to the " +
                         "SLO request URL of the SP: " + serviceProviderDO.getSloRequestURL());
             }
-        } else if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloResponseURL());
-            if (log.isDebugEnabled()) {
-                log.debug("Destination of the logout request is set to the " +
-                        "SLO response URL of the SP: " + serviceProviderDO.getSloResponseURL());
-            }
         } else {
             logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
             if (log.isDebugEnabled()) {
@@ -2057,7 +2049,8 @@ public class SAMLSSOUtil {
         DateTime issueInstant = new DateTime();
         logoutReq.setIssueInstant(issueInstant);
         logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(serviceProviderDO.getTenantDomain()));
-        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + FIVE_MINUTES));
+        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() +
+                SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L));
 
         NameID nameId = new NameIDBuilder().buildObject();
         nameId.setFormat(serviceProviderDO.getNameIDFormat());
@@ -2083,17 +2076,23 @@ public class SAMLSSOUtil {
     public static List<SAMLSSOServiceProviderDO> getOtherSessionParticipants(String sessionId, String issuer) {
 
         SessionInfoData sessionInfoData = getSessionInfoData(sessionId);
-        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = null;
 
-        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = new ArrayList<>();
+        if (sessionInfoData != null) {
+            Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+            samlssoServiceProviderDOList = new ArrayList<>();
 
-        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-            String key = entry.getKey();
-            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+                SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
 
-            // Logout request should not be created for the issuer.
-            if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
-                samlssoServiceProviderDOList.add(serviceProviderDO);
+                // Logout request should not be created for the issuer.
+                if (entry.getKey().equals(issuer)) {
+                    continue;
+                }
+
+                if (serviceProviderDO.isDoSingleLogout()) {
+                    samlssoServiceProviderDOList.add(serviceProviderDO);
+                }
             }
         }
 

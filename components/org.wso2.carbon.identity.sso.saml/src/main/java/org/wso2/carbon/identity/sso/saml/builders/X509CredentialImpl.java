@@ -125,6 +125,7 @@ public class X509CredentialImpl implements X509Credential {
         try {
             privateKey = keyStoreManager.getDefaultPrivateKey();
             signingCert = keyStoreManager.getDefaultPrimaryCertificate();
+        // This Exception is thrown from the KeyStoreManager.
         } catch (Exception e) {
             throw new IdentityException("Error retrieving private key and the certificate for tenant " +
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, e);
@@ -206,6 +207,7 @@ public class X509CredentialImpl implements X509Credential {
             String jksName = ksName + ".jks";
             privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
             signingCert = (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);
+        // This Exception is thrown from the KeyStoreManager.
         } catch (Exception e) {
             throw new IdentityException("Error retrieving private key and the certificate for tenant " +
                     tenantDomain, e);
