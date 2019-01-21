@@ -24,21 +24,28 @@ import org.wso2.carbon.identity.sso.saml.cache.CacheEntry;
 public class FrontChannelSLOParticipantInfo extends CacheEntry {
 
     private String originalIssuerLogoutRequestId;
-    private String originalIssuer;
-    private String logoutRequestIssuingSP;
+    private String originalLogoutRequestIssuer;
+    private String currentSLOInvokedParticipant;
     private String sessionIndex;
+    private boolean isIdPInitSLO;
+    private String relayState;
+    private String returnToURL;
 
     public FrontChannelSLOParticipantInfo() {
 
     }
 
-    public FrontChannelSLOParticipantInfo(String originalIssuerLogoutRequestId, String originalIssuer,
-                                          String logoutRequestIssuingSP, String sessionIndex) {
+    public FrontChannelSLOParticipantInfo(String originalIssuerLogoutRequestId, String originalLogoutRequestIssuer,
+                                          String currentSLOInvokedParticipant, String sessionIndex,
+                                          boolean isIdPInitSLO, String relayState, String returnToURL) {
 
         this.originalIssuerLogoutRequestId = originalIssuerLogoutRequestId;
-        this.originalIssuer = originalIssuer;
-        this.logoutRequestIssuingSP = logoutRequestIssuingSP;
+        this.originalLogoutRequestIssuer = originalLogoutRequestIssuer;
+        this.currentSLOInvokedParticipant = currentSLOInvokedParticipant;
         this.sessionIndex = sessionIndex;
+        this.isIdPInitSLO = isIdPInitSLO;
+        this.relayState = relayState;
+        this.returnToURL = returnToURL;
     }
 
     public String getOriginalIssuerLogoutRequestId() {
@@ -51,14 +58,14 @@ public class FrontChannelSLOParticipantInfo extends CacheEntry {
         this.originalIssuerLogoutRequestId = originalIssuerLogoutRequestId;
     }
 
-    public String getLogoutRequestIssuingSP() {
+    public String getCurrentSLOInvokedParticipant() {
 
-        return logoutRequestIssuingSP;
+        return currentSLOInvokedParticipant;
     }
 
-    public void setLogoutRequestIssuingSP(String logoutRequestIssuingSP) {
+    public void setCurrentSLOInvokedParticipant(String currentSLOInvokedParticipant) {
 
-        this.logoutRequestIssuingSP = logoutRequestIssuingSP;
+        this.currentSLOInvokedParticipant = currentSLOInvokedParticipant;
     }
 
     public String getSessionIndex() {
@@ -71,13 +78,43 @@ public class FrontChannelSLOParticipantInfo extends CacheEntry {
         this.sessionIndex = sessionIndex;
     }
 
-    public String getOriginalIssuer() {
+    public String getOriginalLogoutRequestIssuer() {
 
-        return originalIssuer;
+        return originalLogoutRequestIssuer;
     }
 
-    public void setOriginalIssuer(String originalIssuer) {
+    public void setOriginalLogoutRequestIssuer(String originalLogoutRequestIssuer) {
 
-        this.originalIssuer = originalIssuer;
+        this.originalLogoutRequestIssuer = originalLogoutRequestIssuer;
+    }
+
+    public boolean isIdPInitSLO() {
+
+        return isIdPInitSLO;
+    }
+
+    public void setIdPInitSLO(boolean idPInitSLO) {
+
+        isIdPInitSLO = idPInitSLO;
+    }
+
+    public String getRelayState() {
+
+        return relayState;
+    }
+
+    public void setRelayState(String relayState) {
+
+        this.relayState = relayState;
+    }
+
+    public String getReturnToURL() {
+
+        return returnToURL;
+    }
+
+    public void setReturnToURL(String returnToURL) {
+
+        this.returnToURL = returnToURL;
     }
 }

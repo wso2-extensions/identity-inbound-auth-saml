@@ -81,7 +81,7 @@ public class X509CredentialImpl implements X509Credential {
      */
     public X509CredentialImpl(String tenantDomain) throws IdentityException {
 
-        int tenantId = 0;
+        int tenantId;
         try {
             tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
@@ -146,21 +146,7 @@ public class X509CredentialImpl implements X509Credential {
 
         try {
             if (superTenantSignKeyStore == null) {
-                String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
-                        SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
-                try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
-                    String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
-                            SECURITY_SAML_SIGN_KEY_STORE_TYPE);
-                    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-                    char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
-                            SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
-                    keyStore.load(is, keyStorePassword);
-                    superTenantSignKeyStore = keyStore;
-                } catch (IOException e) {
-                    throw new IdentityException("Unable to read keystore.", e);
-                } catch (CertificateException e) {
-                    throw new IdentityException("Unable to read certificate.", e);
-                }
+                initializeSuperTenantSignKeyStore();
             }
 
             String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
@@ -181,12 +167,27 @@ public class X509CredentialImpl implements X509Credential {
             } else {
                 throw new IdentityException("Configured signing KeyStore X509Certificate is invalid.");
             }
-        } catch (NoSuchAlgorithmException e) {
-            throw new IdentityException("Unable to load algorithm", e);
-        } catch (UnrecoverableKeyException e) {
-            throw new IdentityException("Unable to load key", e);
-        } catch (KeyStoreException e) {
+        } catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e) {
             throw new IdentityException("Unable to load keystore", e);
+        }
+    }
+
+    private void initializeSuperTenantSignKeyStore() throws IdentityException {
+
+        String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
+                SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
+        try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
+            String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
+                    SECURITY_SAML_SIGN_KEY_STORE_TYPE);
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
+                    SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
+            keyStore.load(is, keyStorePassword);
+            superTenantSignKeyStore = keyStore;
+        } catch (IOException | CertificateException | NoSuchAlgorithmException e) {
+            throw new IdentityException("Unable to load keystore.", e);
+        } catch (KeyStoreException e) {
+            throw new IdentityException("Unable to get an instance of keystore.", e);
         }
     }
 
