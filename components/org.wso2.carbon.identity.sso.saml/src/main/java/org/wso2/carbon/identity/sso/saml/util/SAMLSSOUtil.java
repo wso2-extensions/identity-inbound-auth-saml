@@ -2012,11 +2012,11 @@ public class SAMLSSOUtil {
     /**
      * Build SAML logout request.
      *
-     * @param serviceProviderDO
-     * @param subject
-     * @param sessionId
-     * @return LogoutRequest
-     * @throws IdentityException
+     * @param serviceProviderDO SP for which the logout request is built.
+     * @param subject           Subject identifier.
+     * @param sessionId         Session index.
+     * @return Logout Request.
+     * @throws IdentityException If tenant domain is invalid.
      */
     public static LogoutRequest buildLogoutRequest(SAMLSSOServiceProviderDO serviceProviderDO, String subject,
                                                    String sessionId) throws IdentityException {
@@ -2069,9 +2069,9 @@ public class SAMLSSOUtil {
     /**
      * Get remaining session participants for SLO except for the original issuer.
      *
-     * @param sessionIndex Session index
-     * @param issuer       Original issuer
-     * @return
+     * @param sessionIndex Session index.
+     * @param issuer       Original issuer.
+     * @return SP List with remaining session participants for SLO except for the original issuer.
      */
     public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(String sessionIndex,
                                                                                        String issuer) {
@@ -2080,9 +2080,11 @@ public class SAMLSSOUtil {
                 .getPersistenceManager();
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
 
-        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = null;
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList;
 
-        if (sessionInfoData != null) {
+        if (sessionInfoData == null) {
+            return new ArrayList<>();
+        } else {
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
             samlssoServiceProviderDOList = new ArrayList<>();
 
@@ -2106,8 +2108,8 @@ public class SAMLSSOUtil {
     /**
      * Get SessionInfoData.
      *
-     * @param sessionIndex Session index
-     * @return
+     * @param sessionIndex Session index.
+     * @return Session Info Data.
      */
     public static SessionInfoData getSessionInfoData(String sessionIndex) {
 
@@ -2121,8 +2123,8 @@ public class SAMLSSOUtil {
     /**
      * Get Session Index.
      *
-     * @param sessionId
-     * @return Session Index
+     * @param sessionId Session id.
+     * @return Session Index.
      */
     public static String getSessionIndex(String sessionId) {
 
@@ -2167,10 +2169,11 @@ public class SAMLSSOUtil {
     /**
      * Validate whether the LogoutResponse is a success.
      *
-     * @param response Logout Response object.
+     * @param response         Logout Response object.
+     * @param certificateAlias Certificate Alias.
+     * @param tenantDomain     Tenant domain.
      * @return True if Logout response state success.
-     * @throws IOException       Stream error.
-     * @throws IdentityException Decoding error.
+     * @throws IdentityException If validating XML signature fails.
      */
     public static boolean validateLogoutResponse(XMLObject response, String certificateAlias, String tenantDomain)
             throws IdentityException {

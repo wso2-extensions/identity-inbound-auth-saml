@@ -116,8 +116,8 @@ public class X509CredentialImpl implements X509Credential {
     /**
      * Set private key and X509Certificate from the default KeyStore.
      *
-     * @param keyStoreManager keyStore Manager
-     * @throws IdentityException
+     * @param keyStoreManager keyStore Manager.
+     * @throws IdentityException Error in retrieving private key and certificate.
      */
     private void initializeCredentialForSuperTenantFromDefaultKeyStore(KeyStoreManager keyStoreManager)
             throws IdentityException {
@@ -136,7 +136,7 @@ public class X509CredentialImpl implements X509Credential {
      * Set private key and X509Certificate from the Sign KeyStore which is defined under Security.SAMLSignKeyStore
      * in carbon.xml.
      *
-     * @throws IdentityException
+     * @throws IdentityException Error in keystore.
      */
     private void initializeCredentialForSuperTenantFromSignKeyStore() throws IdentityException {
 
@@ -194,17 +194,17 @@ public class X509CredentialImpl implements X509Credential {
     /**
      * Set private key and X509Certificate from the tenant KeyStore.
      *
-     * @param tenantDomain    tenant domain
-     * @param keyStoreManager KeyStore Manager
-     * @throws IdentityException
+     * @param tenantDomain    tenant domain.
+     * @param keyStoreManager KeyStore Manager.
+     * @throws IdentityException Error in retrieving private key and certificate.
      */
     private void initializeCredentialForTenant(String tenantDomain, KeyStoreManager keyStoreManager)
             throws IdentityException {
 
         try {
-            // derive key store name.
+            // Derive key store name.
             String ksName = tenantDomain.trim().replace(".", "-");
-            // derive JKS name.
+            // Derive JKS name.
             String jksName = ksName + ".jks";
             privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
             signingCert = (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);

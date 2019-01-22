@@ -32,17 +32,35 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
         super(CACHE_NAME);
     }
 
+    /**
+     * Return instance of FrontChannelSLOParticipantStore.
+     *
+     * @return FrontChannelSLOParticipantStore instance.
+     */
     public static FrontChannelSLOParticipantStore getInstance() {
 
         return instance;
     }
 
+    /**
+     * Store FrontChannelSLOParticipantInfo against logout request id of the current SLO invoked session participant.
+     *
+     * @param key   Logout request id of the current SLO invoked session participant.
+     * @param entry FrontChannelSLOParticipantInfo.
+     */
     public void addToCache(String key, FrontChannelSLOParticipantInfo entry) {
 
         super.addToCache(key, entry);
         SessionDataStore.getInstance().storeSessionData(key, CACHE_NAME, entry);
     }
 
+    /**
+     * Retrieve FrontChannelSLOParticipantInfo from the store using logout request id of the current SLO invoked
+     * session participant.
+     *
+     * @param key Logout request id of the current SLO invoked session participant.
+     * @return FrontChannelSLOParticipantInfo.
+     */
     public FrontChannelSLOParticipantInfo getValueFromCache(String key) {
 
         FrontChannelSLOParticipantInfo cacheEntry = super.getValueFromCache(key);
@@ -53,6 +71,11 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
         return cacheEntry;
     }
 
+    /**
+     * Remove FrontChannelSLOParticipantInfo from the store for the given logout request id.
+     *
+     * @param key Logout request id of the current SLO invoked session participant.
+     */
     public void clearCacheEntry(String key) {
 
         super.clearCacheEntry(key);

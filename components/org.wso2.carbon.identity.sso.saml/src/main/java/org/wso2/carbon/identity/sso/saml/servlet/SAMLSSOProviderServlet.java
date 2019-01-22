@@ -365,13 +365,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      * Respond back to the original logout request issuer after handling all the front-channel enabled
      * session participants.
      *
-     * @param req HttpServlet Request
-     * @param resp HttpServlet Response
-     * @param sessionId Session id
-     * @param frontChannelSLOParticipantInfo FrontChannelSLOParticipantInfo
-     * @throws IOException
-     * @throws IdentityException
-     * @throws ServletException
+     * @param req                            HttpServlet Request.
+     * @param resp                           HttpServlet Response.
+     * @param sessionId                      Session id.
+     * @param frontChannelSLOParticipantInfo Front-Channel SLO Participant Information.
+     * @throws IOException       If sending response fails.
+     * @throws IdentityException If building logout response fails.
+     * @throws ServletException  If sending response fails.
      */
     private void respondToOriginalLogoutRequestIssuer(HttpServletRequest req, HttpServletResponse resp,
                                                       String sessionId,
@@ -406,10 +406,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Build logout response for the original logout request issuer.
      *
-     * @param originalIssuerLogoutRequestId Logout request id of original issuer
-     * @param originalIssuer                Original issuer
-     * @return
-     * @throws IdentityException
+     * @param originalIssuerLogoutRequestId Logout request id of original issuer.
+     * @param originalIssuer                Original issuer.
+     * @return Logout response.
+     * @throws IdentityException If building logout response fails.
      */
     private LogoutResponse buildLogoutResponseForOriginalIssuer(String originalIssuerLogoutRequestId,
                                                                 SAMLSSOServiceProviderDO originalIssuer)
@@ -1216,8 +1216,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         doFrontChannelSLO(response, entry, sessionIndex, sessionDTO.getIssuer(),
                                 originalIssuerLogoutRequestId, isIdPInitSLO, relayState, returnToURL);
                         break;
-                    } else {
-                        // doBackChannelSLO()
                     }
                 }
             }
@@ -1235,15 +1233,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
-            // remove tokenId Cookie when there is no session available.
+            // Remove tokenId Cookie when there is no session available.
             removeTokenIdCookie(request, response);
         }
 
         if (validationResponseDTO.isIdPInitSLO()) {
-            // redirecting to the return URL or IS logout page.
+            // Redirecting to the return URL or IS logout page.
             response.sendRedirect(validationResponseDTO.getReturnToURL());
         } else {
-            // sending LogoutResponse back to the initiator.
+            // Sending LogoutResponse back to the initiator.
             sendResponse(request, response, sessionDTO.getRelayState(), validationResponseDTO.getLogoutResponse(),
                     validationResponseDTO.getAssertionConsumerURL(), validationResponseDTO.getSubject(),
                     null, sessionDTO.getTenantDomain());
@@ -1253,12 +1251,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Send an error response to original issuer when the SAML request validation is invalid.
      *
-     * @param request    HttpServlet Request
-     * @param response   HttpServlet Response
-     * @param sessionDTO SAMLSSOSessionDTO
-     * @throws IOException
-     * @throws IdentityException
-     * @throws ServletException
+     * @param request    HttpServlet Request.
+     * @param response   HttpServlet Response.
+     * @param sessionDTO SAMLSSOSessionDTO.
+     * @throws IOException       If error response building fails.
+     * @throws IdentityException If error response building fails.
+     * @throws ServletException  If sending error response fails.
      */
     private void sendErrorResponseToOriginalIssuer(HttpServletRequest request, HttpServletResponse response,
                                                    SAMLSSOSessionDTO sessionDTO)
@@ -1761,12 +1759,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * This method is used to prepare and send a SAML request message with HTTP POST binding.
      *
-     * @param response                 HttpServlet Response
-     * @param samlssoServiceProviderDO SAMLSSOServiceProviderDO
-     * @param logoutRequest            Logout Request
-     * @param relayState               Relay State
-     * @throws IdentityException
-     * @throws IOException
+     * @param response                 HttpServlet Response.
+     * @param samlssoServiceProviderDO SAMLSSOServiceProviderDO.
+     * @param logoutRequest            Logout Request.
+     * @param relayState               Relay State.
+     * @throws IdentityException Error in marshalling or getting SignKeyDataHolder.
+     * @throws IOException       Error in post page printing.
      */
     private void sendPostRequest(HttpServletResponse response, SAMLSSOServiceProviderDO samlssoServiceProviderDO,
                                  LogoutRequest logoutRequest, String relayState)
@@ -1856,9 +1854,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Extract logout request id of the original issuer logout request.
      *
-     * @param request HttpServletRequest
-     * @return
-     * @throws IdentityException
+     * @param request HttpServletRequest.
+     * @return Logout request id of the original logout request issuer.
+     * @throws IdentityException Decoding error.
      */
     private String extractLogoutRequestId(HttpServletRequest request) throws IdentityException {
 
@@ -1876,9 +1874,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Extract session index from the original issuer logout request.
      *
-     * @param request HttpServletRequest
-     * @return
-     * @throws IdentityException
+     * @param request HttpServletRequest.
+     * @return Session Index.
+     * @throws IdentityException Decoding error.
      */
     private String extractSessionIndex(HttpServletRequest request) throws IdentityException {
 
@@ -1897,8 +1895,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Retrieves information of front-channel session participants in single logout.
      *
-     * @param logoutRequestId Logout request id
-     * @return
+     * @param logoutRequestId Logout request id.
+     * @return Front-Channel SLO Participant Information.
      */
     private FrontChannelSLOParticipantInfo getFrontChannelSLOParticipantInfo(String logoutRequestId) {
 
@@ -1911,10 +1909,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * This method is used to prepare a SAML request message as a HTTP query string for HTTP Redirect binding.
      *
-     * @param logoutRequest     Logout Request
-     * @param serviceProviderDO SAMLSSOServiceProviderDO
-     * @return Redirect URL
-     * @throws IdentityException
+     * @param logoutRequest     Logout Request.
+     * @param serviceProviderDO SAMLSSOServiceProviderDO.
+     * @return Redirect URL.
+     * @throws IdentityException Error in marshalling or setting signature to http query string.
      */
     private String createHttpQueryStringForRedirect(LogoutRequest logoutRequest,
                                                     SAMLSSOServiceProviderDO serviceProviderDO)
@@ -1939,8 +1937,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     URLEncoder.encode(signatureAlgorithmUri, "UTF-8"));
             SAMLSSOUtil.addSignatureToHTTPQueryString(httpQueryString, signatureAlgorithmUri,
                     new X509CredentialImpl(tenantDomain));
-        } catch (UnsupportedEncodingException e) {
-            throw new IdentityException("Error while encoding the message.", e);
         } catch (IOException e) {
             throw new IdentityException("Error in compressing the SAML request message.", e);
         }
