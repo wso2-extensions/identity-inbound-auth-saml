@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOService;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
+import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCache;
@@ -254,7 +255,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             } else if (samlRequest != null) {// SAMLRequest received. SP initiated SSO
                 handleSPInitSSO(req, resp, queryString, relayState, authMode, samlRequest, sessionId, isPost);
             } else if (samlResponse != null) {// SAMLResponse received.
-                handleSAMLResponse(req, resp, samlResponse, sessionId);
+                handleSAMLResponse(req, resp, samlResponse, sessionId, isPost);
             } else {
                 handleInvalidRequestMessage(req, resp, sessionId);
             }
@@ -306,10 +307,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void handleSAMLResponse(HttpServletRequest req, HttpServletResponse resp, String samlResponse,
-                                    String sessionId)
+                                    String sessionId, boolean isPost)
             throws IdentityException, IOException, ServletException {
 
-        XMLObject response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(samlResponse));
+        XMLObject response;
+
+        if (isPost) {
+            response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decodeForPost(samlResponse));
+        } else {
+            response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(samlResponse));
+        }
 
         if (!(response instanceof LogoutResponseImpl)) {
             handleInvalidRequestMessage(req, resp, sessionId);
@@ -1738,12 +1745,87 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String subject = sessionInfoData.getSubject(samlssoServiceProviderDO.getIssuer());
 
         LogoutRequest logoutRequest = SAMLSSOUtil.buildLogoutRequest(samlssoServiceProviderDO, subject, sessionIndex);
-
-        // TODO: check for the binding and filter.
-        String redirectUrl = createHttpQueryStringForRedirect(logoutRequest, samlssoServiceProviderDO);
         storeFrontChannelSLOParticipantInfo(samlssoServiceProviderDO, originalLogoutRequestIssuer, logoutRequest,
                 originalIssuerLogoutRequestId, sessionIndex, isIdPInitSLO, relayState, returnToURL);
-        response.sendRedirect(redirectUrl);
+
+        // TODO: UI configuration to check for the binding and filter.
+        boolean isPostBindingEnabled = true;
+        if (isPostBindingEnabled) {
+            sendPostRequest(response, samlssoServiceProviderDO, logoutRequest, relayState);
+        } else {
+            String redirectUrl = createHttpQueryStringForRedirect(logoutRequest, samlssoServiceProviderDO);
+            response.sendRedirect(redirectUrl);
+        }
+    }
+
+    /**
+     * This method is used to prepare and send a SAML request message with HTTP POST binding.
+     *
+     * @param response                 HttpServlet Response
+     * @param samlssoServiceProviderDO SAMLSSOServiceProviderDO
+     * @param logoutRequest            Logout Request
+     * @param relayState               Relay State
+     * @throws IdentityException
+     * @throws IOException
+     */
+    private void sendPostRequest(HttpServletResponse response, SAMLSSOServiceProviderDO samlssoServiceProviderDO,
+                                 LogoutRequest logoutRequest, String relayState)
+            throws IdentityException, IOException {
+
+        logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+        String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
+
+        String postPageInputs = buildPostPageInputs(encodedRequestMessage, relayState);
+        String acUrl = logoutRequest.getDestination();
+        printPostPage(response, acUrl, postPageInputs);
+    }
+
+    private void printPostPage(HttpServletResponse response, String acUrl, String postPageInputs) throws IOException {
+
+        String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
+        response.setContentType("text/html; charset=UTF-8");
+        if (htmlPage != null) {
+            String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
+            String finalPage = pageWithAcs.replace("<!--$params-->", postPageInputs);
+            PrintWriter out = response.getWriter();
+            out.print(finalPage);
+
+            if (log.isDebugEnabled()) {
+                log.debug("HTTP-POST page: " + finalPage);
+            }
+        } else {
+            PrintWriter out = response.getWriter();
+            out.println("<html>");
+            out.println("<body>");
+            out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
+            out.println(" If the redirection fails, please click the post button.</p>");
+            out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
+            out.println("<p>");
+            out.println(postPageInputs);
+            out.println("<button type='submit'>POST</button>");
+            out.println("</p>");
+            out.println("</form>");
+            out.println("<script type='text/javascript'>");
+            out.println("document.forms[0].submit();");
+            out.println("</script>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    private String buildPostPageInputs(String encodedRequestMessage, String relayState) {
+
+        StringBuilder hiddenInputBuilder = new StringBuilder();
+        hiddenInputBuilder.append("<!--$params-->\n").append("<input type='hidden' name='SAMLRequest' value='")
+                .append(Encode.forHtmlAttribute(encodedRequestMessage)).append("'/>");
+
+        if (relayState != null) {
+            hiddenInputBuilder.append("<!--$params-->\n").append("<input type='hidden' name='RelayState' value='")
+                    .append(Encode.forHtmlAttribute(relayState)).append("'/>");
+        }
+
+        return hiddenInputBuilder.toString();
     }
 
     /**
