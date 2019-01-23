@@ -18,18 +18,28 @@ package org.wso2.carbon.identity.sso.saml;
 
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is to store information of front-channel enabled session participants in a single logout.
+ * Although this is extended from BaseCache this does not act as a cache. This is implemented just to act as
+ * an in-memory storage.
  */
 public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChannelSLOParticipantInfo> {
 
     private static final String CACHE_NAME = "FrontChannelSLOParticipantStore";
     private static volatile FrontChannelSLOParticipantStore instance = new FrontChannelSLOParticipantStore();
+    private boolean isTemporarySessionDataPersistEnabled = false;
 
     private FrontChannelSLOParticipantStore() {
 
         super(CACHE_NAME);
+        if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
+            isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
+                    IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
+        }
     }
 
     /**
@@ -51,7 +61,11 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
     public void addToCache(String key, FrontChannelSLOParticipantInfo entry) {
 
         super.addToCache(key, entry);
-        SessionDataStore.getInstance().storeSessionData(key, CACHE_NAME, entry);
+        if (isTemporarySessionDataPersistEnabled) {
+            long validityPeriod = TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
+            entry.setValidityPeriod(validityPeriod);
+            SessionDataStore.getInstance().storeSessionData(key, CACHE_NAME, entry);
+        }
     }
 
     /**
@@ -64,7 +78,7 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
     public FrontChannelSLOParticipantInfo getValueFromCache(String key) {
 
         FrontChannelSLOParticipantInfo cacheEntry = super.getValueFromCache(key);
-        if (cacheEntry == null) {
+        if (cacheEntry == null && isTemporarySessionDataPersistEnabled) {
             cacheEntry = (FrontChannelSLOParticipantInfo) SessionDataStore.getInstance().
                     getSessionData(key, CACHE_NAME);
         }
@@ -79,6 +93,8 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
     public void clearCacheEntry(String key) {
 
         super.clearCacheEntry(key);
-        SessionDataStore.getInstance().clearSessionData(key, CACHE_NAME);
+        if (isTemporarySessionDataPersistEnabled) {
+            SessionDataStore.getInstance().clearSessionData(key, CACHE_NAME);
+        }
     }
 }

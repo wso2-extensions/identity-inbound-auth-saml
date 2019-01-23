@@ -23,6 +23,8 @@ import org.wso2.carbon.identity.sso.saml.cache.CacheEntry;
  */
 public class FrontChannelSLOParticipantInfo extends CacheEntry {
 
+    private static final long serialVersionUID = -3909575392953155294L;
+
     private String originalIssuerLogoutRequestId;
     private String originalLogoutRequestIssuer;
     private String currentSLOInvokedParticipant;

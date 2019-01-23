@@ -318,44 +318,59 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             response = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(samlResponse));
         }
 
-        if (!(response instanceof LogoutResponseImpl)) {
+        if (response instanceof LogoutResponse) {
+            LogoutResponse logoutResponse = (LogoutResponse) response;
+            handleLogoutResponseFromSP(req, resp, sessionId, logoutResponse);
+        } else {
+            handleInvalidRequestMessage(req, resp, sessionId);
+        }
+    }
+
+    private void handleLogoutResponseFromSP(HttpServletRequest req, HttpServletResponse resp, String sessionId,
+                                            LogoutResponse logoutResponse)
+            throws ServletException, IdentityException, IOException {
+
+        String inResponseToId = logoutResponse.getInResponseTo();
+        FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo =
+                getFrontChannelSLOParticipantInfo(inResponseToId);
+
+        if (frontChannelSLOParticipantInfo == null || !frontChannelSLOParticipantInfo.
+                getCurrentSLOInvokedParticipant().equals(logoutResponse.getIssuer().getValue())) {
             handleInvalidRequestMessage(req, resp, sessionId);
         } else {
-            String inResponseToId = ((LogoutResponseImpl) response).getInResponseTo();
-            FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo =
-                    getFrontChannelSLOParticipantInfo(inResponseToId);
+            // Remove front-channel SLO Participant info from the FrontChannelSLOParticipantStore.
+            removeFrontChannelSLOParticipantInfo(inResponseToId);
+            String logoutResponseIssuer = logoutResponse.getIssuer().getValue();
+            SAMLSSOServiceProviderDO responseIssuerSP = SAMLSSOUtil.getSPConfig(
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal(), logoutResponseIssuer);
 
-            if (frontChannelSLOParticipantInfo == null) {
-                handleInvalidRequestMessage(req, resp, sessionId);
+            boolean isSuccessfullyLogout = SAMLSSOUtil.validateLogoutResponse(logoutResponse,
+                    responseIssuerSP.getCertAlias(), responseIssuerSP.getTenantDomain());
+
+            if (!isSuccessfullyLogout) {
+                // TODO : If the response is invalid, redirect the SP to an error page.
+                if (log.isDebugEnabled()) {
+                    log.debug("Logout response validation failed for logout response issuer: " +
+                            logoutResponseIssuer);
+                }
             } else {
-                String logoutResponseIssuer = ((LogoutResponseImpl) response).getIssuer().getValue();
-                SAMLSSOServiceProviderDO responseIssuerSP = SAMLSSOUtil.getSPConfig(
-                        SAMLSSOUtil.getTenantDomainFromThreadLocal(), logoutResponseIssuer);
+                removeSPFromSession(frontChannelSLOParticipantInfo.getSessionIndex(), logoutResponseIssuer);
 
-                boolean isSuccessfullyLogout = SAMLSSOUtil.validateLogoutResponse(response,
-                        responseIssuerSP.getCertAlias(), responseIssuerSP.getTenantDomain());
-
-                if (!isSuccessfullyLogout) {
-                    // TODO : If the response is invalid, redirect the SP to an error page.
-                } else {
-                    removeSPFromSession(frontChannelSLOParticipantInfo.getSessionIndex(), logoutResponseIssuer);
-
-                    List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
-                            SAMLSSOUtil.getRemainingSessionParticipantsForSLO(
-                                    frontChannelSLOParticipantInfo.getSessionIndex(),
-                                    frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer());
-
-                    if (samlssoServiceProviderDOList.isEmpty()) {
-                        respondToOriginalLogoutRequestIssuer(req, resp, sessionId, frontChannelSLOParticipantInfo);
-                    } else {
-                        doFrontChannelSLO(resp, samlssoServiceProviderDOList.get(0),
+                List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
+                        SAMLSSOUtil.getRemainingSessionParticipantsForSLO(
                                 frontChannelSLOParticipantInfo.getSessionIndex(),
-                                frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer(),
-                                frontChannelSLOParticipantInfo.getOriginalIssuerLogoutRequestId(),
-                                frontChannelSLOParticipantInfo.isIdPInitSLO(),
-                                frontChannelSLOParticipantInfo.getRelayState(),
-                                frontChannelSLOParticipantInfo.getReturnToURL());
-                    }
+                                frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer());
+
+                if (samlssoServiceProviderDOList.isEmpty()) {
+                    respondToOriginalLogoutRequestIssuer(req, resp, sessionId, frontChannelSLOParticipantInfo);
+                } else {
+                    sendLogoutRequestToSessionParticipant(resp, samlssoServiceProviderDOList,
+                            frontChannelSLOParticipantInfo.getOriginalIssuerLogoutRequestId(),
+                            frontChannelSLOParticipantInfo.isIdPInitSLO(),
+                            frontChannelSLOParticipantInfo.getRelayState(),
+                            frontChannelSLOParticipantInfo.getReturnToURL(),
+                            frontChannelSLOParticipantInfo.getSessionIndex(),
+                            frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer());
                 }
             }
         }
@@ -383,8 +398,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer());
         LogoutResponse logoutResponse = buildLogoutResponseForOriginalIssuer(
                 frontChannelSLOParticipantInfo.getOriginalIssuerLogoutRequestId(), originalIssuer);
-
-        removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId) == null) {
             // Remove tokenId Cookie when there is no session available.
@@ -446,11 +459,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private void removeSPFromSession(String sessionIndex, String serviceProvider) {
 
-        if (sessionIndex != null) {
+        if (sessionIndex != null && serviceProvider != null) {
             SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey(sessionIndex);
             SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().getValueFromCache(cacheKey);
 
-            if (serviceProvider != null && cacheEntry.getSessionInfoData() != null &&
+            if (cacheEntry.getSessionInfoData() != null &&
                     cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
                 cacheEntry.getSessionInfoData().removeServiceProvider(serviceProvider);
             }
@@ -940,62 +953,80 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 }
                 out.print(soapResponse);
             } else {
-
-            String finalPage = null;
-            String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
-            String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-            String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
-            String pageWithAcsResponseRelay = pageWithAcsResponse;
-
-            if(relayState != null) {
-                pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->", "<!--$params-->\n" + "<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState)+ "'/>");
-            }
-
-            if (authenticatedIdPs == null || authenticatedIdPs.isEmpty()) {
-                finalPage = pageWithAcsResponseRelay;
-            } else {
-                finalPage = pageWithAcsResponseRelay.replace(
-                        "<!--$additionalParams-->",
-                        "<input type='hidden' name='AuthenticatedIdPs' value='"
-                                + Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
-            }
-
-            PrintWriter out = resp.getWriter();
-            out.print(finalPage);
-
-            if (log.isDebugEnabled()) {
-                log.debug("samlsso_response.html " + finalPage);
-            }
-
+                generateSamlPostPageFromFile(resp, acUrl, response, relayState, authenticatedIdPs,
+                        SAMLSSOConstants.SAML_RESP);
             }
 
         } else {
-            PrintWriter out = resp.getWriter();
-            out.println("<html>");
-            out.println("<body>");
-            out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-            out.println(" If the redirection fails, please click the post button.</p>");
-            out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-            out.println("<p>");
-            out.println("<input type='hidden' name='SAMLResponse' value='" + Encode.forHtmlAttribute(response) + "'/>");
+            generateSamlPostPageFromTemplate(resp, acUrl, response, relayState, authenticatedIdPs,
+                    SAMLSSOConstants.SAML_RESP);
+        }
+    }
 
-            if(relayState != null) {
-                out.println("<input type='hidden' name='RelayState' value='" + Encode.forHtmlAttribute(relayState) + "'/>");
-            }
+    private void generateSamlPostPageFromTemplate(HttpServletResponse resp, String acUrl, String samlMessage,
+                                                  String relayState, String authenticatedIdPs, String samlMessageType)
+            throws IOException {
 
-            if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
-                out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                        Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
-            }
+        PrintWriter out = resp.getWriter();
+        out.println("<html>");
+        out.println("<body>");
+        out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
+        out.println(" If the redirection fails, please click the post button.</p>");
+        out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
+        out.println("<p>");
+        out.println("<input type='hidden' name='" + samlMessageType + "' value='"
+                + Encode.forHtmlAttribute(samlMessage) + "'/>");
 
-            out.println("<button type='submit'>POST</button>");
-            out.println("</p>");
-            out.println("</form>");
-            out.println("<script type='text/javascript'>");
-            out.println("document.forms[0].submit();");
-            out.println("</script>");
-            out.println("</body>");
-            out.println("</html>");
+        if (relayState != null) {
+            out.println("<input type='hidden' name='RelayState' value='"
+                    + Encode.forHtmlAttribute(relayState) + "'/>");
+        }
+
+        if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
+            out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
+                    Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
+        }
+
+        out.println("<button type='submit'>POST</button>");
+        out.println("</p>");
+        out.println("</form>");
+        out.println("<script type='text/javascript'>");
+        out.println("document.forms[0].submit();");
+        out.println("</script>");
+        out.println("</body>");
+        out.println("</html>");
+    }
+
+    private void generateSamlPostPageFromFile(HttpServletResponse resp, String acUrl, String samlMessage,
+                                              String relayState, String authenticatedIdPs, String samlMessageType)
+            throws IOException {
+
+        String finalPage;
+        String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
+        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
+        String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->",
+                buildPostPageInputs(samlMessageType, samlMessage));
+        String pageWithAcsResponseRelay = pageWithAcsResponse;
+
+        if (relayState != null) {
+            pageWithAcsResponseRelay = pageWithAcsResponse.replace("<!--$params-->",
+                    buildPostPageInputs(SAMLSSOConstants.RELAY_STATE, relayState));
+        }
+
+        if (authenticatedIdPs == null || authenticatedIdPs.isEmpty()) {
+            finalPage = pageWithAcsResponseRelay;
+        } else {
+            finalPage = pageWithAcsResponseRelay.replace(
+                    "<!--$additionalParams-->",
+                    "<input type='hidden' name='AuthenticatedIdPs' value='"
+                            + Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
+        }
+
+        PrintWriter out = resp.getWriter();
+        out.print(finalPage);
+
+        if (log.isDebugEnabled()) {
+            log.debug("samlsso_response.html " + finalPage);
         }
     }
 
@@ -1195,6 +1226,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (validationResponseDTO != null) {
+            removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
             String sessionIndex = extractSessionIndex(request);
             List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
                     SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, sessionDTO.getIssuer());
@@ -1203,24 +1235,32 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (samlssoServiceProviderDOList.isEmpty()) {
                 respondToOriginalIssuer(request, response, sessionDTO);
             } else {
-                for (SAMLSSOServiceProviderDO entry : samlssoServiceProviderDOList) {
-                    // TODO : UI configuration to enable Front-Channel SLO for SPs.
-                    Boolean isFrontChannelSLOEnabled = true;
-                    //check entry.isFrontChannelSLOEnabled()
-                    if (isFrontChannelSLOEnabled) {
-                        String originalIssuerLogoutRequestId = extractLogoutRequestId(request);
-                        boolean isIdPInitSLO = sessionDTO.isIdPInitSLO();
-                        String relayState = sessionDTO.getRelayState();
-                        String returnToURL = validationResponseDTO.getReturnToURL();
-
-                        doFrontChannelSLO(response, entry, sessionIndex, sessionDTO.getIssuer(),
-                                originalIssuerLogoutRequestId, isIdPInitSLO, relayState, returnToURL);
-                        break;
-                    }
-                }
+                String originalIssuerLogoutRequestId = extractLogoutRequestId(request);
+                sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
+                        originalIssuerLogoutRequestId, sessionDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
+                        validationResponseDTO.getReturnToURL(), sessionIndex, sessionDTO.getIssuer());
             }
         } else {
             sendErrorResponseToOriginalIssuer(request, response, sessionDTO);
+        }
+    }
+
+    private void sendLogoutRequestToSessionParticipant(HttpServletResponse response,
+                                                       List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList,
+                                                       String originalIssuerLogoutRequestId, boolean isIdPInitSLO,
+                                                       String relayState, String returnToURL, String sessionIndex,
+                                                       String originalLogoutRequestIssuer)
+            throws IOException, IdentityException {
+
+        for (SAMLSSOServiceProviderDO entry : samlssoServiceProviderDOList) {
+            // TODO : UI configuration to enable Front-Channel SLO for SPs.
+            boolean isFrontChannelSLOEnabled = true;
+            //check entry.isFrontChannelSLOEnabled()
+            if (isFrontChannelSLOEnabled) {
+                doFrontChannelSLO(response, entry, sessionIndex, originalLogoutRequestIssuer,
+                        originalIssuerLogoutRequestId, isIdPInitSLO, relayState, returnToURL);
+                break;
+            }
         }
     }
 
@@ -1229,8 +1269,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
-
-        removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId()) == null) {
             // Remove tokenId Cookie when there is no session available.
@@ -1749,7 +1787,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         // TODO: UI configuration to check for the binding and filter.
         boolean isPostBindingEnabled = true;
         if (isPostBindingEnabled) {
-            sendPostRequest(response, samlssoServiceProviderDO, logoutRequest, relayState);
+            sendPostRequest(response, samlssoServiceProviderDO, logoutRequest);
         } else {
             String redirectUrl = createHttpQueryStringForRedirect(logoutRequest, samlssoServiceProviderDO);
             response.sendRedirect(redirectUrl);
@@ -1762,66 +1800,38 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      * @param response                 HttpServlet Response.
      * @param samlssoServiceProviderDO SAMLSSOServiceProviderDO.
      * @param logoutRequest            Logout Request.
-     * @param relayState               Relay State.
      * @throws IdentityException Error in marshalling or getting SignKeyDataHolder.
      * @throws IOException       Error in post page printing.
      */
     private void sendPostRequest(HttpServletResponse response, SAMLSSOServiceProviderDO samlssoServiceProviderDO,
-                                 LogoutRequest logoutRequest, String relayState)
+                                 LogoutRequest logoutRequest)
             throws IdentityException, IOException {
 
         logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
                 samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
-
-        String postPageInputs = buildPostPageInputs(encodedRequestMessage, relayState);
         String acUrl = logoutRequest.getDestination();
-        printPostPage(response, acUrl, postPageInputs);
+        printPostPage(response, acUrl, encodedRequestMessage);
     }
 
-    private void printPostPage(HttpServletResponse response, String acUrl, String postPageInputs) throws IOException {
+    private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
+            throws IOException {
 
-        String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
         response.setContentType("text/html; charset=UTF-8");
-        if (htmlPage != null) {
-            String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-            String finalPage = pageWithAcs.replace("<!--$params-->", postPageInputs);
-            PrintWriter out = response.getWriter();
-            out.print(finalPage);
-
-            if (log.isDebugEnabled()) {
-                log.debug("HTTP-POST page: " + finalPage);
-            }
+        if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
+            generateSamlPostPageFromFile(response, acUrl, encodedRequestMessage, null, null,
+                    SAMLSSOConstants.SAML_REQUEST);
         } else {
-            PrintWriter out = response.getWriter();
-            out.println("<html>");
-            out.println("<body>");
-            out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-            out.println(" If the redirection fails, please click the post button.</p>");
-            out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-            out.println("<p>");
-            out.println(postPageInputs);
-            out.println("<button type='submit'>POST</button>");
-            out.println("</p>");
-            out.println("</form>");
-            out.println("<script type='text/javascript'>");
-            out.println("document.forms[0].submit();");
-            out.println("</script>");
-            out.println("</body>");
-            out.println("</html>");
+            generateSamlPostPageFromTemplate(response, acUrl, encodedRequestMessage, null,
+                    null, SAMLSSOConstants.SAML_REQUEST);
         }
     }
 
-    private String buildPostPageInputs(String encodedRequestMessage, String relayState) {
+    private String buildPostPageInputs(String formControlName, String formControlValue) {
 
         StringBuilder hiddenInputBuilder = new StringBuilder();
-        hiddenInputBuilder.append("<!--$params-->\n").append("<input type='hidden' name='SAMLRequest' value='")
-                .append(Encode.forHtmlAttribute(encodedRequestMessage)).append("'/>");
-
-        if (relayState != null) {
-            hiddenInputBuilder.append("<!--$params-->\n").append("<input type='hidden' name='RelayState' value='")
-                    .append(Encode.forHtmlAttribute(relayState)).append("'/>");
-        }
+        hiddenInputBuilder.append("<!--$params-->\n").append("<input type='hidden' name='").append(formControlName)
+                .append("' value='").append(Encode.forHtmlAttribute(formControlValue)).append("'/>");
 
         return hiddenInputBuilder.toString();
     }
@@ -1904,6 +1914,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 FrontChannelSLOParticipantStore.getInstance().getValueFromCache(logoutRequestId);
 
         return frontChannelSLOParticipantInfo;
+    }
+
+    /**
+     * Removes information of front-channel slo session participant from the store.
+     *
+     * @param logoutRequestId Logout request id.
+     */
+    private void removeFrontChannelSLOParticipantInfo(String logoutRequestId) {
+
+        FrontChannelSLOParticipantStore.getInstance().clearCacheEntry(logoutRequestId);
     }
 
     /**

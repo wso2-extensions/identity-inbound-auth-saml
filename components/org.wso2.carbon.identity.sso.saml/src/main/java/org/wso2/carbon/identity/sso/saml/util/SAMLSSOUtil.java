@@ -2021,47 +2021,25 @@ public class SAMLSSOUtil {
     public static LogoutRequest buildLogoutRequest(SAMLSSOServiceProviderDO serviceProviderDO, String subject,
                                                    String sessionId) throws IdentityException {
 
-        SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
-
+        String destination;
         if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getSloRequestURL());
+            destination = serviceProviderDO.getSloRequestURL();
             if (log.isDebugEnabled()) {
                 log.debug("Destination of the logout request is set to the " +
                         "SLO request URL of the SP: " + serviceProviderDO.getSloRequestURL());
             }
         } else {
-            logoutReqDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
+            destination = serviceProviderDO.getAssertionConsumerUrl();
             if (log.isDebugEnabled()) {
                 log.debug("Destination of the logout request is set to the " +
                         "ACS URL of the SP: " + serviceProviderDO.getAssertionConsumerUrl());
             }
         }
 
-        LogoutRequest logoutReq = new LogoutRequestBuilder().buildObject();
-
-        logoutReq.setID(SAMLSSOUtil.createID());
-
-        String destination = logoutReqDTO.getAssertionConsumerURL();
-        if (destination != null) {
-            logoutReq.setDestination(destination);
-        }
-
-        DateTime issueInstant = new DateTime();
-        logoutReq.setIssueInstant(issueInstant);
-        logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(serviceProviderDO.getTenantDomain()));
-        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() +
-                SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L));
-
-        NameID nameId = new NameIDBuilder().buildObject();
-        nameId.setFormat(serviceProviderDO.getNameIDFormat());
-        nameId.setValue(subject);
-        logoutReq.setNameID(nameId);
-
-        SessionIndex sessionIndex = new SessionIndexBuilder().buildObject();
-        sessionIndex.setSessionIndex(sessionId);
-        logoutReq.getSessionIndexes().add(sessionIndex);
-
-        logoutReq.setReason(SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER);
+        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
+        LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(destination, serviceProviderDO.getTenantDomain(),
+                sessionId, subject, serviceProviderDO.getNameIDFormat(),
+                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER);
 
         return logoutReq;
     }
@@ -2084,21 +2062,21 @@ public class SAMLSSOUtil {
 
         if (sessionInfoData == null) {
             return new ArrayList<>();
-        } else {
-            Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
-            samlssoServiceProviderDOList = new ArrayList<>();
+        }
 
-            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-                SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+        samlssoServiceProviderDOList = new ArrayList<>();
 
-                // Logout request should not be created for the issuer.
-                if (entry.getKey().equals(issuer)) {
-                    continue;
-                }
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
 
-                if (serviceProviderDO.isDoSingleLogout()) {
-                    samlssoServiceProviderDOList.add(serviceProviderDO);
-                }
+            // Logout request should not be created for the issuer.
+            if (entry.getKey().equals(issuer)) {
+                continue;
+            }
+
+            if (serviceProviderDO.isDoSingleLogout()) {
+                samlssoServiceProviderDOList.add(serviceProviderDO);
             }
         }
 
@@ -2169,51 +2147,47 @@ public class SAMLSSOUtil {
     /**
      * Validate whether the LogoutResponse is a success.
      *
-     * @param response         Logout Response object.
+     * @param logoutResponse   Logout Response object.
      * @param certificateAlias Certificate Alias.
      * @param tenantDomain     Tenant domain.
      * @return True if Logout response state success.
      * @throws IdentityException If validating XML signature fails.
      */
-    public static boolean validateLogoutResponse(XMLObject response, String certificateAlias, String tenantDomain)
+    public static boolean validateLogoutResponse(LogoutResponse logoutResponse, String certificateAlias,
+                                                 String tenantDomain)
             throws IdentityException {
 
-        // This should be a SAML logout response.
-        if (response instanceof LogoutResponse) {
-
-            LogoutResponse logoutResponse = (LogoutResponse) response;
-            if (logoutResponse.getIssuer() == null || logoutResponse.getStatus() == null || logoutResponse
-                    .getStatus().getStatusCode() == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Logout response validation failed due to one of given values are null. " +
-                            "Issuer: " + logoutResponse.getIssuer() +
-                            " Status: " + logoutResponse.getStatus() +
-                            " Status code: " + (logoutResponse.getStatus() != null ? logoutResponse.getStatus()
-                            .getStatusCode() : null));
-                }
-                return false;
-            }
-
+        if (logoutResponse.getIssuer() == null || logoutResponse.getStatus() == null || logoutResponse
+                .getStatus().getStatusCode() == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Logout response received for issuer: " + logoutResponse.getIssuer()
-                        .getValue() + " for tenant domain: " + tenantDomain);
+                log.debug("Logout response validation failed due to one of given values are null. " +
+                        "Issuer: " + logoutResponse.getIssuer() +
+                        " Status: " + logoutResponse.getStatus() +
+                        " Status code: " + (logoutResponse.getStatus() != null ? logoutResponse.getStatus()
+                        .getStatusCode() : null));
             }
+            return false;
+        }
 
-            boolean isSignatureValid = true;
+        if (log.isDebugEnabled()) {
+            log.debug("Logout response received for issuer: " + logoutResponse.getIssuer()
+                    .getValue() + " for tenant domain: " + tenantDomain);
+        }
 
-            // Certificate alias will be null if signature validation is disabled in the service provider side.
-            if (certificateAlias != null && logoutResponse.isSigned()) {
-                isSignatureValid = SAMLSSOUtil.validateXMLSignature(logoutResponse, certificateAlias, tenantDomain);
-                if (log.isDebugEnabled()) {
-                    log.debug("Signature validation result for logout response for issuer: " +
-                            logoutResponse.getIssuer().getValue() + " in tenant domain: " + tenantDomain + " is: " +
-                            isSignatureValid);
-                }
+        boolean isSignatureValid = true;
+
+        // Certificate alias will be null if signature validation is disabled in the service provider side.
+        if (certificateAlias != null && logoutResponse.isSigned()) {
+            isSignatureValid = SAMLSSOUtil.validateXMLSignature(logoutResponse, certificateAlias, tenantDomain);
+            if (log.isDebugEnabled()) {
+                log.debug("Signature validation result for logout response for issuer: " +
+                        logoutResponse.getIssuer().getValue() + " in tenant domain: " + tenantDomain + " is: " +
+                        isSignatureValid);
             }
-            if (SAMLSSOConstants.StatusCodes.SUCCESS_CODE.equals(logoutResponse.getStatus().getStatusCode()
-                    .getValue()) && isSignatureValid) {
-                return true;
-            }
+        }
+        if (SAMLSSOConstants.StatusCodes.SUCCESS_CODE.equals(logoutResponse.getStatus().getStatusCode()
+                .getValue()) && isSignatureValid) {
+            return true;
         }
 
         return false;

@@ -67,11 +67,11 @@ public class X509CredentialImpl implements X509Credential {
 
     private static Log log = LogFactory.getLog(X509CredentialImpl.class);
 
-    public static final String SECURITY_SAML_SIGN_KEY_STORE_LOCATION = "Security.SAMLSignKeyStore.Location";
-    public static final String SECURITY_SAML_SIGN_KEY_STORE_TYPE = "Security.SAMLSignKeyStore.Type";
-    public static final String SECURITY_SAML_SIGN_KEY_STORE_PASSWORD = "Security.SAMLSignKeyStore.Password";
-    public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS = "Security.SAMLSignKeyStore.KeyAlias";
-    public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD = "Security.SAMLSignKeyStore.KeyPassword";
+    private static final String SECURITY_SAML_SIGN_KEY_STORE_LOCATION = "Security.SAMLSignKeyStore.Location";
+    private static final String SECURITY_SAML_SIGN_KEY_STORE_TYPE = "Security.SAMLSignKeyStore.Type";
+    private static final String SECURITY_SAML_SIGN_KEY_STORE_PASSWORD = "Security.SAMLSignKeyStore.Password";
+    private static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS = "Security.SAMLSignKeyStore.KeyAlias";
+    private static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD = "Security.SAMLSignKeyStore.KeyPassword";
 
     /**
      * Instantiates X509Credential.
@@ -92,14 +92,14 @@ public class X509CredentialImpl implements X509Credential {
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
 
         // Get the private key and the cert for the respective tenant domain.
-        if (!tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
-            initializeCredentialForTenant(tenantDomain, keyStoreManager);
-        } else {
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
             if (isSignKeyStoreConfigured()) {
-                initializeCredentialForSuperTenantFromSignKeyStore();
+                initCredentialForSuperTenantFromSignKeyStore();
             } else {
-                initializeCredentialForSuperTenantFromDefaultKeyStore(keyStoreManager);
+                initCredentialFromSuperTenantKeyStore(keyStoreManager);
             }
+        } else {
+            initCredentialForTenant(tenantDomain, keyStoreManager);
         }
 
         if (privateKey == null) {
@@ -119,7 +119,7 @@ public class X509CredentialImpl implements X509Credential {
      * @param keyStoreManager keyStore Manager.
      * @throws IdentityException Error in retrieving private key and certificate.
      */
-    private void initializeCredentialForSuperTenantFromDefaultKeyStore(KeyStoreManager keyStoreManager)
+    private void initCredentialFromSuperTenantKeyStore(KeyStoreManager keyStoreManager)
             throws IdentityException {
 
         try {
@@ -138,7 +138,7 @@ public class X509CredentialImpl implements X509Credential {
      *
      * @throws IdentityException Error in keystore.
      */
-    private void initializeCredentialForSuperTenantFromSignKeyStore() throws IdentityException {
+    private void initCredentialForSuperTenantFromSignKeyStore() throws IdentityException {
 
         if (log.isDebugEnabled()) {
             log.debug("Initializing Key Data for super tenant using separate sign key store.");
@@ -146,7 +146,7 @@ public class X509CredentialImpl implements X509Credential {
 
         try {
             if (superTenantSignKeyStore == null) {
-                initializeSuperTenantSignKeyStore();
+                initSuperTenantSignKeyStore();
             }
 
             String keyAlias = ServerConfiguration.getInstance().getFirstProperty(
@@ -168,11 +168,12 @@ public class X509CredentialImpl implements X509Credential {
                 throw new IdentityException("Configured signing KeyStore X509Certificate is invalid.");
             }
         } catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e) {
-            throw new IdentityException("Unable to load keystore", e);
+            throw new IdentityException("Unable to load signing keystore for tenant " +
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, e);
         }
     }
 
-    private void initializeSuperTenantSignKeyStore() throws IdentityException {
+    private void initSuperTenantSignKeyStore() throws IdentityException {
 
         String keyStoreLocation = ServerConfiguration.getInstance().getFirstProperty(
                 SECURITY_SAML_SIGN_KEY_STORE_LOCATION);
@@ -198,7 +199,7 @@ public class X509CredentialImpl implements X509Credential {
      * @param keyStoreManager KeyStore Manager.
      * @throws IdentityException Error in retrieving private key and certificate.
      */
-    private void initializeCredentialForTenant(String tenantDomain, KeyStoreManager keyStoreManager)
+    private void initCredentialForTenant(String tenantDomain, KeyStoreManager keyStoreManager)
             throws IdentityException {
 
         try {

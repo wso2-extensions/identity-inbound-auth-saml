@@ -239,6 +239,7 @@ public class SAMLSSOService {
         //send logout requests to all session participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
+        // TODO : Check for back-channel logout and filter the session removal.
         SAMLSSOUtil.removeSession(sessionId, issuer);
     }
 
