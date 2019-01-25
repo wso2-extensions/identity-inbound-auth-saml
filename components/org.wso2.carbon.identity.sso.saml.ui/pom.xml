@@ -82,6 +82,10 @@
             <groupId>org.wso2.carbon.identity.metadata.saml2</groupId>
             <artifactId>org.wso2.carbon.identity.idp.metadata.saml2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.sso.saml.common</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

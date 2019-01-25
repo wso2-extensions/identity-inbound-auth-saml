@@ -46,9 +46,11 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String sloRequestURL;
     private String loginPageURL;
     private String attributeConsumingServiceIndex;
+    private String frontChannelLogoutBinding;
     private boolean doSingleLogout;
     private boolean doSignAssertions;
     private boolean doSignResponse;
+    private boolean doFrontChannelLogout;
     @XmlElementWrapper(name="requestedClaims")
     @XmlElement(name = "requestedClaim")
     private String[] requestedClaims;
@@ -241,6 +243,26 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setLoginPageURL(String loginPageURL) {
         this.loginPageURL = loginPageURL;
+    }
+
+    public boolean isDoFrontChannelLogout() {
+
+        return doFrontChannelLogout;
+    }
+
+    public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
+
+        this.doFrontChannelLogout = doFrontChannelLogout;
+    }
+
+    public String getFrontChannelLogoutBinding() {
+
+        return frontChannelLogoutBinding;
+    }
+
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
+
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
     }
 
     /**

@@ -160,6 +160,8 @@ public class SAMLSSOConstants {
         public static final String USE_AUTHENTICATED_USER_DOMAIN_CRYPTO = "SSOService.UseAuthenticatedUserDomainCrypto";
         public static final String RETURN_TO_URL_LIST = "ReturnToURLList";
         public static final String RETURN_TO_URL = "ReturnToURL";
+        public static final String FRONT_CHANNEL_LOGOUT = "EnableFrontChannelLogout";
+        public static final String FRONT_CHANNEL_LOGOUT_BINDING = "FrontChannelLogoutBinding";
 
         private FileBasedSPConfig() {
         }
