@@ -129,6 +129,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     spDO.setSloRequestURL(authnReqDTO.getSloRequestURL());
                     spDO.setTenantDomain(authnReqDTO.getTenantDomain());
                     spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
+                    spDO.setDoFrontChannelLogout(authnReqDTO.isDoFrontChannelLogout());
+                    spDO.setFrontChannelLogoutMethod(authnReqDTO.getFrontChannelLogoutMethod());
                     spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
                     spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
                     spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());

@@ -27,6 +27,7 @@ public class SAMLSSOUIConstants {
     public static final String SERVICE_PROVIDERS_DATA_PAGE_COUNT = "page_count";
     public static final String ENABLE_ATTRIBUTE_PROFILE = "enableAttributeProfile";
     public static final String ENABLE_SINGLE_LOGOUT = "enableSingleLogout";
+    public static final String SLO_TYPE = "singleLogoutType";
     public static final String SLO_RESPONSE_URL = "sloResponseURL";
     public static final String SLO_REQUEST_URL = "sloRequestURL";
     public static final String ENABLE_RESPONSE_SIGNATURE = "enableResponseSignature";

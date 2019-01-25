@@ -158,6 +158,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     spDO.setTenantDomain(authnReqDTO.getTenantDomain());
                     spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
                     spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
+                    spDO.setDoFrontChannelLogout(authnReqDTO.isDoFrontChannelLogout());
+                    spDO.setFrontChannelLogoutMethod(authnReqDTO.getFrontChannelLogoutMethod());
                     spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
                     spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
                     spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
@@ -287,6 +289,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setNameIdClaimUri(ssoIdpConfigs.getNameIdClaimUri());
         authnReqDTO.setNameIDFormat(ssoIdpConfigs.getNameIDFormat());
         authnReqDTO.setDoSingleLogout(ssoIdpConfigs.isDoSingleLogout());
+        authnReqDTO.setDoFrontChannelLogout(ssoIdpConfigs.isDoFrontChannelLogout());
+        authnReqDTO.setFrontChannelLogoutMethod(ssoIdpConfigs.getFrontChannelLogoutMethod());
         authnReqDTO.setSloResponseURL(ssoIdpConfigs.getSloResponseURL());
         authnReqDTO.setSloRequestURL(ssoIdpConfigs.getSloRequestURL());
         authnReqDTO.setDoSignResponse(ssoIdpConfigs.isDoSignResponse());

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.ui;
 
+import org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
 
 import java.util.ArrayList;
@@ -132,6 +133,45 @@ public class SAMLSSOUIUtil {
             }
         } else {
             return DEFAULT_VALUE_FOR_SINGLE_LOGOUT;
+        }
+        return false;
+    }
+
+    //Check front-Channel logout enable and if not enable return false
+    public static boolean isFrontchannelLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                 return provider.getDoFrontChannelLogout();
+            }
+        }
+        return false;
+    }
+
+    //Check front-Channel logout HTTP Redirect Binding enable and if not enable return false
+    public static boolean isHTTPRedirectBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                if(SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING.equals
+                        (provider.getFrontChannelLogoutMethod())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    //Check front-Channel logout HTTP Post Binding enable and if not enable return false
+    public static boolean isHTTPPostBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                if(SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING.equals
+                        (provider.getFrontChannelLogoutMethod())) {
+                    return true;
+                }
+            }
         }
         return false;
     }

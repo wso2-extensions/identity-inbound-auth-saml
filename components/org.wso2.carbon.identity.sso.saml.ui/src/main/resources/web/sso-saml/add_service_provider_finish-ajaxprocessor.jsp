@@ -28,6 +28,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants" %>
 
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -98,8 +99,19 @@
             if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL))) {
                 serviceProviderDTO.setSloRequestURL(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL));
             }
+            if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING
+                    .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+                serviceProviderDTO.setDoFrontChannelLogout(true);
+                serviceProviderDTO.setFrontChannelLogoutMethod
+                        (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING);
+            }
+            if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING
+                    .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+                serviceProviderDTO.setDoFrontChannelLogout(true);
+                serviceProviderDTO.setFrontChannelLogoutMethod
+                        (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING);
+            }
         }
-
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_RESPONSE_SIGNATURE))) {
             serviceProviderDTO.setDoSignResponse(true);
         }

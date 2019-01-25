@@ -127,15 +127,22 @@
         }
 
 
-        function disableLogoutUrl(chkbx) {
+        function disableSingleLogout(chkbx) {
             if ($(chkbx).is(':checked')) {
                 $("#sloResponseURL").prop('disabled', false);
                 $("#sloRequestURL").prop('disabled', false);
+                $("#enableBackChannelLogout").prop('disabled',false);
+                $("#enableFrontChannelHTTPRedirectBinding").prop('disabled', false);
+                $("#enableFrontChannelHTTPPostBinding").prop('disabled', false);
             } else {
                 $("#sloResponseURL").prop('disabled', true);
                 $("#sloRequestURL").prop('disabled', true);
+                $("#enableBackChannelLogout").prop('disabled',true);
+                $("#enableFrontChannelHTTPRedirectBinding").prop('disabled', true);
+                $("#enableFrontChannelHTTPPostBinding").prop('disabled', true);
                 $("#sloResponseURL").val("");
                 $("#sloRequestURL").val("");
+                
             }
         }
 
@@ -1271,11 +1278,14 @@
                                     <td colspan="2" title="Enable Single Logout so that all sessions are terminated once the user signs out from one server">
                                     <input type="checkbox"
                                                            name="enableSingleLogout" value="true"
-                                                           onclick="disableLogoutUrl(this);"
-                                            <%= isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>/>
+                                                           onclick="disableSingleLogout(this);"
+                                            <%= isSingleLogoutEnabled(isEditSP, provider) ? "checked": ""%>
+                                    />
+                                        
                                         <fmt:message
                                                 key="enable.single.logout"/></td>
                                 </tr>
+                                <!-- Logout URLs-->
                                 <tr>
                                     <td
                                             style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
@@ -1284,7 +1294,8 @@
                                     <td><input type="text" id="sloResponseURL" name="sloResponseURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloResponseURL())) ?
                Encode.forHtmlAttribute(provider.getSloResponseURL()) : ""%>"
-                                               class="text-box-big" <%=(isEditSP && provider.getDoSingleLogout()) ? "" : "disabled=\"disabled\""%>>
+                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
+            
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout response accepting endpoint
                                         </div>
@@ -1298,10 +1309,49 @@
                                     <td><input type="text" id="sloRequestURL" name="sloRequestURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloRequestURL())) ?
                Encode.forHtmlAttribute(provider.getSloRequestURL()) : ""%>"
-                                               class="text-box-big" <%=(isEditSP && provider.getDoSingleLogout()) ? "" : "disabled=\"disabled\""%>>
+                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout request accepting endpoint
                                         </div>
+                                    </td>
+                                </tr>
+    
+                                <tr id="single_logout_type_row" name="single_logout_type_row">
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;" class="leftCol-med"><fmt:message key='single.logout.type'/></td>
+                                    <td>
+                                        <table>
+                                            <!-- EnableBackChannelLogout-->
+                                            <tr>
+                                                <td><label><input type="radio" name="singleLogoutType"
+                                                                  id="enableBackChannelLogout" value="enableBackChannelLogout"
+                                                                  class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>
+                                                        <%= !isFrontchannelLogoutEnabled(isEditSP, provider) && isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>
+                                                />
+                                                    <fmt:message key="enable.back.channel.logout"/>
+                                                </label></td>
+                                            </tr>
+                                            <!-- EnableFrontChannelLogout-HTTPRedirectBinding-->
+                                            <tr>
+                                                <td><label>
+                                                    <input type="radio" id="enableFrontChannelHTTPRedirectBinding" name="singleLogoutType" value="HTTPRedirectBinding"
+                                                           class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>
+                                                            <%= isHTTPRedirectBindingEnabled(isEditSP, provider) ? "checked": ""%>
+                                                    />
+                                                    <fmt:message key="enable.front.channel.http.redirect.binding"/>
+                                                </label></td>
+                                            </tr>
+                                            <!-- EnableFrontChannelLogout-HTTPRPostBinding-->
+                                            <tr>
+                                                <td><label>
+                                                    <input type="radio" id="enableFrontChannelHTTPPostBinding" name="singleLogoutType" value="HTTPPostBinding"
+                                                           class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider)  ? "" : "disabled=\"disabled\""%>
+                                                            <%= isHTTPPostBindingEnabled(isEditSP, provider) ? "checked": ""%>
+                                                    />
+                                                    <fmt:message key="enable.front.channel.http.post.binding"/>
+                                                </label></td>
+                                            </tr>
+                                            
+                                        </table>
                                     </td>
                                 </tr>
                                 <!-- EnableAttributeProfile -->
