@@ -226,6 +226,7 @@ public class SAMLSSOService {
             String key = entry.getKey();
             SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
 
+            // TODO : UI configuration to check for Front-Channel SLO for SPs and filter out.
             // if issuer is the logout request initiator, then not sending the logout request to the issuer.
             if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()) {
                 SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
@@ -238,6 +239,7 @@ public class SAMLSSOService {
         //send logout requests to all session participants
         LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
                 new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
+        // TODO : Check for back-channel logout and filter the session removal.
         SAMLSSOUtil.removeSession(sessionId, issuer);
     }
 

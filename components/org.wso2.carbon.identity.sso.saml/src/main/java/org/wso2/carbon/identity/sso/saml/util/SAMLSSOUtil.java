@@ -33,12 +33,17 @@ import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.LogoutResponse;
+import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.SessionIndex;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml2.core.impl.LogoutRequestBuilder;
+import org.opensaml.saml2.core.impl.NameIDBuilder;
+import org.opensaml.saml2.core.impl.SessionIndexBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
@@ -49,6 +54,7 @@ import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.security.SecurityException;
+import org.opensaml.xml.security.SigningUtil;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.SignableXMLObject;
 import org.opensaml.xml.util.Base64;
@@ -97,6 +103,7 @@ import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProces
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
+import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.validators.IdPInitSSOAuthnRequestValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectSignatureValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidator;
@@ -123,6 +130,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -2000,4 +2008,189 @@ public class SAMLSSOUtil {
             PrivilegedCarbonContext.endTenantFlow();
         }
     }
+
+    /**
+     * Build SAML logout request.
+     *
+     * @param serviceProviderDO SP for which the logout request is built.
+     * @param subject           Subject identifier.
+     * @param sessionId         Session index.
+     * @return Logout Request.
+     * @throws IdentityException If tenant domain is invalid.
+     */
+    public static LogoutRequest buildLogoutRequest(SAMLSSOServiceProviderDO serviceProviderDO, String subject,
+                                                   String sessionId) throws IdentityException {
+
+        String destination;
+        if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
+            destination = serviceProviderDO.getSloRequestURL();
+            if (log.isDebugEnabled()) {
+                log.debug("Destination of the logout request is set to the " +
+                        "SLO request URL of the SP: " + serviceProviderDO.getSloRequestURL());
+            }
+        } else {
+            destination = serviceProviderDO.getAssertionConsumerUrl();
+            if (log.isDebugEnabled()) {
+                log.debug("Destination of the logout request is set to the " +
+                        "ACS URL of the SP: " + serviceProviderDO.getAssertionConsumerUrl());
+            }
+        }
+
+        SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
+        LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(destination, serviceProviderDO.getTenantDomain(),
+                sessionId, subject, serviceProviderDO.getNameIDFormat(),
+                SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER);
+
+        return logoutReq;
+    }
+
+    /**
+     * Get remaining session participants for SLO except for the original issuer.
+     *
+     * @param sessionIndex Session index.
+     * @param issuer       Original issuer.
+     * @return SP List with remaining session participants for SLO except for the original issuer.
+     */
+    public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(String sessionIndex,
+                                                                                       String issuer) {
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList;
+
+        if (sessionInfoData == null) {
+            return new ArrayList<>();
+        }
+
+        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+        samlssoServiceProviderDOList = new ArrayList<>();
+
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+
+            // Logout request should not be created for the issuer.
+            if (entry.getKey().equals(issuer)) {
+                continue;
+            }
+
+            if (serviceProviderDO.isDoSingleLogout()) {
+                samlssoServiceProviderDOList.add(serviceProviderDO);
+            }
+        }
+
+        return samlssoServiceProviderDOList;
+    }
+
+    /**
+     * Get SessionInfoData.
+     *
+     * @param sessionIndex Session index.
+     * @return Session Info Data.
+     */
+    public static SessionInfoData getSessionInfoData(String sessionIndex) {
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+
+        return sessionInfoData;
+    }
+
+    /**
+     * Get Session Index.
+     *
+     * @param sessionId Session id.
+     * @return Session Index.
+     */
+    public static String getSessionIndex(String sessionId) {
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
+                .getPersistenceManager();
+        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+
+        return sessionIndex;
+    }
+
+    /**
+     * Construct signature for http redirect.
+     *
+     * @param httpQueryString       http query string
+     * @param signatureAlgorithmURI signature algorithm URI
+     * @param credential            X509Credential
+     */
+    public static void addSignatureToHTTPQueryString(StringBuilder httpQueryString,
+                                                     String signatureAlgorithmURI, X509Credential credential) {
+
+        try {
+            byte[] rawSignature = SigningUtil.signWithURI(credential, signatureAlgorithmURI,
+                    httpQueryString.toString().getBytes("UTF-8"));
+
+            String base64Signature = Base64.encodeBytes(rawSignature, Base64.DONT_BREAK_LINES);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Generated digital signature value (base64-encoded) {} " + base64Signature);
+            }
+
+            httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" +
+                    URLEncoder.encode(base64Signature, "UTF-8").trim());
+
+        } catch (org.opensaml.xml.security.SecurityException e) {
+            log.error("Unable to sign query string", e);
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8 encoding is required to be supported by all JVMs.
+            log.error("Error while adding signature to HTTP query string", e);
+        }
+    }
+
+    /**
+     * Validate whether the LogoutResponse is a success.
+     *
+     * @param logoutResponse   Logout Response object.
+     * @param certificateAlias Certificate Alias.
+     * @param tenantDomain     Tenant domain.
+     * @return True if Logout response state success.
+     * @throws IdentityException If validating XML signature fails.
+     */
+    public static boolean validateLogoutResponse(LogoutResponse logoutResponse, String certificateAlias,
+                                                 String tenantDomain)
+            throws IdentityException {
+
+        if (logoutResponse.getIssuer() == null || logoutResponse.getStatus() == null || logoutResponse
+                .getStatus().getStatusCode() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Logout response validation failed due to one of given values are null. " +
+                        "Issuer: " + logoutResponse.getIssuer() +
+                        " Status: " + logoutResponse.getStatus() +
+                        " Status code: " + (logoutResponse.getStatus() != null ? logoutResponse.getStatus()
+                        .getStatusCode() : null));
+            }
+            return false;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Logout response received for issuer: " + logoutResponse.getIssuer()
+                    .getValue() + " for tenant domain: " + tenantDomain);
+        }
+
+        boolean isSignatureValid = true;
+
+        // Certificate alias will be null if signature validation is disabled in the service provider side.
+        if (certificateAlias != null && logoutResponse.isSigned()) {
+            isSignatureValid = SAMLSSOUtil.validateXMLSignature(logoutResponse, certificateAlias, tenantDomain);
+            if (log.isDebugEnabled()) {
+                log.debug("Signature validation result for logout response for issuer: " +
+                        logoutResponse.getIssuer().getValue() + " in tenant domain: " + tenantDomain + " is: " +
+                        isSignatureValid);
+            }
+        }
+        if (SAMLSSOConstants.StatusCodes.SUCCESS_CODE.equals(logoutResponse.getStatus().getStatusCode()
+                .getValue()) && isSignatureValid) {
+            return true;
+        }
+
+        return false;
+    }
+
 }
