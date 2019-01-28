@@ -97,6 +97,8 @@ public class SAMLSSOConstants {
     public static final String CACHE_CONTROL_PARAM_KEY = "Cache-Control";
     public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
 
+    public static final String IS_POST = "isPost";
+
     private SAMLSSOConstants() {
     }
 
