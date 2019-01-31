@@ -99,17 +99,14 @@
             if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL))) {
                 serviceProviderDTO.setSloRequestURL(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL));
             }
-            if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING
-                    .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+            if (SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals(request.getParameter
+                    (SAMLSSOUIConstants.SLO_TYPE))) {
                 serviceProviderDTO.setDoFrontChannelLogout(true);
-                serviceProviderDTO.setFrontChannelLogoutMethod
-                        (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING);
+                serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING);
             }
-            if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING
-                    .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+            if (SAMLSSOProviderConstants.HTTP_POST_BINDING.equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
                 serviceProviderDTO.setDoFrontChannelLogout(true);
-                serviceProviderDTO.setFrontChannelLogoutMethod
-                        (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING);
+                serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_POST_BINDING);
             }
         }
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_RESPONSE_SIGNATURE))) {

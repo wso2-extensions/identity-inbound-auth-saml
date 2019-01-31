@@ -57,7 +57,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String[] requestedRecipients;
     private boolean doSingleLogout;
     private boolean doFrontChannelLogout;
-    private String frontChannelLogoutMethod;
+    private String frontChannelLogoutBinding;
     private boolean doSignResponse;
     private boolean doSignAssertions;
     private boolean isStratosDeployment = false;
@@ -299,14 +299,14 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
         this.doFrontChannelLogout = doFrontChannelLogout;
     }
 
-    public String getFrontChannelLogoutMethod() {
+    public String getFrontChannelLogoutBinding() {
 
-        return frontChannelLogoutMethod;
+        return frontChannelLogoutBinding;
     }
 
-    public void setFrontChannelLogoutMethod(String frontChannelLogoutMethod) {
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
 
-        this.frontChannelLogoutMethod = frontChannelLogoutMethod;
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
     }
 
     /**

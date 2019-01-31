@@ -30,6 +30,30 @@
         <xs:schema xmlns:ax2446="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2437="http://base.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="isOpenIDLoginAccepted">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isOpenIDLoginAcceptedResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isSAMLSSOLoginAccepted">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isSAMLSSOLoginAcceptedResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="IdentitySAMLSSOServiceIdentityException">
                 <xs:complexType>
                     <xs:sequence>
@@ -52,30 +76,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2446:SAMLSSORespDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isOpenIDLoginAccepted">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isOpenIDLoginAcceptedResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isSAMLSSOLoginAccepted">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isSAMLSSOLoginAcceptedResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -170,7 +170,7 @@
                     <xs:element minOccurs="0" name="doValidateSignatureInArtifactResolve" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="frontChannelLogoutMethod" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>

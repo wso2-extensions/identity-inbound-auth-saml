@@ -193,7 +193,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
         serviceProviderDO.setDoSingleLogout(serviceProviderDTO.isDoSingleLogout());
         serviceProviderDO.setDoFrontChannelLogout(serviceProviderDTO.isDoFrontChannelLogout());
-        serviceProviderDO.setFrontChannelLogoutMethod(serviceProviderDTO.getFrontChannelLogoutMethod());
+        serviceProviderDO.setFrontChannelLogoutBinding(serviceProviderDTO.getFrontChannelLogoutBinding());
         serviceProviderDO.setSloResponseURL(serviceProviderDTO.getSloResponseURL());
         serviceProviderDO.setSloRequestURL(serviceProviderDTO.getSloRequestURL());
         serviceProviderDO.setLoginPageURL(serviceProviderDTO.getLoginPageURL());
@@ -285,7 +285,7 @@ public class SAMLSSOConfigAdmin {
 
         serviceProviderDTO.setDoSingleLogout(serviceProviderDO.isDoSingleLogout());
         serviceProviderDTO.setDoFrontChannelLogout(serviceProviderDO.isDoFrontChannelLogout());
-        serviceProviderDTO.setFrontChannelLogoutMethod(serviceProviderDO.getFrontChannelLogoutMethod());
+        serviceProviderDTO.setFrontChannelLogoutBinding(serviceProviderDO.getFrontChannelLogoutBinding());
         serviceProviderDTO.setLoginPageURL(serviceProviderDO.getLoginPageURL());
         serviceProviderDTO.setSloRequestURL(serviceProviderDO.getSloRequestURL());
         serviceProviderDTO.setSloResponseURL(serviceProviderDO.getSloResponseURL());
@@ -363,7 +363,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
                 providerDTO.setDoFrontChannelLogout(providerDO.isDoFrontChannelLogout());
-                providerDTO.setFrontChannelLogoutMethod(providerDO.getFrontChannelLogoutMethod());
+                providerDTO.setFrontChannelLogoutBinding(providerDO.getFrontChannelLogoutBinding());
                 providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
                 providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
                 providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());

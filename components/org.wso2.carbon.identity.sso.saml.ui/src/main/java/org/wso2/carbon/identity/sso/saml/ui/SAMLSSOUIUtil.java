@@ -137,43 +137,40 @@ public class SAMLSSOUIUtil {
         return false;
     }
 
-    //Check front-Channel logout enable and if not enable return false
-    public static boolean isFrontchannelLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+    /**
+     * Check front-Channel logout enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration.
+     * @return boolean true if front channel logout enabled.
+     */
+    public static boolean isFrontChannelLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
 
-        if (isSpEdit) {
-            if (provider != null) {
-                 return provider.getDoFrontChannelLogout();
-            }
-        }
-        return false;
+        return (isSpEdit && provider != null && provider.getDoFrontChannelLogout());
     }
 
-    //Check front-Channel logout HTTP Redirect Binding enable and if not enable return false
+    /**
+     * Check front-Channel logout HTTP Redirect Binding enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration.
+     * @return boolean true if redirect binding enabled.
+     */
     public static boolean isHTTPRedirectBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
 
-        if (isSpEdit) {
-            if (provider != null) {
-                if(SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING.equals
-                        (provider.getFrontChannelLogoutMethod())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals
+                (provider.getFrontChannelLogoutBinding()));
+
     }
 
-    //Check front-Channel logout HTTP Post Binding enable and if not enable return false
+    /**
+     * Check front-Channel logout HTTP Post Binding enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration
+     * @return boolean true if post binding enabled.
+     */
     public static boolean isHTTPPostBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
 
-        if (isSpEdit) {
-            if (provider != null) {
-                if(SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING.equals
-                        (provider.getFrontChannelLogoutMethod())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_POST_BINDING.equals
+                (provider.getFrontChannelLogoutBinding())) ;
     }
 
     public static boolean isAttributeProfileEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {

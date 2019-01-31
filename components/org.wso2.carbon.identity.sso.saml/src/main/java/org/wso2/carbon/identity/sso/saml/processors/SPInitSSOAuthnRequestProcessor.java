@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.sso.saml.processors;
 
-import org.apache.axis2.transport.http.ServletBasedOutTransportInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -159,7 +158,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
                     spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
                     spDO.setDoFrontChannelLogout(authnReqDTO.isDoFrontChannelLogout());
-                    spDO.setFrontChannelLogoutMethod(authnReqDTO.getFrontChannelLogoutMethod());
+                    spDO.setFrontChannelLogoutBinding(authnReqDTO.getFrontChannelLogoutBinding());
                     spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
                     spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
                     spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
@@ -290,7 +289,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setNameIDFormat(ssoIdpConfigs.getNameIDFormat());
         authnReqDTO.setDoSingleLogout(ssoIdpConfigs.isDoSingleLogout());
         authnReqDTO.setDoFrontChannelLogout(ssoIdpConfigs.isDoFrontChannelLogout());
-        authnReqDTO.setFrontChannelLogoutMethod(ssoIdpConfigs.getFrontChannelLogoutMethod());
+        authnReqDTO.setFrontChannelLogoutBinding(ssoIdpConfigs.getFrontChannelLogoutBinding());
         authnReqDTO.setSloResponseURL(ssoIdpConfigs.getSloResponseURL());
         authnReqDTO.setSloRequestURL(ssoIdpConfigs.getSloRequestURL());
         authnReqDTO.setDoSignResponse(ssoIdpConfigs.isDoSignResponse());

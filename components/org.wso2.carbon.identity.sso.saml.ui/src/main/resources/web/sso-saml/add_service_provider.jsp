@@ -129,6 +129,9 @@
 
         function disableSingleLogout(chkbx) {
             if ($(chkbx).is(':checked')) {
+                if(!$("#enableFrontChannelHTTPRedirectBinding").is(':checked') && !$("#enableFrontChannelHTTPPostBinding").is(':checked')) {
+                    $("#enableBackChannelLogout").prop('checked',true);
+                }
                 $("#sloResponseURL").prop('disabled', false);
                 $("#sloRequestURL").prop('disabled', false);
                 $("#enableBackChannelLogout").prop('disabled',false);
@@ -1325,7 +1328,7 @@
                                                 <td><label><input type="radio" name="singleLogoutType"
                                                                   id="enableBackChannelLogout" value="enableBackChannelLogout"
                                                                   class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>
-                                                        <%= !isFrontchannelLogoutEnabled(isEditSP, provider) && isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>
+                                                        <%= !isFrontChannelLogoutEnabled(isEditSP, provider) && isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>
                                                 />
                                                     <fmt:message key="enable.back.channel.logout"/>
                                                 </label></td>

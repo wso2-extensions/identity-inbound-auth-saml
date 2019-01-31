@@ -73,17 +73,13 @@
         if ("true".equals(request.getParameter("enableSingleLogout"))) {
             serviceProviderDTO.setDoSingleLogout(true);
         }
-        if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING
-                .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+        if (SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
             serviceProviderDTO.setDoFrontChannelLogout(true);
-            serviceProviderDTO.setFrontChannelLogoutMethod
-                    (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_REDIRECT_BINDING);
+            serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING);
         }
-        if (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING
-                .equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+        if (SAMLSSOProviderConstants.HTTP_POST_BINDING.equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
             serviceProviderDTO.setDoFrontChannelLogout(true);
-            serviceProviderDTO.setFrontChannelLogoutMethod
-                    (SAMLSSOProviderConstants.ENABLE_FRONT_CHANNEL_HTTP_POST_BINDING);
+            serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_POST_BINDING);
         }
         if ("true".equals(request.getParameter("enableResponseSignature"))) {
             serviceProviderDTO.setDoSignResponse(true);
