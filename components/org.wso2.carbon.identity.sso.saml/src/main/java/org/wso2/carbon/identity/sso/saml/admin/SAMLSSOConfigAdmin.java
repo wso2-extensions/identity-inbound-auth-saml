@@ -310,9 +310,9 @@ public class SAMLSSOConfigAdmin {
 
         serviceProviderDTO.setNameIDFormat(serviceProviderDO.getNameIDFormat());
 
-        if (serviceProviderDO.getAttributeConsumingServiceIndex() != null && !serviceProviderDO
-                .getAttributeConsumingServiceIndex().equals("")) {
+        if (StringUtils.isNotBlank(serviceProviderDO.getAttributeConsumingServiceIndex())) {
             serviceProviderDTO.setAttributeConsumingServiceIndex(serviceProviderDO.getAttributeConsumingServiceIndex());
+            serviceProviderDTO.setEnableAttributeProfile(true);
         }
 
         if (serviceProviderDO.getRequestedAudiences() != null && serviceProviderDO.getRequestedAudiences().length !=
@@ -355,6 +355,11 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setKeyEncryptionAlgorithmURI(providerDO.getKeyEncryptionAlgorithmUri());
                 providerDTO.setCertAlias(providerDO.getCertAlias());
                 providerDTO.setAttributeConsumingServiceIndex(providerDO.getAttributeConsumingServiceIndex());
+
+                if (StringUtils.isNotBlank(providerDO.getAttributeConsumingServiceIndex())) {
+                    providerDTO.setEnableAttributeProfile(true);
+                }
+
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
                 providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
