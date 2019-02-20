@@ -204,21 +204,7 @@ public class SSOSessionPersistenceManager {
                 if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
                     SAMLSSOServiceProviderDO providerDO = cacheEntry.getSessionInfoData().getServiceProviderList().get(issuer);
                     if (providerDO != null && providerDO.isDoSingleLogout()) {
-                        Set<String> sloSupportedIssuers = new HashSet<String>();
-                        //Filter out service providers which enabled the single logout
-                        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
-                                getServiceProviderList().entrySet()) {
-                            if (entry.getValue().isDoSingleLogout()) {
-                                sloSupportedIssuers.add(entry.getKey());
-                            }
-                        }
-                        //Remove service providers which enabled the single logout
-                        for (String sloSupportedIssuer : sloSupportedIssuers) {
-                            cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
-                            if(log.isDebugEnabled()) {
-                                log.debug("Removed SLO supported service provider from session info data  with name " + sloSupportedIssuer);
-                            }
-                        }
+                        removeBackChannelSLOEnabledSPs(cacheEntry);
                     } else {
                         if(cacheEntry.getSessionInfoData() != null) {
                             cacheEntry.getSessionInfoData().removeServiceProvider(issuer);
@@ -228,6 +214,9 @@ public class SSOSessionPersistenceManager {
                         }
                     }
                 }
+            } else {
+                // Remove session participants in IdP initiated back-channel SLO.
+                removeBackChannelSLOEnabledSPs(cacheEntry);
             }
 
             if (cacheEntry.getSessionInfoData() == null || cacheEntry.getSessionInfoData().getServiceProviderList() == null ||
@@ -238,6 +227,26 @@ public class SSOSessionPersistenceManager {
                 }
                 SAMLSSOParticipantCache.getInstance().clearCacheEntry(cacheKey);
                 removeSessionIndexFromCache(sessionId);
+            }
+        }
+    }
+
+    public static void removeBackChannelSLOEnabledSPs(SAMLSSOParticipantCacheEntry cacheEntry) {
+
+        Set<String> sloSupportedIssuers = new HashSet<String>();
+        // Filter out service providers which enabled the single logout and back-channel logout.
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
+                getServiceProviderList().entrySet()) {
+            if (entry.getValue().isDoSingleLogout() && !entry.getValue().isDoFrontChannelLogout()) {
+                sloSupportedIssuers.add(entry.getKey());
+            }
+        }
+        // Remove service providers which enabled the single logout and back-channel logout.
+        for (String sloSupportedIssuer : sloSupportedIssuers) {
+            cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
+            if (log.isDebugEnabled()) {
+                log.debug("Removed back-channel SLO supported service provider from session info data with name "
+                        + sloSupportedIssuer);
             }
         }
     }

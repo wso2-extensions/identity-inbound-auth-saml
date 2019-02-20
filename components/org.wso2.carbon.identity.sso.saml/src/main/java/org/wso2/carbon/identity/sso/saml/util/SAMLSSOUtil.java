@@ -33,17 +33,12 @@ import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.LogoutResponse;
-import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.RequestAbstractType;
 import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.SessionIndex;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.LogoutRequestBuilder;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.SessionIndexBuilder;
 import org.opensaml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml2.core.impl.StatusMessageBuilder;
@@ -2049,10 +2044,15 @@ public class SAMLSSOUtil {
      *
      * @param sessionIndex Session index.
      * @param issuer       Original issuer.
+     * @param isIdPInitSLO Whether IdP initiated SLO or not.
      * @return SP List with remaining session participants for SLO except for the original issuer.
      */
-    public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(String sessionIndex,
-                                                                                       String issuer) {
+    public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(
+            String sessionIndex, String issuer, boolean isIdPInitSLO) {
+
+        if (isIdPInitSLO) {
+            issuer = null;
+        }
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
@@ -2191,6 +2191,26 @@ public class SAMLSSOUtil {
         }
 
         return false;
+    }
+
+    /**
+     * Decoding the logout request extracted from the query string.
+     *
+     * @param logoutRequest Logout request string.
+     * @param isPost        Whether the request is post.
+     * @return Logout request XML object.
+     * @throws IdentityException Error in decoding.
+     */
+    public static XMLObject decodeSamlLogoutRequest(String logoutRequest, boolean isPost) throws IdentityException {
+
+        XMLObject samlRequest;
+        if (isPost) {
+            samlRequest = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decodeForPost(logoutRequest));
+        } else {
+            samlRequest = SAMLSSOUtil.unmarshall(SAMLSSOUtil.decode(logoutRequest));
+        }
+
+        return samlRequest;
     }
 
 }

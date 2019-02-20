@@ -88,6 +88,18 @@ public class SingleLogoutMessageBuilder {
         return logoutReq;
     }
 
+    /**
+     * Build SAML logout request without setting the signature.
+     *
+     * @param destination  Destination of the logout request.
+     * @param tenantDomain Tenant domain.
+     * @param sessionId    Session index.
+     * @param subject      Subject identifier.
+     * @param nameIDFormat Name Id format of the logout request.
+     * @param reason       Single logout reason.
+     * @return Logout request.
+     * @throws IdentityException If the tenant domain is invalid.
+     */
     public LogoutRequest buildLogoutRequest(String destination, String tenantDomain, String sessionId, String subject,
                                             String nameIDFormat, String reason) throws IdentityException {
 

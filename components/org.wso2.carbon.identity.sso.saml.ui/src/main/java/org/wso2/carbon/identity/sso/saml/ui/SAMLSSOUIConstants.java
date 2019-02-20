@@ -64,9 +64,6 @@ public class SAMLSSOUIConstants {
     public static final String ENABLE_SAML2_ECP = "enableSAML2ECP";
 
     public static final String SLO_TYPE = "singleLogoutType";
-    //Front Channel Logout Methods
-//    public static final String HTTP_REDIRECT_BINDING = "HTTPRedirectBinding";
-//    public static final String HTTP_POST_BINDING = "HTTPPostBinding";
 
     private SAMLSSOUIConstants() {
     }
