@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOParticipantCacheKey;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCache;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheEntry;
 import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheKey;
+import org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -251,6 +252,14 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
         SSOSessionPersistenceManager.getPersistenceManager().persistSession(sessionIndex, subject,
                 samlssoServiceProviderDO2, null, "issuer2", null);
 
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO3 = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO3.setIssuer("issuer3");
+        samlssoServiceProviderDO3.setDoSingleLogout(true);
+        samlssoServiceProviderDO3.setDoFrontChannelLogout(true);
+        samlssoServiceProviderDO3.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING);
+        SSOSessionPersistenceManager.addSessionIndexToCache("sessionId3", "sessionIndex3");
+        SSOSessionPersistenceManager.getPersistenceManager().persistSession("sessionIndex3", subject,
+                samlssoServiceProviderDO3, null, "issuer3", null);
     }
 
     @DataProvider(name = "testRemoveSession1")
@@ -261,7 +270,9 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
                 {"sessionId", null, "sessionIndex",},
                 {"sessionId", "issuer", "sessionIndex"},
                 {"sessionId2", "issuer2", "sessionIndex"},
-                {"sessionId1", "issuer1", null}
+                {"sessionId1", "issuer1", null},
+                {"sessionId1", null, null},
+                {"sessionId3", "issuer3", "sessionIndex3"}
         };
     }
 
