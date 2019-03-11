@@ -27,6 +27,8 @@ public class SAMLECPConstants {
     public static final String IS_ECP_REQUEST  = "isECPRequest";
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
+    public static final boolean SAML_ECP_ENABLED = false; // Flag to internally disable SAML ECP feature
+
 
     /**
      * This class defines the SOAP Fault Codes for SOAP Faults.

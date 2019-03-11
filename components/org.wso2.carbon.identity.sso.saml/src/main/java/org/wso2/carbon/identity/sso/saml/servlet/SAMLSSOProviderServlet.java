@@ -499,7 +499,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        if (req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+        if (SAMLECPConstants.SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
                 req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
             PrintWriter out = resp.getWriter();
             try {
@@ -939,7 +939,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         resp.setContentType("text/html; charset=UTF-8");
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
-            if (req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+            if (SAMLECPConstants.SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
                     req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
                 PrintWriter out = resp.getWriter();
                 resp.setContentType("text/xml");

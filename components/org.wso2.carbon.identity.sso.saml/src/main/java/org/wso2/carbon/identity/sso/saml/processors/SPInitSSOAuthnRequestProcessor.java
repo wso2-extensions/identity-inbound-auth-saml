@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
@@ -62,7 +63,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
 
-            if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
+            if (SAMLECPConstants.SAML_ECP_ENABLED && isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
                 String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
                                 "' is not ECP enabled.";
                 log.warn(msg);

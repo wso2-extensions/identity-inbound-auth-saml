@@ -210,7 +210,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setEnableSAML2ArtifactBinding(serviceProviderDTO.isEnableSAML2ArtifactBinding());
         serviceProviderDO.setDoValidateSignatureInArtifactResolve(serviceProviderDTO
                 .isDoValidateSignatureInArtifactResolve());
-        serviceProviderDO.setSamlECP(serviceProviderDTO.isSamlECP());
+//        serviceProviderDO.setSamlECP(serviceProviderDTO.isSamlECP());
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
         } else {
@@ -304,7 +304,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setEnableSAML2ArtifactBinding(serviceProviderDO.isEnableSAML2ArtifactBinding());
         serviceProviderDTO.setDoValidateSignatureInArtifactResolve(serviceProviderDO
                 .isDoValidateSignatureInArtifactResolve());
-        serviceProviderDTO.setSamlECP(serviceProviderDO.isSamlECP());
+//        serviceProviderDTO.setSamlECP(serviceProviderDO.isSamlECP());
 
         if (serviceProviderDO.getNameIDFormat() == null) {
             serviceProviderDO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -374,7 +374,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());
                 providerDTO.setDoValidateSignatureInArtifactResolve(
                         providerDO.isDoValidateSignatureInArtifactResolve());
-                providerDTO.setSamlECP(providerDO.isSamlECP());
+//                providerDTO.setSamlECP(providerDO.isSamlECP());
 
                 if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
                     providerDTO.setLoginPageURL("");
