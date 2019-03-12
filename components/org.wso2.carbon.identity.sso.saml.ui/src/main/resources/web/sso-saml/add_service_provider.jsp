@@ -1861,8 +1861,7 @@
                                         </label>
                                     </td>
                                 </tr>
-                                <% if (SAMLSSOUIConstants.SAML_ECP_UI_ENABLED) { %>
-                                <tr>
+                                <tr style="display:none;">
                                     <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
                                         <input type="checkbox" name="enableSAML2ECP" value="true"
                                                onclick="disableSamlECP(this);"
@@ -1870,7 +1869,6 @@
                                         <fmt:message key="enable.saml2.ecp"/>
                                     </td>
                                 </tr>
-                                <% } %>
 
                                 <!-- IDP Metadata Download button, ***This should be at the bottom of this table -->
                                 <tr>

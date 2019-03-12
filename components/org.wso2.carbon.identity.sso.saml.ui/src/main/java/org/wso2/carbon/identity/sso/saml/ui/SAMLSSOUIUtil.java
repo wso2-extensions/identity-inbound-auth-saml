@@ -103,13 +103,6 @@ public class SAMLSSOUIUtil {
 
     public static boolean isSamlECPEnabled(boolean isSpEdit , SAMLSSOServiceProviderDTO provider ) {
 
-        if (isSpEdit) {
-            if (provider != null) {
-                return provider.getSamlECP();
-            }
-        } else {
-            return DEFAULT_VALUE_FOR_ECP;
-        }
         return false;
     }
 

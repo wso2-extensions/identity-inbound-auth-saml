@@ -65,8 +65,6 @@ public class SAMLSSOUIConstants {
 
     public static final String SLO_TYPE = "singleLogoutType";
 
-    public static final boolean SAML_ECP_UI_ENABLED = false; // Flag to internally disable SAML ECP UI feature
-
     private SAMLSSOUIConstants() {
     }
 }

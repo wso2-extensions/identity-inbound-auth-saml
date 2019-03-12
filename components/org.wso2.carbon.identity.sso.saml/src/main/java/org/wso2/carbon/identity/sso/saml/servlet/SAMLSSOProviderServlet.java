@@ -128,6 +128,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUEST_PARAM_SP = "sp";
 
+    private static final boolean SAML_ECP_ENABLED = false;
+
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
                          HttpServletResponse httpServletResponse) throws ServletException, IOException {
@@ -499,7 +501,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        if (SAMLECPConstants.SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+        if (SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
                 req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
             PrintWriter out = resp.getWriter();
             try {
@@ -939,7 +941,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         resp.setContentType("text/html; charset=UTF-8");
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
-            if (SAMLECPConstants.SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
+            if (SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
                     req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
                 PrintWriter out = resp.getWriter();
                 resp.setContentType("text/xml");

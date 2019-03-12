@@ -63,7 +63,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
 
-            if (SAMLECPConstants.SAML_ECP_ENABLED && isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
+            if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
                 String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
                                 "' is not ECP enabled.";
                 log.warn(msg);

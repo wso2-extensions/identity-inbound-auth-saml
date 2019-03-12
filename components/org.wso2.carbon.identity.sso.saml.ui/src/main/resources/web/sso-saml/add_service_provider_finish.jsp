@@ -84,9 +84,6 @@
         if ("true".equals(request.getParameter("enableResponseSignature"))) {
             serviceProviderDTO.setDoSignResponse(true);
         }
-        if (SAMLSSOUIConstants.SAML_ECP_UI_ENABLED && "true".equals(request.getParameter("enableSAML2ECP"))) {
-            serviceProviderDTO.setSamlECP(true);
-        }
         if ("true".equals(request.getParameter("enableAssertionSignature"))) {
             serviceProviderDTO.setDoSignAssertions(true);
         }

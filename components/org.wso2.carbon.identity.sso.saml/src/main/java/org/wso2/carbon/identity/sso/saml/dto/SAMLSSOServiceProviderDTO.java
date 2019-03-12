@@ -79,7 +79,6 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String keyEncryptionAlgorithmURI;
     private boolean enableSAML2ArtifactBinding;
     private boolean doValidateSignatureInArtifactResolve;
-    private boolean samlECP;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -452,14 +451,6 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     public String getCertificateContent() {
 
         return certificateContent;
-    }
-
-    public boolean isSamlECP() {
-        return samlECP;
-    }
-
-    public void setSamlECP(boolean samlECP) {
-        this.samlECP = samlECP;
     }
 
 }

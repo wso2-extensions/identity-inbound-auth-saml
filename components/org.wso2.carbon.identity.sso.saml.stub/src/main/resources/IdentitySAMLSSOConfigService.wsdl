@@ -1,4 +1,4 @@
- <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2447="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2449="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2451="http://exception.saml.sso.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2447="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2449="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2451="http://exception.saml.sso.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
     <wsdl:documentation>IdentitySAMLSSOConfigService</wsdl:documentation>
     <wsdl:types>
         <xs:schema xmlns:ax2450="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2448="http://base.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2453="http://exception.saml.sso.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
@@ -26,18 +26,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getServiceProviders">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getServiceProvidersResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2449:SAMLSSOServiceProviderInfoDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="IdentitySAMLSSOConfigServiceIdentitySAML2SSOException">
                 <xs:complexType>
                     <xs:sequence>
@@ -56,6 +44,18 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2449:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProviders">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProvidersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2449:SAMLSSOServiceProviderInfoDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -228,7 +228,6 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="samlECP" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
