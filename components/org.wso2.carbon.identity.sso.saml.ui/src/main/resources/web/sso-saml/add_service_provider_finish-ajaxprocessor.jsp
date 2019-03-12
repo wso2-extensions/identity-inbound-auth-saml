@@ -126,9 +126,6 @@
             serviceProviderDTO.setEnableSAML2ArtifactBinding(true);
         }
 
-        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ECP))) {
-            serviceProviderDTO.setSamlECP(true);
-        }
 
         if (request.getParameter(SAMLSSOUIConstants.ENABLE_SIGNATURE_VALIDATION_IN_ARTIFACT_RESOLVE) != null) {
 

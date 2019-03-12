@@ -95,15 +95,6 @@ public class IdentitySAMLSSOServiceComponent {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
-        //register SAML ECP servlet
-        Servlet samlECPServlet = new ContextPathServletAdaptor(new SAMLECPProviderServlet(),
-                SAMLECPConstants.SAMLECP_URL);
-        try {
-            httpService.registerServlet(SAMLECPConstants.SAMLECP_URL, samlECPServlet, null, null);
-        } catch (Exception e) {
-            String errMsg = "Error when registering SAML ECP Servlet via the HttpService.";
-            log.error(errMsg, e);
-        }
         // Register SAML artifact resolve servlet
         Servlet samlArtifactResolveServlet = new ContextPathServletAdaptor(new SAMLArtifactResolveServlet(),
                 SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL);

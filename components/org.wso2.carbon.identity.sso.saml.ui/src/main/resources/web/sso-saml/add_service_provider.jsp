@@ -1861,7 +1861,7 @@
                                         </label>
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="display:none;">
                                     <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
                                         <input type="checkbox" name="enableSAML2ECP" value="true"
                                                onclick="disableSamlECP(this);"
