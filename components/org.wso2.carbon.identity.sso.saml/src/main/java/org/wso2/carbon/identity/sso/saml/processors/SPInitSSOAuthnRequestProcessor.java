@@ -167,6 +167,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
                     spDO.setAssertionEncryptionAlgorithmUri(authnReqDTO.getAssertionEncryptionAlgorithmUri());
                     spDO.setEnableSAML2ArtifactBinding(authnReqDTO.isSAML2ArtifactBindingEnabled());
+                    spDO.setDoValidateSignatureInRequests(authnReqDTO.isDoValidateSignatureInRequests());
                     spDO.setDoValidateSignatureInArtifactResolve(authnReqDTO.isDoValidateSignatureInArtifactResolve());
                     spDO.setKeyEncryptionAlgorithmUri(authnReqDTO.getKeyEncryptionAlgorithmUri());
                     sessionPersistenceManager.persistSession(sessionIndexId,

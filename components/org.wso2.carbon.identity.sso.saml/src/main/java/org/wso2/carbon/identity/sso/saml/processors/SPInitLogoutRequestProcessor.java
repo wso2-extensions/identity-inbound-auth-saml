@@ -25,6 +25,8 @@ import org.opensaml.saml2.core.LogoutResponse;
 import org.opensaml.saml2.core.SessionIndex;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -45,6 +47,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +132,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             // Validate signature of the logout request.
             if (logoutReqIssuer.isDoValidateSignatureInRequests()) {
+                //obtaining x509 Certificate
+                setX509Certificate(issuer, logoutReqIssuer);
                 validationResult = validateSignature(logoutRequest, logoutReqIssuer, subject, queryString);
                 if (!validationResult.getValidationStatus()) {
                     return validationResult.getValue();
@@ -162,6 +168,24 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             return reqValidationResponseDTO;
         } catch (UserStoreException | IdentityException | IOException e) {
             throw IdentityException.error("Error Processing the Logout Request", e);
+        }
+    }
+
+    private void setX509Certificate(String issuer, SAMLSSOServiceProviderDO logoutReqIssuer) {
+
+        try {
+            String tenant = logoutReqIssuer.getTenantDomain();
+            ServiceProvider serviceProvider = SAMLSSOUtil.getApplicationMgtService().
+                    getServiceProviderByClientId(issuer, SAMLSSOConstants.INBOUND_AUTH_TYPE_SAML, tenant);
+            String cert = serviceProvider.getCertificateContent();
+            X509Certificate certificate = (X509Certificate) IdentityUtil.convertPEMEncodedContentToCertificate(cert);
+            logoutReqIssuer.setX509Certificate(certificate);
+
+        } catch (IdentityApplicationManagementException | CertificateException e) {
+            String errorMessage = String.format("An error occurred while retrieving the application " +
+                    "certificate for file based SAML service provider with the issuer name '%s'. " +
+                    "The service provider will NOT be loaded.", issuer);
+            log.error(errorMessage, e);
         }
     }
 
