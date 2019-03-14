@@ -679,6 +679,7 @@
 
     <script>
         function downloadIDPMetadata() {
+            setMetadataProperties();
             jQuery('#idp-mgt-get-IDP-form').submit();
         }
 
@@ -1236,8 +1237,7 @@
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
-                                               name="enableSigValidation" value="true" checked="checked"
-                                               onclick="setMetadataProperties()"/>
+                                               name="enableSigValidation" value="true" checked="checked"/>
                                         <fmt:message
                                                 key='validate.signature'/>
                                     </td>
@@ -1246,8 +1246,7 @@
                                 <tr>
                                     <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
-                                               name="enableSigValidation" value="true"
-                                               onclick="setMetadataProperties()"/>
+                                               name="enableSigValidation" value="true"/>
                                         <fmt:message
                                                 key='validate.signature'/>
                                     </td>
