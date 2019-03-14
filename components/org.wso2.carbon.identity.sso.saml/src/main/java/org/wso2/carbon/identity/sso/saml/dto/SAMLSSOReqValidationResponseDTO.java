@@ -59,6 +59,7 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     private String requestedAuthnContextComparison;
     private List<ClaimMapping> requestedAttributes;
     private Properties properties;
+    private String sessionIndex;
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -422,5 +423,25 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
             this.properties = new Properties();
         }
         this.properties.putAll(properties);
+    }
+
+    /**
+     * Get session index of the logout request.
+     *
+     * @return session index.
+     */
+    public String getSessionIndex() {
+
+        return sessionIndex;
+    }
+
+    /**
+     * Set session index of the logout request.
+     *
+     * @param sessionIndex session index.
+     */
+    public void setSessionIndex(String sessionIndex) {
+
+        this.sessionIndex = sessionIndex;
     }
 }
