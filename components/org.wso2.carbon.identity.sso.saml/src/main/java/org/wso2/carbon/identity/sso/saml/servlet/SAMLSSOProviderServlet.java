@@ -1235,9 +1235,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         if (validationResponseDTO != null) {
             removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
-            boolean isPost = (boolean) sessionDTO.getProperties().get(SAMLSSOConstants.IS_POST);
-            String sessionIndex = extractSessionIndex(request, validationResponseDTO.isIdPInitSLO(),
-                    sessionDTO.getSessionId(), isPost);
+            String sessionIndex = validationResponseDTO.getSessionIndex();
             List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
                     SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, sessionDTO.getIssuer(),
                             validationResponseDTO.isIdPInitSLO());
@@ -1248,7 +1246,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             } else {
                 String originalIssuerLogoutRequestId = null;
                 if (!validationResponseDTO.isIdPInitSLO()) {
-                    originalIssuerLogoutRequestId = extractLogoutRequestId(request, isPost);
+                    originalIssuerLogoutRequestId = validationResponseDTO.getIssuer();
                 }
                 sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
                         originalIssuerLogoutRequestId, validationResponseDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
@@ -1869,58 +1867,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         logoutRequestIssuingSP.getIssuer(), sessionIndex, isIdPInitSLO, relayState, returnToURL);
 
         FrontChannelSLOParticipantStore.getInstance().addToCache(logoutRequest.getID(), frontChannelSLOParticipantInfo);
-    }
-
-    /**
-     * Extract logout request id of the original issuer logout request.
-     *
-     * @param request HttpServletRequest.
-     * @param isPost  Whether the request is post.
-     * @return Logout request id of the original logout request issuer.
-     * @throws IdentityException Decoding error.
-     */
-    private String extractLogoutRequestId(HttpServletRequest request, boolean isPost) throws IdentityException {
-
-        String initialSamlLogoutRequest = request.getParameter(SAMLSSOConstants.SAML_REQUEST);
-        XMLObject samlRequest = SAMLSSOUtil.decodeSamlLogoutRequest(initialSamlLogoutRequest, isPost);
-
-        String initialLogoutRequestId = null;
-        if (samlRequest instanceof LogoutRequestImpl) {
-            initialLogoutRequestId = ((LogoutRequestImpl) samlRequest).getID();
-        }
-
-        return initialLogoutRequestId;
-    }
-
-    /**
-     * Extract session index.
-     *
-     * @param request      HttpServlet Request.
-     * @param isIdPInitSLO Whether the SLO is IdP initiated or not.
-     * @param sessionId    Session id.
-     * @param isPost       Whether the request is post.
-     * @return Session Index.
-     * @throws IdentityException Decoding error.
-     */
-    private String extractSessionIndex(HttpServletRequest request, boolean isIdPInitSLO, String sessionId,
-                                       boolean isPost) throws IdentityException {
-
-        String sessionIndex = null;
-        if (isIdPInitSLO) {
-            SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
-                    .getPersistenceManager();
-            sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
-        } else {
-            String initialSamlLogoutRequest = request.getParameter(SAMLSSOConstants.SAML_REQUEST);
-            XMLObject samlRequest = SAMLSSOUtil.decodeSamlLogoutRequest(initialSamlLogoutRequest, isPost);
-
-            if (samlRequest instanceof LogoutRequestImpl) {
-                sessionIndex = ((LogoutRequestImpl) samlRequest).getSessionIndexes().size() > 0 ?
-                        ((LogoutRequestImpl) samlRequest).getSessionIndexes().get(0).getSessionIndex() : null;
-            }
-        }
-
-        return sessionIndex;
     }
 
     /**

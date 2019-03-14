@@ -118,14 +118,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             issuer = getTenantAwareIssuer(issuer, sessionInfoData);
 
-            // Validate whether the principle session index we have is same as the logout request session index.
-            if (logoutReqIssuer.isDoSingleLogout()) {
-                validationResult = validateRequestSessionIndex(logoutRequest, logoutReqIssuer, sessionIndex);
-                if (!validationResult.getValidationStatus()) {
-                    return validationResult.getValue();
-                }
-            }
-
             // Validate signature of the logout request.
             if (logoutReqIssuer.isDoValidateSignatureInRequests()) {
                 validationResult = validateSignature(logoutRequest, logoutReqIssuer, subject, queryString);
@@ -144,6 +136,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             } else {
                 reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
             }
+            reqValidationResponseDTO.setSessionIndex(sessionIndex);
 
             SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
             LogoutResponse logoutResponse = logoutMsgBuilder.buildLogoutResponse(
@@ -382,32 +375,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     defaultDigestAlgoUri, issuer);
             reqValidationResponseDTO.setLogoutFromAuthFramework(true);
             validationResult.setValue(reqValidationResponseDTO);
-            validationResult.setValidationStatus(false);
-        }
-
-        return validationResult;
-    }
-
-    private ValidationResult<SAMLSSOReqValidationResponseDTO> validateRequestSessionIndex
-            (LogoutRequest logoutRequest, SAMLSSOServiceProviderDO logoutReqIssuer, String sessionIndex)
-            throws IOException, IdentityException {
-
-        String issuer = logoutRequest.getIssuer().getValue();
-        ValidationResult<SAMLSSOReqValidationResponseDTO> validationResult = new ValidationResult<>();
-        validationResult.setValidationStatus(true);
-
-        // Validate session index.
-        SessionIndex requestSessionIndex = logoutRequest.getSessionIndexes().size() > 0 ? logoutRequest
-                .getSessionIndexes().get(0) : null;
-
-        if (requestSessionIndex == null || !sessionIndex.equals(requestSessionIndex.getSessionIndex())) {
-            String message = "Session Index validation for Logout Request failed. " +
-                    "Received: [" + (requestSessionIndex == null ? "null" : requestSessionIndex
-                    .getSessionIndex()) + "]." + " Expected: [" + sessionIndex + "]";
-            log.error(message);
-            validationResult.setValue(buildErrorResponse(logoutRequest.getID(), SAMLSSOConstants.StatusCodes
-                    .REQUESTOR_ERROR, message, logoutRequest.getDestination(), logoutReqIssuer
-                    .getSigningAlgorithmUri(), logoutReqIssuer.getDigestAlgorithmUri(), issuer));
             validationResult.setValidationStatus(false);
         }
 

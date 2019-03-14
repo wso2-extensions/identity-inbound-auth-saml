@@ -68,6 +68,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 validationResponseDTO.setLogoutFromAuthFramework(true);
                 return validationResponseDTO;
             }
+            validationResponseDTO.setSessionIndex(sessionIndex);
 
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
 
