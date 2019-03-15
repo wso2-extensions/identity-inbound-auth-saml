@@ -137,6 +137,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 reqValidationResponseDTO.setAssertionConsumerURL(serviceProviderDO.getAssertionConsumerUrl());
             }
             reqValidationResponseDTO.setSessionIndex(sessionIndex);
+            reqValidationResponseDTO.setId(logoutRequest.getID());
 
             SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
             LogoutResponse logoutResponse = logoutMsgBuilder.buildLogoutResponse(

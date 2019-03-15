@@ -1246,7 +1246,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             } else {
                 String originalIssuerLogoutRequestId = null;
                 if (!validationResponseDTO.isIdPInitSLO()) {
-                    originalIssuerLogoutRequestId = validationResponseDTO.getIssuer();
+                    originalIssuerLogoutRequestId = validationResponseDTO.getId();
                 }
                 sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
                         originalIssuerLogoutRequestId, validationResponseDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
