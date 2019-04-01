@@ -111,6 +111,12 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     .getPersistenceManager();
             String sessionIndex = logoutRequest.getSessionIndexes().size() > 0 ? logoutRequest
                     .getSessionIndexes().get(0).getSessionIndex() : null;
+            /* 'SessionIndex' attribute can be optional in the SAML logout request. In that case we need to retrieve
+            the session index from session Id. */
+            if (sessionIndex == null) {
+                sessionIndex = SSOSessionPersistenceManager.getPersistenceManager().getSessionIndexFromTokenId
+                        (sessionId);
+            }
             SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
