@@ -2213,4 +2213,17 @@ public class SAMLSSOUtil {
         return samlRequest;
     }
 
+    public static int getSAMLSessionNotOnOrAfterPeriod(String sessionNotOnOrAfterValue) {
+        return Integer.parseInt(sessionNotOnOrAfterValue.trim()) * 60;
+    }
+
+    public static boolean isSAMLNotOnOrAfterPeriodDefined(String sessionNotOnOrAfterValue) {
+        if (StringUtils.isNotBlank(sessionNotOnOrAfterValue) && StringUtils.isNumeric(sessionNotOnOrAfterValue)) {
+            if (Integer.parseInt(sessionNotOnOrAfterValue) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
