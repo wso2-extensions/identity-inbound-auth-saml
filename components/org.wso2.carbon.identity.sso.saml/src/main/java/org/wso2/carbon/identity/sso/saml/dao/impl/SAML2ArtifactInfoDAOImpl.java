@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
@@ -25,19 +26,15 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
+import org.wso2.carbon.identity.sso.saml.util.DBUtil;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -62,7 +59,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                 preparedStatement.setString(1, saml2ArtifactInfo.getSourceId());
                 preparedStatement.setString(2, saml2ArtifactInfo.getMessageHandler());
                 try {
-                    setBlobObject(preparedStatement, saml2ArtifactInfo.getAuthnReqDTO(), 3);
+                    DBUtil.setBlobObject(preparedStatement, saml2ArtifactInfo.getAuthnReqDTO(), 3);
                 } catch (IOException e) {
                     throw new SQLException("Could not set Saml2ArtifactInfo.AuthnReqDTO as a Blob.", e);
                 }
@@ -90,7 +87,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                     {
                         try {
                             return new SAML2ArtifactInfo(resultSet.getInt(1),
-                                    (SAMLSSOAuthnReqDTO) getBlobObject(resultSet.getBinaryStream(2)),
+                                    (SAMLSSOAuthnReqDTO) DBUtil.getBlobObject(resultSet.getBinaryStream(2)),
                                     resultSet.getString(3),
                                     new DateTime(resultSet.getTimestamp(4)),
                                     new DateTime(resultSet.getTimestamp(5)));
@@ -129,70 +126,47 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
     @Override
     public Assertion getSAMLAssertion(String assertionId) throws ArtifactBindingException {
 
-        final String ASSERTION_RETRIVE_QUERY =
-                "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
         Assertion assertion;
 
         try {
-            String assertionString = jdbcTemplate.fetchSingleRecord(ASSERTION_RETRIVE_QUERY, (resultSet, rowNumber) ->
-                            resultSet.getString(1), preparedStatement ->
-                    preparedStatement.setString(1, assertionId));
+            connection = IdentityDatabaseUtil.getDBConnection();
+            preparedStatement = connection.prepareStatement(getSelectByIdQuery());
+            preparedStatement.setString(1, assertionId);
+            resultSet = preparedStatement.executeQuery();
+            String assertionString = null;
+            while (resultSet.next()) {
+                assertionString = (String) DBUtil.getBlobObject(resultSet.getBinaryStream(2));
+                if (StringUtils.isBlank(assertionString)) {
+                    assertionString = resultSet.getString(1);
+                }
+            }
             assertion = (Assertion) SAMLSSOUtil.unmarshall(assertionString);
-        } catch (DataAccessException e) {
-            throw new ArtifactBindingException("Error while retrieving SAML2 artifact information for the SAML2_ID: " +
-                    assertionId, e);
         } catch (IdentityException e) {
             throw new ArtifactBindingException("Error while unmarshalling SAML assertion.", e);
+        } catch (SQLException e) {
+            throw new ArtifactBindingException("Error while fetching saml2 assertion", e);
+        } catch (IOException e) {
+            throw new ArtifactBindingException("Unable to deserialize the object from blob..for " +
+                    "assertionId: " + assertionId, e);
+        } catch (ClassNotFoundException e) {
+            throw new ArtifactBindingException("Error in reading the ASSERTION blob from the database for " +
+                    "assertionId: " + assertionId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
 
         return assertion;
     }
 
-    /**
-     * Serialize an object and set into a prepared statement as a blob.
-     *
-     * @param prepStmt Prepared statement.
-     * @param value    Object to be saved.
-     * @param index    Index of the prepared statement.
-     * @throws SQLException
-     * @throws IOException
-     */
-    private void setBlobObject(PreparedStatement prepStmt, Object value, int index) throws SQLException, IOException {
-        if (value != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(value);
-            oos.flush();
-            oos.close();
-            InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-            prepStmt.setBinaryStream(index, inputStream, inputStream.available());
-        } else {
-            prepStmt.setBinaryStream(index, null, 0);
-        }
-    }
+    private String getSelectByIdQuery() {
 
-    /**
-     * Retun java object from input stream. Used to retrieve blob objects from database.
-     *
-     * @param is Input stream.
-     * @return Java object constructed from the input stream.
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    private Object getBlobObject(InputStream is) throws IOException, ClassNotFoundException {
-        if (is != null) {
-            ObjectInput ois = null;
-            try {
-                ois = new ObjectInputStream(is);
-                return ois.readObject();
-            } finally {
-                if (ois != null) {
-                    ois.close();
-                }
-            }
+        String query = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            query = "SELECT SAML2_ASSERTION, ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
         }
-        return null;
+        return query;
     }
 }
