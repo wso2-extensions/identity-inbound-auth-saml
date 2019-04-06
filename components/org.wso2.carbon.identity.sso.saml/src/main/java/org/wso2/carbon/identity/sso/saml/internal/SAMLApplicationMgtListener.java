@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.sso.saml.admin.SAMLSSOConfigAdmin;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.registry.core.Registry;
@@ -99,7 +99,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                                 inboundConfiguration, serviceProvider.getApplicationName(),
                                 serviceProvider.getOwner().getTenantDomain());
 
-                        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+                        SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
 
                         try {
                             SAMLSSOServiceProviderDTO savedSamlSP = null;
@@ -118,7 +118,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         } catch (IdentityException e) {
                             // Do nothing, the issuer does exists.
                         }
-                        configAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO);
+                        configAdmin.addRPServiceProvider(samlssoServiceProviderDTO);
                         return;
                     }
                 }
@@ -141,7 +141,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                     if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
 
                         SAMLSSOServiceProviderDTO samlSP = null;
-                        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+                        SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
                         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
                         if (serviceProviderInfoDTOs != null) {
                             for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
@@ -208,7 +208,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                             "is not match with SAML issuer %s.", authConfig.getInboundAuthKey(),
                     samlssoServiceProviderDTO.getIssuer()));
         }
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+        SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
 
         if (!isUpdate) {
             try {
