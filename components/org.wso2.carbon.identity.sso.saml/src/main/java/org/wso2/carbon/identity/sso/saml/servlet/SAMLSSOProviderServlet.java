@@ -82,6 +82,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -127,8 +129,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUEST_PARAM_SP = "sp";
+    private static final String HTTPS_SCHEME = "https";
+    private static final String HTTP_SCHEME = "http";
 
     private static final boolean SAML_ECP_ENABLED = false;
+    private static final int DEFAULT_HTTPS_PORT = 443;
+    private static final int DEFAULT_HTTP_PORT = 80;
 
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
@@ -1093,28 +1099,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     }
 
                     // Validate destination.
-                    String authenticationRequestDestination = authnReqDTO.getDestination();
-                    List<String> idpDestinationURLs = SAMLSSOUtil.getDestinationFromTenantDomain(tenantDomain);
-                    if (StringUtils.isEmpty(authenticationRequestDestination) || !idpDestinationURLs.contains
-                            (authenticationRequestDestination)) {
-                        String msg = "Destination validation for authentication request failed. " + "Received: " +
-                                authenticationRequestDestination + "." + " Expected one in the list: [" + StringUtils
-                                .join(idpDestinationURLs, ',') + "]";
-                        log.warn(msg);
-
-                        List<String> statusCodes = new ArrayList<>();
-                        statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
-                        String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId,
-                                statusCodes, msg, assertionConsumerURL);
-
-                        sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
-                                .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
+                    if (!isDestinationUrlValid(authnReqDTO, req, resp)) {
                         return;
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Successfully validated destination of the authentication request of issuer :"
-                                    + issuer + " in tenant domain : " + tenantDomain);
-                        }
                     }
 
                     // Validate signature.
@@ -1122,15 +1108,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             serviceProviderConfigs.getX509Certificate())) {
                         String msg = "Signature validation of the authentication request failed for issuer : " +
                                 issuer + " in tenant domain : " + tenantDomain;
-                        log.warn(msg);
-
-                        List<String> statusCodes = new ArrayList<>();
-                        statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
-                        String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId,
-                                statusCodes, msg, assertionConsumerURL);
-
-                        sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
-                                .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
+                        handleInvalidRequest(msg, authnReqDTO, req, resp);
                         return;
                     }
                 } else { // Validate the assertion consumer url when request signature is not validated.
@@ -1139,15 +1117,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         String msg = "ALERT: Invalid Assertion Consumer URL value '" + assertionConsumerURL + "' in " +
                                 "the " + "AuthnRequest message from  the issuer : " + issuer + " in tenant domain : "
                                 + tenantDomain + ". Possibly an attempt for a spoofing attack";
-                        log.warn(msg);
-
-                        List<String> statusCodes = new ArrayList<>();
-                        statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
-                        String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId,
-                                statusCodes, msg, assertionConsumerURL);
-
-                        sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
-                                .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
+                        handleInvalidRequest(msg, authnReqDTO, req, resp);
                         return;
                     } else {
                         if (log.isDebugEnabled()) {
@@ -1933,4 +1903,82 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         return redirectUrl;
     }
 
+    /**
+     * This method is used to validate destination url sent with SAML request.
+     *
+     * @param authnReqDTO SAMLSSOAuthenticationRequestDTO.
+     * @param req Request
+     * @param resp Response
+     * @throws IdentityException
+     * @throws IOException
+     * @throws ServletException
+     */
+    protected boolean isDestinationUrlValid(SAMLSSOAuthnReqDTO authnReqDTO, HttpServletRequest req,
+                                  HttpServletResponse resp) throws ServletException, IdentityException, IOException {
+
+        String tenantDomain = authnReqDTO.getTenantDomain();
+        String issuer = authnReqDTO.getIssuer();
+        List<String> idpDestinationURLs = SAMLSSOUtil.getDestinationFromTenantDomain(tenantDomain);
+        String authDestinationUrl = authnReqDTO.getDestination();
+        if (idpDestinationURLs.contains(authDestinationUrl)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully validated destination of the authentication request " +
+                        "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
+            }
+        } else {
+            try {
+                URL destinationUrl = new URL(authnReqDTO.getDestination());
+                if (destinationUrl.getProtocol().equals(HTTPS_SCHEME) && destinationUrl.getPort() == -1) {
+                    authDestinationUrl = new URL(destinationUrl.getProtocol(), destinationUrl
+                            .getHost(), DEFAULT_HTTPS_PORT, destinationUrl.getFile()).toString();
+                } else if (destinationUrl.getProtocol().equals(HTTP_SCHEME) && destinationUrl
+                        .getPort() == -1) {
+                    authDestinationUrl = new URL(destinationUrl.getProtocol(), destinationUrl
+                            .getHost(), DEFAULT_HTTP_PORT, destinationUrl.getFile()).toString();
+                }
+            } catch (MalformedURLException e) {
+                // This block is reached if the destination url is a relative url. Since spec doesn't
+                // restrict this exception will not be handled.
+            }
+            if (idpDestinationURLs.contains(authDestinationUrl)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully validated destination of the authentication request " +
+                            "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
+                }
+            } else {
+                String msg = "Destination validation for authentication request failed. " + "Received: " +
+                        authDestinationUrl + "." + " Expected one in the list: [" + StringUtils
+                        .join(idpDestinationURLs, ',') + "]";
+                handleInvalidRequest(msg, authnReqDTO, req, resp);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * This method is used to send notifications if request contains invalid values.
+     *
+     * @param msg     Error message.
+     * @param authnReqDTO SAMLSSOAuthenticationRequestDTO.
+     * @param req Request
+     * @param resp Response
+     * @throws IdentityException
+     * @throws IOException
+     * @throws ServletException
+     */
+    private void handleInvalidRequest(String msg, SAMLSSOAuthnReqDTO authnReqDTO, HttpServletRequest req,
+                                          HttpServletResponse resp) throws IOException, IdentityException,
+            ServletException {
+
+        log.warn(msg);
+        List<String> statusCodes = new ArrayList<>();
+        statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
+        String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authnReqDTO.getId(), statusCodes, msg,
+                authnReqDTO.getAssertionConsumerURL());
+
+        sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
+                .Notification.EXCEPTION_MESSAGE, authnReqDTO.getAssertionConsumerURL(), req, resp);
+    }
 }
