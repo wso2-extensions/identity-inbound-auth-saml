@@ -174,14 +174,10 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     private void setX509Certificate(String issuer, SAMLSSOServiceProviderDO logoutReqIssuer) {
 
         try {
-            String tenant = logoutReqIssuer.getTenantDomain();
-            ServiceProvider serviceProvider = SAMLSSOUtil.getApplicationMgtService().
-                    getServiceProviderByClientId(issuer, SAMLSSOConstants.INBOUND_AUTH_TYPE_SAML, tenant);
-            String cert = serviceProvider.getCertificateContent();
-            X509Certificate certificate = (X509Certificate) IdentityUtil.convertPEMEncodedContentToCertificate(cert);
-            logoutReqIssuer.setX509Certificate(certificate);
+            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(issuer);
+            logoutReqIssuer.setX509Certificate(serviceProviderConfigs.getX509Certificate());
 
-        } catch (IdentityApplicationManagementException | CertificateException e) {
+        } catch (IdentityException e) {
             String errorMessage = String.format("An error occurred while retrieving the application " +
                     "certificate for file based SAML service provider with the issuer name '%s'. " +
                     "The service provider will NOT be loaded.", issuer);
