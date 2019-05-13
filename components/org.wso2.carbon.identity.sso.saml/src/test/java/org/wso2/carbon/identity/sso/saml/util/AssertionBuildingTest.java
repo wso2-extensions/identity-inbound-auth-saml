@@ -258,6 +258,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Test
     public void testBuildAssertionWithSessionNotOnOrAfter() throws Exception {
+
         Assertion assertion = buildAssertionWithSessionNotOnOrAfter();
         List<AuthnStatement> authStatements = assertion.getAuthnStatements();
         DateTimeZone utcTimeZone = DateTimeZone.UTC;
@@ -338,6 +339,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     }
 
     private Assertion buildAssertionWithSessionNotOnOrAfter() throws Exception {
+
         Assertion assertion = buildAssertion();
         List<AuthnStatement> authStatements = assertion.getAuthnStatements();
         if (authStatements != null && authStatements.size() > 0) {
@@ -369,6 +371,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Test
     public void testisSAMLNotOnOrAfterPeriodDefined() {
+
         assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
                 true, "Expected to return true for a numeric value.");
         assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ALPHA),
@@ -383,6 +386,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Test
     public void testGetSAMLSessionNotOnOrAfterPeriod() {
+
         assertEquals(SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
                 15 * 60, "Expected to return the default value defined in the constants.");
     }
