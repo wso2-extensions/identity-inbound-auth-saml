@@ -19,14 +19,16 @@
 package org.wso2.carbon.identity.query.saml.handler;
 
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
+import org.wso2.carbon.identity.sso.saml.util.DBUtil;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -58,15 +60,15 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      * @throws  IdentitySAML2QueryException If request message not contain AssertionId
      */
     public Assertion findByID(String id) throws IdentitySAML2QueryException {
-        Assertion assertion = null;
-        if (id.length() > 0) {
+
+        Assertion assertion;
+        if (StringUtils.isNotBlank(id)) {
             assertion = readAssertion(id);
-            return assertion;
         } else {
             log.error("Assertion ID field is Empty");
             throw new IdentitySAML2QueryException("Assertion ID field is Empty");
         }
-
+        return assertion;
     }
 
     /**
@@ -76,42 +78,36 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      * @throws  IdentitySAML2QueryException If unable to collect assertions from database
      */
     public List<Assertion> findBySubject(String subject) throws IdentitySAML2QueryException {
-        List<Assertion> assertions = new ArrayList<Assertion>();
+
+        List<Assertion> assertions;
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
-            String selectBySubjectQuery = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =?";
-            preparedStatement = connection.prepareStatement(selectBySubjectQuery);
+            connection = IdentityDatabaseUtil.getDBConnection();
+            preparedStatement = connection.prepareStatement(getSelectBySubjectQuery());
             preparedStatement.setString(1, subject);
             resultSet = preparedStatement.executeQuery();
-            int index = 1;
-            while (resultSet.next()) {
-                String assertionString = resultSet.getString(index);
-                assertions.add((Assertion) SAMLQueryRequestUtil.unmarshall(assertionString));
-                log.debug("Assertions retrieved from database for the subject: " + subject);
+            assertions = extractAssertions(resultSet);
+            if (log.isDebugEnabled()){
+                log.debug(assertions.size() + " Assertions retrieved from database for the subject:" + subject);
             }
-            if (assertions.size() > 0)
-                return assertions;
-            return null;
         } catch (SQLException e) {
             log.error("Unable to read assertion from database for the subject: " + subject, e);
             throw new IdentitySAML2QueryException(e.getMessage());
         } catch (IdentitySAML2QueryException e) {
             log.error("unable to unmarshall assertion selected from database for the subject: " + subject, e);
             throw new IdentitySAML2QueryException(e.getMessage());
+        } catch (IOException e) {
+            throw new IdentitySAML2QueryException("Unable to deserialize the object from blob for " +
+                    "the subject: " + subject, e);
+        } catch (ClassNotFoundException e) {
+            throw new IdentitySAML2QueryException("Error in reading the ASSERTION column blob from the database for " +
+                    "the subject: " + subject, e);
         } finally {
-            if (preparedStatement != null) {
-                IdentityDatabaseUtil.closeStatement(preparedStatement);
-            }
-            if (connection != null) {
-                IdentityDatabaseUtil.closeConnection(connection);
-            }
-            if (resultSet != null) {
-                IdentityDatabaseUtil.closeResultSet(resultSet);
-            }
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
+        return assertions;
     }
 
     /**
@@ -123,26 +119,22 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      */
     public List<Assertion> findBySubjectAndSessionIndex(String subject, String sessionIndex)
             throws IdentitySAML2QueryException {
-        List<Assertion> assertions = new ArrayList<Assertion>();
+
+        List<Assertion> assertions;
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
-            String selectBySubjectQuery = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? " +
-                    "AND SAML2_SESSION_INDEX=? ";
-            preparedStatement = connection.prepareStatement(selectBySubjectQuery);
+            connection = IdentityDatabaseUtil.getDBConnection();
+            preparedStatement = connection.prepareStatement(getSelectBySessionQuery());
             preparedStatement.setString(1, subject);
             preparedStatement.setString(2, sessionIndex);
             resultSet = preparedStatement.executeQuery();
-            int index = 1;
-            while (resultSet.next()) {
-                String assertionString = resultSet.getString(index);
-                assertions.add((Assertion) SAMLQueryRequestUtil.unmarshall(assertionString));
-                log.debug("Assertion retrieved from database for the subject: " + subject +
+            assertions = extractAssertions(resultSet);
+            if (log.isDebugEnabled()){
+                log.debug(assertions.size() + "Assertions retrieved from database for the subject: " + subject +
                         " and sessionIndex: " + sessionIndex);
             }
-            return assertions;
         } catch (SQLException e) {
             log.error("Unable to read assertions from database for the subject: " + subject, e);
             throw new IdentitySAML2QueryException(e.getMessage());
@@ -150,17 +142,16 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
             log.error("Read Assertions from database throws NullPointerException", e);
             throw new IdentitySAML2QueryException("Read Assertions from the database throws NullPointerException for " +
                     "the subject: " + subject + " and sessionindex: " + sessionIndex);
+        } catch (IOException e) {
+            throw new IdentitySAML2QueryException("Unable to deserialize the object from blob for " +
+                    "the subject: " + subject + " and sessionindex: " + sessionIndex, e);
+        } catch (ClassNotFoundException e) {
+            throw new IdentitySAML2QueryException("Error in reading the ASSERTION column blob from the database for " +
+                    "the subject: " + subject + " and sessionindex: " + sessionIndex, e);
         } finally {
-            if (preparedStatement != null) {
-                IdentityDatabaseUtil.closeStatement(preparedStatement);
-            }
-            if (connection != null) {
-                IdentityDatabaseUtil.closeConnection(connection);
-            }
-            if (resultSet != null) {
-                IdentityDatabaseUtil.closeResultSet(resultSet);
-            }
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
+        return assertions;
     }
 
     /**
@@ -172,28 +163,23 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      */
     public List<Assertion> findBySubjectAndAuthnContextClassRef(String subject, String authnContextClassRef)
             throws IdentitySAML2QueryException {
-        List<Assertion> assertions = new ArrayList<Assertion>();
+
+        List<Assertion> assertions;
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
-            String selectBySubjectQuery = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? " +
-                    "AND SAML2_AUTHN_CONTEXT_CLASS_REF=? ";
-            preparedStatement = connection.prepareStatement(selectBySubjectQuery);
+            connection = IdentityDatabaseUtil.getDBConnection();
+            preparedStatement = connection.prepareStatement(getSelectByAuthContextQuery());
             preparedStatement.setString(1, subject);
             preparedStatement.setString(2, authnContextClassRef);
             resultSet = preparedStatement.executeQuery();
-            int index = 1;
-            while (resultSet.next()) {
-                String assertionString = resultSet.getString(index);
-                assertions.add((Assertion) SAMLQueryRequestUtil.unmarshall(assertionString));
-                log.debug("Assertion retrieved from database for the subject: " + subject +
+            assertions = extractAssertions(resultSet);
+            if (log.isDebugEnabled()) {
+                log.debug(assertions.size() + "Assertions retrieved from database for the subject: " + subject +
                         " and authncontextclassref: " + authnContextClassRef);
             }
-            if (assertions.size() > 0)
-                return assertions;
-            return null;
+            return assertions;
         } catch (SQLException e) {
             log.error("Unable to read assertions from database for the subject: " + subject +
                     " and authncontextclassref: " + authnContextClassRef, e);
@@ -203,16 +189,14 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
             log.error("Read Assertions from database throws NullPointerException", e);
             throw new IdentitySAML2QueryException("Read Assertions from the database throws NullPointerException for " +
                     "the subject: " + subject + " and authncontextclassref: " + authnContextClassRef);
+        } catch (IOException e) {
+            throw new IdentitySAML2QueryException("Unable to deserialize the object from blob for " +
+                    "the subject: " + subject + " and authncontextclassref: " + authnContextClassRef, e);
+        } catch (ClassNotFoundException e) {
+            throw new IdentitySAML2QueryException("Error in reading the ASSERTION column blob from the database for " +
+                    "the subject: " + subject + " and authncontextclassref: " + authnContextClassRef, e);
         } finally {
-            if (preparedStatement != null) {
-                IdentityDatabaseUtil.closeStatement(preparedStatement);
-            }
-            if (connection != null) {
-                IdentityDatabaseUtil.closeConnection(connection);
-            }
-            if (resultSet != null) {
-                IdentityDatabaseUtil.closeResultSet(resultSet);
-            }
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
     }
 
@@ -224,40 +208,89 @@ public class SAMLAssertionFinderImpl implements SAMLAssertionFinder {
      * @throws  IdentitySAML2QueryException If unable to read assertions from database
      */
     private Assertion readAssertion(String id) throws IdentitySAML2QueryException {
-        String selectByIDquery = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID =?";
+
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
+        List<Assertion> assertions;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
-            preparedStatement = connection.prepareStatement(selectByIDquery);
+            connection = IdentityDatabaseUtil.getDBConnection();
+            preparedStatement = connection.prepareStatement(getSelectByIdQuery());
             preparedStatement.setString(1, id);
             resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                String assertionString = resultSet.getString(1);
-                try {
-                    Assertion assertion = (Assertion) SAMLQueryRequestUtil.unmarshall(assertionString);
-                    log.debug("Assertion is retrieved from database with ID: " + id);
-                    return assertion;
-                } catch (IdentitySAML2QueryException e) {
-                    log.error("Unable to unmarshall assertions selected from database with ID: " + id, e);
-                    throw new IdentitySAML2QueryException(e.getMessage());
+            assertions = extractAssertions(resultSet);
+            if (assertions.isEmpty()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No Assertion with ID: " + id);
                 }
+                return null;
             }
-            return null;
         } catch (SQLException e) {
             log.error("Unable to read assertions from databas with ID: " + id, e);
             throw new IdentitySAML2QueryException("Unable to read assertions with id:" + id + " on database ", e);
+        } catch (IOException e) {
+            throw new IdentitySAML2QueryException("Unable to deserialize the object from blob for " +
+                    "assertionId: " + id, e);
+        } catch (ClassNotFoundException e) {
+            throw new IdentitySAML2QueryException("Error in reading the ASSERTION column blob from the database for " +
+                    "assertionId: " + id, e);
         } finally {
-            if (preparedStatement != null) {
-                IdentityDatabaseUtil.closeStatement(preparedStatement);
-            }
-            if (connection != null) {
-                IdentityDatabaseUtil.closeConnection(connection);
-            }
-            if (resultSet != null) {
-                IdentityDatabaseUtil.closeResultSet(resultSet);
-            }
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
+        return assertions.get(0);
+    }
+
+    private String getSelectByIdQuery() {
+
+        String query = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            query = "SELECT SAML2_ASSERTION, ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_ID=?";
+        }
+        return query;
+    }
+
+    private String getSelectBySubjectQuery() {
+
+        String query = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =?";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            query = "SELECT SAML2_ASSERTION, ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =?";
+        }
+        return query;
+    }
+
+    private String getSelectBySessionQuery() {
+
+        String query = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? AND "
+            + "SAML2_SESSION_INDEX=? ";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            query = "SELECT SAML2_ASSERTION, ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? AND "
+                    + "SAML2_SESSION_INDEX=? ";
+        }
+        return query;
+    }
+
+    private String getSelectByAuthContextQuery() {
+
+        String query = "SELECT SAML2_ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? AND "
+            + "SAML2_AUTHN_CONTEXT_CLASS_REF=? ";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            query = "SELECT SAML2_ASSERTION, ASSERTION FROM IDN_SAML2_ASSERTION_STORE WHERE SAML2_SUBJECT =? AND "
+                    + "SAML2_AUTHN_CONTEXT_CLASS_REF=? ";
+        }
+        return query;
+    }
+
+    private List<Assertion> extractAssertions(ResultSet resultSet) throws SQLException, IOException,
+            ClassNotFoundException, IdentitySAML2QueryException {
+
+        List<Assertion> assertions = new ArrayList<>();
+        while (resultSet.next()) {
+            String assertionString = (String) DBUtil.getBlobObject(resultSet.getBinaryStream("ASSERTION"));
+            if (StringUtils.isBlank(assertionString)) {
+                assertionString = resultSet.getString("SAML2_ASSERTION");
+            }
+            assertions.add((Assertion) SAMLQueryRequestUtil.unmarshall(assertionString));
+        }
+        return assertions;
     }
 }

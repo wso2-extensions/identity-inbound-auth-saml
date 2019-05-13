@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ECPException;
 import java.io.IOException;
@@ -151,7 +152,7 @@ public class SAMLSOAPUtils {
     public static String convertSOAPMsgToString(SOAPMessage soapMessage) throws TransformerException {
         String strElement;
         final StringWriter stringWriter = new StringWriter();
-        TransformerFactory.newInstance().newTransformer().transform(
+        IdentityUtil.getSecuredTransformerFactory().newTransformer().transform(
                 new DOMSource(soapMessage.getSOAPPart()), new StreamResult(stringWriter));
         strElement = stringWriter.toString();
         return strElement;
@@ -192,7 +193,7 @@ public class SAMLSOAPUtils {
     public static String convertSOAPElementToString(SOAPElement element) throws TransformerException {
         String strElement;
         StringWriter stringWriter = new StringWriter();
-        TransformerFactory.newInstance().newTransformer().transform(
+        IdentityUtil.getSecuredTransformerFactory().newTransformer().transform(
                 new DOMSource(element), new StreamResult(stringWriter));
         strElement = stringWriter.toString().replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
         return strElement;

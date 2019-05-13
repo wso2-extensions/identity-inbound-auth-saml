@@ -21,7 +21,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
@@ -114,6 +113,8 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -143,26 +144,20 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 public class SAMLSSOUtil {
 
-    private static final char[] charMapping = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-            'k', 'l', 'm', 'n', 'o', 'p'};
+    private static Log log = LogFactory.getLog(SAMLSSOUtil.class);
     private static final Set<Character> UNRESERVED_CHARACTERS = new HashSet<>();
     private static final ThreadLocal<Boolean> isSaaSApplication = new ThreadLocal<>();
     private static final ThreadLocal<String> userTenantDomainThreadLocal = new ThreadLocal<>();
     private static final String DefaultAssertionBuilder = "org.wso2.carbon.identity.sso.saml.builders.assertion.DefaultSAMLAssertionBuilder";
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
 
     static {
         for (char c = 'a'; c <= 'z'; c++)
             UNRESERVED_CHARACTERS.add(Character.valueOf(c));
 
-        for (char c = 'A'; c <= 'A'; c++)
+        for (char c = 'A'; c <= 'Z'; c++)
             UNRESERVED_CHARACTERS.add(Character.valueOf(c));
 
         for (char c = '0'; c <= '9'; c++)
@@ -174,7 +169,6 @@ public class SAMLSSOUtil {
         UNRESERVED_CHARACTERS.add(Character.valueOf('~'));
     }
 
-    private static Log log = LogFactory.getLog(SAMLSSOUtil.class);
     private static RegistryService registryService;
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
@@ -193,7 +187,6 @@ public class SAMLSSOUtil {
     private static String iDPInitSSOAuthnRequestValidatorClassName = null;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
     private static String idPInitLogoutRequestProcessorClassName = null;
-    private static String idPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
     private static ApplicationManagementService applicationMgtService;
@@ -203,11 +196,6 @@ public class SAMLSSOUtil {
     }
 
     public static boolean isSaaSApplication() {
-
-        if (isSaaSApplication == null) {
-            // this is the default behavior.
-            return true;
-        }
 
         Boolean value = isSaaSApplication.get();
 
@@ -227,11 +215,6 @@ public class SAMLSSOUtil {
     }
 
     public static String getUserTenantDomain() {
-
-        if (userTenantDomainThreadLocal == null) {
-            // this is the default behavior.
-            return null;
-        }
 
         return userTenantDomainThreadLocal.get();
     }
@@ -487,7 +470,6 @@ public class SAMLSSOUtil {
         }
 
     }
-
 
     public static String decodeForPost(String encodedStr)
             throws IdentityException {
@@ -785,7 +767,7 @@ public class SAMLSSOUtil {
                                                String sessionId) throws IdentityException {
 
         doBootstrap();
-        String assertionBuilderClass = null;
+        String assertionBuilderClass;
         try {
             assertionBuilderClass = IdentityUtil.getProperty("SSOService.SAMLSSOAssertionBuilder").trim();
             if (StringUtils.isBlank(assertionBuilderClass)) {
@@ -1793,7 +1775,6 @@ public class SAMLSSOUtil {
     }
 
     public static void setIdPInitSSOAuthnRequestProcessor(String idPInitSSOAuthnRequestProcessor) {
-        SAMLSSOUtil.idPInitSSOAuthnRequestProcessorClassName = idPInitSSOAuthnRequestProcessor;
     }
 
     public static IdPInitSSOAuthnRequestProcessor getIdPInitSSOAuthnRequestProcessor() {
