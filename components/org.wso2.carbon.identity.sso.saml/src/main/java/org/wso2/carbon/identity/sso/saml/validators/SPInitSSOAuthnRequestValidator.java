@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
@@ -31,12 +32,10 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDT
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
-
-public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator{
+public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
     AuthnRequest authnReq;
-
 
     public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq) throws IdentityException {
         this.authnReq = authnReq;
@@ -57,8 +56,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
 
             // Validate the version
             if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.VERSION_MISMATCH,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.VERSION_MISMATCH,
                         "Invalid SAML Version in Authentication Request. SAML Version should be equal to 2.0",
                         authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
@@ -76,8 +74,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setIssuer(issuer.getSPProvidedID());
             } else {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                         "Issuer/ProviderName should not be empty in the Authentication Request.",
                         authnReq.getAssertionConsumerServiceURL());
                 log.debug("SAML Request issuer validation failed. Issuer should not be empty");
@@ -87,25 +84,23 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             }
 
             if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
-                                                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-                String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is" +
-                                 " not registered. Service Provider should be registered in advance";
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is"
+                        + " not registered. Service Provider should be registered in advance";
                 log.error(message);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                                                                  message, null);
+                String errorResp = SAMLSSOUtil
+                        .buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, null);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
             }
 
             // Issuer Format attribute
-            if ((StringUtils.isNotBlank(issuer.getFormat())) &&
-                    !(issuer.getFormat().equals(SAMLSSOConstants.Attribute.ISSUER_FORMAT))) {
+            if ((StringUtils.isNotBlank(issuer.getFormat())) && !(issuer.getFormat()
+                    .equals(SAMLSSOConstants.Attribute.ISSUER_FORMAT))) {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                        "Issuer Format attribute value is invalid",
-                        authnReq.getAssertionConsumerServiceURL());
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                        "Issuer Format attribute value is invalid", authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
                     log.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
                 }
@@ -120,16 +115,15 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             }
 
             // subject confirmation should not exist
-            if (subject != null && subject.getSubjectConfirmations() != null &&
-                    !subject.getSubjectConfirmations().isEmpty()) {
+            if (subject != null && subject.getSubjectConfirmations() != null && !subject.getSubjectConfirmations()
+                    .isEmpty()) {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                         "Subject Confirmation methods should NOT be in the request.",
                         authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
-                    log.debug("Invalid Request message. A Subject confirmation method found " +
-                            subject.getSubjectConfirmations().get(0));
+                    log.debug("Invalid Request message. A Subject confirmation method found " + subject
+                            .getSubjectConfirmations().get(0));
                 }
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
@@ -143,7 +137,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             validationResponse.setForceAuthn(authnReq.isForceAuthn());
             setRequestedAuthnContext(validationResponse);
             Integer index = authnReq.getAttributeConsumingServiceIndex();
-            if (index !=null && !(index < 1)){              //according the spec, should be an unsigned short
+            if (index != null && !(index < 1)) {              //according the spec, should be an unsigned short
                 validationResponse.setAttributeConsumingServiceIndex(index);
             }
             if (log.isDebugEnabled()) {
@@ -157,9 +151,15 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
 
     private void setRequestedAuthnContext(SAMLSSOReqValidationResponseDTO validationResponse) {
         if (authnReq.getRequestedAuthnContext() != null) {
-            validationResponse.setRequestedAuthnContextComparison(
-                    authnReq.getRequestedAuthnContext().getComparison().toString());
 
+            if (authnReq.getRequestedAuthnContext().getComparison() == null || StringUtils
+                    .isBlank(authnReq.getRequestedAuthnContext().getComparison().toString())) {
+                validationResponse
+                        .setRequestedAuthnContextComparison(AuthnContextComparisonTypeEnumeration.EXACT.toString());
+            } else {
+                validationResponse.setRequestedAuthnContextComparison(
+                        authnReq.getRequestedAuthnContext().getComparison().toString());
+            }
             if (authnReq.getRequestedAuthnContext().getAuthnContextClassRefs() != null) {
                 authnReq.getRequestedAuthnContext().getAuthnContextClassRefs().stream().forEach(ref -> {
                     validationResponse.addAuthenticationContextClassRef(
