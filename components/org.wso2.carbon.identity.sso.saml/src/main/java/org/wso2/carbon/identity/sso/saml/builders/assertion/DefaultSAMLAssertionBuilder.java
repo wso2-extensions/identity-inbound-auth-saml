@@ -56,8 +56,10 @@ import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.builders.AuthenticatingAuthorityImpl;
 import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
@@ -67,6 +69,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
@@ -283,6 +286,12 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
         AuthnStatement authStmt = new AuthnStatementBuilder().buildObject();
         authStmt.setAuthnInstant(authnInstant);
+        String sessionNotOnOrAfterValue = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD);
+        if (SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(sessionNotOnOrAfterValue)) {
+            DateTime sessionNotOnOrAfter = new DateTime(authnInstant.getMillis() +
+                    TimeUnit.SECONDS.toMillis((long) SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(sessionNotOnOrAfterValue)));
+            authStmt.setSessionNotOnOrAfter(sessionNotOnOrAfter);
+        }
         AuthnContext authContext = new AuthnContextBuilder().buildObject();
         AuthnContextClassRef authCtxClassRef = new AuthnContextClassRefBuilder().buildObject();
         authCtxClassRef.setAuthnContextClassRef(authnContextClassRef);

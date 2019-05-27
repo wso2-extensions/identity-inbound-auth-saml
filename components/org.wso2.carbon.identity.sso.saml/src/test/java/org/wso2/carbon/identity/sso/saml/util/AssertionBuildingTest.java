@@ -21,11 +21,13 @@ package org.wso2.carbon.identity.sso.saml.util;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mockito.Mock;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.AuthnStatement;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.xml.security.x509.X509Credential;
@@ -65,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -253,6 +256,18 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         assertNull(spInitSSOAuthnRequestValidator, "Expected SP init SSO Authn Request validator to be null");
     }
 
+    @Test
+    public void testBuildAssertionWithSessionNotOnOrAfter() throws Exception {
+
+        Assertion assertion = buildAssertionWithSessionNotOnOrAfter();
+        List<AuthnStatement> authStatements = assertion.getAuthnStatements();
+        DateTimeZone utcTimeZone = DateTimeZone.UTC;
+        DateTime sessionNotOnOrAfterTestValue = new DateTime(authStatements.get(0).getAuthnInstant().getMillis() +
+                TimeUnit.SECONDS.toMillis((long) Integer.parseInt(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC.trim()) * 60), utcTimeZone);
+        assertEquals(assertion.getAuthnStatements().get(0).getSessionNotOnOrAfter(), sessionNotOnOrAfterTestValue ,
+                "Expected value for the SessionNotOnOrAfter is different.");
+    }
+
     private void prepareForGetIssuer() throws Exception {
 
         when(tenantManager.getTenantId(anyString())).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
@@ -323,6 +338,23 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         return assertion;
     }
 
+    private Assertion buildAssertionWithSessionNotOnOrAfter() throws Exception {
+
+        Assertion assertion = buildAssertion();
+        List<AuthnStatement> authStatements = assertion.getAuthnStatements();
+        if (authStatements != null && authStatements.size() > 0) {
+            // There can be only one authentication stmt inside the SAML assertion of generating in the test
+            AuthnStatement authStmt = authStatements.get(0);
+            String sessionNotOnOrAfterValue = TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC;
+            if (SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(sessionNotOnOrAfterValue)) {
+                DateTime sessionNotOnOrAfter = new DateTime(authStmt.getAuthnInstant().getMillis() +
+                        TimeUnit.SECONDS.toMillis((long) SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(sessionNotOnOrAfterValue)));
+                authStmt.setSessionNotOnOrAfter(sessionNotOnOrAfter);
+            }
+        }
+        return assertion;
+    }
+
     private void prepareIdentityPersistentManager(String attrConsumerIndex, String issuer, List acsList) throws
             IdentityException {
 
@@ -335,5 +367,27 @@ public class AssertionBuildingTest extends PowerMockTestCase {
                 .thenReturn(samlssoServiceProviderDO);
         mockStatic(IdentityPersistenceManager.class);
         when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+    }
+
+    @Test
+    public void testisSAMLNotOnOrAfterPeriodDefined() {
+
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+                true, "Expected to return true for a numeric value.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ALPHA),
+                false, "Expected to false false for a alphabetic value.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ZERO),
+                false, "Expected to return false for a zero.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_EMPTY),
+                false, "Expected to return false for a empty string.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_WHITE_SPACE),
+                false, "Expected to return false for white space.");
+    }
+
+    @Test
+    public void testGetSAMLSessionNotOnOrAfterPeriod() {
+
+        assertEquals(SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+                15 * 60, "Expected to return the default value defined in the constants.");
     }
 }

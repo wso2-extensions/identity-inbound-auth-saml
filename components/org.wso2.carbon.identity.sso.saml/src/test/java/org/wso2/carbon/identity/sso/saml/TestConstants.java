@@ -50,6 +50,11 @@ public class TestConstants {
     public static final String GENERAL_STRING = "WSO2 is an open source technology provider that increases the " +
             "agility of digital businesses and enterprises engaging in digital transformation.";
     public static final String SAML_ECP_ACS_URL = "https://localhost/Shibboleth.sso/SAML2/ECP";
+    public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC = "15";
+    public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ZERO = "0";
+    public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ALPHA = "a";
+    public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_EMPTY = "";
+    public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_WHITE_SPACE = " ";
 
     public static final String CLAIM_URI1 = "http://wso2.org/claimuri1";
     public static final String CLAIM_URI2 = "http://wso2.org/claimuri2";
