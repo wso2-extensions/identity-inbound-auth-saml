@@ -343,6 +343,26 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
                 "the Status object.");
     }
 
+    @Test
+    public void testisSAMLNotOnOrAfterPeriodDefined() {
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+                true, "Expected to return true for a numeric value.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ALPHA),
+                false, "Expected to false false for a alphabetic value.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ZERO),
+                false, "Expected to return false for a zero.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_EMPTY),
+                false, "Expected to return false for a empty string.");
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_WHITE_SPACE),
+                false, "Expected to return false for white space.");
+    }
+
+    @Test
+    public void testGetSAMLSessionNotOnOrAfterPeriod() {
+        assertEquals(SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+                15 * 60, "Expected to return the default value defined in the constants.");
+    }
+
     @Test(dataProvider = "remainingSessionParticipantsforSloData")
     public void testGetRemainingSessionParticipantsForSLO(String sessionIndex, String issuer, boolean isIdPInitSLO,
                                                           int expected) {
