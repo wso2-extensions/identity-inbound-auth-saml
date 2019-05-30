@@ -124,9 +124,10 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
-            SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
 
             issuer = getTenantAwareIssuer(issuer, sessionInfoData);
+            SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
+
 
             // Validate signature of the logout request.
             if (logoutReqIssuer.isDoValidateSignatureInRequests()) {
