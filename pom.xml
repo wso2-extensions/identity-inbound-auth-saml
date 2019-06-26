@@ -440,7 +440,6 @@
         <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
-        <opensaml2.wso2.version>2.6.4.wso2v5</opensaml2.wso2.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
 
         <maven.scr.plugin.version>1.22.0</maven.scr.plugin.version>
@@ -466,7 +465,8 @@
         <commons-logging.osgi.version.range>[1.2,2.0)</commons-logging.osgi.version.range>
         <commons-lang.version.range>[2.6.0,3.0.0)</commons-lang.version.range>
 
-        <opensaml.version>2.6.4</opensaml.version>
+        <opensaml.version>2.6.6</opensaml.version>
+        <opensaml2.wso2.version>2.6.6.wso2v3</opensaml2.wso2.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
