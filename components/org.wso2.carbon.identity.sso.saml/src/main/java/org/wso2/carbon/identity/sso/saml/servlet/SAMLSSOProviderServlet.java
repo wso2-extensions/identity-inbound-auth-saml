@@ -1207,10 +1207,35 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-<<<<<<< HEAD
     private void handleLogoutResponseFromFramework(HttpServletRequest request, HttpServletResponse response,
                                                    SAMLSSOSessionDTO sessionDTO)
-=======
+            throws ServletException, IOException, IdentityException {
+
+        SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
+
+        if (validationResponseDTO != null) {
+            removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
+            String sessionIndex = validationResponseDTO.getSessionIndex();
+            List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
+                    SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, sessionDTO.getIssuer(),
+                            validationResponseDTO.isIdPInitSLO());
+
+            // Get the SP list and check for other session participants that have enabled single logout.
+            if (samlssoServiceProviderDOList.isEmpty()) {
+                respondToOriginalIssuer(request, response, sessionDTO);
+            } else {
+                String originalIssuerLogoutRequestId = null;
+                if (!validationResponseDTO.isIdPInitSLO()) {
+                    originalIssuerLogoutRequestId = validationResponseDTO.getId();
+                }
+                sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
+                        originalIssuerLogoutRequestId, validationResponseDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
+                        validationResponseDTO.getReturnToURL(), sessionIndex, sessionDTO.getIssuer());
+            }
+        } else {
+            sendErrorResponseToOriginalIssuer(request, response, sessionDTO);
+        }
+    }
     /**
      * Reads the ACR from the framework and associate it to the ACR to be returned.
      *
@@ -1252,37 +1277,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
 
             authenticationContextProperties.add(acrFromFramework);
-        }
-    }
-
-    private void handleLogoutResponseFromFramework(HttpServletRequest request,
-                                                   HttpServletResponse response, SAMLSSOSessionDTO sessionDTO)
->>>>>>> 6a159461... Fixing issue: ACR not returned in SAML2 response
-            throws ServletException, IOException, IdentityException {
-
-        SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
-
-        if (validationResponseDTO != null) {
-            removeSessionDataFromCache(request.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
-            String sessionIndex = validationResponseDTO.getSessionIndex();
-            List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
-                    SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, sessionDTO.getIssuer(),
-                            validationResponseDTO.isIdPInitSLO());
-
-            // Get the SP list and check for other session participants that have enabled single logout.
-            if (samlssoServiceProviderDOList.isEmpty()) {
-                respondToOriginalIssuer(request, response, sessionDTO);
-            } else {
-                String originalIssuerLogoutRequestId = null;
-                if (!validationResponseDTO.isIdPInitSLO()) {
-                    originalIssuerLogoutRequestId = validationResponseDTO.getId();
-                }
-                sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
-                        originalIssuerLogoutRequestId, validationResponseDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
-                        validationResponseDTO.getReturnToURL(), sessionIndex, sessionDTO.getIssuer());
-            }
-        } else {
-            sendErrorResponseToOriginalIssuer(request, response, sessionDTO);
         }
     }
 
