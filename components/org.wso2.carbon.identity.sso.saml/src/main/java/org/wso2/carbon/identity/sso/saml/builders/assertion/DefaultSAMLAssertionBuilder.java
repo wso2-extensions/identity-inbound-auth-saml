@@ -250,6 +250,15 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
                             idpEntityId = (String) passThroughData.get(IdentityApplicationConstants.Authenticator
                                     .SAML2SSO.IDP_ENTITY_ID);
                         }
+                        DateTime applicableAuthnInstant = (DateTime) passThroughData.get(
+                                SAMLSSOConstants.AUTHN_INSTANT);
+                        if (applicableAuthnInstant == null) {
+                            if(log.isDebugEnabled()) {
+                                log.debug(
+                                        "Treating AuthnInstant as current time, as it is not found in the pass-through data");
+                            }
+                            applicableAuthnInstant = authnInstant;
+                        }
                         for (String authnContextClassRef : authnContextClassRefList) {
                             if (StringUtils.isNotBlank(authnContextClassRef)) {
                                 if (log.isDebugEnabled()) {
@@ -257,7 +266,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
                                             "AuthenticatingAuthority:" + idpEntityId + " in the AuthnStatement");
                                 }
                                 samlAssertion.getAuthnStatements().add(getAuthnStatement(authReqDTO, sessionId,
-                                        authnContextClassRef, authnInstant, idpEntityId));
+                                        authnContextClassRef, applicableAuthnInstant, idpEntityId));
                             }
                         }
                     }

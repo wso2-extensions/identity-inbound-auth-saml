@@ -318,8 +318,11 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     /**
      * Set Authentication Context Class Reference.
      *
-     * @param authenticationContextClassRefList list of Authentication Context Class Reference
+     * @param authenticationContextClassRefList list of Authentication Context Class Reference.
+     * @deprecated on 2019-July-03
+     * as it is wrong to set internal state. Please use addAuthenticationContextClassRef () instead.
      */
+    @Deprecated
     public void setAuthenticationContextClassRefList(List<SAMLAuthenticationContextClassRefDTO>
                                                              authenticationContextClassRefList) {
 
