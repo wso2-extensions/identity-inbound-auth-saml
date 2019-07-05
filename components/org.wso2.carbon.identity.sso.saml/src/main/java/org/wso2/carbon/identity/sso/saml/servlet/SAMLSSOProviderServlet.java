@@ -1651,7 +1651,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     authnReqDTO.setStratosDeployment(false); // not stratos
                 } catch (IdentityException e) {
                     throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
-                            + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+                            + "issuer : " + issuer + " in tenant domain : " + tenantDomain, e);
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
