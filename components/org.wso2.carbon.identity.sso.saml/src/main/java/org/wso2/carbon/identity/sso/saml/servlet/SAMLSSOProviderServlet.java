@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.LogoutResponse;
-import org.opensaml.saml2.core.impl.LogoutRequestImpl;
 import org.opensaml.xml.XMLObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -31,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionAuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -773,7 +773,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setPassiveAuth(signInRespDTO.isPassive());
         sessionDTO.setValidationRespDTO(signInRespDTO);
         sessionDTO.setIdPInitSSO(signInRespDTO.isIdPInitSSO());
-        sessionDTO.setAuthenticationContextClassRefList(signInRespDTO.getAuthenticationContextClassRefList());
+        addRequestedAuthenticationContextClassReferences(sessionDTO, signInRespDTO);
         sessionDTO.setRequestedAttributes(signInRespDTO.getRequestedAttributes());
         sessionDTO.setRequestedAuthnContextComparison(signInRespDTO.getRequestedAuthnContextComparison());
         sessionDTO.setProperties(signInRespDTO.getProperties());
@@ -818,6 +818,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         //Add user atributes
         req.setAttribute(SAMLSSOConstants.REQUESTED_ATTRIBUTES, signInRespDTO.getRequestedAttributes());
         sendRequestToFramework(req, resp, sessionDataKey, FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO);
+    }
+
+    private void addRequestedAuthenticationContextClassReferences(SAMLSSOSessionDTO sessionDTO,
+                                                                  SAMLSSOReqValidationResponseDTO signInRespDTO) {
+
+        if (signInRespDTO.getAuthenticationContextClassRefList() != null) {
+            signInRespDTO.getAuthenticationContextClassRefList().forEach(
+                    a -> sessionDTO.addAuthenticationContextClassRef(a));
+        }
     }
 
     private void addAuthenticationRequestToRequest(HttpServletRequest request,AuthenticationRequestCacheEntry authRequest){
@@ -1065,6 +1074,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
         populateAuthnReqDTOWithCachedSessionEntry(authnReqDTO, sessionDTO);
+        populateAuthenticationContextClassRefResult(req, sessionDTO, authnReqDTO);
 
         String tenantDomain = authnReqDTO.getTenantDomain();
         String issuer = authnReqDTO.getIssuer();
@@ -1224,6 +1234,49 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
         } else {
             sendErrorResponseToOriginalIssuer(request, response, sessionDTO);
+        }
+    }
+    /**
+     * Reads the ACR from the framework and associate it to the ACR to be returned.
+     *
+     * @param req         Original or wrapped HttpServletRequest
+     * @param sessionDTO  the SAML Session DTO
+     * @param authnReqDTO the SAML Request DTO
+     */
+    private void populateAuthenticationContextClassRefResult(HttpServletRequest req, SAMLSSOSessionDTO sessionDTO,
+                                                             SAMLSSOAuthnReqDTO authnReqDTO) {
+
+        SessionAuthHistory sessionAuthHistory = (SessionAuthHistory) req.getAttribute(
+                FrameworkConstants.SESSION_AUTH_HISTORY);
+        if (sessionAuthHistory != null && sessionAuthHistory.getSelectedAcrValue() != null) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Found the selected ACR value from the framework as : " +
+                                sessionAuthHistory.getSelectedAcrValue() +
+                                " , Hence creating the AuthenticationContextProperty");
+            }
+            List<AuthenticationContextProperty> authenticationContextProperties = authnReqDTO
+                    .getIdpAuthenticationContextProperties().get(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF);
+            List<String> acrListFromFramework = new ArrayList<>();
+            acrListFromFramework.add(sessionAuthHistory.getSelectedAcrValue());
+            if (authenticationContextProperties == null) {
+                authenticationContextProperties = new ArrayList<>();
+                authnReqDTO.getIdpAuthenticationContextProperties().put(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF,
+                        authenticationContextProperties);
+            }
+            Map<String, Object> passThroughData = new HashMap<>();
+            AuthenticationContextProperty acrFromFramework = new AuthenticationContextProperty(
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID,
+                    passThroughData);
+            passThroughData.put(SAMLSSOConstants.AUTHN_CONTEXT_CLASS_REF, acrListFromFramework);
+            passThroughData.put(SAMLSSOConstants.AUTHN_INSTANT, sessionAuthHistory.getSessionCreatedTime());
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Setting the AuthnInst as session create time : " + sessionAuthHistory.getSessionCreatedTime());
+            }
+
+            authenticationContextProperties.add(acrFromFramework);
         }
     }
 
