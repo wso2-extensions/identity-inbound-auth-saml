@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.sso.saml.validators;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
+import org.joda.time.DateTime;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
@@ -69,6 +71,16 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
                 if (log.isDebugEnabled()) {
                     log.debug("Invalid version in the SAMLRequest" + authnReq.getVersion());
                 }
+                validationResponse.setResponse(errorResp);
+                validationResponse.setValid(false);
+                return validationResponse;
+            }
+
+            String issueInstantInvalidationErrorMessage = validateRequestIssueInstant();
+            if (issueInstantInvalidationErrorMessage != null) {
+                log.error(issueInstantInvalidationErrorMessage);
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                        issueInstantInvalidationErrorMessage, null);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -205,5 +217,34 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
         }
         return issuer;
     }
+
+    /**
+     * Validating issueInstant time
+     * @return
+     */
+    private String validateRequestIssueInstant() {
+
+        DateTime validFrom = authnReq.getIssueInstant();
+        if (validFrom == null) {
+            return "IssueInstant time is not valid.";
+        }
+        DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSamlAuthenticationRequestValidityPeriod());
+        int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
+
+        if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
+            return "The request IssueInstant time is 'Not Before'";
+        }
+
+        if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
+            return "The request IssueInstant time is  'Not On Or After'";
+        }
+
+        if (validTill != null && validFrom.isAfter(validTill)) {
+            return "The request IssueInstant time is  'Not On Or After'";
+        }
+
+        return null;
+    }
+
 
 }

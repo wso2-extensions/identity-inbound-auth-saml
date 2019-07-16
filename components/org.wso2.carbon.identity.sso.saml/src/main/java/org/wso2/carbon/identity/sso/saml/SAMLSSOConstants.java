@@ -59,6 +59,8 @@ public class SAMLSSOConstants {
     public static final String SAMLSSO_URL = "/samlsso";
     public static final String NOTIFICATION_ENDPOINT ="/authenticationendpoint/samlsso_notification.do";
     public static final String SLO_SAML_SOAP_BINDING_ENABLED = "SSOService.SLOSAMLSOAPBindingEnabled";
+    public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD = "SSOService.SAML2AuthenticationRequestValidityPeriod";
+    public static final String SAML2_REQUEST_CERTIFICATE_EXPIRY_VALIDATION_ENABLED = "SSOService.SAML2RequestCertificateExpiryValidationEnabled";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
             "<SOAP-ENV:Body>";
     public static final String END_SOAP_BINDING = "</SOAP-ENV:Body>" +
