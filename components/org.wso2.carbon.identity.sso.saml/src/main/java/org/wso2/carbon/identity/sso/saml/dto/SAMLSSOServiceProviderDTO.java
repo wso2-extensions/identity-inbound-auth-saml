@@ -22,41 +22,90 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class SAMLSSOServiceProviderDTO implements Serializable {
 
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
+    @XmlElementWrapper(name="assertionConsumerUrls")
+    @XmlElement(name = "assertionConsumerUrl")
     private String[] assertionConsumerUrls;
     private String defaultAssertionConsumerUrl;
     private String assertionConsumerUrl;
     private String certAlias;
+    private String certificateContent;
     private String sloResponseURL;
     private String sloRequestURL;
     private String loginPageURL;
     private String attributeConsumingServiceIndex;
+    private String frontChannelLogoutBinding;
     private boolean doSingleLogout;
     private boolean doSignAssertions;
     private boolean doSignResponse;
+    private boolean doFrontChannelLogout;
+    @XmlElementWrapper(name="requestedClaims")
+    @XmlElement(name = "requestedClaim")
     private String[] requestedClaims;
+    @XmlElementWrapper(name="requestedAudiences")
+    @XmlElement(name = "requestedAudience")
     private String[] requestedAudiences;
+    @XmlElementWrapper(name="requestedRecipients")
+    @XmlElement(name = "requestedRecipient")
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
+    private boolean isAssertionQueryRequestProfileEnabled;
+    private String supportedAssertionQueryRequestTypes;
     private boolean enableAttributesByDefault;
     private String nameIdClaimUri;
     private String nameIDFormat;
     private boolean idPInitSSOEnabled;
     private boolean idPInitSLOEnabled;
+    @XmlElementWrapper(name="idpInitSLOReturnToURLs")
+    @XmlElement(name = "idpInitSLOReturnToURL")
     private String[] idpInitSLOReturnToURLs;
     private boolean doEnableEncryptedAssertion;
     private boolean doValidateSignatureInRequests;
     private String signingAlgorithmURI;
     private String digestAlgorithmURI;
+    private String assertionEncryptionAlgorithmURI;
+    private String keyEncryptionAlgorithmURI;
+    private boolean enableSAML2ArtifactBinding;
+    private boolean doValidateSignatureInArtifactResolve;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isEnableSAML2ArtifactBinding() {
+
+        return enableSAML2ArtifactBinding;
+    }
 
     public SAMLSSOServiceProviderDTO() {
         signingAlgorithmURI = IdentityApplicationManagementUtil.getSigningAlgoURIByConfig();
         digestAlgorithmURI = IdentityApplicationManagementUtil.getDigestAlgoURIByConfig();
+        assertionEncryptionAlgorithmURI = IdentityApplicationManagementUtil
+                .getAssertionEncryptionAlgorithmURIByConfig();
+        keyEncryptionAlgorithmURI = IdentityApplicationManagementUtil.getKeyEncryptionAlgorithmURIByConfig();
     }
 
     public String getSigningAlgorithmURI() {
@@ -76,6 +125,26 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     public void setDigestAlgorithmURI(String digestAlgorithmURI) {
         if (StringUtils.isNotBlank(digestAlgorithmURI)) {
             this.digestAlgorithmURI = digestAlgorithmURI;
+        }
+    }
+
+    public String getAssertionEncryptionAlgorithmURI() {
+        return assertionEncryptionAlgorithmURI;
+    }
+
+    public void setAssertionEncryptionAlgorithmURI(String assertionEncryptionAlgorithmURI) {
+        if (StringUtils.isNotBlank(assertionEncryptionAlgorithmURI)) {
+            this.assertionEncryptionAlgorithmURI = assertionEncryptionAlgorithmURI;
+        }
+    }
+
+    public String getKeyEncryptionAlgorithmURI() {
+        return keyEncryptionAlgorithmURI;
+    }
+
+    public void setKeyEncryptionAlgorithmURI(String keyEncryptionAlgorithmURI) {
+        if (StringUtils.isNotBlank(keyEncryptionAlgorithmURI)) {
+            this.keyEncryptionAlgorithmURI = keyEncryptionAlgorithmURI;
         }
     }
 
@@ -101,6 +170,22 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setEnableAttributeProfile(boolean enableAttributeProfile) {
         this.enableAttributeProfile = enableAttributeProfile;
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    }
+
+    public String getSupportedAssertionQueryRequestTypes() {
+        return supportedAssertionQueryRequestTypes;
+    }
+
+    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
+        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
     }
 
     public boolean isEnableAttributesByDefault() {
@@ -157,6 +242,26 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setLoginPageURL(String loginPageURL) {
         this.loginPageURL = loginPageURL;
+    }
+
+    public boolean isDoFrontChannelLogout() {
+
+        return doFrontChannelLogout;
+    }
+
+    public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
+
+        this.doFrontChannelLogout = doFrontChannelLogout;
+    }
+
+    public String getFrontChannelLogoutBinding() {
+
+        return frontChannelLogoutBinding;
+    }
+
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
+
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
     }
 
     /**
@@ -337,4 +442,15 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
             this.idpInitSLOReturnToURLs = null;
         }
     }
+
+    public void setCertificateContent(String certificateContent) {
+
+        this.certificateContent = certificateContent;
+    }
+
+    public String getCertificateContent() {
+
+        return certificateContent;
+    }
+
 }

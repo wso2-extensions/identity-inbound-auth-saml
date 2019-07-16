@@ -28,6 +28,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants" %>
 
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -85,6 +86,10 @@
                 SAML_SSO_SIGNING_ALGORITHM));
         serviceProviderDTO.setDigestAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
                 SAML_SSO_DIGEST_ALGORITHM));
+        serviceProviderDTO.setAssertionEncryptionAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
+                SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM));
+        serviceProviderDTO.setKeyEncryptionAlgorithmURI(SAMLSSOUIUtil.getSafeInput(request, SAMLSSOUIConstants.
+                SAML_SSO_KEY_ENCRYPTION_ALGORITHM));
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_SINGLE_LOGOUT))) {
             serviceProviderDTO.setDoSingleLogout(true);
@@ -94,12 +99,38 @@
             if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL))) {
                 serviceProviderDTO.setSloRequestURL(request.getParameter(SAMLSSOUIConstants.SLO_REQUEST_URL));
             }
+            if (SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals(request.getParameter
+                    (SAMLSSOUIConstants.SLO_TYPE))) {
+                serviceProviderDTO.setDoFrontChannelLogout(true);
+                serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING);
+            }
+            if (SAMLSSOProviderConstants.HTTP_POST_BINDING.equals(request.getParameter(SAMLSSOUIConstants.SLO_TYPE))) {
+                serviceProviderDTO.setDoFrontChannelLogout(true);
+                serviceProviderDTO.setFrontChannelLogoutBinding(SAMLSSOProviderConstants.HTTP_POST_BINDING);
+            }
         }
-
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_RESPONSE_SIGNATURE))) {
             serviceProviderDTO.setDoSignResponse(true);
         }
 
+        if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_QUERY_REQUEST_PROFILE))) {
+            serviceProviderDTO.setAssertionQueryRequestProfileEnabled(true);
+        }
+
+        if (request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) != null) {
+            serviceProviderDTO.setSupportedAssertionQueryRequestTypes(request.getParameter(SAMLSSOUIConstants.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
+        }
+
+        if (request.getParameter(SAMLSSOUIConstants.ENABLE_SAML2_ARTIFACT_BINDING) != null) {
+
+            serviceProviderDTO.setEnableSAML2ArtifactBinding(true);
+        }
+
+
+        if (request.getParameter(SAMLSSOUIConstants.ENABLE_SIGNATURE_VALIDATION_IN_ARTIFACT_RESOLVE) != null) {
+
+            serviceProviderDTO.setDoValidateSignatureInArtifactResolve(true);
+        }
 
         if (Boolean.parseBoolean(request.getParameter(SAMLSSOUIConstants.ENABLE_ASSERTION_SIGNATURE))) {
             serviceProviderDTO.setDoSignAssertions(true);

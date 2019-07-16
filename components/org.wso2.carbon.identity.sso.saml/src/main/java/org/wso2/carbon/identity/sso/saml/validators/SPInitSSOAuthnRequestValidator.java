@@ -21,29 +21,22 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.joda.time.DateTime;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
+import org.opensaml.saml2.core.impl.NameIDPolicyImpl;
 import org.wso2.carbon.identity.base.IdentityException;
-
-import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-//import org.wso2.carbon.identity.saml.metadata.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
+import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-
-public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
+public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
     AuthnRequest authnReq;
-
 
     public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq) throws IdentityException {
         this.authnReq = authnReq;
@@ -64,8 +57,7 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
 
             // Validate the version
             if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.VERSION_MISMATCH,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.VERSION_MISMATCH,
                         "Invalid SAML Version in Authentication Request. SAML Version should be equal to 2.0",
                         authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
@@ -93,8 +85,7 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
                 validationResponse.setIssuer(issuer.getSPProvidedID());
             } else {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                         "Issuer/ProviderName should not be empty in the Authentication Request.",
                         authnReq.getAssertionConsumerServiceURL());
                 log.debug("SAML Request issuer validation failed. Issuer should not be empty");
@@ -104,54 +95,26 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
             }
 
             if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
-                                                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-                String message = "A Service Provider with the Issuer '" + validationResponse.getIssuer()
-                                 + "' is not registered. Service Provider should be registered in advance";
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is"
+                        + " not registered. Service Provider should be registered in advance";
                 log.error(message);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                                                                  message, null);
+                String errorResp = SAMLSSOUtil
+                        .buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, null);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
             }
 
             // Issuer Format attribute
-            if ((StringUtils.isNotBlank(issuer.getFormat())) &&
-                    !(issuer.getFormat().equals(SAMLSSOConstants.Attribute.ISSUER_FORMAT))) {
+            if ((StringUtils.isNotBlank(issuer.getFormat())) && !(issuer.getFormat()
+                    .equals(SAMLSSOConstants.Attribute.ISSUER_FORMAT))) {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                        "Issuer Format attribute value is invalid",
-                        authnReq.getAssertionConsumerServiceURL());
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                        "Issuer Format attribute value is invalid", authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
                     log.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
                 }
-                validationResponse.setResponse(errorResp);
-                validationResponse.setValid(false);
-                return validationResponse;
-            }
-
-            //TODO : REMOVE THIS UNNECESSARY CHECK
-            // set the custom login page URL and ACS URL if available
-            SSOServiceProviderConfigManager spConfigManager = SSOServiceProviderConfigManager.getInstance();
-            SAMLSSOServiceProviderDO spDO = spConfigManager.getServiceProvider(issuer.getValue());
-            String spAcsUrl = null;
-            if (spDO != null) {
-                validationResponse.setLoginPageURL(spDO.getLoginPageURL());
-                spAcsUrl = spDO.getAssertionConsumerUrl();
-            }
-            // Check for a Spoofing attack
-            String acsUrl = authnReq.getAssertionConsumerServiceURL();
-            if ( StringUtils.isNotBlank(spAcsUrl) && StringUtils.isNotBlank(acsUrl) && !acsUrl.equals(spAcsUrl)) {
-                log.error("Invalid ACS URL value " + acsUrl + " in the AuthnRequest message from " +
-                        spDO.getIssuer() + "\n" +
-                        "Possibly an attempt for a spoofing attack from Provider " +
-                        authnReq.getIssuer().getValue());
-
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                        "Invalid Assertion Consumer Service URL in the Authentication Request.",
-                        acsUrl);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -163,16 +126,15 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
             }
 
             // subject confirmation should not exist
-            if (subject != null && subject.getSubjectConfirmations() != null &&
-                    !subject.getSubjectConfirmations().isEmpty()) {
+            if (subject != null && subject.getSubjectConfirmations() != null && !subject.getSubjectConfirmations()
+                    .isEmpty()) {
                 validationResponse.setValid(false);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                         "Subject Confirmation methods should NOT be in the request.",
                         authnReq.getAssertionConsumerServiceURL());
                 if (log.isDebugEnabled()) {
-                    log.debug("Invalid Request message. A Subject confirmation method found " +
-                            subject.getSubjectConfirmations().get(0));
+                    log.debug("Invalid Request message. A Subject confirmation method found " + subject
+                            .getSubjectConfirmations().get(0));
                 }
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
@@ -184,8 +146,9 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
             validationResponse.setValid(true);
             validationResponse.setPassive(authnReq.isPassive());
             validationResponse.setForceAuthn(authnReq.isForceAuthn());
+            setRequestedAuthnContext(validationResponse);
             Integer index = authnReq.getAttributeConsumingServiceIndex();
-            if (index !=null && !(index < 1)){              //according the spec, should be an unsigned short
+            if (index != null && !(index < 1)) {              //according the spec, should be an unsigned short
                 validationResponse.setAttributeConsumingServiceIndex(index);
             }
             if (log.isDebugEnabled()) {
@@ -197,25 +160,24 @@ public class SPInitSSOAuthnRequestValidator implements SSOAuthnRequestValidator{
         }
     }
 
-    protected String splitAppendedTenantDomain(String issuer) throws UserStoreException, IdentityException {
+    private void setRequestedAuthnContext(SAMLSSOReqValidationResponseDTO validationResponse) {
+        if (authnReq.getRequestedAuthnContext() != null) {
 
-        if(IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-            if (issuer.contains("@")) {
-                String tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
-                issuer = issuer.substring(0, issuer.lastIndexOf('@'));
-                if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(issuer)) {
-                    SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + "has been " +
-                                "split");
-                    }
-                }
+            if (authnReq.getRequestedAuthnContext().getComparison() == null || StringUtils
+                    .isBlank(authnReq.getRequestedAuthnContext().getComparison().toString())) {
+                validationResponse
+                        .setRequestedAuthnContextComparison(AuthnContextComparisonTypeEnumeration.EXACT.toString());
+            } else {
+                validationResponse.setRequestedAuthnContextComparison(
+                        authnReq.getRequestedAuthnContext().getComparison().toString());
+            }
+            if (authnReq.getRequestedAuthnContext().getAuthnContextClassRefs() != null) {
+                authnReq.getRequestedAuthnContext().getAuthnContextClassRefs().stream().forEach(ref -> {
+                    validationResponse.addAuthenticationContextClassRef(
+                            new SAMLAuthenticationContextClassRefDTO(ref.getAuthnContextClassRef()));
+                });
             }
         }
-        if(IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())){
-            SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        }
-        return issuer;
     }
 
     /**

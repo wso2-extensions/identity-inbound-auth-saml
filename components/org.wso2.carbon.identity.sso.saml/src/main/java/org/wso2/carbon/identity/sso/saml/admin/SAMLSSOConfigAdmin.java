@@ -22,13 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml1.core.NameIdentifier;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.sp.metadata.saml2.Exception.InvalidMetadataException;
+import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
@@ -37,6 +38,7 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
 
 /**
@@ -86,20 +88,47 @@ public class SAMLSSOConfigAdmin {
     /**
      * Save Certificate To Key Store
      *
-     * @param serviceProviderDO
-     * @throws java.security.cert.CertificateException,java.lang.Exception
+     * @param serviceProviderDO Service provider data object
+     * @throws Exception exception
      */
+    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws Exception {
 
-    private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws CertificateException, Exception {
+        KeyStoreManager manager = KeyStoreManager.getInstance(registry.getTenantId(), IdentitySAMLSSOServiceComponent
+                .getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
 
-        UserRegistry userRegistry = (UserRegistry) registry;
+        if (MultitenantConstants.SUPER_TENANT_ID == registry.getTenantId()) {
 
-        KeyStoreManager manager = KeyStoreManager.getInstance(userRegistry.getTenantId(), IdentitySAMLSSOServiceComponent.getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
+            KeyStore keyStore = manager.getPrimaryKeyStore();
 
-        manager.getPrimaryKeyStore().setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());
+            // Admin should manually add the service provider signing certificate to the keystore file.
+            // If the certificate is available we will set the alias of that certificate.
+            String alias = keyStore.getCertificateAlias(serviceProviderDO.getX509Certificate());
+            if (!StringUtils.isBlank(alias)) {
+                serviceProviderDO.setCertAlias(alias);
+            } else {
+                serviceProviderDO.setCertAlias(null);
+            }
+        } else {
 
+            String keyStoreName = getKeyStoreName(registry.getTenantId());
+            KeyStore keyStore = manager.getKeyStore(keyStoreName);
+
+            // Add new certificate
+            keyStore.setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());
+            manager.updateKeyStore(keyStoreName, keyStore);
+        }
     }
 
+    /**
+     * This method returns the key store file name from the domain Name
+     *
+     * @return key store name
+     */
+    private String getKeyStoreName(int tenantId) {
+
+        String ksName = IdentityTenantUtil.getTenantDomain(tenantId).replace(".", "-");
+        return (ksName + ".jks");
+    }
 
     /**
      * upload SAML SSO service provider metadata directly
@@ -121,13 +150,13 @@ public class SAMLSSOConfigAdmin {
             throw IdentityException.error("Error parsing SP metadata", e);
         }
 
-        try {
-            //save certificate
-            this.saveCertificateToKeyStore(samlssoServiceProviderDO);
-        } catch (CertificateException e) {
-            log.error("Error While setting Certificate and alias", e);
-        } catch(Exception e) {
-            log.error("Error While setting Certificate and alias", e);
+        if (samlssoServiceProviderDO.getX509Certificate() != null) {
+            try {
+                //save certificate
+                this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+            } catch (Exception e) {
+                throw new IdentityException("Error occurred while setting certificate and alias", e);
+            }
         }
 
         try {
@@ -163,6 +192,8 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setDefaultAssertionConsumerUrl(serviceProviderDTO.getDefaultAssertionConsumerUrl());
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
         serviceProviderDO.setDoSingleLogout(serviceProviderDTO.isDoSingleLogout());
+        serviceProviderDO.setDoFrontChannelLogout(serviceProviderDTO.isDoFrontChannelLogout());
+        serviceProviderDO.setFrontChannelLogoutBinding(serviceProviderDTO.getFrontChannelLogoutBinding());
         serviceProviderDO.setSloResponseURL(serviceProviderDTO.getSloResponseURL());
         serviceProviderDO.setSloRequestURL(serviceProviderDTO.getSloRequestURL());
         serviceProviderDO.setLoginPageURL(serviceProviderDTO.getLoginPageURL());
@@ -171,7 +202,14 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setNameIdClaimUri(serviceProviderDTO.getNameIdClaimUri());
         serviceProviderDO.setSigningAlgorithmUri(serviceProviderDTO.getSigningAlgorithmURI());
         serviceProviderDO.setDigestAlgorithmUri(serviceProviderDTO.getDigestAlgorithmURI());
-
+        serviceProviderDO.setAssertionEncryptionAlgorithmUri(serviceProviderDTO.getAssertionEncryptionAlgorithmURI());
+        serviceProviderDO.setKeyEncryptionAlgorithmUri(serviceProviderDTO.getKeyEncryptionAlgorithmURI());
+        serviceProviderDO.setAssertionQueryRequestProfileEnabled(serviceProviderDTO
+                .isAssertionQueryRequestProfileEnabled());
+        serviceProviderDO.setSupportedAssertionQueryRequestTypes(serviceProviderDTO.getSupportedAssertionQueryRequestTypes());
+        serviceProviderDO.setEnableSAML2ArtifactBinding(serviceProviderDTO.isEnableSAML2ArtifactBinding());
+        serviceProviderDO.setDoValidateSignatureInArtifactResolve(serviceProviderDTO
+                .isDoValidateSignatureInArtifactResolve());
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
         } else {
@@ -229,16 +267,42 @@ public class SAMLSSOConfigAdmin {
         }
 
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
-        serviceProviderDTO.setAssertionConsumerUrl(serviceProviderDO.getAssertionConsumerUrl());
+        serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
+        serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
+
+        try {
+
+            if (serviceProviderDO.getX509Certificate() != null) {
+                serviceProviderDTO.setCertificateContent(IdentityUtil.convertCertificateToPEM(
+                        serviceProviderDO.getX509Certificate()));
+            }
+        } catch (CertificateException e) {
+            throw new IdentityException("An error occurred while converting the application certificate to " +
+                    "PEM content.", e);
+        }
+
         serviceProviderDTO.setDoSingleLogout(serviceProviderDO.isDoSingleLogout());
+        serviceProviderDTO.setDoFrontChannelLogout(serviceProviderDO.isDoFrontChannelLogout());
+        serviceProviderDTO.setFrontChannelLogoutBinding(serviceProviderDO.getFrontChannelLogoutBinding());
         serviceProviderDTO.setLoginPageURL(serviceProviderDO.getLoginPageURL());
         serviceProviderDTO.setSloRequestURL(serviceProviderDO.getSloRequestURL());
         serviceProviderDTO.setSloResponseURL(serviceProviderDO.getSloResponseURL());
         serviceProviderDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
         serviceProviderDTO.setDoSignAssertions(serviceProviderDO.isDoSignAssertions());
         serviceProviderDTO.setNameIdClaimUri(serviceProviderDO.getNameIdClaimUri());
+        serviceProviderDTO.setSigningAlgorithmURI(serviceProviderDO.getSigningAlgorithmUri());
+        serviceProviderDTO.setDigestAlgorithmURI(serviceProviderDO.getDigestAlgorithmUri());
+        serviceProviderDTO.setAssertionEncryptionAlgorithmURI(serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+        serviceProviderDTO.setKeyEncryptionAlgorithmURI(serviceProviderDO.getKeyEncryptionAlgorithmUri());
+        serviceProviderDTO.setAssertionQueryRequestProfileEnabled(serviceProviderDO
+                .isAssertionQueryRequestProfileEnabled());
+        serviceProviderDTO.setSupportedAssertionQueryRequestTypes(serviceProviderDO
+                .getSupportedAssertionQueryRequestTypes());
         serviceProviderDTO.setEnableAttributesByDefault(serviceProviderDO.isEnableAttributesByDefault());
+        serviceProviderDTO.setEnableSAML2ArtifactBinding(serviceProviderDO.isEnableSAML2ArtifactBinding());
+        serviceProviderDTO.setDoValidateSignatureInArtifactResolve(serviceProviderDO
+                .isDoValidateSignatureInArtifactResolve());
 
         if (serviceProviderDO.getNameIDFormat() == null) {
             serviceProviderDO.setNameIDFormat(NameIdentifier.EMAIL);
@@ -248,9 +312,9 @@ public class SAMLSSOConfigAdmin {
 
         serviceProviderDTO.setNameIDFormat(serviceProviderDO.getNameIDFormat());
 
-        if (serviceProviderDO.getAttributeConsumingServiceIndex() != null && !serviceProviderDO
-                .getAttributeConsumingServiceIndex().equals("")) {
+        if (StringUtils.isNotBlank(serviceProviderDO.getAttributeConsumingServiceIndex())) {
             serviceProviderDTO.setAttributeConsumingServiceIndex(serviceProviderDO.getAttributeConsumingServiceIndex());
+            serviceProviderDTO.setEnableAttributeProfile(true);
         }
 
         if (serviceProviderDO.getRequestedAudiences() != null && serviceProviderDO.getRequestedAudiences().length !=
@@ -289,11 +353,25 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
                 providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
                 providerDTO.setDigestAlgorithmURI(providerDO.getDigestAlgorithmUri());
+                providerDTO.setAssertionEncryptionAlgorithmURI(providerDO.getAssertionEncryptionAlgorithmUri());
+                providerDTO.setKeyEncryptionAlgorithmURI(providerDO.getKeyEncryptionAlgorithmUri());
                 providerDTO.setCertAlias(providerDO.getCertAlias());
                 providerDTO.setAttributeConsumingServiceIndex(providerDO.getAttributeConsumingServiceIndex());
+
+                if (StringUtils.isNotBlank(providerDO.getAttributeConsumingServiceIndex())) {
+                    providerDTO.setEnableAttributeProfile(true);
+                }
+
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
                 providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
+                providerDTO.setDoFrontChannelLogout(providerDO.isDoFrontChannelLogout());
+                providerDTO.setFrontChannelLogoutBinding(providerDO.getFrontChannelLogoutBinding());
+                providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
+                providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
+                providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());
+                providerDTO.setDoValidateSignatureInArtifactResolve(
+                        providerDO.isDoValidateSignatureInArtifactResolve());
 
                 if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
                     providerDTO.setLoginPageURL("");

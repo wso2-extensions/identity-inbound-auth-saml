@@ -24,7 +24,6 @@ import org.opensaml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
-//import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -33,6 +32,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
+import org.wso2.carbon.identity.sso.saml.builders.SAMLArtifactBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
@@ -55,9 +55,16 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
             if (serviceProviderConfigs == null) {
                 String msg =
-                        "A Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
-                                "' is not registered." +
+                        "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not registered." +
                                 " Service Provider should be registered in advance.";
+                log.warn(msg);
+                return buildErrorResponse(authnReqDTO.getId(),
+                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
+            }
+
+            if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
+                String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
+                                "' is not ECP enabled.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
@@ -82,7 +89,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 }
 
                 // validate the signature
-                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO);
+                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
+                        serviceProviderConfigs.getX509Certificate());
 
                 if (!isSignatureValid) {
                     String msg = "Signature validation for Authentication Request failed.";
@@ -149,12 +157,19 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     spDO.setTenantDomain(authnReqDTO.getTenantDomain());
                     spDO.setNameIDFormat(authnReqDTO.getNameIDFormat());
                     spDO.setDoSingleLogout(authnReqDTO.isDoSingleLogout());
+                    spDO.setDoFrontChannelLogout(authnReqDTO.isDoFrontChannelLogout());
+                    spDO.setFrontChannelLogoutBinding(authnReqDTO.getFrontChannelLogoutBinding());
                     spDO.setIdPInitSLOEnabled(authnReqDTO.isIdPInitSLOEnabled());
                     spDO.setAssertionConsumerUrls(authnReqDTO.getAssertionConsumerURLs());
                     spDO.setIdpInitSLOReturnToURLs(authnReqDTO.getIdpInitSLOReturnToURLs());
                     spDO.setDoSignResponse(authnReqDTO.isDoSignResponse());
                     spDO.setSigningAlgorithmUri(authnReqDTO.getSigningAlgorithmUri());
                     spDO.setDigestAlgorithmUri(authnReqDTO.getDigestAlgorithmUri());
+                    spDO.setAssertionEncryptionAlgorithmUri(authnReqDTO.getAssertionEncryptionAlgorithmUri());
+                    spDO.setEnableSAML2ArtifactBinding(authnReqDTO.isSAML2ArtifactBindingEnabled());
+                    spDO.setDoValidateSignatureInRequests(authnReqDTO.isDoValidateSignatureInRequests());
+                    spDO.setDoValidateSignatureInArtifactResolve(authnReqDTO.isDoValidateSignatureInArtifactResolve());
+                    spDO.setKeyEncryptionAlgorithmUri(authnReqDTO.getKeyEncryptionAlgorithmUri());
                     sessionPersistenceManager.persistSession(sessionIndexId,
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
                             spDO, authnReqDTO.getRpSessionId(),
@@ -163,26 +178,42 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 }
 
                 // Build the response for the successful scenario
-                ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
-                Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
                 samlssoRespDTO = new SAMLSSORespDTO();
-                String samlResp = SAMLSSOUtil.marshall(response);
 
-                if (log.isDebugEnabled()) {
-                    log.debug(samlResp);
+                if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
+                    // Build and store SAML artifact
+                    SAMLArtifactBuilder samlArtifactBuilder = new SAMLArtifactBuilder();
+                    String artifact = samlArtifactBuilder.buildSAML2Artifact(authnReqDTO, sessionIndexId);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                                authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                                "] -> Artifact: " + artifact);
+                    }
+
+                    samlssoRespDTO.setRespString(artifact);
+                } else {
+                    // Build response with SAML assertion.
+                    ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
+                    if (respBuilder != null) {
+
+                        Response response = respBuilder.buildResponse(authnReqDTO, sessionIndexId);
+                        String samlResp = SAMLSSOUtil.marshall(response);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug(samlResp);
+                        }
+
+                        samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
+                    } else {
+                        throw new Exception("Response builder was null.");
+                    }
                 }
 
-                samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                 samlssoRespDTO.setSessionEstablished(true);
                 samlssoRespDTO.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
                 samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());
                 samlssoRespDTO.setSubject(authnReqDTO.getUser());
-            }
-
-            if (samlssoRespDTO.getRespString() != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug(samlssoRespDTO.getRespString());
-                }
             }
 
             return samlssoRespDTO;
@@ -197,6 +228,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     buildErrorResponse(authnReqDTO.getId(), statusCodes,
                             "Authentication Failure, invalid username or password.", null);
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
+            errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
         }
     }
@@ -257,6 +289,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setNameIdClaimUri(ssoIdpConfigs.getNameIdClaimUri());
         authnReqDTO.setNameIDFormat(ssoIdpConfigs.getNameIDFormat());
         authnReqDTO.setDoSingleLogout(ssoIdpConfigs.isDoSingleLogout());
+        authnReqDTO.setDoFrontChannelLogout(ssoIdpConfigs.isDoFrontChannelLogout());
+        authnReqDTO.setFrontChannelLogoutBinding(ssoIdpConfigs.getFrontChannelLogoutBinding());
         authnReqDTO.setSloResponseURL(ssoIdpConfigs.getSloResponseURL());
         authnReqDTO.setSloRequestURL(ssoIdpConfigs.getSloRequestURL());
         authnReqDTO.setDoSignResponse(ssoIdpConfigs.isDoSignResponse());
@@ -271,6 +305,11 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setIdpInitSLOReturnToURLs(ssoIdpConfigs.getIdpInitSLOReturnToURLs());
         authnReqDTO.setSigningAlgorithmUri(ssoIdpConfigs.getSigningAlgorithmUri());
         authnReqDTO.setDigestAlgorithmUri(ssoIdpConfigs.getDigestAlgorithmUri());
+        authnReqDTO.setAssertionEncryptionAlgorithmUri(ssoIdpConfigs.getAssertionEncryptionAlgorithmUri());
+        authnReqDTO.setKeyEncryptionAlgorithmUri(ssoIdpConfigs.getKeyEncryptionAlgorithmUri());
+        authnReqDTO.setAssertionQueryRequestProfileEnabled(ssoIdpConfigs.isAssertionQueryRequestProfileEnabled());
+        authnReqDTO.setEnableSAML2ArtifactBinding(ssoIdpConfigs.isEnableSAML2ArtifactBinding());
+        authnReqDTO.setDoValidateSignatureInArtifactResolve(ssoIdpConfigs.isDoValidateSignatureInArtifactResolve());
     }
 
     /**
@@ -299,5 +338,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         samlSSORespDTO.setRespString(encodedResponse);
         samlSSORespDTO.setSessionEstablished(false);
         return samlSSORespDTO;
+    }
+
+    private boolean isECPReqfromECPEnabledSP(SAMLSSOAuthnReqDTO authnReqDTO, SAMLSSOServiceProviderDO serviceProviderConfigs) {
+        return authnReqDTO.isSamlECPEnabled() && !serviceProviderConfigs.isSamlECP();
     }
 }

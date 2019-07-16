@@ -68,6 +68,7 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
         boolean isIssuerValidated;
         boolean isSignatureValidated;
         boolean isValidSAMLVersion;
+        boolean isRequestQueryProfileEnabled;
 
         try {
             //validate SAML Request vertion
@@ -83,13 +84,23 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
                 return false;
             }
             if (isIssuerValidated) {
-                //validate Signature of Request
-                isSignatureValidated = this.validateSignature(request);
+                // Check Assertion Query/Request Profile is enabled
+                isRequestQueryProfileEnabled = ssoIdpConfig.isAssertionQueryRequestProfileEnabled();
             } else {
                 //invalid issuer
                 invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_ISSUER,
                         SAMLQueryRequestConstants.ValidationMessage.VAL_ISSUER_ERROR));
                 log.error(SAMLQueryRequestConstants.ValidationMessage.VAL_ISSUER_ERROR);
+                return false;
+            }
+            if (isRequestQueryProfileEnabled) {
+                //validate Signature of Request
+                isSignatureValidated = this.validateSignature(request);
+            } else {
+                //Assertion Query/Request Profile is not enabled
+                invalidItems.add(new InvalidItemDTO(SAMLQueryRequestConstants.ValidationType.VAL_PROFILE_ENABLED,
+                        SAMLQueryRequestConstants.ValidationMessage.VAL_PROFILE_ENABLED_ERROR));
+                log.error(SAMLQueryRequestConstants.ValidationMessage.VAL_PROFILE_ENABLED_ERROR);
                 return false;
             }
             if (!isSignatureValidated) {

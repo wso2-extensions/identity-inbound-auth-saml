@@ -19,9 +19,16 @@ package org.wso2.carbon.identity.sso.saml.dto;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class SAMLSSOAuthnReqDTO implements Serializable {
 
@@ -49,6 +56,8 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String[] requestedAudiences;
     private String[] requestedRecipients;
     private boolean doSingleLogout;
+    private boolean doFrontChannelLogout;
+    private String frontChannelLogoutBinding;
     private boolean doSignResponse;
     private boolean doSignAssertions;
     private boolean isStratosDeployment = false;
@@ -64,6 +73,28 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String certAlias;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
+    private String assertionEncryptionAlgorithmUri;
+    private String keyEncryptionAlgorithmUri;
+    private boolean isAssertionQueryRequestProfileEnabled;
+    private boolean enableSAML2ArtifactBinding;
+    private Map<String, List<AuthenticationContextProperty>> idpAuthenticationContextProperties;
+    private List<SAMLAuthenticationContextClassRefDTO> authenticationContextClassRefList;
+    private String requestedAuthnContextComparison;
+    private List<ClaimMapping> requestedAttributesList;
+    private Properties properties;
+    private boolean doValidateSignatureInArtifactResolve;
+    private boolean samlECPEnabled;
+    private long createdTimeStamp;
+
+    public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
+
+        this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;
+    }
+
+    public boolean isDoValidateSignatureInArtifactResolve() {
+
+        return doValidateSignatureInArtifactResolve;
+    }
 
     public String getDigestAlgorithmUri() {
         return digestAlgorithmUri;
@@ -82,6 +113,26 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     public void setSigningAlgorithmUri(String signingAlgorithmUri) {
         if (StringUtils.isNotBlank(signingAlgorithmUri)) {
             this.signingAlgorithmUri = signingAlgorithmUri;
+        }
+    }
+
+    public String getAssertionEncryptionAlgorithmUri() {
+        return assertionEncryptionAlgorithmUri;
+    }
+
+    public void setAssertionEncryptionAlgorithmUri(String assertionEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(assertionEncryptionAlgorithmUri)) {
+            this.assertionEncryptionAlgorithmUri = assertionEncryptionAlgorithmUri;
+        }
+    }
+
+    public String getKeyEncryptionAlgorithmUri() {
+        return keyEncryptionAlgorithmUri;
+    }
+
+    public void setKeyEncryptionAlgorithmUri(String keyEncryptionAlgorithmUri) {
+        if (StringUtils.isNotBlank(keyEncryptionAlgorithmUri)) {
+            this.keyEncryptionAlgorithmUri = keyEncryptionAlgorithmUri;
         }
     }
 
@@ -236,6 +287,26 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
 
     public void setDoSignAssertions(boolean doSignAssertions) {
         this.doSignAssertions = doSignAssertions;
+    }
+
+    public boolean isDoFrontChannelLogout() {
+
+        return doFrontChannelLogout;
+    }
+
+    public void setDoFrontChannelLogout(boolean doFrontChannelLogout) {
+
+        this.doFrontChannelLogout = doFrontChannelLogout;
+    }
+
+    public String getFrontChannelLogoutBinding() {
+
+        return frontChannelLogoutBinding;
+    }
+
+    public void setFrontChannelLogoutBinding(String frontChannelLogoutBinding) {
+
+        this.frontChannelLogoutBinding = frontChannelLogoutBinding;
     }
 
     /**
@@ -418,5 +489,212 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
 
     public void setSloRequestURL(String sloRequestURL) {
         this.sloRequestURL = sloRequestURL;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean assertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = assertionQueryRequestProfileEnabled;
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return this.isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setEnableSAML2ArtifactBinding(boolean enableSAML2ArtifactBinding) {
+
+        this.enableSAML2ArtifactBinding = enableSAML2ArtifactBinding;
+    }
+
+    public boolean isSAML2ArtifactBindingEnabled() {
+
+        return enableSAML2ArtifactBinding;
+    }
+
+    public boolean isSamlECPEnabled(){
+        return samlECPEnabled;
+    }
+
+    public void setSamlECPEnabled(boolean samlECPEnabled){
+        this.samlECPEnabled = samlECPEnabled;
+    }
+
+    public Map<String, List<AuthenticationContextProperty>> getIdpAuthenticationContextProperties() {
+
+        if (idpAuthenticationContextProperties == null) {
+            idpAuthenticationContextProperties = new HashMap<>();
+        }
+        return idpAuthenticationContextProperties;
+    }
+
+    public void setIdpAuthenticationContextProperties(Map<String, List<AuthenticationContextProperty>>
+                                                              idpAuthenticationContextProperties) {
+
+        this.idpAuthenticationContextProperties = idpAuthenticationContextProperties;
+    }
+
+    public void addIdpAuthenticationContextProperty(String propertyName, AuthenticationContextProperty
+            authenticationContextProperty) {
+
+        if (idpAuthenticationContextProperties == null) {
+            idpAuthenticationContextProperties = new HashMap<>();
+        }
+
+        List<AuthenticationContextProperty> authenticationContextProperties;
+        if (idpAuthenticationContextProperties.get(propertyName) == null) {
+            authenticationContextProperties = new ArrayList<>();
+            idpAuthenticationContextProperties.put(propertyName, authenticationContextProperties);
+        } else {
+            authenticationContextProperties = idpAuthenticationContextProperties.get(propertyName);
+        }
+        authenticationContextProperties.add(authenticationContextProperty);
+    }
+
+    /**
+     * Get list of Authentication Context Class Reference.
+     *
+     * @return list of Authentication Context Class Reference
+     */
+    public List<SAMLAuthenticationContextClassRefDTO> getAuthenticationContextClassRefList() {
+
+        if (authenticationContextClassRefList == null) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(authenticationContextClassRefList);
+    }
+
+    /**
+     * Set Authentication Context Class Reference.
+     *
+     * @param authenticationContextClassRefs list of Authentication Context Class Reference
+     */
+    public void setAuthenticationContextClassRefList(List<SAMLAuthenticationContextClassRefDTO>
+                                                             authenticationContextClassRefs) {
+
+        if (authenticationContextClassRefList == null) {
+            authenticationContextClassRefList = authenticationContextClassRefs;
+        } else {
+            authenticationContextClassRefList.addAll(authenticationContextClassRefs);
+        }
+    }
+
+    /**
+     * Add Authentication Context Class Reference.
+     *
+     * @param authenticationContextClassRefs Authentication Context Class Reference
+     */
+    public void addAuthenticationContextClassRef(
+            SAMLAuthenticationContextClassRefDTO authenticationContextClassRefs) {
+
+        if (authenticationContextClassRefList == null) {
+            authenticationContextClassRefList = new ArrayList<>();
+        }
+        authenticationContextClassRefList.add(authenticationContextClassRefs);
+    }
+
+    /**
+     * Get Requested Attributes.
+     *
+     * @return list of requested attributes
+     */
+    public List<ClaimMapping> getRequestedAttributes() {
+
+        return requestedAttributesList;
+    }
+
+    /**
+     * Set Requested Attributes.
+     *
+     * @param requestedAttributes list of requested attributes
+     */
+    public void setRequestedAttributes(List<ClaimMapping> requestedAttributes) {
+
+        if (requestedAttributesList == null) {
+            requestedAttributesList = requestedAttributes;
+        } else {
+            requestedAttributesList.addAll(requestedAttributes);
+        }
+    }
+
+    /**
+     * Get Authentication Context Comparison.
+     *
+     * @return Authentication Context Comparison
+     */
+    public String getRequestedAuthnContextComparison() {
+
+        return requestedAuthnContextComparison;
+    }
+
+    /**
+     * Set Authentication Context Comparison.
+     *
+     * @param authnContextComparison Authentication Context Comparison
+     */
+    public void setRequestedAuthnContextComparison(String authnContextComparison) {
+
+        requestedAuthnContextComparison = authnContextComparison;
+    }
+
+    /**
+     * Get properties.
+     *
+     * @return request properties
+     */
+    public Properties getProperties() {
+
+        if (properties == null) {
+            properties = new Properties();
+        }
+
+        return properties;
+    }
+
+    /**
+     * Get a property.
+     *
+     * @return request property
+     */
+    public String getProperty(String propertyKey) {
+
+        String propertyValue = null;
+        if (properties != null) {
+            propertyValue = (String) properties.get(propertyKey);
+        }
+
+        return propertyValue;
+    }
+
+    /**
+     * Add a request property.
+     *
+     * @param key key of the properties entry
+     * @param value value of the properties entry
+     */
+    public void addProperty(String key, String value) {
+
+        if (this.properties == null) {
+            this.properties = new Properties();
+        }
+        properties.put(key, value);
+    }
+
+    /**
+     * Set properties.
+     *
+     * @param properties request properties
+     */
+    public void setProperties(Properties properties) {
+
+        if (this.properties == null) {
+            this.properties = new Properties();
+        }
+        this.properties.putAll(properties);
+    }
+
+    public long getCreatedTimeStamp() {
+        return createdTimeStamp;
+    }
+
+    public void setCreatedTimeStamp(long createdTimeStamp) {
+        this.createdTimeStamp = createdTimeStamp;
     }
 }

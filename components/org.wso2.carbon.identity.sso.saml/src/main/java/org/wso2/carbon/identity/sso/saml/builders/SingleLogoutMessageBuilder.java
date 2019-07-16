@@ -56,29 +56,8 @@ public class SingleLogoutMessageBuilder {
                                                     requestsigningAlgorithmUri, String requestDigestAlgoUri) throws
             IdentityException {
 
-        LogoutRequest logoutReq = new LogoutRequestBuilder().buildObject();
-
-        logoutReq.setID(SAMLSSOUtil.createID());
-
-        DateTime issueInstant = new DateTime();
-        logoutReq.setIssueInstant(issueInstant);
-        logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(tenantDomain));
-        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + 5 * 60 * 1000));
-
-        NameID nameId = new NameIDBuilder().buildObject();
-        nameId.setFormat(nameIDFormat);
-        nameId.setValue(subject);
-        logoutReq.setNameID(nameId);
-
-        SessionIndex sessionIndex = new SessionIndexBuilder().buildObject();
-        sessionIndex.setSessionIndex(sessionId);
-        logoutReq.getSessionIndexes().add(sessionIndex);
-
-        if (destination != null) {
-            logoutReq.setDestination(destination);
-        }
-
-        logoutReq.setReason(reason);
+        LogoutRequest logoutReq = this.buildLogoutRequest(destination, tenantDomain, sessionId, subject, nameIDFormat,
+                reason);
 
         int tenantId;
         if (StringUtils.isEmpty(tenantDomain) || "null".equals(tenantDomain)) {
@@ -105,6 +84,49 @@ public class SingleLogoutMessageBuilder {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+
+        return logoutReq;
+    }
+
+    /**
+     * Build SAML logout request without setting the signature.
+     *
+     * @param destination  Destination of the logout request.
+     * @param tenantDomain Tenant domain.
+     * @param sessionId    Session index.
+     * @param subject      Subject identifier.
+     * @param nameIDFormat Name Id format of the logout request.
+     * @param reason       Single logout reason.
+     * @return Logout request.
+     * @throws IdentityException If the tenant domain is invalid.
+     */
+    public LogoutRequest buildLogoutRequest(String destination, String tenantDomain, String sessionId, String subject,
+                                            String nameIDFormat, String reason) throws IdentityException {
+
+        LogoutRequest logoutReq = new LogoutRequestBuilder().buildObject();
+
+        logoutReq.setID(SAMLSSOUtil.createID());
+
+        DateTime issueInstant = new DateTime();
+        logoutReq.setIssueInstant(issueInstant);
+        logoutReq.setIssuer(SAMLSSOUtil.getIssuerFromTenantDomain(tenantDomain));
+        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() +
+                SAMLSSOUtil.getSAMLResponseValidityPeriod() * 60 * 1000L));
+
+        NameID nameId = new NameIDBuilder().buildObject();
+        nameId.setFormat(nameIDFormat);
+        nameId.setValue(subject);
+        logoutReq.setNameID(nameId);
+
+        SessionIndex sessionIndex = new SessionIndexBuilder().buildObject();
+        sessionIndex.setSessionIndex(sessionId);
+        logoutReq.getSessionIndexes().add(sessionIndex);
+
+        if (destination != null) {
+            logoutReq.setDestination(destination);
+        }
+
+        logoutReq.setReason(reason);
 
         return logoutReq;
     }

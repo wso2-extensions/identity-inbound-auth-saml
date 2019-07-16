@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.2.7-SNAPSHOT</version>
+        <version>5.5.5-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -38,6 +38,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
             <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
+            <artifactId>org.wso2.carbon.identity.sso.saml.common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
@@ -101,12 +105,11 @@
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server
                                     </propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false
-                                    </propertyDef>
                                 </properties>
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml.common</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>

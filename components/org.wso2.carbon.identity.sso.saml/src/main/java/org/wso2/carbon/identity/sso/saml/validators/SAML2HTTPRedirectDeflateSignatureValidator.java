@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -237,6 +238,35 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
         X509CredentialImpl credential =
                 SAMLSSOUtil.getX509CredentialImplForTenant(domainName,
                         alias);
+
+        List<Credential> credentials = new ArrayList<Credential>();
+        credentials.add(credential);
+        CollectionCredentialResolver credResolver = new CollectionCredentialResolver(credentials);
+        KeyInfoCredentialResolver kiResolver = SecurityHelper.buildBasicInlineKeyInfoResolver();
+        SignatureTrustEngine engine = new ExplicitKeySignatureTrustEngine(credResolver, kiResolver);
+        return engine.validate(signature, signedContent, algorithmUri, criteriaSet, null);
+    }
+
+    /**
+     * Validates the signature of the given SAML request against tge given certificate.
+     *
+     * @param queryString SAML request (passed an an HTTP query parameter)
+     * @param issuer      Issuer of the SAML request
+     * @param certificate Certificate for validating the signature
+     * @return
+     * @throws SecurityException
+     */
+    @Override
+    public boolean validateSignature(String queryString, String issuer, X509Certificate certificate)
+            throws SecurityException {
+
+        byte[] signature = getSignature(queryString);
+        byte[] signedContent = getSignedContent(queryString);
+        String algorithmUri = getSigAlg(queryString);
+        CriteriaSet criteriaSet = buildCriteriaSet(issuer);
+
+        // creating the SAML2HTTPRedirectDeflateSignatureRule
+        X509CredentialImpl credential = new X509CredentialImpl(certificate);
 
         List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);

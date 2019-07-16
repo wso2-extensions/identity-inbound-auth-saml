@@ -27,6 +27,7 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,7 @@ public class SAMLAttributeFinderImpl implements SAMLAttributeFinder {
                 }
                 attributes = list.toArray(new String[list.size()]);
             }
-            return userStoreManager.getUserClaimValues(user, attributes, null);
+            return userStoreManager.getUserClaimValues(MultitenantUtils.getTenantAwareUsername(user), attributes, null);
         } catch (UserStoreException e) {
             log.error("Unable to locate to user store and retrieve attributes ", e);
             throw new IdentitySAML2QueryException("Unable to locate to user store and retrieve attributes", e);

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.sso.saml.ui.client;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
+import org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIConstants;
 import org.wso2.carbon.ui.CarbonUIMessage;
 import org.wso2.carbon.ui.transports.fileupload.AbstractFileUploadExecutor;
 import org.wso2.carbon.utils.FileItemData;
@@ -96,6 +97,13 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
                 if (serviceProviderDTO.getAttributeConsumingServiceIndex() != null) {
                     attributeConsumingServiceIndex = serviceProviderDTO.getAttributeConsumingServiceIndex();
                 }
+
+                // Store the certificate contained inside the metadata file, in the session.
+                // This will be used by service provider update operation to know the certificate came inside SAML
+                // metadata file.
+                httpServletRequest.getSession().setAttribute(SAMLSSOUIConstants
+                                .SESSION_ATTRIBUTE_NAME_APPLICATION_CERTIFICATE,
+                        serviceProviderDTO.getCertificateContent());
 
                 CarbonUIMessage.sendCarbonUIMessage(msg, CarbonUIMessage.INFO, httpServletRequest,
                         httpServletResponse, getContextRoot(httpServletRequest)

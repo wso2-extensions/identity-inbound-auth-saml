@@ -20,21 +20,16 @@ package org.wso2.carbon.identity.sso.saml.processors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.saml2.core.LogoutRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
@@ -73,6 +68,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 validationResponseDTO.setLogoutFromAuthFramework(true);
                 return validationResponseDTO;
             }
+            validationResponseDTO.setSessionIndex(sessionIndex);
 
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
 
@@ -114,37 +110,6 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 validationResponseDTO.setIssuer(logoutReqIssuer.getIssuer());
                 SAMLSSOUtil.setTenantDomainInThreadLocal(logoutReqIssuer.getTenantDomain());
             }
-
-            SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
-            Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
-            List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
-
-            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-                String key = entry.getKey();
-                SAMLSSOServiceProviderDO value = entry.getValue();
-                if (value.isDoSingleLogout()) {
-                    SingleLogoutRequestDTO logoutReqDTO = new SingleLogoutRequestDTO();
-                    if (StringUtils.isNotBlank(value.getSloRequestURL())) {
-                        logoutReqDTO.setAssertionConsumerURL(value.getSloRequestURL());
-                    } else if (StringUtils.isNotBlank(value.getSloResponseURL())) {
-                        logoutReqDTO.setAssertionConsumerURL(value.getSloResponseURL());
-                    } else {
-                        logoutReqDTO.setAssertionConsumerURL(value.getAssertionConsumerUrl());
-                    }
-                    LogoutRequest logoutReq = logoutMsgBuilder.buildLogoutRequest(sessionInfoData.getSubject(value
-                            .getIssuer()), sessionIndex, SAMLSSOConstants.SingleLogoutCodes.LOGOUT_USER, logoutReqDTO
-                            .getAssertionConsumerURL(), value.getNameIDFormat(), value.getTenantDomain(), value
-                            .getSigningAlgorithmUri(), value.getDigestAlgorithmUri());
-
-                    String logoutReqString = SAMLSSOUtil.marshall(logoutReq);
-                    logoutReqDTO.setLogoutResponse(logoutReqString);
-                    logoutReqDTO.setRpSessionId(rpSessionsList.get(key));
-                    singleLogoutReqDTOs.add(logoutReqDTO);
-                }
-            }
-
-            validationResponseDTO.setLogoutRespDTO(singleLogoutReqDTOs.toArray(
-                    new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
             validationResponseDTO.setValid(true);
 
         } catch (UserStoreException | IdentityException e) {

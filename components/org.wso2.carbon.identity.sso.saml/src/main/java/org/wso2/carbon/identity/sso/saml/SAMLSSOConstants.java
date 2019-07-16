@@ -22,11 +22,17 @@ public class SAMLSSOConstants {
     public static final String NAME_ID_POLICY_ENTITY = "urn:oasis:names:tc:SAML:2.0:nameid-format:entity";
     public static final String SUBJECT_CONFIRM_BEARER = "urn:oasis:names:tc:SAML:2.0:cm:bearer";
     public static final String NAME_FORMAT_BASIC = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic";
+    public static final String SAML_ASSERTION_URN = "urn:oasis:names:tc:SAML:2.0:assertion";
+    public static final String NAMEID_FORMAT_PERSISTENT = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent";
+    public static final String PASSWORD_PROTECTED_TRANSPORT_CLASS =
+            "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
+    public static final String SAML_PROTOCOL_URN = "urn:oasis:names:tc:SAML:2.0:protocol";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String FEDERATED_IDP = "federated-idp-domain";
     public static final String ISSUER = "issuer";
     public static final String SAML_REQUEST = "SAMLRequest";
+    public static final String AUTHN_REQUEST = "AuthnRequest";
     public static final String AUTH_MODE = "authMode";
     public static final String ASSRTN_CONSUMER_URL = "ACSUrl";
     public static final String REQ_ID = "id";
@@ -57,7 +63,7 @@ public class SAMLSSOConstants {
     public static final String SAML_ENDPOINT = "samlsso/carbon/";
     public static final String DEFAULT_LOGOUT_ENDPOINT = "/authenticationendpoint/samlsso_logout.do";
     public static final String SAMLSSO_URL = "/samlsso";
-    public static final String NOTIFICATION_ENDPOINT ="/authenticationendpoint/samlsso_notification.do";
+    public static final String NOTIFICATION_ENDPOINT = "/authenticationendpoint/samlsso_notification.do";
     public static final String SLO_SAML_SOAP_BINDING_ENABLED = "SSOService.SLOSAMLSOAPBindingEnabled";
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD = "SSOService.SAML2AuthenticationRequestValidityPeriod";
     public static final String SAML2_REQUEST_CERTIFICATE_EXPIRY_VALIDATION_ENABLED = "SSOService.SAML2RequestCertificateExpiryValidationEnabled";
@@ -74,19 +80,60 @@ public class SAMLSSOConstants {
     public static final String ENCODING_FORMAT = "UTF-8";
     public static final String COM_PROTOCOL = "https";
     public static final String CRYPTO_PROTOCOL = "TLS";
+    public static final String REQUESTED_ATTRIBUTES = "requested_attributes";
+
+    public static final String AUTHN_CONTEXT_CLASS_REF = "AuthnContextClassRef";
+    public static final String AUTHN_INSTANT = "AuthnInstant";
+    public static final String SAML_SSO_ENCRYPTOR_CONFIG_PATH = "SSOService.SAMLSSOEncrypter";
+    public static final String SAML2_HTTP_REDIRECT_SIGNATURE_VALIDATOR_CLASS_NAME = "SSOService.SAML2HTTPRedirectSignatureValidator";
+    public static final String SAMLSSO_SIGNER_CLASS_NAME = "SSOService.SAMLSSOSigner";
+    public static final String SAML_SSO_SP_REQUEST_VALIDATOR_CONFIG_PATH = "SSOService.SAMLSSOSPRequestValidator";
+    public static final String INBOUND_AUTH_TYPE_SAML = "samlsso";
+    public static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
+
+    // SAML2 Artifact Binding
+    public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };
+    public static final String SAML_ART = "SAMLart";
+    public static final String SAML_ARTIFACT_RESOLVE_URL = "/samlartresolve";
+    public static final String CONTENT_TYPE_PARAM_KEY = "Content-Type";
+    public static final String PRAGMA_PARAM_KEY = "Pragma";
+    public static final String CACHE_CONTROL_PARAM_KEY = "Cache-Control";
+    public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
+
+    public static final String IS_POST = "isPost";
 
     private SAMLSSOConstants() {
     }
 
+
+    public enum QueryParameter {
+
+        ACS("acs"),
+        SLO("slo"),
+        RETURN_TO("returnTo"),
+        SP_ENTITY_ID("spEntityID");
+
+        private final String parameterName;
+
+        QueryParameter(String parameterName) {
+            this.parameterName = parameterName;
+        }
+
+        @Override
+        public String toString() {
+            return parameterName;
+        }
+    }
 
     public static class FileBasedSPConfig {
 
         public static final String SERVICE_PROVIDERS = "ServiceProviders";
         public static final String SERVICE_PROVIDER = "ServiceProvider";
         public static final String ISSUER = "Issuer";
+        public static final String NAMESPACE_PREFIX = "samlp";
         public static final String ASSERTION_CONSUMER_URL = "AssertionConsumerServiceURL";
         public static final String ACS_URLS = "AssertionConsumerServiceURLs";
-        public static final String DEFAULT_ACS_URL= "DefaultAssertionConsumerServiceURL";
+        public static final String DEFAULT_ACS_URL = "DefaultAssertionConsumerServiceURL";
         public static final String CUSTOM_LOGIN_PAGE = "CustomLoginPage";
         public static final String SIGN_RESPONSE = "SignResponse";
         public static final String SIGN_ASSERTION = "SignAssertion";
@@ -101,6 +148,7 @@ public class SAMLSSOConstants {
         public static final String ENABLE_IDP_INIT_SLO = "EnableIdPInitSLO";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SAMLDefaultDigestAlgorithmURI";
+        public static final String NAME_ID_FORMAT = "NameIDFormat";
 
         public static final String CERT_ALIAS = "CertAlias";
         public static final String LOGOUT_URL = "LogoutURL";
@@ -117,6 +165,8 @@ public class SAMLSSOConstants {
         public static final String USE_AUTHENTICATED_USER_DOMAIN_CRYPTO = "SSOService.UseAuthenticatedUserDomainCrypto";
         public static final String RETURN_TO_URL_LIST = "ReturnToURLList";
         public static final String RETURN_TO_URL = "ReturnToURL";
+        public static final String FRONT_CHANNEL_LOGOUT = "EnableFrontChannelLogout";
+        public static final String FRONT_CHANNEL_LOGOUT_BINDING = "FrontChannelLogoutBinding";
 
         private FileBasedSPConfig() {
         }
@@ -167,42 +217,24 @@ public class SAMLSSOConstants {
         public static final String INVALID_MESSAGE_MESSAGE = "The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details";
         public static final String INVALID_SESSION = "Server can not find any established sessions";
         public static final String SP_ENTITY_ID_NOT_AVAILABLE = "spEntityID must be mentioned in the IdP initiated "
-                                                                + "logout request";
+                + "logout request";
         public static final String INVALID_SP_ENTITY_ID = "Invalid spEntityID '%s' value in the IdP initiated logout "
-                                                          + "request";
+                + "request";
         public static final String IDP_SLO_NOT_ENABLED = "IdP initiated single logout is not enabled for the service"
-                                                         + " provider '%s'";
+                + " provider '%s'";
         public static final String IDP_SLO_VALIDATE_ERROR = "Error occurred while validating the IdP Initiated SLO " +
-                                                            "request";
+                "request";
         public static final String NO_SP_ENTITY_PARAM = "spEntity parameter must present if returnTo parameter " +
-                                                        "used in the request ";
+                "used in the request ";
         public static final String INVALID_RETURN_TO_URL = "Invalid 'returnTo' URL in the request";
         public static final String ERROR_RETRIEVE_TENANT_ID = "Error occurred while retrieving tenant id from tenant " +
-                                                              "domain";
+                "domain";
         public static final String INVALID_TENANT_DOMAIN = "Service provider tenant domain '%s' is invalid";
         public static final String ERROR_RETRIEVE_SP_CONFIG = "Error occurred while loading Service Provider " +
-                                                              "configurations";
+                "configurations";
+        public static final String EXCEPTION_STATUS_ARTIFACT_RESOLVE = "Error while resolving SAML artifact";
 
         private Notification() {
-        }
-    }
-
-    public enum QueryParameter {
-
-        ACS("acs"),
-        SLO("slo"),
-        RETURN_TO("returnTo"),
-        SP_ENTITY_ID("spEntityID");
-
-        private final String parameterName;
-
-        QueryParameter(String parameterName) {
-            this.parameterName = parameterName;
-        }
-
-        @Override
-        public String toString() {
-            return parameterName;
         }
     }
 

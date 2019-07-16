@@ -18,14 +18,22 @@
 
 package org.wso2.carbon.identity.sso.saml.ui;
 
+import org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
-import org.wso2.carbon.ui.util.CharacterEncoder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 public class SAMLSSOUIUtil {
+
+    public static final boolean DEFAULT_VALUE_FOR_RESPONSE_SIGNING = true;
+    public static final boolean DEFAULT_VALUE_FOR_SIGNATURE_VALIDATE_FOR_REQUESTS = true;
+    public static final boolean DEFAULT_VALUE_FOR_SINGLE_LOGOUT= true;
+    public static final boolean DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE= true;
+    public static final boolean DEFAULT_VALUE_FOR_ECP = false;
 
     private SAMLSSOUIUtil() {
     }
@@ -81,4 +89,92 @@ public class SAMLSSOUIUtil {
         return filteredProviders;
     }
 
+    public static boolean isResponseSigningEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getDoSignResponse();
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_RESPONSE_SIGNING;
+        }
+        return false;
+    }
+
+    public static boolean isSamlECPEnabled(boolean isSpEdit , SAMLSSOServiceProviderDTO provider ) {
+
+        return false;
+    }
+
+    public static boolean isSignatureValidationEnabledForRequests(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return (provider.isDoValidateSignatureInRequestsSpecified() && provider.getDoValidateSignatureInRequests());
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_SIGNATURE_VALIDATE_FOR_REQUESTS;
+        }
+        return false;
+    }
+
+    public static boolean isSingleLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return provider.getDoSingleLogout();
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_SINGLE_LOGOUT;
+        }
+        return false;
+    }
+
+    /**
+     * Check front-Channel logout enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration.
+     * @return boolean true if front channel logout enabled.
+     */
+    public static boolean isFrontChannelLogoutEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        return (isSpEdit && provider != null && provider.getDoFrontChannelLogout());
+    }
+
+    /**
+     * Check front-Channel logout HTTP Redirect Binding enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration.
+     * @return boolean true if redirect binding enabled.
+     */
+    public static boolean isHTTPRedirectBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals
+                (provider.getFrontChannelLogoutBinding()));
+
+    }
+
+    /**
+     * Check front-Channel logout HTTP Post Binding enable and if not enable return false.
+     * @param isSpEdit Operation on service provider, create or edit.
+     * @param provider SAML2 service provider configuration
+     * @return boolean true if post binding enabled.
+     */
+    public static boolean isHTTPPostBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_POST_BINDING.equals
+                (provider.getFrontChannelLogoutBinding())) ;
+    }
+
+    public static boolean isAttributeProfileEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
+
+        if (isSpEdit) {
+            if (provider != null) {
+                return isNotEmpty(provider.getAttributeConsumingServiceIndex());
+            }
+        } else {
+            return DEFAULT_VALUE_FOR_ATTRIBUTE_PROFILE;
+        }
+        return false;
+    }
 }

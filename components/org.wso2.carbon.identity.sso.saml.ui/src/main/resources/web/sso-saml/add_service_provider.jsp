@@ -34,10 +34,15 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.context.CarbonContext" %>
+<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
+<%@ page import="static org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIUtil.*" %>
+<%@ page import="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIUtil" %>
+
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-           prefix="carbon" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
              class="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -122,15 +127,25 @@
         }
 
 
-        function disableLogoutUrl(chkbx) {
+        function disableSingleLogout(chkbx) {
             if ($(chkbx).is(':checked')) {
+                if(!$("#enableFrontChannelHTTPRedirectBinding").is(':checked') && !$("#enableFrontChannelHTTPPostBinding").is(':checked')) {
+                    $("#enableBackChannelLogout").prop('checked',true);
+                }
                 $("#sloResponseURL").prop('disabled', false);
                 $("#sloRequestURL").prop('disabled', false);
+                $("#enableBackChannelLogout").prop('disabled',false);
+                $("#enableFrontChannelHTTPRedirectBinding").prop('disabled', false);
+                $("#enableFrontChannelHTTPPostBinding").prop('disabled', false);
             } else {
                 $("#sloResponseURL").prop('disabled', true);
                 $("#sloRequestURL").prop('disabled', true);
+                $("#enableBackChannelLogout").prop('disabled',true);
+                $("#enableFrontChannelHTTPRedirectBinding").prop('disabled', true);
+                $("#enableFrontChannelHTTPPostBinding").prop('disabled', true);
                 $("#sloResponseURL").val("");
                 $("#sloRequestURL").val("");
+                
             }
         }
 
@@ -169,6 +184,11 @@
             document.addServiceProvider.enableResponseSignature.value = (chkbx.checked) ? true
                     : false;
         }
+
+        function disableSamlECP(chkbx){
+            document.addServiceProvider.enableSAML2ECP.value = (chkbx.checked) ? true : false;
+        }
+
         function disableAssertionSignature(chkbx) {
             document.addServiceProvider.enableAssertionSignature.value = (chkbx.checked) ? true
                     : false;
@@ -202,6 +222,14 @@
             }
 
         }
+
+        function disableArtifactResolveSignatureValidation(chkbx) {
+            if (!chkbx.checked) {
+                document.addServiceProvider.enableSignatureValidationInArtifactResolve.checked = false;
+            }
+            document.addServiceProvider.enableSignatureValidationInArtifactResolve.disabled = (!chkbx.checked);
+        }
+
         function disableAudienceRestriction(chkbx) {
             document.addServiceProvider.audience.disabled = (chkbx.checked) ? false
                     : true;
@@ -649,6 +677,27 @@
         }
     %>
 
+    <script>
+        function downloadIDPMetadata() {
+            setMetadataProperties();
+            jQuery('#idp-mgt-get-IDP-form').submit();
+        }
+
+        function setMetadataProperties() {
+            var authReqSigned = 'false';
+            if (document.getElementById("enableSigValidation").checked) {
+                authReqSigned = 'true';
+            }
+            var samlAuthRequestSigned = document.getElementById("samlAuthRequestSigned");
+            samlAuthRequestSigned.value = authReqSigned;
+        }
+    </script>
+    <form id="idp-mgt-get-IDP-form" name="idp-mgt-get-IDP-form" method="post"
+          action="download_metadata_finish-ajaxprocessor.jsp">
+        <input type="hidden" id="samlAuthRequestSigned" name="samlAuthRequestSigned"
+               value=""/>
+    </form>
+
     <div id="middle">
         <h2>
             <fmt:message key="saml.sso.register.service.provider"/>
@@ -753,7 +802,7 @@
                         <td class="formRow">
                             <table class="normal" cellspacing="0" style="width: 100%;">
                                 <tr>
-                                    <td style="width: 300px;">
+                                    <td style="width: 300px;" title="Unique identifier of the service provider specified in the SAML Authentication Request">
                                         <fmt:message key="sp.issuer"/>
                                         <font color="red">*</font>
                                     </td>
@@ -765,7 +814,7 @@
                                     </td>
                                 </tr>
                                 <tr id="assertionConsumerURLInputRow">
-                                    <td>
+                                    <td title="URL to which the browser should be redirected to after the authentication is successful">
                                         <fmt:message key="sp.assertionConsumerURLs"/>
                                         <font color="red">*</font>
                                     </td>
@@ -826,7 +875,7 @@
                                 %>
 
                                 <tr id="defaultAssertionConsumerURLRow">
-                                    <td>
+                                    <td title="Default Assertion Consumer URL in case you are unable to retrieve it from the authentication request">
                                         <fmt:message key="sp.defaultAssertionConsumerURL"/>
                                         <font color="red">*</font>
                                     </td>
@@ -859,7 +908,7 @@
                                 <!-- NameID format -->
 
                                 <tr>
-                                    <td>
+                                    <td title="Defines the name identifier formats supported by the identity provider">
                                         <fmt:message key="sp.nameIDFormat"/>
                                     </td>
                                     <td>
@@ -951,24 +1000,32 @@
                                 <% if (isEditSP) {
                                 %>
                                 <tr>
-                                    <td>
+                                    <td title="Used to validate the signature of SAML2 requests and is used to generate encryption">
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(provider.getCertAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                 value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
@@ -978,24 +1035,32 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td>
+                                    <td title="Used to validate the signature of SAML2 requests and is used to generate encryption">
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
                                         <select id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
+                                                    boolean isDefaultAliasSet = false;
                                                     for (String alias : aliasSet) {
                                                         if (alias != null && alias.equals(samlSsoServuceProviderConfigBean.getCertificateAlias())) {
+                                                            isDefaultAliasSet = true;
                                             %>
-                                            <option selected="selected"
-                                                    value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
-                                            } else {
+                                                        } else if (alias != null && !isDefaultAliasSet && alias.equals(SAMLSSOUIConstants.DEFAULT_CERTIFICATE_ALIAS)) {
                                             %>
-                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
-                                            </option>
+                                                            <option selected="selected"
+                                                                value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
+                                            <%
+                                                        } else {
+                                            %>
+                                                            <option value="<%=Encode.forHtmlAttribute(alias)%>"><%=Encode.forHtmlContent(alias)%>
+                                                            </option>
                                             <%
                                                         }
                                                     }
@@ -1008,7 +1073,7 @@
 
                                 <!--selectResponseSignAlgo-->
                                 <tr id="defaultSigningAlgorithmRow">
-                                    <td>
+                                    <td title="Specifies the SignatureMethod algorithm to be used in the Signature element in POST binding">
                                         <fmt:message key="sp.signingAlgorithm"/>
                                         <font color="red">*</font>
                                     </td>
@@ -1045,7 +1110,7 @@
 
                                 <!--digestAlgorithmRow-->
                                 <tr id="digestAlgorithmRow">
-                                    <td>
+                                    <td title="Specifies the DigestMethod algorithm to be used in the Signature element in POST binding">
                                         <fmt:message key="sp.digestAlgorithm"/>
                                         <font color="red">*</font>
                                     </td>
@@ -1079,12 +1144,86 @@
                                         </select>
                                     </td>
                                 </tr>
+
+                                <!--assertionEncryptionAlgorithmRow-->
+                                <tr id="assertionEncryptionAlgorithmRow">
+                                    <td>
+                                        <fmt:message key="sp.assertionEncryptionAlgorithm"/>
+                                        <font color="red">*</font>
+                                    </td>
+                                    <td>
+                                        <select id="assertionEncryptionAlgorithm" name="assertionEncryptionAlgorithm">
+                                            <%
+                                                if (spConfigClient.getAssertionEncryptionAlgorithmURIs() != null) {
+                                                    for (String assertionEncryptionAlgo : spConfigClient.getAssertionEncryptionAlgorithmURIs()) {
+                                                        String assertionEncryptionAlgorithm = null;
+                                                        if (provider != null) {
+                                                            assertionEncryptionAlgorithm = provider.getAssertionEncryptionAlgorithmURI();
+                                                        } else {
+                                                            assertionEncryptionAlgorithm = spConfigClient.getAssertionEncryptionAlgorithmURIByConfig();
+                                                        }
+                                                        if (assertionEncryptionAlgorithm != null && assertionEncryptionAlgo.equals(assertionEncryptionAlgorithm)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(assertionEncryptionAlgo)%>" selected>
+                                                <%=Encode.forHtml(assertionEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(assertionEncryptionAlgo)%>">
+                                                <%=Encode.forHtml(assertionEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                                        }
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <!--keyEncryptionAlgorithmRow-->
+                                <tr id="keyEncryptionAlgorithmRow">
+                                    <td>
+                                        <fmt:message key="sp.keyEncryptionAlgorithm"/>
+                                        <font color="red">*</font>
+                                    </td>
+                                    <td>
+                                        <select id="keyEncryptionAlgorithm" name="keyEncryptionAlgorithm">
+                                            <%
+                                                if (spConfigClient.getKeyEncryptionAlgorithmURIs() != null) {
+                                                    for (String keyEncryptionAlgo : spConfigClient.getKeyEncryptionAlgorithmURIs()) {
+                                                        String keyEncryptionAlgorithm = null;
+                                                        if (provider != null) {
+                                                            keyEncryptionAlgorithm = provider.getKeyEncryptionAlgorithmURI();
+                                                        } else {
+                                                            keyEncryptionAlgorithm = spConfigClient.getKeyEncryptionAlgorithmURIByConfig();
+                                                        }
+                                                        if (keyEncryptionAlgorithm != null && keyEncryptionAlgo.equals(keyEncryptionAlgorithm)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(keyEncryptionAlgo)%>" selected>
+                                                <%=Encode.forHtml(keyEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(keyEncryptionAlgo)%>">
+                                                <%=Encode.forHtml(keyEncryptionAlgo)%>
+                                            </option>
+                                            <%
+                                                        }
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
+                                </tr>
+
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select Enable Response Signing to sign the SAML2 Responses returned after the authentication process">
                                         <input type="checkbox" name="enableResponseSignature" value="true"
                                                onclick="disableResponseSignature(this);"
-                                                <%=(isEditSP && provider.getDoSignResponse() ? "checked=\"checked\"" : "")%> />
-                                            <%--<input type="hidden" name="enableResponseSignature" value="true"/>--%>
+                                                <%=(isResponseSigningEnabled(isEditSP, provider) ? "checked" : "")%> />
                                         <fmt:message key="do.response.signature"/>
                                     </td>
                                 </tr>
@@ -1093,10 +1232,10 @@
 
                                 <!-- enableSigValidation -->
                                 <%
-                                    if (isEditSP && provider.isDoValidateSignatureInRequestsSpecified() && provider.getDoValidateSignatureInRequests()) {
+                                    if (isSignatureValidationEnabledForRequests(isEditSP, provider)) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
                                                name="enableSigValidation" value="true" checked="checked"/>
                                         <fmt:message
@@ -1105,7 +1244,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="This specifies whether the identity provider must validate the signature of the SAML2 authentication request">
                                         <input type="checkbox" id="enableSigValidation"
                                                name="enableSigValidation" value="true"/>
                                         <fmt:message
@@ -1118,7 +1257,7 @@
                                 <% if (isEditSP && provider.isDoEnableEncryptedAssertionSpecified() && provider.getDoEnableEncryptedAssertion()) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Assertion Encryption, if you wish to encrypt the assertion">
                                         <input type="checkbox" id="enableEncAssertion"
                                                name="enableEncAssertion" value="true" checked="checked"/>
                                         <fmt:message
@@ -1127,7 +1266,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Assertion Encryption, if you wish to encrypt the assertion">
                                         <input type="checkbox" id="enableEncAssertion"
                                                name="enableEncAssertion" value="true"/>
                                         <fmt:message
@@ -1136,16 +1275,19 @@
                                 </tr>
                                 <%}%>
 
-
                                 <!-- EnableSingleLogout -->
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td colspan="2" title="Enable Single Logout so that all sessions are terminated once the user signs out from one server">
+                                    <input type="checkbox"
                                                            name="enableSingleLogout" value="true"
-                                                           onclick="disableLogoutUrl(this);"
-                                            <%=(isEditSP && provider.getDoSingleLogout()) ? "checked=\"checked\"" : ""%>/>
+                                                           onclick="disableSingleLogout(this);"
+                                            <%= isSingleLogoutEnabled(isEditSP, provider) ? "checked": ""%>
+                                    />
+                                        
                                         <fmt:message
                                                 key="enable.single.logout"/></td>
                                 </tr>
+                                <!-- Logout URLs-->
                                 <tr>
                                     <td
                                             style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
@@ -1154,7 +1296,8 @@
                                     <td><input type="text" id="sloResponseURL" name="sloResponseURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloResponseURL())) ?
                Encode.forHtmlAttribute(provider.getSloResponseURL()) : ""%>"
-                                               class="text-box-big" <%=(isEditSP && provider.getDoSingleLogout()) ? "" : "disabled=\"disabled\""%>>
+                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
+            
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout response accepting endpoint
                                         </div>
@@ -1168,10 +1311,49 @@
                                     <td><input type="text" id="sloRequestURL" name="sloRequestURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloRequestURL())) ?
                Encode.forHtmlAttribute(provider.getSloRequestURL()) : ""%>"
-                                               class="text-box-big" <%=(isEditSP && provider.getDoSingleLogout()) ? "" : "disabled=\"disabled\""%>>
+                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout request accepting endpoint
                                         </div>
+                                    </td>
+                                </tr>
+    
+                                <tr id="single_logout_type_row" name="single_logout_type_row">
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;" class="leftCol-med"><fmt:message key='single.logout.type'/></td>
+                                    <td>
+                                        <table>
+                                            <!-- EnableBackChannelLogout-->
+                                            <tr>
+                                                <td><label><input type="radio" name="singleLogoutType"
+                                                                  id="enableBackChannelLogout" value="enableBackChannelLogout"
+                                                                  class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>
+                                                        <%= !isFrontChannelLogoutEnabled(isEditSP, provider) && isSingleLogoutEnabled(isEditSP, provider) ? "checked" : ""%>
+                                                />
+                                                    <fmt:message key="enable.back.channel.logout"/>
+                                                </label></td>
+                                            </tr>
+                                            <!-- EnableFrontChannelLogout-HTTPRedirectBinding-->
+                                            <tr>
+                                                <td><label>
+                                                    <input type="radio" id="enableFrontChannelHTTPRedirectBinding" name="singleLogoutType" value="HTTPRedirectBinding"
+                                                           class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>
+                                                            <%= isHTTPRedirectBindingEnabled(isEditSP, provider) ? "checked": ""%>
+                                                    />
+                                                    <fmt:message key="enable.front.channel.http.redirect.binding"/>
+                                                </label></td>
+                                            </tr>
+                                            <!-- EnableFrontChannelLogout-HTTPRPostBinding-->
+                                            <tr>
+                                                <td><label>
+                                                    <input type="radio" id="enableFrontChannelHTTPPostBinding" name="singleLogoutType" value="HTTPPostBinding"
+                                                           class="radio-button" <%=isSingleLogoutEnabled(isEditSP, provider)  ? "" : "disabled=\"disabled\""%>
+                                                            <%= isHTTPPostBindingEnabled(isEditSP, provider) ? "checked": ""%>
+                                                    />
+                                                    <fmt:message key="enable.front.channel.http.post.binding"/>
+                                                </label></td>
+                                            </tr>
+                                            
+                                        </table>
                                     </td>
                                 </tr>
                                 <!-- EnableAttributeProfile -->
@@ -1187,12 +1369,11 @@
                                     if (isEditSP && show) {
                                 %>
                                 <tr>
-                                    <td colspan="2">
-                                        <% if (StringUtils.isNotEmpty(provider.getAttributeConsumingServiceIndex())) { %>
+                                    <td colspan="2" title="Select Enable Attribute Profile to enable this and add a claim by entering the claim link and clicking the Add Claim button">
+                                        <% if (SAMLSSOUIUtil.isAttributeProfileEnabled(isEditSP, provider)) {%>
                                         <input type="checkbox"
-                                               name="enableAttributeProfile" id="enableAttributeProfile"
-                                               checked="checked" value="true"
-                                               onclick="disableAttributeProfile(this);"/>
+                                               name="enableAttributeProfile" id="enableAttributeProfile" value="true"
+                                               onclick="disableAttributeProfile(this);" checked/>
                                         <% } else { %>
                                         <input type="checkbox"
                                                name="enableAttributeProfile" id="enableAttributeProfile"
@@ -1261,7 +1442,7 @@
 
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select Enable Attribute Profile to enable this and add a claim by entering the claim link and clicking the Add Claim button">
                                         <input type="checkbox"
                                                name="enableAttributeProfile" id="enableAttributeProfile" value="true"
                                                onclick="disableAttributeProfile(this);"/>
@@ -1353,7 +1534,7 @@
                                         provider.getRequestedAudiences()[0] != null) {
                                 %>
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td title="Enable Audience Restriction to restrict the audience. You may add audience members using the Audience text box and clicking the Add button" colspan="2"><input type="checkbox"
                                                            name="enableAudienceRestriction"
                                                            id="enableAudienceRestriction"
                                                            value="true" checked="checked"
@@ -1375,7 +1556,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Enable Audience Restriction to restrict the audience. You may add audience members using the Audience text box and clicking the Add button">
                                         <input type="checkbox"
                                                name="enableAudienceRestriction" id="enableAudienceRestriction"
                                                value="true"
@@ -1447,7 +1628,7 @@
                                         provider.getRequestedRecipients()[0] != null) {
                                 %>
                                 <tr>
-                                    <td colspan="2"><input type="checkbox"
+                                    <td title="Select this if you require validation from the recipient of the response" colspan="2"><input type="checkbox"
                                                            name="enableRecipients" id="enableRecipients"
                                                            value="true" checked="checked"
                                                            onclick="disableRecipients(this);"/> <fmt:message
@@ -1468,7 +1649,7 @@
                                 </tr>
                                 <% } else {%>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select this if you require validation from the recipient of the response">
                                         <input type="checkbox"
                                                name="enableRecipients" id="enableRecipients" value="true"
                                                onclick="disableRecipients(this);"/>
@@ -1535,7 +1716,7 @@
 
                                 <!-- IdP-Initiated SSO -->
                                 <tr>
-                                    <td colspan="2">
+                                    <td colspan="2" title="Select the Enable IdP Initiated SSO checkbox to enable this functionality. When this is enabled, the service provider is not required to send the SAML2 request">
                                         <input type="checkbox" name="enableIdPInitSSO" value="true"
                                                onclick="disableIdPInitSSO(this);"
                                                 <%=(isEditSP && provider.getIdPInitSSOEnabled() ? "checked=\"checked\"" : "")%> />
@@ -1555,7 +1736,7 @@
 
 
                                 <tr id="idpSLOReturnToURLInputRow">
-                                    <td
+                                    <td title="Select the Enable IdP Initiated SLO checkbox to enable this functionality. You must specify the URL"
                                             style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
                                         <fmt:message key="sp.returnTo.url"/>
                                     </td>
@@ -1574,7 +1755,7 @@
                                 %>
                                 <tr id="idpSLOReturnToURLsTblRow">
                                     <td></td>
-                                    <td>
+                                    <td title="Select the Enable IdP Initiated SLO checkbox to enable this functionality. You must specify the URL">
                                         <table id="idpSLOReturnToURLsTbl" style="width: 40%;" class="styledInner">
                                             <tbody id="idpSLOReturnToURLsTblBody">
                                             <%
@@ -1617,6 +1798,84 @@
                                     }
                                 %>
 
+                                <tr><td></td></tr>
+
+                                <!-- Enable Attribute Query Profile -->
+                                <% if (isEditSP && provider.isAssertionQueryRequestProfileEnabledSpecified() &&
+                                        provider.getAssertionQueryRequestProfileEnabled()) {
+                                %>
+                                <tr>
+                                    <td colspan="2" title="Used for query assertions following SAML2.0 specification">
+                                        <input type="checkbox" id="enableAssertionQueryRequestProfile"
+                                               name="enableAssertionQueryRequestProfile" value="true" checked="checked"/>
+                                        <fmt:message key='sp.enable.assertion.query.request.profile'/>
+                                    </td>
+                                </tr>
+                                <% } else {%>
+                                <tr>
+                                    <td colspan="2" title="Used for query assertions following SAML2.0 specification">
+                                        <input type="checkbox" id="enableAssertionQueryRequestProfile"
+                                               name="enableAssertionQueryRequestProfile" value="true"/>
+                                        <fmt:message key='sp.enable.assertion.query.request.profile'/>
+                                    </td>
+                                </tr>
+                                <%}%>
+
+                                <!-- Enable SAML2 Artifact Binding -->
+                                <tr>
+                                    <td colspan="2" title="Used for artifact binding following SAML2.0 specification">
+                                        <label>
+                                            <% if (isEditSP && provider.getEnableSAML2ArtifactBinding()) { %>
+                                            <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                                   name="enableSAML2ArtifactBinding" value="true" checked="checked"
+                                                   onclick="disableArtifactResolveSignatureValidation(this);"/>
+                                            <% } else {%>
+                                            <input type="checkbox" id="enableSAML2ArtifactBinding"
+                                                   name="enableSAML2ArtifactBinding"
+                                                   onclick="disableArtifactResolveSignatureValidation(this);"/>
+                                            <% } %>
+                                            <fmt:message key='sp.enable.saml2.artifact.binding'/>
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"
+                                        colspan="2">
+                                        <label>
+                                            <% if (isEditSP && provider.getDoValidateSignatureInArtifactResolve()) { %>
+                                            <input type="checkbox"
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"
+                                                   checked="checked" value="true"/>
+                                            <% } else if (isEditSP && provider.getEnableSAML2ArtifactBinding()) { %>
+                                            <input type="checkbox"
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"/>
+                                            <% } else { %>
+                                            <input type="checkbox" disabled
+                                                   name="enableSignatureValidationInArtifactResolve"
+                                                   id="enableSignatureValidationInArtifactResolve"/>
+                                            <% } %>
+                                            <fmt:message key="sp.enable.signature.validation.artifact.resolve"/>
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr style="display:none;">
+                                    <td colspan="2" title="Select the ECP checkbox to enable this functionality. When this is enabled, the ECP can send Authentication Requests to the IDP">
+                                        <input type="checkbox" name="enableSAML2ECP" value="true"
+                                               onclick="disableSamlECP(this);"
+                                                <%=(isSamlECPEnabled(isEditSP, provider) ? "checked" : "")%> />
+                                        <fmt:message key="enable.saml2.ecp"/>
+                                    </td>
+                                </tr>
+
+                                <!-- IDP Metadata Download button, ***This should be at the bottom of this table -->
+                                <tr>
+                                    <td>
+                                        <input class="button" type="button" onclick="downloadIDPMetadata()"
+                                               value="<fmt:message key="saml.sso.download.metadata"/>"/>
+                                    </td>
+                                </tr>
                             </table>
                         </td>
                     </tr>
@@ -1646,7 +1905,7 @@
             <%
                 if (!isEditSP) {
             %>
-            <form method="POST" action="../../fileupload/service"
+            <form method="POST" action="../../fileupload/service?<csrf:tokenname/>=<csrf:tokenvalue/>"
                   id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
                   onsubmit="return doValidation();">
 
@@ -1732,7 +1991,6 @@
                         CARBON.showWarningDialog("<fmt:message key='sp.metadata.valid.file'/>");
                         return;
                     }
-
                     document.uploadServiceProvider.submit();
                 }
 
@@ -1741,6 +1999,31 @@
 
                 }
 
+            </script>
+            <script type="text/javascript">
+                
+                // Update the certificate alias list down accessibility according to the enable signature validation
+                // check box.
+                $(document).ready(function () {
+                    var enableSigValidation = $("#enableSigValidation");
+                    var enableAssertionEnc = $("#enableEncAssertion");
+                    updateCertificateAliasListAccess(enableSigValidation.is(':checked') || enableAssertionEnc.is(':checked'));
+                    enableSigValidation.change(function () {
+                        updateCertificateAliasListAccess(this.checked || enableAssertionEnc.is(':checked'));
+                    })
+                    enableAssertionEnc.change(function () {
+                        updateCertificateAliasListAccess(this.checked || enableSigValidation.is(':checked'));
+                    })
+                });
+                
+                function updateCertificateAliasListAccess(enable) {
+                    if (enable) {
+                        $("#alias").prop('disabled', false);
+                    } else {
+                        $("#alias").prop('disabled', 'disabled');
+                    }
+                }
+    
             </script>
         </div>
 

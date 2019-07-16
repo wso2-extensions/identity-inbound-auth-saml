@@ -206,4 +206,45 @@ public class SAMLSSOConfigServiceClient {
         }
         return digestAlgo;
     }
+
+    public String[] getAssertionEncryptionAlgorithmURIs() throws IdentityRuntimeException {
+        String[] assertionEncryptionAlgorithms;
+        try {
+            assertionEncryptionAlgorithms = stub.getAssertionEncryptionAlgorithmURIs();
+        } catch (RemoteException e) {
+            throw IdentityRuntimeException.error(e.getMessage(), e);
+        }
+        return assertionEncryptionAlgorithms;
+    }
+
+    public String getAssertionEncryptionAlgorithmURIByConfig() throws IdentityRuntimeException {
+        String assertionEncryptionAlgo;
+        try {
+            assertionEncryptionAlgo = stub.getAssertionEncryptionAlgorithmURIByConfig();
+        } catch (RemoteException e) {
+            throw IdentityRuntimeException.error(e.getMessage(), e);
+        }
+        return assertionEncryptionAlgo;
+    }
+
+    public String[] getKeyEncryptionAlgorithmURIs() throws IdentityRuntimeException {
+        String[] keyEncryptionAlgorithms;
+        try {
+            keyEncryptionAlgorithms = stub.getKeyEncryptionAlgorithmURIs();
+        } catch (RemoteException e) {
+            throw IdentityRuntimeException.error(e.getMessage(), e);
+        }
+        return keyEncryptionAlgorithms;
+    }
+
+    public String getKeyEncryptionAlgorithmURIByConfig() throws IdentityRuntimeException {
+        String assertionEncryptionAlgo;
+        try {
+            assertionEncryptionAlgo = stub.getKeyEncryptionAlgorithmURIByConfig();
+        } catch (RemoteException e) {
+            throw IdentityRuntimeException.error(e.getMessage(), e);
+        }
+        return assertionEncryptionAlgo;
+    }
+
 }

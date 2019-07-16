@@ -29,7 +29,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.opensaml.saml2.core.LogoutResponse;
+import org.opensaml.xml.XMLObject;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -226,7 +230,8 @@ public class LogoutRequestSender {
                             log.debug("single logout request is sent to : " + logoutReqDTO.getAssertionConsumerURL() +
                                     " is returned with " + HttpStatus.getStatusText(response.getStatusLine().getStatusCode()));
                         }
-                        isSuccessfullyLogout = true;
+                        isSuccessfullyLogout = validateResponse(response, logoutReqDTO.getCertificateAlias(),
+                                logoutReqDTO.getTenantDomain(), logoutReqDTO.getAssertionConsumerURL());
                         break;
                     } else {
                         if (statusCode != 0) {
@@ -246,19 +251,56 @@ public class LogoutRequestSender {
                             //Todo: handle this in better way.
                         }
                     }
-
                 }
                 if (!isSuccessfullyLogout) {
                     log.error("Single logout failed after retrying " + SAMLSSOUtil.getSingleLogoutRetryCount() +
                             " times with time interval " + SAMLSSOUtil.getSingleLogoutRetryInterval() + " in milli seconds.");
                 }
 
-            } catch (IOException e) {
+            } catch (IdentityException | IOException e) {
                 log.error("Error sending logout requests to : " + logoutReqDTO.getAssertionConsumerURL(), e);
             }
         }
+
+        /**
+         * Validate the LogoutResponse whether it is success.
+         * @param httpResponse Http Response object.
+         * @return True if Logout response state success.
+         * @throws IOException Stream error.
+         * @throws IdentityException Decoding error.
+         */
+        private boolean validateResponse(HttpResponse httpResponse, String certificateAlias, String tenantDomain,
+                                         String assertionConsumerURL)
+                throws IOException, IdentityException {
+
+            HttpEntity entity = httpResponse.getEntity();
+            String content = EntityUtils.toString(entity);
+            String decodedContent = SAMLSSOUtil.decodeForPost(content);
+
+            // If the relying party is not sending a valid saml logout response. Ignore this to support backward
+            // compatibility.
+            if (isInvalidLogoutResponse(decodedContent)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No valid SAML logout response received from: " + assertionConsumerURL);
+                }
+                return true;
+            }
+
+            XMLObject xmlObject = SAMLSSOUtil.unmarshall(decodedContent);
+
+            // This should be a SAML logout response.
+            if (xmlObject instanceof LogoutResponse) {
+                LogoutResponse logoutResponse = (LogoutResponse) xmlObject;
+                return SAMLSSOUtil.validateLogoutResponse(logoutResponse, certificateAlias, tenantDomain);
+            }
+
+            return false;
+        }
     }
 
+    private boolean isInvalidLogoutResponse(String decodedContent) {
 
+        return decodedContent != null && !decodedContent.contains(LogoutResponse.DEFAULT_ELEMENT_LOCAL_NAME);
+    }
 }
 

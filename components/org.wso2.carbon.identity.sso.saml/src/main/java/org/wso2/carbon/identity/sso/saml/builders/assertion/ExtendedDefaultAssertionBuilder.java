@@ -23,11 +23,12 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.opensaml.saml2.core.Assertion;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.util.DBUtil;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,13 +45,10 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
      * Standard login
      */
     private final static Log log = LogFactory.getLog(ExtendedDefaultAssertionBuilder.class);
-    private final static String ASSERTION_STORE_SQL = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID," +
-            "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_AUTHN_CONTEXT_CLASS_REF ,SAML2_ASSERTION) VALUES (?,?,?,?,?,?)";
 
     /**
      * This method is used to initialize
      *
-     * @throws IdentityException If error occurred
      */
     @Override
     public void init() throws IdentityException {
@@ -71,35 +69,49 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
             throws IdentityException {
 
         Assertion assertion = super.buildAssertion(samlssoAuthnReqDTO, notOnOrAfter, sessionId);
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
-            preparedStatement = connection.prepareStatement(ASSERTION_STORE_SQL);
+
+        // Persist the assertion in the assertion store, if "Assertion Query Request Profile" is enabled.
+        if (samlssoAuthnReqDTO.isAssertionQueryRequestProfileEnabled()) {
+            persistAssertion(samlssoAuthnReqDTO, assertion);
+        }
+
+        return assertion;
+    }
+
+    private void persistAssertion(SAMLSSOAuthnReqDTO samlssoAuthnReqDTO, Assertion assertion) throws IdentityException {
+
+        String assertionPersistenceQuery = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID," +
+                "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_AUTHN_CONTEXT_CLASS_REF, SAML2_ASSERTION)"
+                + " VALUES (?,?,?,?,?,?)";
+        if (DBUtil.isAssertionDTOPersistenceSupported()) {
+            assertionPersistenceQuery = "INSERT INTO IDN_SAML2_ASSERTION_STORE(SAML2_ID," +
+                    "SAML2_ISSUER,SAML2_SUBJECT, SAML2_SESSION_INDEX, SAML2_AUTHN_CONTEXT_CLASS_REF, ASSERTION)"
+                    + " VALUES (?,?,?,?,?,?)";
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(assertionPersistenceQuery)) {
+
             preparedStatement.setString(1, assertion.getID());
             preparedStatement.setString(2, assertion.getIssuer().getValue());
             preparedStatement.setString(3, samlssoAuthnReqDTO.getUser().getAuthenticatedSubjectIdentifier());
             preparedStatement.setString(4, assertion.getAuthnStatements().get(0).getSessionIndex());
             preparedStatement.setString(5, assertion.getAuthnStatements().get(0).getAuthnContext().
                     getAuthnContextClassRef().getAuthnContextClassRef());
+
             String assertionString = SAMLSSOUtil.marshall(assertion);
-            preparedStatement.setString(6, assertionString);
+            if (DBUtil.isAssertionDTOPersistenceSupported()) {
+                DBUtil.setBlobObject(preparedStatement, assertionString, 6);
+            } else {
+                preparedStatement.setString(6, assertionString);
+            }
+
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
             log.error("Error while writing data", e);
-        } finally {
-            try {
-                if (preparedStatement != null) {
-                    IdentityDatabaseUtil.closeStatement(preparedStatement);
-                }
-                if (connection != null) {
-                    IdentityDatabaseUtil.closeConnection(connection);
-                }
-            } catch (Exception ex) {
-                log.error("Error while closing the stream", ex);
-            }
+        } catch (IOException e) {
+            log.error("Could not set Assertion as a Blob.", e);
         }
-        return assertion;
     }
 }

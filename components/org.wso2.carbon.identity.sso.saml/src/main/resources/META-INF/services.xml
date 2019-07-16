@@ -45,6 +45,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/create
             </parameter>
         </operation>
+        <operation name="uploadRPServiceProvider">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/create
+            </parameter>
+        </operation>
         <operation name="getServiceProviders">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>
@@ -66,6 +70,22 @@
             </parameter>
         </operation>
         <operation name="getDigestAlgorithmURIByConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getAssertionEncryptionAlgorithmURIs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getAssertionEncryptionAlgorithmURIByConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getKeyEncryptionAlgorithmURIs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getKeyEncryptionAlgorithmURIByConfig">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>
         </operation>

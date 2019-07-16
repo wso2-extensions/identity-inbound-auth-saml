@@ -25,6 +25,7 @@ import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.SubjectQuery;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -62,9 +63,9 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
     public Response process(RequestAbstractType request) throws IdentitySAML2QueryException {
             Response response = null;
             String issuer = getIssuer(request);
-            String tenantDomain = getTenantDomain(request);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             SubjectQuery query = (SubjectQuery) request;
-            String user = getUserName(query.getSubject());
+            String user = MultitenantUtils.getTenantAwareUsername(getUserName(query.getSubject()));
             SAMLSSOServiceProviderDO issuerConfig = getIssuerConfig(issuer);
             Map<String, String> attributes = getUserAttributes(user, null, issuerConfig);
             Assertion assertion = null;
