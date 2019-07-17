@@ -1938,8 +1938,8 @@ public class SAMLSSOUtil {
         if (xc != null) {
             Date expiresOn = xc.getNotAfter();
             Date now = new Date();
-            long expiryTime = (expiresOn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-            if (expiryTime > 0) {
+            long validityPeriod = (expiresOn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+            if (validityPeriod >= 0) {
                 return false;
             }
         }
