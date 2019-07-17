@@ -28,6 +28,7 @@ import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
 import org.opensaml.saml2.core.impl.NameIDPolicyImpl;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
@@ -68,14 +69,17 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
-            String issueInstantInvalidationErrorMessage = validateRequestIssueInstant();
-            if (issueInstantInvalidationErrorMessage != null) {
-                log.error(issueInstantInvalidationErrorMessage);
-                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                        issueInstantInvalidationErrorMessage, null);
-                validationResponse.setResponse(errorResp);
-                validationResponse.setValid(false);
-                return validationResponse;
+            // Request issue time validation enabled
+            if (SAMLSSOUtil.isSAMLAuthenticationRequestValidityPeriodEnabled()) {
+                String issueInstantInvalidationErrorMessage = validateRequestIssueInstant();
+                if (issueInstantInvalidationErrorMessage != null) {
+                    log.error(issueInstantInvalidationErrorMessage);
+                    String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                            issueInstantInvalidationErrorMessage, null);
+                    validationResponse.setResponse(errorResp);
+                    validationResponse.setValid(false);
+                    return validationResponse;
+                }
             }
 
             // Issuer MUST NOT be null
@@ -190,7 +194,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
         if (validFrom == null) {
             return "IssueInstant time is not valid.";
         }
-        DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSamlAuthenticationRequestValidityPeriod());
+        DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSAMLAuthenticationRequestValidityPeriod());
         int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
 
         if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {

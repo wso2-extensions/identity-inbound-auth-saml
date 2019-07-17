@@ -221,10 +221,19 @@ public class SAMLSSOUtil {
     }
 
     /**
+     * Check whether SAML Authentication request validity period enabled
+     * @return
+     */
+    public static boolean isSAMLAuthenticationRequestValidityPeriodEnabled() {
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SAMLSSOConstants
+                .SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD_ENABLED));
+    }
+
+    /**
      * Get the configured SAML request validity period
      * @return
      */
-    public static int getSamlAuthenticationRequestValidityPeriod() {
+    public static int getSAMLAuthenticationRequestValidityPeriod() {
 
         if (IdentityUtil.getProperty(SAMLSSOConstants.SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD) != null) {
            samlAuthenticationRequestValidityPeriod = Integer.parseInt(IdentityUtil.getProperty(
