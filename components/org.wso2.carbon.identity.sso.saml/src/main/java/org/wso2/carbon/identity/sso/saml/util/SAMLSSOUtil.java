@@ -133,6 +133,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -189,6 +190,8 @@ public class SAMLSSOUtil {
     private static String idPInitLogoutRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
+    private static Boolean spCertificateExpiryValidationEnabled;
+    private static int samlAuthenticationRequestValidityPeriod = 5*60;
     private static ApplicationManagementService applicationMgtService;
     private static volatile List<SAMLExtensionProcessor> extensionProcessors;
 
@@ -204,6 +207,39 @@ public class SAMLSSOUtil {
         }
 
         return false;
+    }
+
+    /**
+     * Check whether certificate expiration enabled
+     * @return
+     */
+    public static boolean isSpCertificateExpiryValidationEnabled() {
+
+        spCertificateExpiryValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML2_REQUEST_CERTIFICATE_EXPIRY_VALIDATION_ENABLED));
+        return spCertificateExpiryValidationEnabled;
+    }
+
+    /**
+     * Check whether SAML Authentication request validity period enabled
+     * @return
+     */
+    public static boolean isSAMLAuthenticationRequestValidityPeriodEnabled() {
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SAMLSSOConstants
+                .SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD_ENABLED));
+    }
+
+    /**
+     * Get the configured SAML request validity period
+     * @return
+     */
+    public static int getSAMLAuthenticationRequestValidityPeriod() {
+
+        if (IdentityUtil.getProperty(SAMLSSOConstants.SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD) != null) {
+           samlAuthenticationRequestValidityPeriod = Integer.parseInt(IdentityUtil.getProperty(
+                   SAMLSSOConstants.SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD));
+        }
+        return samlAuthenticationRequestValidityPeriod;
     }
 
     public static void setIsSaaSApplication(boolean isSaaSApp) {
@@ -898,6 +934,23 @@ public class SAMLSSOUtil {
         }
         String alias = authnReqDTO.getCertAlias();
         RequestAbstractType request = null;
+
+        // Check whether certificate is expired or not before the signature validation
+        if (isSpCertificateExpiryValidationEnabled()) {
+            try {
+                X509CredentialImpl credentialImpl = getX509CredentialImplForTenant(domainName, alias);
+                if (isCertificateExpired(credentialImpl)) {
+                    log.error("Signature Validation failed for the SAMLRequest : The signed certificate is" +
+                                " expired, for the issuer: " + authnReqDTO.getIssuerWithDomain());
+                    return false;
+                }
+            } catch (IdentitySAML2SSOException e) {
+                log.error("Signature Validation failed for the SAMLRequest : Failed to get the X.509 credential " +
+                        "object, for the issuer: " + authnReqDTO.getIssuerWithDomain(), e);
+                return false;
+
+            }
+        }
         try {
             String decodedReq = null;
 
@@ -1872,6 +1925,25 @@ public class SAMLSSOUtil {
         }
 
         return issuer;
+    }
+
+    /**
+     * Validate certificate expiry time
+     * @param credentialImpl
+     * @return
+     */
+    public static boolean isCertificateExpired(X509CredentialImpl credentialImpl) {
+
+        X509Certificate xc = credentialImpl.getSigningCert();
+        if (xc != null) {
+            Date expiresOn = xc.getNotAfter();
+            Date now = new Date();
+            long expiryTime = (expiresOn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+            if (expiryTime > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
