@@ -216,7 +216,7 @@ public class SAMLSSOUtil {
     public static boolean isSpCertificateExpiryValidationEnabled() {
 
         spCertificateExpiryValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
-                SAMLSSOConstants.SAML2_REQUEST_CERTIFICATE_EXPIRY_VALIDATION_ENABLED));
+                SAMLSSOConstants.SAML_SP_CERTIFICATE_EXPIRY_VALIDATION_ENABLED));
         return spCertificateExpiryValidationEnabled;
     }
 
