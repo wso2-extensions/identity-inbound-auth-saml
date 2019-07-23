@@ -60,11 +60,6 @@
                 <artifactId>org.wso2.carbon.utils</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.logging</artifactId>
-                <version>${carbon.kernel.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -260,6 +255,13 @@
                 <groupId>org.wso2.carbon.identity.metadata.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.idp.metadata.saml2</artifactId>
                 <version>${identity.metadata.saml2.version}</version>
+            </dependency>
+
+            <!-- Pax Logging -->
+            <dependency>
+                <groupId>org.ops4j.pax.logging</groupId>
+                <artifactId>pax-logging-api</artifactId>
+                <version>${pax.logging.api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -462,7 +464,7 @@
         <commons-httpclient.wso2.osgi.version.range>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version.range>
         <commons-httpclient.wso2.osgi.version>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
-        <commons-logging.osgi.version.range>[1.2,2.0)</commons-logging.osgi.version.range>
+        <commons-logging.osgi.version.range>[1.2.0,2.0.0)</commons-logging.osgi.version.range>
         <commons-lang.version.range>[2.6.0,3.0.0)</commons-lang.version.range>
 
         <opensaml.version>2.6.6</opensaml.version>
@@ -493,6 +495,9 @@
         <powermock.version>1.6.6</powermock.version>
 
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
+
+        <!-- Pax Logging Version -->
+        <pax.logging.api.version>1.10.1</pax.logging.api.version>
     </properties>
 
 </project>
