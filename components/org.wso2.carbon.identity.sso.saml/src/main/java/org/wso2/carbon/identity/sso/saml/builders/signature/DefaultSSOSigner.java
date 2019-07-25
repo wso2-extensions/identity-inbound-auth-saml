@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.sso.saml.builders.signature;
 
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.opensaml.common.impl.SAMLObjectContentReference;
-import org.opensaml.saml2.core.RequestAbstractType;
+import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.XMLObjectBuilder;
 import org.opensaml.xml.io.Marshaller;
@@ -136,9 +136,9 @@ public class DefaultSSOSigner implements SSOSigner {
                         .getBuilder(objectQName);
         if (builder == null) {
             throw IdentityException.error("Unable to retrieve builder for object QName " +
-                                        objectQName);
+                    objectQName);
         }
         return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(),
-                                   objectQName.getPrefix());
+                objectQName.getPrefix());
     }
 }

@@ -143,11 +143,51 @@
                 <artifactId>opensaml</artifactId>
                 <version>${opensaml2.wso2.version}</version>
             </dependency>
+
+            <!--<dependency>-->
+            <!--<groupId>org.opensaml</groupId>-->
+            <!--<artifactId>opensaml</artifactId>-->
+            <!--<version>${opensaml.version}</version>-->
+            <!--</dependency>-->
+
+            <!--Start of SAML3 Dependencies-->
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml</artifactId>
+                <artifactId>opensaml-core</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-messaging-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-messaging-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-soap-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-soap-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <!--End of SAML3 Dependencies-->
+
             <dependency>
                 <groupId>org.wso2.orbit.joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -267,6 +307,12 @@
     </dependencyManagement>
 
     <repositories>
+
+        <!--<repository>-->
+        <!--<id>shib-release</id>-->
+        <!--<url>https://build.shibboleth.net/nexus/content/repositories/releases</url>-->
+        <!--</repository>-->
+
         <repository>
             <id>wso2-nexus</id>
             <name>WSO2 internal Repository</name>
@@ -473,11 +519,21 @@
         <commons-logging.osgi.version.range>[1.2.0,2.0.0)</commons-logging.osgi.version.range>
         <commons-lang.version.range>[2.6.0,3.0.0)</commons-lang.version.range>
 
-        <opensaml.version>2.6.6</opensaml.version>
-        <opensaml2.wso2.version>2.6.6.wso2v3</opensaml2.wso2.version>
+        <!--<opensaml.version>2.6.6</opensaml.version>-->
+        <!--<opensaml2.wso2.version>2.6.6.wso2v3</opensaml2.wso2.version>-->
+
+        <!--Start of SAML3 properties-->
+        <opensaml.version>3.2.0</opensaml.version>
+        <opensaml2.wso2.version>3.2.0.wso2v1</opensaml2.wso2.version>
+        <!--End of SAML3 properties-->
+
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
-        <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
+
+        <!--<opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>-->
+
+        <opensaml2.wso2.osgi.version.range>[2.6.0,3.2.0)</opensaml2.wso2.osgi.version.range>
+
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)
