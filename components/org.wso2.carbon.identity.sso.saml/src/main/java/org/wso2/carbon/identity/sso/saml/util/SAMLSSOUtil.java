@@ -935,22 +935,19 @@ public class SAMLSSOUtil {
         String alias = authnReqDTO.getCertAlias();
         RequestAbstractType request = null;
 
-        // Check whether certificate is expired or not before the signature validation
-        if (isSpCertificateExpiryValidationEnabled()) {
-            try {
-                X509CredentialImpl credentialImpl = getX509CredentialImplForTenant(domainName, alias);
-                if (isCertificateExpired(credentialImpl)) {
-                    log.error("Signature Validation failed for the SAMLRequest : The signed certificate is" +
-                                " expired, for the issuer: " + authnReqDTO.getIssuerWithDomain());
-                    return false;
-                }
-            } catch (IdentitySAML2SSOException e) {
-                log.error("Signature Validation failed for the SAMLRequest : Failed to get the X.509 credential " +
-                        "object, for the issuer: " + authnReqDTO.getIssuerWithDomain(), e);
-                return false;
-
+        try {
+            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(domainName,
+                    authnReqDTO.getIssuer());
+            // Check whether certificate is expired or not before the signature validation
+            if (isSpCertificateExpiryValidationEnabled()) {
+                if (isCertificateExpired(serviceProviderConfigs.getX509Certificate())) return false;
             }
+        } catch (IdentityException e) {
+            log.error("A Service Provider with the Issuer '" + authnReqDTO.getIssuer()+ "' is not " +
+            "registered. Service Provider should be registered in advance.");
+            return false;
         }
+
         try {
             String decodedReq = null;
 
@@ -979,6 +976,34 @@ public class SAMLSSOUtil {
         } catch (IdentityException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion", e);
+            }
+            return false;
+        }
+    }
+
+
+    /**
+     * Validate Signature
+     * @param authnRequest un-marshal SAML Authentication request
+     * @param queryString  marshal saml request
+     * @param issuer issuer
+     * @return
+     */
+    public static boolean isSignatureValid(AuthnRequest authnRequest, String queryString, String issuer,
+                                           java.security.cert.X509Certificate certificate) {
+
+        try {
+            if (queryString != null) {
+                // DEFLATE signature in Redirect Binding
+                return validateDeflateSignature(queryString, issuer, certificate);
+            } else {
+                // XML signature in SAML Request message for POST Binding
+                return validateXMLSignature(authnRequest, certificate);
+            }
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion " +
+                        "of the Issuer " + authnRequest.getProviderName(), e);
             }
             return false;
         }
@@ -1605,6 +1630,41 @@ public class SAMLSSOUtil {
     }
 
     /**
+     * Initialize the SPInitSSOAuthnRequestValidator
+     * @param authnRequest AuthnRequest request
+     * @param queryString encorded saml request
+     * @return
+     */
+    public static SSOAuthnRequestValidator getSPInitSSOAuthnRequestValidator(AuthnRequest authnRequest,
+                                                                             String queryString)  {
+        if (StringUtils.isEmpty(sPInitSSOAuthnRequestValidatorClassName)) {
+            try {
+                return new SPInitSSOAuthnRequestValidator(authnRequest, queryString);
+            } catch (IdentityException e) {
+                log.error("Error while instantiating the SPInitSSOAuthnRequestValidator ", e);
+            }
+        } else {
+            try {
+                // Bundle class loader will cache the loaded class and returned
+                // the already loaded instance, hence calling this method
+                // multiple times doesn't cost.
+                Class clazz = Thread.currentThread().getContextClassLoader()
+                        .loadClass(sPInitSSOAuthnRequestValidatorClassName);
+                return (SSOAuthnRequestValidator) clazz.getDeclaredConstructor(AuthnRequest.class, String.class)
+                        .newInstance(authnRequest, queryString);
+            } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                log.error("Error while instantiating the SPInitSSOAuthnRequestValidator ", e);
+            } catch (NoSuchMethodException e) {
+                log.error("SP initiated authentication request validation class in run time does not have proper" +
+                        "constructors defined.");
+            } catch (InvocationTargetException e) {
+                log.error("Error in creating an instance of the class: " + sPInitSSOAuthnRequestValidatorClassName);
+            }
+        }
+        return null;
+    }
+
+    /**
      * build the error response
      *
      * @param status
@@ -1928,15 +1988,14 @@ public class SAMLSSOUtil {
     }
 
     /**
-     * Validate certificate expiry time
-     * @param credentialImpl
-     * @return
+     * Check certificate expired or not
+     * @param certificate java.security.cert.X509Certificate
+     * @return true or false
      */
-    public static boolean isCertificateExpired(X509CredentialImpl credentialImpl) {
+    public static boolean isCertificateExpired(java.security.cert.X509Certificate certificate) {
 
-        X509Certificate xc = credentialImpl.getSigningCert();
-        if (xc != null) {
-            Date expiresOn = xc.getNotAfter();
+        if (certificate != null) {
+            Date expiresOn = certificate.getNotAfter();
             Date now = new Date();
             long validityPeriod = (expiresOn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
             if (validityPeriod >= 0) {
@@ -2279,6 +2338,34 @@ public class SAMLSSOUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Retrieve service provider configs using issuer and tenant domain.
+     * @param issuer
+     * @param tenantDomain
+     * @return SAMLSSOServiceProviderDO
+     * @throws IdentityException
+     */
+    public static SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer, String tenantDomain)
+            throws IdentityException {
+
+        try {
+            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+                    .getInstance();
+            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
+                    .getServiceProvider(issuer);
+            if (ssoIdpConfigs == null) {
+                IdentityTenantUtil.initializeRegistry(IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                        (RegistryType.SYSTEM_CONFIGURATION);
+                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+            }
+            return ssoIdpConfigs;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while reading Service Provider configurations of issuer", e);
+        }
     }
 
 }

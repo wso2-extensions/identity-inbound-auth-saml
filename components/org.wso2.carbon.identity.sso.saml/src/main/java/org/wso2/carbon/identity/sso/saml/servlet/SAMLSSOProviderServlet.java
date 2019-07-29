@@ -1101,42 +1101,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             if (sessionDTO.getValidationRespDTO().isPassive()) { //if passive
 
-                if (authnReqDTO.isDoValidateSignatureInRequests()) { // Authentication request signing is enabled
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Authentication request signature validation is enabled for issuer :" + issuer + " " +
-                                "" + "in tenant domain : " + tenantDomain);
-                    }
-
-                    // Validate destination.
-                    if (!isDestinationUrlValid(authnReqDTO, req, resp)) {
-                        return;
-                    }
-
-                    // Validate signature.
-                    if (!SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
-                            serviceProviderConfigs.getX509Certificate())) {
-                        String msg = "Signature validation of the authentication request failed for issuer : " +
-                                issuer + " in tenant domain : " + tenantDomain;
-                        handleInvalidRequest(msg, authnReqDTO, req, resp);
-                        return;
-                    }
-                } else { // Validate the assertion consumer url when request signature is not validated.
-                    if (StringUtils.isBlank(assertionConsumerURL) || !serviceProviderConfigs
-                            .getAssertionConsumerUrlList().contains(assertionConsumerURL)) {
-                        String msg = "ALERT: Invalid Assertion Consumer URL value '" + assertionConsumerURL + "' in " +
-                                "the " + "AuthnRequest message from  the issuer : " + issuer + " in tenant domain : "
-                                + tenantDomain + ". Possibly an attempt for a spoofing attack";
-                        handleInvalidRequest(msg, authnReqDTO, req, resp);
-                        return;
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Successfully validated ACS URL of the authentication request of issuer :" +
-                                    issuer + " in tenant domain : " + tenantDomain);
-                        }
-                    }
-                }
-
+                // Removed validations and moved before the authentication
                 List<String> statusCodes = new ArrayList<>();
                 statusCodes.add(SAMLSSOConstants.StatusCodes.NO_PASSIVE);
                 statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
