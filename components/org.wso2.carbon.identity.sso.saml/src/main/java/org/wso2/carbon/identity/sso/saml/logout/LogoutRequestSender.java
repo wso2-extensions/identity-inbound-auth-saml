@@ -27,7 +27,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.opensaml.saml2.core.LogoutResponse;
@@ -182,11 +182,14 @@ public class LogoutRequestSender {
 
                 HttpClient httpClient;
                 if (!isHostNameVerificationEnabled) {
-                    httpClient = HttpClients.custom()
-                                            .setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
-                                            .build();
+                    httpClient = HttpClientBuilder.create()
+                            .useSystemProperties()
+                            .setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+                            .build();
                 } else {
-                    httpClient = HttpClients.createDefault();
+                    httpClient = HttpClientBuilder.create()
+                            .useSystemProperties()
+                            .build();
                 }
 
                 UrlEncodedFormEntity entity =
