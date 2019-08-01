@@ -49,6 +49,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
     }
 
     public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq, String queryString) throws IdentityException {
+
         this.authnReq = authnReq;
         this.queryString = queryString;
     }
@@ -131,7 +132,6 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
 
             // Validate signature if request signature validation enabled.
             if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
-
                 List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(serviceProviderConfigs
                         .getTenantDomain());
                 if (authnReq.getDestination() == null
@@ -153,8 +153,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                     isCertificateExpired = SAMLSSOUtil.isCertificateExpired(serviceProviderConfigs.getX509Certificate());
                 }
                 if (isCertificateExpired) {
-                    String msg = "The Signature validation validation failed as the SP certificate is expired, of Issuer" +
-                            " :" + validationResponse.getIssuer() + " and tenantDomain:" + tenantDomain;
+                    String msg = "The Signature validation validation failed as the SP certificate is expired, of " +
+                            "Issuer" + " :" + validationResponse.getIssuer() + " and tenantDomain:" + tenantDomain;
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             msg, authnReq.getAssertionConsumerServiceURL());
                     validationResponse.setResponse(errorResp);

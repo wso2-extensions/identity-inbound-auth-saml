@@ -1100,8 +1100,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
 
             if (sessionDTO.getValidationRespDTO().isPassive()) { //if passive
-
-                // Removed validations and moved before the authentication
                 List<String> statusCodes = new ArrayList<>();
                 statusCodes.add(SAMLSSOConstants.StatusCodes.NO_PASSIVE);
                 statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);

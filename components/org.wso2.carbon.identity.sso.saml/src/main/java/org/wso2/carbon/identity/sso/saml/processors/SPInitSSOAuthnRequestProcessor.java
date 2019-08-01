@@ -72,8 +72,6 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
             // reading the service provider configs
             populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
-
-            // Removed validations and moved before the authentication.
             // if subject is specified in AuthnRequest only that user should be
             // allowed to logged-in
             if (authnReqDTO.getSubject() != null && authnReqDTO.getUser() != null) {

@@ -938,7 +938,7 @@ public class SAMLSSOUtil {
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(domainName,
                     authnReqDTO.getIssuer());
-            // Check whether certificate is expired or not before the signature validation
+            // Check whether certificate is expired or not before the signature validation.
             if (isSpCertificateExpiryValidationEnabled()) {
                 if (isCertificateExpired(serviceProviderConfigs.getX509Certificate())) return false;
             }
@@ -994,10 +994,10 @@ public class SAMLSSOUtil {
 
         try {
             if (queryString != null) {
-                // DEFLATE signature in Redirect Binding
+                // DEFLATE signature in Redirect Binding.
                 return validateDeflateSignature(queryString, issuer, certificate);
             } else {
-                // XML signature in SAML Request message for POST Binding
+                // XML signature in SAML Request message for POST Binding.
                 return validateXMLSignature(authnRequest, certificate);
             }
         } catch (IdentityException e) {
@@ -1633,7 +1633,7 @@ public class SAMLSSOUtil {
      * Initialize the SPInitSSOAuthnRequestValidator
      * @param authnRequest AuthnRequest request
      * @param queryString encorded saml request
-     * @return
+     * @return SSOAuthnRequestValidator
      */
     public static SSOAuthnRequestValidator getSPInitSSOAuthnRequestValidator(AuthnRequest authnRequest,
                                                                              String queryString)  {
@@ -2364,7 +2364,8 @@ public class SAMLSSOUtil {
             }
             return ssoIdpConfigs;
         } catch (Exception e) {
-            throw IdentityException.error("Error while reading Service Provider configurations of issuer", e);
+            throw IdentityException.error("Error while reading Service Provider configurations of issuer: "
+                    + issuer + "of tenant domain: " + tenantDomain, e);
         }
     }
 
