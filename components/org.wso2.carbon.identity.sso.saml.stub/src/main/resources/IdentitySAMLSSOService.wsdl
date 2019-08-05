@@ -1,17 +1,17 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2436="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2438="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2439="http://util.java/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2441="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd" xmlns:ax2442="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2432="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2433="http://util.java/xsd" xmlns:ax2435="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd" xmlns:ax2436="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2430="http://base.identity.carbon.wso2.org/xsd" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
     <wsdl:documentation>IdentitySAMLSSOService</wsdl:documentation>
     <wsdl:types>
-        <xs:schema xmlns:ax2443="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ax2444="http://util.java/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2437="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ax2438="http://util.java/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://util.java/xsd"/>
             <xs:complexType name="AuthenticatedUser">
                 <xs:complexContent>
-                    <xs:extension base="ax2443:User">
+                    <xs:extension base="ax2436:User">
                         <xs:sequence>
                             <xs:element minOccurs="0" name="authenticatedSubjectIdentifier" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="federatedUser" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="userAttributes" nillable="true" type="ax2444:Map"/>
+                            <xs:element minOccurs="0" name="userAttributes" nillable="true" type="ax2433:Map"/>
                         </xs:sequence>
                     </xs:extension>
                 </xs:complexContent>
@@ -27,9 +27,34 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2446="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2437="http://base.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2440="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2431="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="IdentitySAMLSSOServiceIdentityException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2430:IdentityException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="authenticate">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="authReqDTO" nillable="true" type="ax2432:SAMLSSOAuthnReqDTO"/>
+                        <xs:element minOccurs="0" name="sessionId" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="authenticated" type="xs:boolean"/>
+                        <xs:element minOccurs="0" name="authenticators" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="authMode" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="authenticateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2432:SAMLSSORespDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="isOpenIDLoginAccepted">
                 <xs:complexType>
                     <xs:sequence/>
@@ -54,31 +79,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="IdentitySAMLSSOServiceIdentityException">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2436:IdentityException"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="authenticate">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="authReqDTO" nillable="true" type="ax2446:SAMLSSOAuthnReqDTO"/>
-                        <xs:element minOccurs="0" name="sessionId" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="authenticated" type="xs:boolean"/>
-                        <xs:element minOccurs="0" name="authenticators" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="authMode" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="authenticateResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2446:SAMLSSORespDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="validateSPInitSSORequest">
                 <xs:complexType>
                     <xs:sequence>
@@ -94,7 +94,7 @@
             <xs:element name="validateSPInitSSORequestResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2446:SAMLSSOReqValidationResponseDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2432:SAMLSSOReqValidationResponseDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -103,7 +103,7 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="relayState" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="queryString" nillable="true" type="xs:string"/>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="queryParamDTOs" nillable="true" type="ax2446:QueryParamDTO"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="queryParamDTOs" nillable="true" type="ax2432:QueryParamDTO"/>
                         <xs:element minOccurs="0" name="serverURL" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="sessionId" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="rpSessionId" nillable="true" type="xs:string"/>
@@ -115,7 +115,7 @@
             <xs:element name="validateIdPInitSSORequestResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2446:SAMLSSOReqValidationResponseDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2432:SAMLSSOReqValidationResponseDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -129,7 +129,7 @@
             <xs:element name="doSingleLogoutResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2446:SAMLSSOReqValidationResponseDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2432:SAMLSSOReqValidationResponseDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -143,7 +143,7 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2445="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd" xmlns:ax2440="http://util.java/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2434="http://util.java/xsd" xmlns:ax2439="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://util.java/xsd"/>
             <xs:import namespace="http://model.framework.authentication.application.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="SAMLSSOAuthnReqDTO">
@@ -177,13 +177,14 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpAuthenticationContextProperties" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="issuerWithDomain" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="keyEncryptionAlgorithmUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="password" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="properties" nillable="true" type="ax2439:Properties"/>
+                    <xs:element minOccurs="0" name="properties" nillable="true" type="ax2433:Properties"/>
                     <xs:element minOccurs="0" name="queryString" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="recipient" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="requestMessageString" nillable="true" type="xs:string"/>
@@ -200,7 +201,7 @@
                     <xs:element minOccurs="0" name="stratosDeployment" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subject" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="user" nillable="true" type="ax2445:AuthenticatedUser"/>
+                    <xs:element minOccurs="0" name="user" nillable="true" type="ax2435:AuthenticatedUser"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="SAMLSSORespDTO">
@@ -210,7 +211,7 @@
                     <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="respString" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="sessionEstablished" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="subject" nillable="true" type="ax2445:AuthenticatedUser"/>
+                    <xs:element minOccurs="0" name="subject" nillable="true" type="ax2435:AuthenticatedUser"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="SAMLSSOReqValidationResponseDTO">
@@ -227,13 +228,14 @@
                     <xs:element minOccurs="0" name="idPInitSLO" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="idPInitSSO" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="logOutReq" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="logoutFromAuthFramework" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="logoutRespDTO" nillable="true" type="ax2438:SingleLogoutRequestDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="logoutRespDTO" nillable="true" type="ax2432:SingleLogoutRequestDTO"/>
                     <xs:element minOccurs="0" name="logoutResponse" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="passive" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="properties" nillable="true" type="ax2439:Properties"/>
+                    <xs:element minOccurs="0" name="properties" nillable="true" type="ax2433:Properties"/>
                     <xs:element minOccurs="0" name="queryString" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="requestMessageString" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="requestedAttributes" nillable="true" type="xs:anyType"/>
@@ -241,6 +243,7 @@
                     <xs:element minOccurs="0" name="response" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="returnToURL" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="rpSessionId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sessionIndex" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="signingAlgorithmUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="subject" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>

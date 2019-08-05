@@ -72,6 +72,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -187,6 +188,8 @@ public class SAMLSSOUtil {
     private static String sPInitSSOAuthnRequestValidatorClassName = null;
     private static String iDPInitSSOAuthnRequestValidatorClassName = null;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
+    private static ThreadLocal issuerWithQualifierInThreadLocal = new ThreadLocal();
+    private static String issuerQualifier = null;
     private static String idPInitLogoutRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
@@ -539,6 +542,12 @@ public class SAMLSSOUtil {
 
     public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {
 
+        // If an Entity ID Alias is provided, that is returned as the issuer.
+        Issuer entityIDAliasFromSP = getEntityIDAliasFromSP(tenantDomain);
+        if (entityIDAliasFromSP != null) {
+            return entityIDAliasFromSP;
+        }
+
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = null;
         IdentityProvider identityProvider;
@@ -581,6 +590,29 @@ public class SAMLSSOUtil {
         issuer.setValue(idPEntityId);
         issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
         return issuer;
+    }
+
+    /**
+     * Override Issuer value with IdPEntityIDAlias
+     *
+     * @param tenantDomain
+     * @return issuer with its value set to IdP Entity ID Alias
+     * @throws IdentityException
+     */
+    private static Issuer getEntityIDAliasFromSP(String tenantDomain) throws IdentityException {
+
+        String currentSP = getIssuerWithQualifierInThreadLocal();
+        if (StringUtils.isEmpty(currentSP)) {
+            return null;
+        }
+        SAMLSSOServiceProviderDO sp = getSPConfig(tenantDomain, currentSP);
+        if (sp != null && StringUtils.isNotBlank(sp.getIdpEntityIDAlias())) {
+            Issuer issuer = new IssuerBuilder().buildObject();
+            issuer.setValue(sp.getIdpEntityIDAlias());
+            issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
+            return issuer;
+        }
+        return null;
     }
 
     /**
@@ -1587,6 +1619,37 @@ public class SAMLSSOUtil {
         SAMLSSOUtil.tenantDomainInThreadLocal.remove();
     }
 
+    public static String getIssuerWithQualifierInThreadLocal() {
+
+        if (SAMLSSOUtil.issuerWithQualifierInThreadLocal == null) {
+            // This is the default behavior.
+            return null;
+        }
+        // This is the behaviour when an issuer qualifier is provided.
+        return (String) SAMLSSOUtil.issuerWithQualifierInThreadLocal.get();
+    }
+
+    /**
+     * Issuer with qualifier is saved to a ThreadLocal because it is needed to identify the SP
+     * to get the IdpEntityIDAlias to override IdP Entity ID when sending SAML respnse to SP.
+     *
+     * @param issuerWithQualifierInThreadLocal
+     */
+    public static void setIssuerWithQualifierInThreadLocal(String issuerWithQualifierInThreadLocal) {
+
+        if (issuerWithQualifierInThreadLocal != null) {
+            SAMLSSOUtil.issuerWithQualifierInThreadLocal.set(issuerWithQualifierInThreadLocal);
+        }
+    }
+
+    /**
+     * Remove IssuerWithQualifierInThreadLocal when finishing the whole process.
+     */
+    public static void removeIssuerWithQualifierInThreadLocal() {
+
+        SAMLSSOUtil.issuerWithQualifierInThreadLocal.remove();
+    }
+
     public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
 
         if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain.trim())) {
@@ -1700,6 +1763,25 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    /**
+     * Check whether an SP with an "Issuer with qualifier" exists and whether issuer value without qualifier is similar
+     * to the Issuer of SAML request.
+     *
+     * @param issuerName          Issuer of SAML request.
+     * @param issuerWithQualifier Issuer value saved in the registry.
+     * @param tenantDomain
+     * @return true, if a SAML SP exists in the registry with the issuer value similar to "issuerWithQualifier"
+     * and the SAML request's issuer is equal to the issuer without qualifier.
+     */
+    public static boolean isValidSAMLIssuer(String issuerName, String issuerWithQualifier, String tenantDomain)
+            throws IdentitySAML2SSOException {
+
+        if (isSAMLIssuerExists(issuerWithQualifier, tenantDomain)) {
+            return issuerName.equals(getIssuerWithoutQualifier(issuerWithQualifier));
+        }
+        return false;
     }
 
     public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws
@@ -2281,4 +2363,50 @@ public class SAMLSSOUtil {
         return false;
     }
 
+
+    /**
+     * Get issuer qualifier.
+     *
+     * @return
+     */
+    public static String getIssuerQualifier() {
+
+        return SAMLSSOUtil.issuerQualifier;
+    }
+
+    /**
+     * Set the issuer qualifier
+     *
+     * @param issuerQualifier
+     */
+    public static void setIssuerQualifier(String issuerQualifier) {
+
+        SAMLSSOUtil.issuerQualifier = issuerQualifier;
+
+    }
+
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast
+                (issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
+        return issuerWithoutQualifier;
+    }
+
+    /**
+     * Get the issuer value to be added to registry by appending the qualifier.
+     *
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
+     */
+    public static String getIssuerWithQualifier(String issuer, String qualifier) {
+
+        String issuerWithQualifier = issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        return issuerWithQualifier;
+    }
 }

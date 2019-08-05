@@ -77,6 +77,20 @@
                         "<fmt:message key='sp.entity.id.cannot.have.at'/>", null,
                         null);
                 return false;
+            } else if (value.includes("urn:sp:qualifier")) {
+                CARBON.showWarningDialog(
+                    "<fmt:message key='sp.entity.id.cannot.have.qualifier.id'/>", null,
+                    null);
+                return false;
+            }
+
+            var field = document.getElementsByName("issuerQualifier")[0];
+            var entityValue = field.value;
+            if (entityValue.indexOf("@") > -1) {
+                CARBON.showWarningDialog(
+                    "<fmt:message key='sp.qualifier.value.cannot.have.at'/>", null,
+                    null);
+                return false;
             }
 
             var assertionConsumerURLs = null;
@@ -808,11 +822,33 @@
                                     </td>
                                     <td><input type="text" id="issuer" name="issuer" maxlength="100"
                                                class="text-box-big"
-                                               value="<%=isEditSP? Encode.forHtmlAttribute(provider.getIssuer()):""%>" <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
+                                               value="<%=isEditSP? Encode.forHtmlAttribute(SAMLSSOUIUtil.getIssuerWithoutQualifier(provider.getIssuer())):""%>"
+                                            <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
                                         <input type="hidden" id="hiddenIssuer" name="hiddenIssuer"
                                                value="<%=isEditSP? Encode.forHtmlAttribute(provider.getIssuer()):""%>"/>
                                     </td>
                                 </tr>
+                                <%
+                                    if (!isEditSP || (isEditSP && StringUtils.isNotEmpty(provider.getIssuerQualifier()))) { %>
+                                <tr>
+                                    <td style="width: 300px;"
+                                        + title="Qualifier to identify the service provider for the SAML Authentication Request">
+                                        <fmt:message key="sp.issuer.qualifier"/>
+                                    </td>
+                                    <td><input type="text" id="issuerQualifier" name="issuerQualifier"
+                                               maxlength="100"
+                                               class="text-box-big"
+                                               value="<%=isEditSP && provider.getIssuerQualifier() != null ?
+                                               Encode.forHtmlAttribute(provider.getIssuerQualifier()):""%>" <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
+                                        <input type="hidden" id="hiddenIssuerQualifier" name="hiddenIssuerQualifier"
+                                               value="<%=isEditSP && provider.getIssuerQualifier() != null ?
+                                               Encode.forHtmlAttribute(provider.getIssuerQualifier()):""%>"/>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sp.issuer.qualifier.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <%}%>
                                 <tr id="assertionConsumerURLInputRow">
                                     <td title="URL to which the browser should be redirected to after the authentication is successful">
                                         <fmt:message key="sp.assertionConsumerURLs"/>
@@ -1866,6 +1902,20 @@
                                                onclick="disableSamlECP(this);"
                                                 <%=(isSamlECPEnabled(isEditSP, provider) ? "checked" : "")%> />
                                         <fmt:message key="enable.saml2.ecp"/>
+                                    </td>
+                                </tr>
+    
+                                <!-- IdP Entity ID Alias-->
+                                <tr>
+                                    <td title="Defines an aliad value to override IdP Entity ID of resident IdP">
+                                        <fmt:message key="idp.entity.id.alias"/>
+                                    </td>
+                                    <td><input type="text" id="idpEntityIDAlias" name="idpEntityIDAlias"
+                                               value="<%=(isEditSP && StringUtils.isNotBlank(provider.getIdpEntityIDAlias())) ?
+                                               Encode.forHtmlAttribute(provider.getIdpEntityIDAlias()) : ""%>"/>
+                                        <div class="sectionHelp" style="margin-top: 2px;">
+                                            <fmt:message key="enable.idp.entity.id.alias.help"/>
+                                        </div>
                                     </td>
                                 </tr>
 

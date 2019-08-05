@@ -34,6 +34,7 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     private boolean isValid;
     private boolean doSingleLogout;
     private String issuer;
+    private String issuerQualifier;
     private String subject;
     private String assertionConsumerURL;
     private String response;
@@ -446,5 +447,25 @@ public class SAMLSSOReqValidationResponseDTO implements Serializable {
     public void setSessionIndex(String sessionIndex) {
 
         this.sessionIndex = sessionIndex;
+    }
+
+    /**
+     * Get issuer qualifier value.
+     *
+     * @return issuer qualifier.
+     */
+    public String getIssuerQualifier() {
+
+        return issuerQualifier;
+    }
+
+    /**
+     * Set issuer qualifier value.
+     *
+     * @param issuerQualifier issuer qualifier.
+     */
+    public void setIssuerQualifier(String issuerQualifier) {
+
+        this.issuerQualifier = issuerQualifier;
     }
 }

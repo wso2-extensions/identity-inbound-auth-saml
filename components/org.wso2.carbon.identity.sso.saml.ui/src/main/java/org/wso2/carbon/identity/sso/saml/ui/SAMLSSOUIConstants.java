@@ -62,6 +62,9 @@ public class SAMLSSOUIConstants {
 
     public static final String SESSION_ATTRIBUTE_NAME_APPLICATION_CERTIFICATE = "applicationCertificate";
     public static final String ENABLE_SAML2_ECP = "enableSAML2ECP";
+    public static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
+
+    public static final String QUALIFIER_ID = ":urn:sp:qualifier:";
 
     public static final String SLO_TYPE = "singleLogoutType";
 
