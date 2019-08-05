@@ -2351,18 +2351,56 @@ public class SAMLSSOUtil {
             throws IdentityException {
 
         try {
-            SSOServiceProviderConfigManager stratosIdpConfigManager = SSOServiceProviderConfigManager
+        try {
+            // Check for SaaS service providers available.
+            SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
                     .getInstance();
-            SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
-                    .getServiceProvider(issuer);
-            if (ssoIdpConfigs == null) {
-                IdentityTenantUtil.initializeRegistry(IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
-                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                        (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+            SAMLSSOServiceProviderDO serviceProviderConfigs = saasServiceProviderConfigManager.getServiceProvider
+                    (issuer);
+            if (serviceProviderConfigs == null) { // Check for service providers registered in tenant
+
+                if (log.isDebugEnabled()) {
+                    log.debug("No SaaS SAML service providers found for the issuer : " + issuer + ". Checking for " +
+                            "SAML service providers registered in tenant domain : " + tenantDomain);
+                }
+
+                int tenantId;
+                if (StringUtils.isBlank(tenantDomain)) {
+                    tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                    tenantId = MultitenantConstants.SUPER_TENANT_ID;
+                } else {
+                    try {
+                        tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+                    } catch (UserStoreException e) {
+                        throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the " +
+                                "tenant domain : " + tenantDomain, e);
+                    }
+                }
+
+                try {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+                            .getThreadLocalCarbonContext();
+                    privilegedCarbonContext.setTenantId(tenantId);
+                    privilegedCarbonContext.setTenantDomain(tenantDomain);
+
+                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                            (RegistryType.SYSTEM_CONFIGURATION);
+                    serviceProviderConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                } catch (IdentityException e) {
+                    throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
+                            + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
             }
-            return ssoIdpConfigs;
+
+            return serviceProviderConfigs;
+        } catch (Exception e) {
+            throw IdentityException.error("Error while reading " +
+                    "service provider configurations for issuer : " + issuer + " in tenant domain : " + tenantDomain);
+        }
         } catch (Exception e) {
             throw IdentityException.error("Error while reading Service Provider configurations of issuer: "
                     + issuer + "of tenant domain: " + tenantDomain, e);

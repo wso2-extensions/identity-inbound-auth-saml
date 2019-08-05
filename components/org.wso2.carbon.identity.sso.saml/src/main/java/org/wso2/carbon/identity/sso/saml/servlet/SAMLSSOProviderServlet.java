@@ -211,6 +211,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             String tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
 
             if (sessionDataKey != null) { //Response from common authentication framework.
                 SAMLSSOSessionDTO sessionDTO = getSessionDataFromCache(sessionDataKey);
