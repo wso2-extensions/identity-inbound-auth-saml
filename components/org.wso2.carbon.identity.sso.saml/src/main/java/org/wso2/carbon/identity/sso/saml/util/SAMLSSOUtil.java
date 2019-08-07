@@ -105,6 +105,7 @@ import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -2350,8 +2351,6 @@ public class SAMLSSOUtil {
     public static SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer, String tenantDomain)
             throws IdentityException {
 
-        try {
-        try {
             // Check for SaaS service providers available.
             SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
                     .getInstance();
@@ -2378,33 +2377,41 @@ public class SAMLSSOUtil {
                 }
 
                 try {
-                    PrivilegedCarbonContext.startTenantFlow();
-                    PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
-                            .getThreadLocalCarbonContext();
-                    privilegedCarbonContext.setTenantId(tenantId);
-                    privilegedCarbonContext.setTenantDomain(tenantDomain);
-
-                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                            (RegistryType.SYSTEM_CONFIGURATION);
-                    serviceProviderConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                    serviceProviderConfigs = getServiceProviderDOFromRegistry(issuer, tenantId, tenantDomain);
                 } catch (IdentityException e) {
-                    throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
-                            + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+                    try {
+                        IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+                        serviceProviderConfigs = getServiceProviderDOFromRegistry(issuer, tenantId, tenantDomain);
+                    } catch (RegistryException | IdentityException e1) {
+                        throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
+                                + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+                    }
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
-
             return serviceProviderConfigs;
-        } catch (Exception e) {
-            throw IdentityException.error("Error while reading " +
-                    "service provider configurations for issuer : " + issuer + " in tenant domain : " + tenantDomain);
-        }
-        } catch (Exception e) {
-            throw IdentityException.error("Error while reading Service Provider configurations of issuer: "
-                    + issuer + "of tenant domain: " + tenantDomain, e);
-        }
     }
 
+    /**
+     * Get SP configs from registry.
+     * @param issuer
+     * @param tenantId
+     * @param tenantDomain
+     * @return SAMLSSOServiceProviderDO
+     * @throws IdentityException
+     */
+    private static SAMLSSOServiceProviderDO getServiceProviderDOFromRegistry(String issuer, int tenantId, String tenantDomain)
+            throws  IdentityException {
+
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+                .getThreadLocalCarbonContext();
+        privilegedCarbonContext.setTenantId(tenantId);
+        privilegedCarbonContext.setTenantDomain(tenantDomain);
+        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+        Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                (RegistryType.SYSTEM_CONFIGURATION);
+        return persistenceManager.getServiceProvider(registry, issuer);
+    }
 }
