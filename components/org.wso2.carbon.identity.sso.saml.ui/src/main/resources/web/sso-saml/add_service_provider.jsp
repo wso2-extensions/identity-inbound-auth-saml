@@ -91,6 +91,11 @@
                     "<fmt:message key='sp.qualifier.value.cannot.have.at'/>", null,
                     null);
                 return false;
+            } else if (entityValue.includes("urn:sp:qualifier")) {
+                CARBON.showWarningDialog(
+                    "<fmt:message key='sp.qualifier.cannot.have.qualifier.id'/>", null,
+                    null);
+                return false;
             }
 
             var assertionConsumerURLs = null;
