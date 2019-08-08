@@ -98,7 +98,20 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
-            if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
+            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
+            String issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifier(validationResponse.getIssuer(), issuerQualifier);
+            if (issuerWithQualifier != null && SAMLSSOUtil.isValidSAMLIssuer(splitAppendedTenantDomain(validationResponse
+                    .getIssuer()), issuerWithQualifier, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                if (log.isDebugEnabled()) {
+                    String message = "A SAML request with issuer: " + validationResponse.getIssuer() + " is received." +
+                            " A valid Service Provider configuration with the Issuer: " + validationResponse.getIssuer() +
+                            " and Issuer Qualifier: " + issuerQualifier + " is identified by the name: " + issuerWithQualifier;
+                    log.debug(message);
+                }
+                //Validation response's Issuer is set to Issuer With Qualifier
+                validationResponse.setIssuerQualifier(issuerQualifier);
+                validationResponse.setIssuer(issuerWithQualifier);
+            } else if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
                     SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
                 String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is"
                         + " not registered. Service Provider should be registered in advance";
@@ -109,6 +122,9 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setValid(false);
                 return validationResponse;
             }
+
+
+            SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(validationResponse.getIssuer());
 
             // Issuer Format attribute
             if ((StringUtils.isNotBlank(issuer.getFormat())) && !(issuer.getFormat()
@@ -190,27 +206,25 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
      */
     private String validateRequestIssueInstant() {
 
-        DateTime validFrom = authnReq.getIssueInstant();
-        if (validFrom == null) {
-            return "IssueInstant time is not valid.";
+            DateTime validFrom = authnReq.getIssueInstant();
+            if (validFrom == null) {
+                return "IssueInstant time is not valid.";
+            }
+            DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSAMLAuthenticationRequestValidityPeriod());
+            int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
+
+            if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
+                return "The request IssueInstant time is 'Not Before'";
+            }
+
+            if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
+                return "The request IssueInstant time is  'Not On Or After'";
+            }
+
+            if (validTill != null && validFrom.isAfter(validTill)) {
+                return "The request IssueInstant time is  'Not On Or After'";
+            }
+
+            return null;
         }
-        DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSAMLAuthenticationRequestValidityPeriod());
-        int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
-
-        if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
-            return "The request IssueInstant time is 'Not Before'";
-        }
-
-        if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
-            return "The request IssueInstant time is  'Not On Or After'";
-        }
-
-        if (validTill != null && validFrom.isAfter(validTill)) {
-            return "The request IssueInstant time is  'Not On Or After'";
-        }
-
-        return null;
-    }
-
-
 }
