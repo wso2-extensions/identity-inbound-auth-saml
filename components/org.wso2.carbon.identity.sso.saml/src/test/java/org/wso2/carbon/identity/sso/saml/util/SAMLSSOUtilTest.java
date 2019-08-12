@@ -36,8 +36,11 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
@@ -47,6 +50,7 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -72,7 +76,7 @@ import static org.testng.Assert.assertTrue;
  * Unit test cases for SAMLSSOUtil.
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class})
+        KeyStoreManager.class,IdentityPersistenceManager.class,SSOServiceProviderConfigManager.class})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Mock
@@ -94,6 +98,12 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     private FederatedAuthenticatorConfig federatedAuthenticatorConfig;
 
     private SessionInfoData sessionInfoData;
+
+    @Mock
+    private IdentityPersistenceManager identityPersistenceManager;
+
+    @Mock
+    private SSOServiceProviderConfigManager ssoServiceProviderConfigManager;
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -120,6 +130,24 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         mockStatic(IdentityProviderManager.class);
         when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
+    }
+
+    private void prepareForGetSPConfig() throws Exception {
+
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO.setIssuer(TestConstants.ISSUER_WITH_QUALIFIER);
+        samlssoServiceProviderDO.setIssuerQualifier(TestConstants.ISSUER_QUALIFIER);
+        samlssoServiceProviderDO.setIdpEntityIDAlias(TestConstants.IDP_ENTITY_ID_ALIAS);
+
+        when(identityPersistenceManager.getServiceProvider(any(Registry.class), anyString()))
+                .thenReturn(samlssoServiceProviderDO);
+        mockStatic(IdentityPersistenceManager.class);
+        when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+        when(identityPersistenceManager.isServiceProviderExists(any(Registry.class), anyString())).thenReturn(true);
+
+        mockStatic(SSOServiceProviderConfigManager.class);
+        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
+        when(ssoServiceProviderConfigManager.getServiceProvider(TestConstants.ISSUER_WITH_QUALIFIER)).thenReturn(samlssoServiceProviderDO);
     }
 
     @Test
@@ -426,4 +454,15 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         assertNull(SAMLSSOUtil.getSessionIndex("sessionId"), "Session Index is null.");
     }
 
+
+    @Test
+    public void testGetIssuerWhenEntityIDAliasEnabled() throws Exception {
+
+        SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
+        prepareForGetIssuer();
+        prepareForGetSPConfig();
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
+    }
 }

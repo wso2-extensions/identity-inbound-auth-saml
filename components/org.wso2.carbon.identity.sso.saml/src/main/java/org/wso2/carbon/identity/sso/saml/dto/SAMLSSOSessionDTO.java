@@ -35,6 +35,7 @@ public class SAMLSSOSessionDTO implements Serializable {
     private String relayState;
     private String requestMessageString;
     private String issuer;
+    private String issuerQualifier;
     private String requestID;
     private String subject;
     private String relyingPartySessionId;
@@ -337,5 +338,25 @@ public class SAMLSSOSessionDTO implements Serializable {
             this.properties = new Properties();
         }
         this.properties.putAll(properties);
+    }
+
+    /**
+     * Get issuer qualifier value.
+     *
+     * @return issuer qualifier.
+     */
+    public String getIssuerQualifier() {
+
+        return issuerQualifier;
+    }
+
+    /**
+     * Set issuer qualifier value.
+     *
+     * @param issuerQualifier issuer qualifier.
+     */
+    public void setIssuerQualifier(String issuerQualifier) {
+
+        this.issuerQualifier = issuerQualifier;
     }
 }

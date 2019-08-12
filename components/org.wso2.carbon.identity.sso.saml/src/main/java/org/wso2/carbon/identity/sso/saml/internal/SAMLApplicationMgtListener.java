@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 
 import java.io.ByteArrayInputStream;
@@ -106,7 +107,11 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                             SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
                             if (serviceProviderInfoDTOs != null) {
                                 for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
-                                    if (sp.getIssuer().equals(inboundAuthKey)) {
+                                    String spIssuer = sp.getIssuer();
+                                    if (sp.getIssuerQualifier() != null) {
+                                        spIssuer = SAMLSSOUtil.getIssuerWithQualifier(spIssuer, sp.getIssuerQualifier());
+                                    }
+                                    if (spIssuer.equals(inboundAuthKey)) {
                                         savedSamlSP = sp;
                                         break;
                                     }
@@ -146,6 +151,9 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         if (serviceProviderInfoDTOs != null) {
                             for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
                                 if (sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
+                                    if (sp.getIssuerQualifier() != null) {
+                                        sp.setIssuer(SAMLSSOUtil.getIssuerWithoutQualifier(sp.getIssuer()));
+                                    }
                                     samlSP = sp;
                                     break;
                                 }
@@ -203,10 +211,13 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             validationMsg.add(errorMsg);
             return;
         }
-        if (!authConfig.getInboundAuthKey().equals(samlssoServiceProviderDTO.getIssuer())) {
+        String issuer = samlssoServiceProviderDTO.getIssuer();
+        if (StringUtils.isNotBlank(samlssoServiceProviderDTO.getIssuerQualifier())) {
+            issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer, samlssoServiceProviderDTO.getIssuerQualifier());
+        }
+        if (!authConfig.getInboundAuthKey().equals(issuer)) {
             validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
-                            "is not match with SAML issuer %s.", authConfig.getInboundAuthKey(),
-                    samlssoServiceProviderDTO.getIssuer()));
+                    "is not match with SAML issuer %s.", authConfig.getInboundAuthKey(), issuer));
         }
         SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
 

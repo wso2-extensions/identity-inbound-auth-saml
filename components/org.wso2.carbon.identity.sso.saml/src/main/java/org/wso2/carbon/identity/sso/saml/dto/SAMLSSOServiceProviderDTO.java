@@ -35,6 +35,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
+    private String issuerQualifier;
     @XmlElementWrapper(name="assertionConsumerUrls")
     @XmlElement(name = "assertionConsumerUrl")
     private String[] assertionConsumerUrls;
@@ -79,6 +80,8 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String keyEncryptionAlgorithmURI;
     private boolean enableSAML2ArtifactBinding;
     private boolean doValidateSignatureInArtifactResolve;
+    private boolean samlECP;
+    private  String idpEntityIDAlias;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -453,4 +456,52 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
         return certificateContent;
     }
 
+    public boolean isSamlECP() {
+        return samlECP;
+    }
+
+    public void setSamlECP(boolean samlECP) {
+        this.samlECP = samlECP;
+    }
+
+
+    /**
+     * Get issuer qualifier value.
+     *
+     * @return issuer qualifier.
+     */
+    public String getIssuerQualifier() {
+
+        return issuerQualifier;
+    }
+
+    /**
+     * Set issuer qualifier value.
+     *
+     * @param issuerQualifier issuer qualifier.
+     */
+    public void setIssuerQualifier(String issuerQualifier) {
+
+        this.issuerQualifier = issuerQualifier;
+    }
+
+    /**
+     * Get idp entity id alias value
+     *
+     * @return
+     */
+    public String getIdpEntityIDAlias() {
+
+        return idpEntityIDAlias;
+    }
+
+    /**
+     * Set idp entity id alias value
+     *
+     * @param idpEntityIDAlias
+     */
+    public void setIdpEntityIDAlias(String idpEntityIDAlias) {
+
+        this.idpEntityIDAlias = idpEntityIDAlias;
+    }
 }

@@ -91,6 +91,7 @@ public class SAMLSSOConstants {
     public static final String SAML_SSO_SP_REQUEST_VALIDATOR_CONFIG_PATH = "SSOService.SAMLSSOSPRequestValidator";
     public static final String INBOUND_AUTH_TYPE_SAML = "samlsso";
     public static final String SAML_SSO_TOKEN_ID_COOKIE = "samlssoTokenId";
+    public static final String INBOUND_ISSUER_QUALIFIER = "spQualifier";
 
     // SAML2 Artifact Binding
     public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };
@@ -131,6 +132,7 @@ public class SAMLSSOConstants {
         public static final String SERVICE_PROVIDERS = "ServiceProviders";
         public static final String SERVICE_PROVIDER = "ServiceProvider";
         public static final String ISSUER = "Issuer";
+        public static final String ISSUER_QUALIFIER = "SpQualifier";
         public static final String NAMESPACE_PREFIX = "samlp";
         public static final String ASSERTION_CONSUMER_URL = "AssertionConsumerServiceURL";
         public static final String ACS_URLS = "AssertionConsumerServiceURLs";

@@ -72,6 +72,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -188,6 +189,8 @@ public class SAMLSSOUtil {
     private static String sPInitSSOAuthnRequestValidatorClassName = null;
     private static String iDPInitSSOAuthnRequestValidatorClassName = null;
     private static ThreadLocal tenantDomainInThreadLocal = new ThreadLocal();
+    private static ThreadLocal issuerWithQualifierInThreadLocal = new ThreadLocal();
+    private static String issuerQualifier = null;
     private static String idPInitLogoutRequestProcessorClassName = null;
     private static String sPInitSSOAuthnRequestProcessorClassName = null;
     private static String sPInitLogoutRequestProcessorClassName = null;
@@ -540,6 +543,12 @@ public class SAMLSSOUtil {
 
     public static Issuer getIssuerFromTenantDomain(String tenantDomain) throws IdentityException {
 
+        // If an Entity ID Alias is provided, that is returned as the issuer.
+        Issuer entityIDAliasFromSP = getEntityIDAliasFromSP(tenantDomain);
+        if (entityIDAliasFromSP != null) {
+            return entityIDAliasFromSP;
+        }
+
         Issuer issuer = new IssuerBuilder().buildObject();
         String idPEntityId = null;
         IdentityProvider identityProvider;
@@ -582,6 +591,29 @@ public class SAMLSSOUtil {
         issuer.setValue(idPEntityId);
         issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
         return issuer;
+    }
+
+    /**
+     * Override Issuer value with IdPEntityIDAlias
+     *
+     * @param tenantDomain
+     * @return issuer with its value set to IdP Entity ID Alias
+     * @throws IdentityException
+     */
+    private static Issuer getEntityIDAliasFromSP(String tenantDomain) throws IdentityException {
+
+        String currentSP = getIssuerWithQualifierInThreadLocal();
+        if (StringUtils.isEmpty(currentSP)) {
+            return null;
+        }
+        SAMLSSOServiceProviderDO sp = getSPConfig(tenantDomain, currentSP);
+        if (sp != null && StringUtils.isNotBlank(sp.getIdpEntityIDAlias())) {
+            Issuer issuer = new IssuerBuilder().buildObject();
+            issuer.setValue(sp.getIdpEntityIDAlias());
+            issuer.setFormat(SAMLSSOConstants.NAME_ID_POLICY_ENTITY);
+            return issuer;
+        }
+        return null;
     }
 
     /**
@@ -936,6 +968,7 @@ public class SAMLSSOUtil {
         String alias = authnReqDTO.getCertAlias();
         RequestAbstractType request = null;
 
+        // Check whether certificate is expired or not before the signature validation
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(domainName,
                     authnReqDTO.getIssuer());
@@ -945,7 +978,7 @@ public class SAMLSSOUtil {
             }
         } catch (IdentityException e) {
             log.error("A Service Provider with the Issuer '" + authnReqDTO.getIssuer()+ "' is not " +
-            "registered. Service Provider should be registered in advance.");
+                    "registered. Service Provider should be registered in advance.");
             return false;
         }
 
@@ -977,34 +1010,6 @@ public class SAMLSSOUtil {
         } catch (IdentityException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion", e);
-            }
-            return false;
-        }
-    }
-
-
-    /**
-     * Validate Signature
-     * @param authnRequest un-marshal SAML Authentication request
-     * @param queryString  marshal saml request
-     * @param issuer issuer
-     * @return
-     */
-    public static boolean isSignatureValid(AuthnRequest authnRequest, String queryString, String issuer,
-                                           java.security.cert.X509Certificate certificate) {
-
-        try {
-            if (queryString != null) {
-                // DEFLATE signature in Redirect Binding.
-                return validateDeflateSignature(queryString, issuer, certificate);
-            } else {
-                // XML signature in SAML Request message for POST Binding.
-                return validateXMLSignature(authnRequest, certificate);
-            }
-        } catch (IdentityException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion " +
-                        "of the Issuer " + authnRequest.getProviderName(), e);
             }
             return false;
         }
@@ -1089,7 +1094,7 @@ public class SAMLSSOUtil {
     }
 
     /**
-     * Validates the signature of the LogoutRequest message against the given certificate.
+     * Validate the signature of the LogoutRequest message against the given certificate.
      * @param logoutRequest The logout request object if available.
      * @param queryString The request query string if available.
      * @param certificate The certificate which is used for signature validation.
@@ -1613,6 +1618,37 @@ public class SAMLSSOUtil {
         SAMLSSOUtil.tenantDomainInThreadLocal.remove();
     }
 
+    public static String getIssuerWithQualifierInThreadLocal() {
+
+        if (SAMLSSOUtil.issuerWithQualifierInThreadLocal == null) {
+            // This is the default behavior.
+            return null;
+        }
+        // This is the behaviour when an issuer qualifier is provided.
+        return (String) SAMLSSOUtil.issuerWithQualifierInThreadLocal.get();
+    }
+
+    /**
+     * Issuer with qualifier is saved to a ThreadLocal because it is needed to identify the SP
+     * to get the IdpEntityIDAlias to override IdP Entity ID when sending SAML respnse to SP.
+     *
+     * @param issuerWithQualifierInThreadLocal
+     */
+    public static void setIssuerWithQualifierInThreadLocal(String issuerWithQualifierInThreadLocal) {
+
+        if (issuerWithQualifierInThreadLocal != null) {
+            SAMLSSOUtil.issuerWithQualifierInThreadLocal.set(issuerWithQualifierInThreadLocal);
+        }
+    }
+
+    /**
+     * Remove IssuerWithQualifierInThreadLocal when finishing the whole process.
+     */
+    public static void removeIssuerWithQualifierInThreadLocal() {
+
+        SAMLSSOUtil.issuerWithQualifierInThreadLocal.remove();
+    }
+
     public static String validateTenantDomain(String tenantDomain) throws UserStoreException, IdentityException {
 
         if (tenantDomain != null && !tenantDomain.trim().isEmpty() && !"null".equalsIgnoreCase(tenantDomain.trim())) {
@@ -1761,6 +1797,25 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    /**
+     * Check whether an SP with an "Issuer with qualifier" exists and whether issuer value without qualifier is similar
+     * to the Issuer of SAML request.
+     *
+     * @param issuerName          Issuer of SAML request.
+     * @param issuerWithQualifier Issuer value saved in the registry.
+     * @param tenantDomain
+     * @return true, if a SAML SP exists in the registry with the issuer value similar to "issuerWithQualifier"
+     * and the SAML request's issuer is equal to the issuer without qualifier.
+     */
+    public static boolean isValidSAMLIssuer(String issuerName, String issuerWithQualifier, String tenantDomain)
+            throws IdentitySAML2SSOException {
+
+        if (isSAMLIssuerExists(issuerWithQualifier, tenantDomain)) {
+            return issuerName.equals(getIssuerWithoutQualifier(issuerWithQualifier));
+        }
+        return false;
     }
 
     public static boolean validateACS(String tenantDomain, String issuerName, String requestedACSUrl) throws
@@ -2345,73 +2400,130 @@ public class SAMLSSOUtil {
      * Retrieve service provider configs using issuer and tenant domain.
      * @param issuer
      * @param tenantDomain
-     * @return SAMLSSOServiceProviderDO
+     * @return
      * @throws IdentityException
      */
     public static SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer, String tenantDomain)
             throws IdentityException {
 
-            // Check for SaaS service providers available.
-            SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
-                    .getInstance();
-            SAMLSSOServiceProviderDO serviceProviderConfigs = saasServiceProviderConfigManager.getServiceProvider
-                    (issuer);
-            if (serviceProviderConfigs == null) { // Check for service providers registered in tenant
+        // Check for SaaS service providers available.
+        SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
+                .getInstance();
+        SAMLSSOServiceProviderDO serviceProviderConfigs = saasServiceProviderConfigManager.getServiceProvider
+                (issuer);
+        if (serviceProviderConfigs == null) { // Check for service providers registered in tenant
 
-                if (log.isDebugEnabled()) {
-                    log.debug("No SaaS SAML service providers found for the issuer : " + issuer + ". Checking for " +
-                            "SAML service providers registered in tenant domain : " + tenantDomain);
-                }
+            if (log.isDebugEnabled()) {
+                log.debug("No SaaS SAML service providers found for the issuer : " + issuer + ". Checking for " +
+                        "SAML service providers registered in tenant domain : " + tenantDomain);
+            }
 
-                int tenantId;
-                if (StringUtils.isBlank(tenantDomain)) {
-                    tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-                    tenantId = MultitenantConstants.SUPER_TENANT_ID;
-                } else {
-                    try {
-                        tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
-                    } catch (UserStoreException e) {
-                        throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the " +
-                                "tenant domain : " + tenantDomain, e);
-                    }
-                }
-
+            int tenantId;
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                tenantId = MultitenantConstants.SUPER_TENANT_ID;
+            } else {
                 try {
-                    serviceProviderConfigs = getServiceProviderDOFromRegistry(issuer, tenantId, tenantDomain);
-                } catch (IdentityException e) {
-                    try {
-                        IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
-                        serviceProviderConfigs = getServiceProviderDOFromRegistry(issuer, tenantId, tenantDomain);
-                    } catch (RegistryException | IdentityException e1) {
-                        throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
-                                + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
-                    }
-                } finally {
-                    PrivilegedCarbonContext.endTenantFlow();
+                    tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+                } catch (UserStoreException e) {
+                    throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the " +
+                            "tenant domain : " + tenantDomain, e);
                 }
             }
-            return serviceProviderConfigs;
+
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+                        .getThreadLocalCarbonContext();
+                privilegedCarbonContext.setTenantId(tenantId);
+                privilegedCarbonContext.setTenantDomain(tenantDomain);
+                IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+
+                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                        (RegistryType.SYSTEM_CONFIGURATION);
+                serviceProviderConfigs = persistenceManager.getServiceProvider(registry, issuer);
+            } catch (IdentityException | RegistryException e) {
+                throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
+                        + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+
+        return serviceProviderConfigs;
     }
 
     /**
-     * Get SP configs from registry.
-     * @param issuer
-     * @param tenantId
-     * @param tenantDomain
-     * @return SAMLSSOServiceProviderDO
-     * @throws IdentityException
+     * Get issuer qualifier.
+     *
+     * @return
      */
-    private static SAMLSSOServiceProviderDO getServiceProviderDOFromRegistry(String issuer, int tenantId, String tenantDomain)
-            throws  IdentityException {
+    public static String getIssuerQualifier() {
 
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
-                .getThreadLocalCarbonContext();
-        privilegedCarbonContext.setTenantId(tenantId);
-        privilegedCarbonContext.setTenantDomain(tenantDomain);
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-        Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                (RegistryType.SYSTEM_CONFIGURATION);
-        return persistenceManager.getServiceProvider(registry, issuer);
+        return SAMLSSOUtil.issuerQualifier;
+    }
+
+    /**
+     * Set the issuer qualifier
+     *
+     * @param issuerQualifier
+     */
+    public static void setIssuerQualifier(String issuerQualifier) {
+
+        SAMLSSOUtil.issuerQualifier = issuerQualifier;
+
+    }
+
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast
+                (issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
+        return issuerWithoutQualifier;
+    }
+
+    /**
+     * Get the issuer value to be added to registry by appending the qualifier.
+     *
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
+     */
+    public static String getIssuerWithQualifier(String issuer, String qualifier) {
+
+        String issuerWithQualifier = issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        return issuerWithQualifier;
+    }
+
+    /**
+     * Validate Signature
+     * @param authnRequest un-marshal SAML Authentication request
+     * @param queryString  marshal saml request
+     * @param issuer issuer
+     * @return
+     */
+    public static boolean isSignatureValid(AuthnRequest authnRequest, String queryString, String issuer,
+                                           java.security.cert.X509Certificate certificate) {
+
+        try {
+            if (queryString != null) {
+                // DEFLATE signature in Redirect Binding.
+                return validateDeflateSignature(queryString, issuer, certificate);
+            } else {
+                // XML signature in SAML Request message for POST Binding.
+                return validateXMLSignature(authnRequest, certificate);
+            }
+        } catch (IdentityException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Signature Validation failed for the SAMLRequest : Failed to validate the SAML Assertion " +
+                        "of the Issuer " + authnRequest.getProviderName(), e);
+            }
+            return false;
+        }
     }
 }
