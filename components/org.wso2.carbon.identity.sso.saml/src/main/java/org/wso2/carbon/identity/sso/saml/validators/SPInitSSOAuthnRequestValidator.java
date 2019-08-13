@@ -26,21 +26,32 @@ import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.core.impl.NameIDPolicyImpl;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import java.util.List;
 
 public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
     AuthnRequest authnReq;
+    String queryString;
+
 
     public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq) throws IdentityException {
         this.authnReq = authnReq;
+    }
+
+    public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq, String queryString) throws IdentityException {
+
+        this.authnReq = authnReq;
+        this.queryString = queryString;
     }
 
     /**
@@ -55,6 +66,13 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             SAMLSSOReqValidationResponseDTO validationResponse = new SAMLSSOReqValidationResponseDTO();
             Issuer issuer = authnReq.getIssuer();
             Subject subject = authnReq.getSubject();
+            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            if (StringUtils.isEmpty(tenantDomain)) {
+                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Request  of the Issuer :" + issuer + " of tenant domain:" + tenantDomain);
+            }
 
             // Validate the version
             if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
@@ -69,7 +87,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
-            // Request issue time validation enabled
+            // Request issue time validation enabled.
             if (SAMLSSOUtil.isSAMLAuthenticationRequestValidityPeriodEnabled()) {
                 String issueInstantInvalidationErrorMessage = validateRequestIssueInstant();
                 if (issueInstantInvalidationErrorMessage != null) {
@@ -82,7 +100,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 }
             }
 
-            // Issuer MUST NOT be null
+            // Issuer MUST NOT be null.
             if (StringUtils.isNotBlank(issuer.getValue())) {
                 validationResponse.setIssuer(issuer.getValue());
             } else if (StringUtils.isNotBlank(issuer.getSPProvidedID())) {
@@ -96,6 +114,83 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
+            }
+
+            // Check whether SP is registered or not.
+            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(validationResponse
+                    .getIssuer(), tenantDomain);
+            if (serviceProviderConfigs == null) {
+                String msg = "A Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is not " +
+                        "registered. Service Provider should be registered in advance.";
+                String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
+                        authnReq.getAssertionConsumerServiceURL() );
+                log.warn(msg);
+                validationResponse.setResponse(errorResp);
+                validationResponse.setValid(false);
+                return validationResponse;
+            }
+
+            // Validate signature if request signature validation enabled.
+            if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
+                List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(serviceProviderConfigs
+                        .getTenantDomain());
+                if (authnReq.getDestination() == null
+                        || !idpUrlSet.contains(authnReq.getDestination())) {
+                    String msg = "Destination validation for Authentication Request failed. " +
+                            "Received: [" + authnReq.getDestination() + "]." +
+                            " Expected one in the list: [" + StringUtils.join(idpUrlSet, ',') + "]";
+                    log.warn(msg);
+                    String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                            msg, authnReq.getAssertionConsumerServiceURL());
+                    validationResponse.setResponse(errorResp);
+                    validationResponse.setValid(false);
+                    return validationResponse;
+                }
+
+                // Check whether certificate is expired or not before the signature validation.
+                boolean isCertificateExpired = false;
+                if (SAMLSSOUtil.isSpCertificateExpiryValidationEnabled()) {
+                    isCertificateExpired = SAMLSSOUtil.isCertificateExpired(serviceProviderConfigs.getX509Certificate());
+                }
+                if (isCertificateExpired) {
+                    String msg = "The Signature validation validation failed as the SP certificate is expired, of " +
+                            "Issuer" + " :" + validationResponse.getIssuer() + " and tenantDomain:" + tenantDomain;
+                    String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                            msg, authnReq.getAssertionConsumerServiceURL());
+                    validationResponse.setResponse(errorResp);
+                    validationResponse.setValid(false);
+                    return validationResponse;
+                }
+
+                // Validate signature.
+                boolean isSignatureValid = SAMLSSOUtil.isSignatureValid(authnReq, queryString, validationResponse
+                        .getIssuer(), serviceProviderConfigs.getX509Certificate());
+                if (!isSignatureValid) {
+                    String msg = "Signature validation for Authentication Request failed for the request of Issuer :" +
+                            validationResponse.getIssuer() + " in tenantDomain:" + tenantDomain;
+                    log.warn(msg);
+                    String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                            msg, authnReq.getAssertionConsumerServiceURL());
+                    validationResponse.setResponse(errorResp);
+                    validationResponse.setValid(false);
+                    return validationResponse;
+                }
+
+            } else {
+                // Validate the assertion consumer url,  only if request is not signed.
+                String acsUrl = authnReq.getAssertionConsumerServiceURL();
+                if (StringUtils.isBlank(acsUrl) || !serviceProviderConfigs.getAssertionConsumerUrlList().contains
+                        (acsUrl)) {
+                    String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
+                            "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
+                            "'. Possibly " + "an attempt for a spoofing attack";
+                    log.error(msg);
+                    String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
+                            msg, authnReq.getAssertionConsumerServiceURL());
+                    validationResponse.setResponse(errorResp);
+                    validationResponse.setValid(false);
+                    return validationResponse;
+                }
             }
 
             String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
@@ -206,25 +301,25 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
      */
     private String validateRequestIssueInstant() {
 
-            DateTime validFrom = authnReq.getIssueInstant();
-            if (validFrom == null) {
-                return "IssueInstant time is not valid.";
-            }
-            DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSAMLAuthenticationRequestValidityPeriod());
-            int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
-
-            if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
-                return "The request IssueInstant time is 'Not Before'";
-            }
-
-            if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
-                return "The request IssueInstant time is  'Not On Or After'";
-            }
-
-            if (validTill != null && validFrom.isAfter(validTill)) {
-                return "The request IssueInstant time is  'Not On Or After'";
-            }
-
-            return null;
+        DateTime validFrom = authnReq.getIssueInstant();
+        if (validFrom == null) {
+            return "IssueInstant time is not valid.";
         }
+        DateTime validTill = validFrom.plusSeconds(SAMLSSOUtil.getSAMLAuthenticationRequestValidityPeriod());
+        int timeStampSkewInSeconds = IdentityUtil.getClockSkewInSeconds();
+
+        if (validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
+            return "The request IssueInstant time is 'Not Before'";
+        }
+
+        if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
+            return "The request IssueInstant time is  'Not On Or After'";
+        }
+
+        if (validTill != null && validFrom.isAfter(validTill)) {
+            return "The request IssueInstant time is  'Not On Or After'";
+        }
+
+        return null;
+    }
 }

@@ -97,7 +97,7 @@ public class SAMLSSOService {
 
         if (request instanceof AuthnRequest) {
             SSOAuthnRequestValidator authnRequestValidator =
-                    SAMLSSOUtil.getSPInitSSOAuthnRequestValidator((AuthnRequest) request);
+                    SAMLSSOUtil.getSPInitSSOAuthnRequestValidator((AuthnRequest) request, queryString);
             validationResp = authnRequestValidator.validate();
             validationResp.setRequestMessageString(samlReq);
             validationResp.setQueryString(queryString);

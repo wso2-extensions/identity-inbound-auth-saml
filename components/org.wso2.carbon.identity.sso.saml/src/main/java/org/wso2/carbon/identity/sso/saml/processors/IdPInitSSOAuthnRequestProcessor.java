@@ -48,7 +48,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
         try {
-            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
+            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(authnReqDTO
+                    .getIssuer(), authnReqDTO.getTenantDomain());
 
 
             if (serviceProviderConfigs == null) {

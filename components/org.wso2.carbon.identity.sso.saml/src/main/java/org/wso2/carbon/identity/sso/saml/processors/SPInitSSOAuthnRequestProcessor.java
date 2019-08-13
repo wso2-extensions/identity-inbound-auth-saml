@@ -51,7 +51,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
 
         try {
-            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
+            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(authnReqDTO
+                    .getIssuer(), authnReqDTO.getTenantDomain());
 
             if (serviceProviderConfigs == null) {
                 String msg =
@@ -72,46 +73,6 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
             // reading the service provider configs
             populateServiceProviderConfigs(serviceProviderConfigs, authnReqDTO);
-
-            if (authnReqDTO.isDoValidateSignatureInRequests()) {
-
-
-                List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(authnReqDTO.getTenantDomain());
-
-                if (authnReqDTO.getDestination() == null
-                        || !idpUrlSet.contains(authnReqDTO.getDestination())) {
-                    String msg = "Destination validation for Authentication Request failed. " +
-                            "Received: [" + authnReqDTO.getDestination() + "]." +
-                            " Expected one in the list: [" + StringUtils.join(idpUrlSet, ',') + "]";
-                    log.warn(msg);
-                    return buildErrorResponse(authnReqDTO.getId(),
-                            SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
-                }
-
-                // validate the signature
-                boolean isSignatureValid = SAMLSSOUtil.validateAuthnRequestSignature(authnReqDTO,
-                        serviceProviderConfigs.getX509Certificate());
-
-                if (!isSignatureValid) {
-                    String msg = "Signature validation for Authentication Request failed.";
-                    log.warn(msg);
-                    return buildErrorResponse(authnReqDTO.getId(),
-                            SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
-                }
-            } else {
-                //Validate the assertion consumer url,  only if request is not signed.
-                String acsUrl = authnReqDTO.getAssertionConsumerURL();
-                if (StringUtils.isBlank(acsUrl) || !serviceProviderConfigs.getAssertionConsumerUrlList().contains
-                        (acsUrl)) {
-                    String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
-                            "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
-                            "'. Possibly " + "an attempt for a spoofing attack";
-                    log.error(msg);
-                    return buildErrorResponse(authnReqDTO.getId(),
-                            SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, acsUrl);
-                }
-            }
-
             // if subject is specified in AuthnRequest only that user should be
             // allowed to logged-in
             if (authnReqDTO.getSubject() != null && authnReqDTO.getUser() != null) {

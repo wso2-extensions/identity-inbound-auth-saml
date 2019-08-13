@@ -30,6 +30,7 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
@@ -41,6 +42,9 @@ import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProces
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -117,13 +121,21 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
                                                            boolean isPost) throws Exception {
 
         SAMLSSOUtil.doBootstrap();
-
+        SAMLSSOServiceProviderDO mockserviceProviderConfigs = new SAMLSSOServiceProviderDO();
+        mockserviceProviderConfigs.setIssuer(TestConstants.SP_ENTITY_ID);
+        mockserviceProviderConfigs.setAssertionConsumerUrl(TestConstants.ACS_URL);
+        mockserviceProviderConfigs.setDoValidateSignatureInRequests(false);
+        List<String> acsUrls = new ArrayList<>();
+        acsUrls.add(TestConstants.ACS_URL);
+        acsUrls.add(TestConstants.RETURN_TO_URL);
+        mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
-        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class), any(String.class))).thenCallRealMethod();
         when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
+        when(SAMLSSOUtil.getServiceProviderConfig(anyString(), anyString())).thenReturn(mockserviceProviderConfigs);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
