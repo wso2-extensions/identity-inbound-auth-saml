@@ -20,10 +20,10 @@ package org.wso2.carbon.identity.sso.saml.builders;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.core.Response;
+import org.opensaml.saml.common.SAMLVersion;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
@@ -80,7 +80,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             assertion = SAMLSSOUtil.buildSAMLAssertion(authReqDTO, notOnOrAfter, sessionId);
         }
 
-        Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
+        Response response = new org.opensaml.saml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
         response.setID(SAMLSSOUtil.createID());
         if (!authReqDTO.isIdPInitSSOEnabled()) {
@@ -128,7 +128,7 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             log.debug("Building SAML Response for the consumer '"
                     + authReqDTO.getAssertionConsumerURL() + "'");
         }
-        Response response = new org.opensaml.saml2.core.impl.ResponseBuilder().buildObject();
+        Response response = new org.opensaml.saml.saml2.core.impl.ResponseBuilder().buildObject();
         response.setIssuer(SAMLSSOUtil.getIssuer());
         response.setID(SAMLSSOUtil.createID());
         response.setInResponseTo(authReqDTO.getId());

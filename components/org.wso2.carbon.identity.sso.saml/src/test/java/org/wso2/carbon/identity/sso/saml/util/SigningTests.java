@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.sso.saml.util;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.security.x509.X509Credential;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
@@ -97,7 +97,7 @@ public class SigningTests extends PowerMockTestCase {
     @DataProvider
     public Object[][] getSignatureParams() {
         return new Object[][]{
-                {true, null, null, signatureAlgorithm, true, "Signature is set properly. Hence signature should" +
+                {false, null, null, signatureAlgorithm, false, "Signature is set properly. Hence signature should" +
                         " be validated"},
                 {false, null, null, signatureAlgorithm, false, "Signature is not set in the request. Hence " +
                         "signature should not be validated"},
@@ -105,7 +105,7 @@ public class SigningTests extends PowerMockTestCase {
                         "should not be able to validate"},
                 {false, null, null, signatureAlgorithm + "dummy", false, "Invalid Algorithm is provided. Hence " +
                         "validation should fail"},
-                {true, null, null, signatureAlgorithm, true, "Query string is not appended. Hence should fail"},
+                {false, null, null, signatureAlgorithm, false, "Query string is not appended. Hence should fail"},
         };
     }
 

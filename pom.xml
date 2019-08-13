@@ -152,18 +152,43 @@
 
             <!--Start of SAML3 Dependencies-->
             <dependency>
+                <groupId>org.wso2.orbit.org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+                <version>${opensaml2.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-core</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-saml-api</artifactId>
+                <artifactId>opensaml-soap-api</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-saml-impl</artifactId>
+                <artifactId>opensaml-soap-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-profile-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-profile-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
@@ -178,15 +203,57 @@
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-soap-api</artifactId>
+                <artifactId>opensaml-security-api</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-soap-impl</artifactId>
+                <artifactId>opensaml-storage-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-storage-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xacml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xacml-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xacml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xacml-saml-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xmlsec-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xmlsec-impl</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <!--End of SAML3 Dependencies-->
+            <!--Start of Shibboleth Dependencies-->
+            <dependency>
+                <groupId>net.shibboleth.utilities</groupId>
+                <artifactId>java-support</artifactId>
+                <version>${shibboleth.version}</version>
+            </dependency>
+            <!--End of Shibboleth Dependencies-->
 
             <dependency>
                 <groupId>org.wso2.orbit.joda-time</groupId>
@@ -307,11 +374,6 @@
     </dependencyManagement>
 
     <repositories>
-
-        <!--<repository>-->
-        <!--<id>shib-release</id>-->
-        <!--<url>https://build.shibboleth.net/nexus/content/repositories/releases</url>-->
-        <!--</repository>-->
 
         <repository>
             <id>wso2-nexus</id>
@@ -479,8 +541,9 @@
 
         <carbon.kernel.version>4.5.0</carbon.kernel.version>
         <carbon.kernel.feature.version>4.5.0</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>5.14.67</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.14.67, 6.0.0)
+        <carbon.identity.framework.version>5.14.0</carbon.identity.framework.version>
+        <!--<carbon.identity.framework.version>5.14.8-SNAPSHOT</carbon.identity.framework.version>-->
+        <carbon.identity.framework.imp.pkg.version.range>[5.14.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
@@ -526,6 +589,10 @@
         <opensaml.version>3.2.0</opensaml.version>
         <opensaml2.wso2.version>3.2.0.wso2v1</opensaml2.wso2.version>
         <!--End of SAML3 properties-->
+
+        <!--Start of Shibboleth properties-->
+        <shibboleth.version>7.3.0</shibboleth.version>
+        <!--End of Shibboleth properties-->
 
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>

@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.sso.saml.util;
 
 import org.mockito.Mock;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;

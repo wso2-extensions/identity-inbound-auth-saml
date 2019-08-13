@@ -18,23 +18,27 @@
 package org.wso2.carbon.identity.sso.saml.builders.signature;
 
 import org.apache.xml.security.c14n.Canonicalizer;
-import org.opensaml.common.impl.SAMLObjectContentReference;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.common.SAMLObjectContentReference;
+import org.opensaml.saml.config.SAMLConfigurationInitializer;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.XMLObjectBuilder;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallerFactory;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.SignableXMLObject;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureException;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Certificate;
-import org.opensaml.xml.signature.X509Data;
-import org.opensaml.xml.validation.ValidationException;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilder;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
+import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.SignableXMLObject;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
+import org.opensaml.xmlsec.signature.support.Signer;
+import org.opensaml.xmlsec.signature.X509Certificate;
+import org.opensaml.xmlsec.signature.X509Data;
+// import org.opensaml.xml.validation.ValidationException; // Not Sure
 import org.wso2.carbon.identity.base.IdentityException;
 
 import javax.xml.namespace.QName;
@@ -62,10 +66,16 @@ public class DefaultSSOSigner implements SSOSigner {
 
         if (request.getSignature() != null) {
             try {
-                SignatureValidator validator = new SignatureValidator(cred);
-                validator.validate(request.getSignature());
+//                SignatureValidator validator = new SignatureValidator(cred);
+//                validator.validate(request.getSignature());
+                SignatureValidator.validate(request.getSignature(), cred);
                 isSignatureValid = true;
-            } catch (ValidationException e) {
+            }
+//            catch (ValidationException e) {
+//                throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
+//                        "invalid.", e);
+//            }
+            catch (SignatureException e) {
                 throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
                         "invalid.", e);
             }
@@ -104,7 +114,7 @@ public class DefaultSSOSigner implements SSOSigner {
         List<Signature> signatureList = new ArrayList<Signature>();
         signatureList.add(signature);
 
-        MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+        MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport.getMarshallerFactory();
         Marshaller marshaller = marshallerFactory.getMarshaller(signableXMLObject);
 
         try {
@@ -132,7 +142,7 @@ public class DefaultSSOSigner implements SSOSigner {
      */
     private XMLObject buildXMLObject(QName objectQName) throws IdentityException {
         XMLObjectBuilder builder =
-                org.opensaml.xml.Configuration.getBuilderFactory()
+                XMLObjectProviderRegistrySupport.getBuilderFactory()
                         .getBuilder(objectQName);
         if (builder == null) {
             throw IdentityException.error("Unable to retrieve builder for object QName " +

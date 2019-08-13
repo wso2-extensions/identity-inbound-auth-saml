@@ -18,21 +18,27 @@
 package org.wso2.carbon.identity.sso.saml.builders.encryption;
 
 import org.apache.xml.security.utils.Base64;
-import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.encryption.Encrypter;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.XMLObjectBuilder;
-import org.opensaml.xml.encryption.EncryptionParameters;
-import org.opensaml.xml.encryption.KeyEncryptionParameters;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.keyinfo.StaticKeyInfoGenerator;
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.X509Certificate;
-import org.opensaml.xml.signature.X509Data;
+// import org.opensaml.Configuration;  Previous Version (New Version Below)
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.encryption.Encrypter;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilder;
+import org.opensaml.security.crypto.JCAConstants;
+import org.opensaml.security.crypto.KeySupport;
+import org.opensaml.xmlsec.EncryptionParameters; // Previous Version (New Version Below)
+import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
+import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
+import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
+// import org.opensaml.xml.security.SecurityHelper;  Previous Version (New Version CredentialSupport, KeySupport)
+import org.opensaml.security.credential.CredentialSupport;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoGenerator;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.X509Certificate;
+import org.opensaml.xmlsec.signature.X509Data;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
@@ -50,11 +56,16 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
     public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String encryptionAlgorithm) throws IdentityException {
         try {
 
-            Credential symmetricCredential = SecurityHelper.getSimpleCredential(
-                    SecurityHelper.generateSymmetricKey(IdentityApplicationManagementUtil
-                            .getAssertionEncryptionAlgorithmURIByConfig()));
+//            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
+//                    KeySupport.generateKey(IdentityApplicationManagementUtil
+//                            .getAssertionEncryptionAlgorithmURIByConfig(), 1024, null));
 
-            EncryptionParameters encParams = new EncryptionParameters();
+            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
+                    KeySupport.generateKey(JCAConstants.KEY_ALGO_AES,
+                            256,null));
+
+
+            DataEncryptionParameters encParams = new DataEncryptionParameters();
             encParams.setAlgorithm(IdentityApplicationManagementUtil
                     .getAssertionEncryptionAlgorithmURIByConfig());
             encParams.setEncryptionCredential(symmetricCredential);
@@ -79,10 +90,14 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             assertionEncryptionAlgorithm, String keyEncryptionAlgorithm) throws IdentityException {
         try {
 
-            Credential symmetricCredential = SecurityHelper.getSimpleCredential(
-                    SecurityHelper.generateSymmetricKey(assertionEncryptionAlgorithm));
+//            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
+//                    KeySupport.generateKey(assertionEncryptionAlgorithm,1024, null)); // Need to be changed
 
-            EncryptionParameters encParams = new EncryptionParameters();
+            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
+                    KeySupport.generateKey(JCAConstants.KEY_ALGO_AES,
+                            256,null));
+
+            DataEncryptionParameters encParams = new DataEncryptionParameters();
             encParams.setAlgorithm(assertionEncryptionAlgorithm);
             encParams.setEncryptionCredential(symmetricCredential);
 
@@ -126,7 +141,7 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
      */
     private XMLObject buildXMLObject(QName objectQName) throws IdentityException {
 
-        XMLObjectBuilder builder = Configuration.getBuilderFactory().getBuilder(objectQName);
+        XMLObjectBuilder builder = XMLObjectProviderRegistrySupport.getBuilderFactory().getBuilder(objectQName);
         if (builder == null) {
             throw IdentityException.error("Unable to retrieve builder for object QName " + objectQName);
         }

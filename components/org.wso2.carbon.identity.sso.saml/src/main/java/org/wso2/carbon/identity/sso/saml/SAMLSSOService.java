@@ -17,11 +17,11 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
-import org.opensaml.saml2.common.Extensions;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.LogoutRequest;
-import org.opensaml.saml2.core.RequestAbstractType;
-import org.opensaml.xml.XMLObject;
+import org.opensaml.saml.saml2.core.Extensions;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.opensaml.core.xml.XMLObject;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.utils.Base64;
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Assertion;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.builders.assertion.ExtendedDefaultAssertionBuilder;

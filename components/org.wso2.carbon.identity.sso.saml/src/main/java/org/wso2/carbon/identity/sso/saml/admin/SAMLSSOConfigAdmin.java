@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.sso.saml.admin;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.saml1.core.NameIdentifier;
+import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;

@@ -23,14 +23,15 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mockito.Mock;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.impl.ResponseBuilder;
-import org.opensaml.xml.security.x509.X509Credential;
+// import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.saml.common.SAMLVersion;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.AuthnStatement;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.impl.ResponseBuilder;
+import org.opensaml.security.x509.X509Credential;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
@@ -223,7 +224,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     public void getSPInitSSOAuthnRequestValidator(String spInitSSOAuthnReqValidator, String message) throws Exception {
 
         SAMLSSOUtil.setSPInitSSOAuthnRequestValidator(spInitSSOAuthnReqValidator);
-        DefaultBootstrap.bootstrap();
+        InitializationService.initialize();
         AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false,
                 false, HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
         SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(
@@ -236,7 +237,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
         SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators" +
                 ".NonExistingClass");
-        DefaultBootstrap.bootstrap();
+        InitializationService.initialize();
         AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
                 HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
         SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator
@@ -248,7 +249,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     public void getSPInitValidatorWithNonExistingClass() throws Exception {
 
         SAMLSSOUtil.setSPInitSSOAuthnRequestValidator("org.wso2.carbon.identity.sso.saml.validators.NonExistingClass");
-        DefaultBootstrap.bootstrap();
+        InitializationService.initialize();
         AuthnRequest authnRequest = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
                 "GET", TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
         SSOAuthnRequestValidator spInitSSOAuthnRequestValidator = SAMLSSOUtil.getSPInitSSOAuthnRequestValidator

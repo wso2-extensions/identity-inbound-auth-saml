@@ -24,19 +24,21 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 import org.joda.time.DateTime;
-import org.opensaml.Configuration;
-import org.opensaml.common.SAMLObjectBuilder;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.ArtifactResolve;
-import org.opensaml.saml2.core.ArtifactResponse;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Status;
-import org.opensaml.saml2.core.StatusCode;
-import org.opensaml.xml.XMLObjectBuilderFactory;
-import org.opensaml.xml.security.x509.BasicX509Credential;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.impl.SignatureImpl;
-import org.opensaml.xml.validation.ValidationException;
+// import org.opensaml.Configuration; Previous Version (New Version Below)
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.common.SAMLObjectBuilder;
+import org.opensaml.saml.common.SAMLVersion;
+import org.opensaml.saml.saml2.core.ArtifactResolve;
+import org.opensaml.saml.saml2.core.ArtifactResponse;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Status;
+import org.opensaml.saml.saml2.core.StatusCode;
+import org.opensaml.core.xml.XMLObjectBuilderFactory;
+import org.opensaml.security.x509.BasicX509Credential;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
+import org.opensaml.xmlsec.signature.impl.SignatureImpl;
+// import org.opensaml.xml.validation.ValidationException; // Not Sure
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
@@ -181,12 +183,26 @@ public class SAMLSSOArtifactResolver {
         }
 
         try {
-            BasicX509Credential credential = new BasicX509Credential();
-            credential.setEntityCertificate(serviceProviderDO.getX509Certificate());
-            SignatureValidator validator = new SignatureValidator(credential);
-            validator.validate(signImpl);
+//            BasicX509Credential credential = new BasicX509Credential();
+//            credential.setEntityCertificate(serviceProviderDO.getX509Certificate());
+            BasicX509Credential credential = new BasicX509Credential(serviceProviderDO.getX509Certificate());
+//            SignatureValidator validator = new SignatureValidator(credential);
+//            validator.validate(signImpl);
+            SignatureValidator.validate(signImpl, credential);
             return true;
-        } catch (ValidationException e) {
+        }
+//        catch (ValidationException e) {
+//            String message = "Signature validation failed for SAML2 Artifact Resolve with artifact: " +
+//                    artifactResolve.getArtifact().getArtifact() + " issuer: " +
+//                    artifactResolve.getIssuer().getValue();
+//            log.warn(message);
+//            // Logging the error only in debug mode since this is an open endpoint.
+//            if (log.isDebugEnabled()) {
+//                log.debug(message, e);
+//            }
+//            return false;
+//        }
+        catch (SignatureException e) {
             String message = "Signature validation failed for SAML2 Artifact Resolve with artifact: " +
                     artifactResolve.getArtifact().getArtifact() + " issuer: " +
                     artifactResolve.getIssuer().getValue();
@@ -211,7 +227,7 @@ public class SAMLSSOArtifactResolver {
     private ArtifactResponse buildArtifactResponse(Response response, ArtifactResolve artifactResolve,
                                                    SAML2ArtifactInfo artifactInfo) throws IdentityException {
 
-        XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
+        XMLObjectBuilderFactory builderFactory = XMLObjectProviderRegistrySupport.getBuilderFactory();
         SAMLObjectBuilder<ArtifactResponse> artifactResolveBuilder =
                 (SAMLObjectBuilder<ArtifactResponse>) builderFactory.getBuilder(ArtifactResponse.DEFAULT_ELEMENT_NAME);
         ArtifactResponse artifactResponse = artifactResolveBuilder.buildObject();
@@ -226,7 +242,7 @@ public class SAMLSSOArtifactResolver {
         SAMLObjectBuilder<StatusCode> statusCodeBuilder =
                 (SAMLObjectBuilder<StatusCode>) builderFactory.getBuilder(StatusCode.DEFAULT_ELEMENT_NAME);
         StatusCode statusCode = statusCodeBuilder.buildObject();
-        statusCode.setValue(StatusCode.SUCCESS_URI);
+        statusCode.setValue(StatusCode.SUCCESS);
         SAMLObjectBuilder<Status> statusBuilder =
                 (SAMLObjectBuilder<Status>) builderFactory.getBuilder(Status.DEFAULT_ELEMENT_NAME);
         Status status = statusBuilder.buildObject();

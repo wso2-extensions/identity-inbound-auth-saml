@@ -22,20 +22,24 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.Configuration;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.encryption.Decrypter;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.encryption.DecryptionException;
-import org.opensaml.xml.encryption.EncryptedKey;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
-import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.X509Credential;
+// import org.opensaml.Configuration; Previous Version (New Version Below)
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.encryption.Decrypter;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.xmlsec.encryption.support.DecryptionException;
+import org.opensaml.xmlsec.encryption.EncryptedKey;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+// import org.opensaml.xml.security.SecurityHelper; Previous Version (New Version Below)
+import org.opensaml.security.credential.CredentialSupport;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.xmlsec.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
+import org.opensaml.security.x509.X509Credential;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -74,6 +78,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 public class TestUtils {
 
+    private static boolean isBootStrapped = false;
     private static final Log log = LogFactory.getLog(TestUtils.class);
 
     public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
@@ -135,7 +140,7 @@ public class TestUtils {
         EncryptedKey key = encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
         SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().
                 getEncryptionMethod().getAlgorithm());
-        Credential shared = SecurityHelper.getSimpleCredential(dkey);
+        Credential shared = CredentialSupport.getSimpleCredential(dkey);
 
         decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), null, null);
         decrypter.setRootInNewDocument(true);
@@ -179,6 +184,7 @@ public class TestUtils {
 
         InputStream inputStream = null;
         try {
+            doBootstrap();
             File file = new File(elementFile);
             String str = FileUtils.readFileToString(file, "UTF-8");
             DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
@@ -186,7 +192,7 @@ public class TestUtils {
             inputStream = new ByteArrayInputStream(str.trim().getBytes(StandardCharsets.UTF_8));
             Document document = docBuilder.parse(inputStream);
             Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+            UnmarshallerFactory unmarshallerFactory = XMLObjectProviderRegistrySupport.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
             return unmarshaller.unmarshall(element);
         } catch (Exception e) {
@@ -232,5 +238,16 @@ public class TestUtils {
         }
         return soapMessage;
 
+    }
+
+    public static void doBootstrap() {
+        if (!isBootStrapped) {
+            try {
+                InitializationService.initialize();
+                isBootStrapped = true;
+            } catch (InitializationException e) {
+                log.error("Error in bootstrapping the OpenSAML2 library", e);
+            }
+        }
     }
 }

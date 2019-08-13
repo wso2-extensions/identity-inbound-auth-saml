@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.dao;
 
-import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Assertion;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 

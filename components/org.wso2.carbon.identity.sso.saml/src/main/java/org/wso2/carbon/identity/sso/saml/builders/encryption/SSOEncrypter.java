@@ -17,9 +17,9 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders.encryption;
 
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.identity.base.IdentityException;
 
 /**

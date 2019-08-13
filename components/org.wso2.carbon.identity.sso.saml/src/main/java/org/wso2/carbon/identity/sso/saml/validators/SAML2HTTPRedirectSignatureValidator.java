@@ -35,12 +35,12 @@ public interface SAML2HTTPRedirectSignatureValidator {
      * @param alias
      * @param domainName
      * @return
-     * @throws org.opensaml.xml.security.SecurityException
+     * @throws org.opensaml.security.SecurityException
      * @throws IdentitySAML2SSOException
      */
     @Deprecated
     public boolean validateSignature(String queryString, String issuer, String alias,
-                                     String domainName) throws org.opensaml.xml.security.SecurityException, IdentitySAML2SSOException;
+                                     String domainName) throws org.opensaml.security.SecurityException, IdentitySAML2SSOException;
 
     /**
      * Validates the signature of the given SAML request against the given signature.
@@ -49,8 +49,8 @@ public interface SAML2HTTPRedirectSignatureValidator {
      * @param issuer      Issuer of the SAML request
      * @param certificate Certificate for validating the signature
      * @return true if the signature is valid, false otherwise.
-     * @throws org.opensaml.xml.security.SecurityException if something goes wrong during signature validation.
+     * @throws org.opensaml.security.SecurityException if something goes wrong during signature validation.
      */
     boolean validateSignature(String queryString, String issuer, X509Certificate certificate)
-            throws org.opensaml.xml.security.SecurityException;
+            throws org.opensaml.security.SecurityException;
 }

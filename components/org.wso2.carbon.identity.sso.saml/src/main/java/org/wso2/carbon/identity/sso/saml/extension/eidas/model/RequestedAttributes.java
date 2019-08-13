@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml.extension.eidas.model;
 
-import org.opensaml.common.SAMLObject;
-import org.opensaml.saml2.metadata.RequestedAttribute;
+import org.opensaml.saml.common.SAMLObject;
+import org.opensaml.saml.saml2.metadata.RequestedAttribute;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.util.EidasConstants;
 
 import java.util.List;

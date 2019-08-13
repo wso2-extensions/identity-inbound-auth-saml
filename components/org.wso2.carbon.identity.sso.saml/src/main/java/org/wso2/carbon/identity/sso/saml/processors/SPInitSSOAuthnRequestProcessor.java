@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.sso.saml.processors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;

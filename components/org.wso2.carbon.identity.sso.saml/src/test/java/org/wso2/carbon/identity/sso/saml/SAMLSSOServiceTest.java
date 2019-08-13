@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.LogoutRequest;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;

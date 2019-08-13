@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.sso.saml.builders;
 
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 

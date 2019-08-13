@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.sso.saml.validators;
 
 import org.mockito.Mock;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.xml.XMLObject;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.core.xml.XMLObject;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
