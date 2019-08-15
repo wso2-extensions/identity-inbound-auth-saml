@@ -36,7 +36,7 @@ import java.util.List;
 
 public class ErrorResponseBuilder {
 
-    private static Log log = LogFactory.getLog(ErrorResponseBuilder.class);
+    private static final Log log = LogFactory.getLog(ErrorResponseBuilder.class);
     private Response response;
 
     //Do the bootstrap first

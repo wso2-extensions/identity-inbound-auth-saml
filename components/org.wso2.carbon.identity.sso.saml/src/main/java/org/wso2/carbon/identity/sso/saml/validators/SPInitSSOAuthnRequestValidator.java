@@ -39,7 +39,7 @@ import java.util.List;
 
 public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
-    private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
+    private static final Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
     AuthnRequest authnReq;
     String queryString;
 

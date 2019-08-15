@@ -49,7 +49,7 @@ import java.nio.charset.StandardCharsets;
 
 public class ErrorResponseBuilder {
 
-    private static Log log = LogFactory.getLog(ErrorResponseBuilder.class);
+    private static final Log log = LogFactory.getLog(ErrorResponseBuilder.class);
 
     //Do the bootstrap first
     static {

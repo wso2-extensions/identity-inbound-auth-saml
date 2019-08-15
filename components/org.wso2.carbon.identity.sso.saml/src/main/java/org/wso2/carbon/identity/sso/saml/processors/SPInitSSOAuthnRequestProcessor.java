@@ -45,7 +45,7 @@ import java.util.List;
 
 public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
-    private static Log log = LogFactory.getLog(SPInitSSOAuthnRequestProcessor.class);
+    private static final Log log = LogFactory.getLog(SPInitSSOAuthnRequestProcessor.class);
 
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {

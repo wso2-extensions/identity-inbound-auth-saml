@@ -122,7 +122,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class SAMLSSOProviderServlet extends HttpServlet {
 
     private static final long serialVersionUID = -5182312441482721905L;
-    private static Log log = LogFactory.getLog(SAMLSSOProviderServlet.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOProviderServlet.class);
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
 

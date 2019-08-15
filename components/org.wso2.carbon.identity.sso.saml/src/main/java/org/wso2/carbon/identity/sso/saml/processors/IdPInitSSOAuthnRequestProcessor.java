@@ -43,7 +43,7 @@ import java.util.List;
 
 public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
-    private static Log log = LogFactory.getLog(IdPInitSSOAuthnRequestProcessor.class);
+    private static final Log log = LogFactory.getLog(IdPInitSSOAuthnRequestProcessor.class);
 
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {

@@ -30,7 +30,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator{
 
-    private static Log log = LogFactory.getLog(IdPInitSSOAuthnRequestValidator.class);
+    private static final Log log = LogFactory.getLog(IdPInitSSOAuthnRequestValidator.class);
 
     private String spEntityID;
     private String acs;

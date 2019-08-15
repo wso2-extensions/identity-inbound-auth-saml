@@ -38,7 +38,7 @@ import java.util.Set;
 public class SSOSessionPersistenceManager {
 
     private static final int CACHE_TIME_OUT = 157680000;
-    private static Log log = LogFactory.getLog(SSOSessionPersistenceManager.class);
+    private static final Log log = LogFactory.getLog(SSOSessionPersistenceManager.class);
     private static SSOSessionPersistenceManager sessionPersistenceManager;
 
     public static SSOSessionPersistenceManager getPersistenceManager() {

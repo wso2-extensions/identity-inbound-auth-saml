@@ -36,7 +36,7 @@ public enum SSOServiceProviderConfigManager {
 
     INSTANCE;
 
-    private static Log log = LogFactory.getLog(SSOServiceProviderConfigManager.class);
+    private static final Log log = LogFactory.getLog(SSOServiceProviderConfigManager.class);
 
     // This map is used to store the service provider info against the issuer name
     private ConcurrentHashMap<String, SAMLSSOServiceProviderDO> serviceProviderMap;

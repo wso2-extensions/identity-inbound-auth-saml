@@ -57,7 +57,7 @@ import java.util.function.Function;
 
 public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProcessor {
 
-    private static Log log = LogFactory.getLog(SPInitLogoutRequestProcessor.class);
+    private static final Log log = LogFactory.getLog(SPInitLogoutRequestProcessor.class);
 
     private String defaultSigningAlgoUri = IdentityApplicationManagementUtil.getSigningAlgoURIByConfig();
     private String defaultDigestAlgoUri = IdentityApplicationManagementUtil.getDigestAlgoURIByConfig();

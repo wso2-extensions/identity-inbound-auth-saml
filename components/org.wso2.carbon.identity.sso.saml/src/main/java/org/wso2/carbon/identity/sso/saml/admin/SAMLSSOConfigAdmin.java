@@ -50,7 +50,7 @@ import java.security.cert.CertificateException;
  */
 public class SAMLSSOConfigAdmin {
 
-    private static Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
     private UserRegistry registry;
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {

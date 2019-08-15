@@ -48,7 +48,7 @@ import java.util.List;
  */
 public class QueryResponseBuilder {
 
-    private final static Log log = LogFactory.getLog(QueryResponseBuilder.class);
+    private static final Log log = LogFactory.getLog(QueryResponseBuilder.class);
 
     /**
      * @param assertions    List of assertions match with request

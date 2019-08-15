@@ -69,7 +69,7 @@ public class SignKeyDataHolder implements X509Credential {
     public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_ALIAS = "Security.SAMLSignKeyStore.KeyAlias";
     public static final String SECURITY_SAML_SIGN_KEY_STORE_KEY_PASSWORD = "Security.SAMLSignKeyStore.KeyPassword";
 
-    private final static Log log = LogFactory.getLog(SignKeyDataHolder.class);
+    private static final Log log = LogFactory.getLog(SignKeyDataHolder.class);
     private static final String DSA_ENCRYPTION_ALGORITHM = "DSA";
     private static KeyStore superTenantSignKeyStore = null;
 
