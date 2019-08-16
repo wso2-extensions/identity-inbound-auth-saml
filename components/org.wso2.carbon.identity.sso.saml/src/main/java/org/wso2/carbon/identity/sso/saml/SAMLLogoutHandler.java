@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class SAMLLogoutHandler extends AbstractEventHandler {
 
-    private static Log log = LogFactory.getLog(SAMLLogoutHandler.class);
+    private static final Log log = LogFactory.getLog(SAMLLogoutHandler.class);
 
     private SAMLSSOService samlSSOService = new SAMLSSOService();
 

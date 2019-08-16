@@ -150,7 +150,7 @@ import java.util.zip.InflaterInputStream;
 
 public class SAMLSSOUtil {
 
-    private static Log log = LogFactory.getLog(SAMLSSOUtil.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOUtil.class);
     private static final Set<Character> UNRESERVED_CHARACTERS = new HashSet<>();
     private static final ThreadLocal<Boolean> isSaaSApplication = new ThreadLocal<>();
     private static final ThreadLocal<String> userTenantDomainThreadLocal = new ThreadLocal<>();

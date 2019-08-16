@@ -41,7 +41,7 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
     /**
      * Standard log
      */
-    private final static Log log = LogFactory.getLog(AbstractSAMLQueryValidator.class);
+    private static final Log log = LogFactory.getLog(AbstractSAMLQueryValidator.class);
     /**
      * Issuer instance holder
      */

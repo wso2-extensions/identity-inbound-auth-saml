@@ -52,7 +52,7 @@ public class SAMLSubjectQueryProcessor implements SAMLQueryProcessor {
     /**
      * Standard logging
      */
-    final static Log log = LogFactory.getLog(SAMLSubjectQueryProcessor.class);
+    private static final Log log = LogFactory.getLog(SAMLSubjectQueryProcessor.class);
 
     /**
      * This method used to generate response object according to subject

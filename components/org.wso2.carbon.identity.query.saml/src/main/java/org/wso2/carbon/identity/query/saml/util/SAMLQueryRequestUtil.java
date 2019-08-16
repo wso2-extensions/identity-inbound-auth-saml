@@ -101,7 +101,7 @@ import java.util.Map;
 
 public class SAMLQueryRequestUtil {
 
-    private final static Log log = LogFactory.getLog(SAMLQueryRequestUtil.class);
+    private static final Log log = LogFactory.getLog(SAMLQueryRequestUtil.class);
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean isBootstrapped = false;
 

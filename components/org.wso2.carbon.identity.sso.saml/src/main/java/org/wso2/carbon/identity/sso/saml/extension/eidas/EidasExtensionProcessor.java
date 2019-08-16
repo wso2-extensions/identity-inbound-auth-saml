@@ -60,7 +60,7 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
  * This class is used to process and validate the eIDAS SAML extensions.
  */
 public class EidasExtensionProcessor implements SAMLExtensionProcessor {
-    private static Log log = LogFactory.getLog(EidasExtensionProcessor.class);
+    private static final Log log = LogFactory.getLog(EidasExtensionProcessor.class);
     private static String errorMsg = "Mandatory Attribute not found.";
 
     /**

@@ -37,7 +37,7 @@ import org.wso2.carbon.user.core.service.RealmService;
         immediate = true)
 public class SAMLQueryServiceComponent {
 
-    private static Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
+    private static final Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
 
     private static RealmService realmservice = null;
 

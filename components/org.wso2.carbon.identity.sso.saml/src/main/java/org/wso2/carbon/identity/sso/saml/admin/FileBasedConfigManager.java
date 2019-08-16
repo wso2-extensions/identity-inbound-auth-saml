@@ -57,7 +57,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
  */
 public class FileBasedConfigManager {
 
-    private static Log log = LogFactory.getLog(FileBasedConfigManager.class);
+    private static final Log log = LogFactory.getLog(FileBasedConfigManager.class);
 
     private static volatile FileBasedConfigManager instance = null;
 

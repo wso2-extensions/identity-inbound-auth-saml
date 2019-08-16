@@ -44,7 +44,7 @@ public class SAMLAuthnQueryProcessor extends SAMLSubjectQueryProcessor {
     /**
      * Standard logging
      */
-    private final static Log log = LogFactory.getLog(SAMLAuthnQueryProcessor.class);
+    private static final Log log = LogFactory.getLog(SAMLAuthnQueryProcessor.class);
 
     /**
      * This method is used to process AuthnQuery request message and create response message

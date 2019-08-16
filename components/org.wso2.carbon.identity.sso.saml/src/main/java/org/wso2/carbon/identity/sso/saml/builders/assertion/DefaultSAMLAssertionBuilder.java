@@ -74,7 +74,7 @@ import java.util.regex.Pattern;
 
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
-    private static Log log = LogFactory.getLog(DefaultSAMLAssertionBuilder.class);
+    private static final Log log = LogFactory.getLog(DefaultSAMLAssertionBuilder.class);
 
     private String userAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
 

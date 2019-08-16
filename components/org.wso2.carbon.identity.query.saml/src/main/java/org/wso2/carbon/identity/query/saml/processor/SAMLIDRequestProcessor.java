@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class SAMLIDRequestProcessor implements SAMLQueryProcessor {
 
-    private final static Log log = LogFactory.getLog(SAMLIDRequestProcessor.class);
+    private static final Log log = LogFactory.getLog(SAMLIDRequestProcessor.class);
 
     /**
      * This process method is for requesting existing assertion from assertion store

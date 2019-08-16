@@ -49,7 +49,7 @@ import javax.xml.bind.Unmarshaller;
  */
 public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
 
-    private static Log log = LogFactory.getLog(SAMLApplicationMgtListener.class);
+    private static final Log log = LogFactory.getLog(SAMLApplicationMgtListener.class);
     public static final String SAMLSSO = "samlsso";
 
     @Override

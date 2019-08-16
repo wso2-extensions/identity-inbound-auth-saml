@@ -37,7 +37,7 @@ import java.sql.SQLException;
 
 public class DBUtil {
 
-    private static Log log = LogFactory.getLog(SAMLSSOUtil.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOUtil.class);
 
     private static final String SAML2_ASSERTION_STORE = "IDN_SAML2_ASSERTION_STORE";
     private static final String ASSERTION = "ASSERTION";

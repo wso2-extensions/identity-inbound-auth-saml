@@ -41,7 +41,7 @@ import java.util.Date;
  */
 public class DefaultResponseBuilder implements ResponseBuilder {
 
-    private static Log log = LogFactory.getLog(DefaultResponseBuilder.class);
+    private static final Log log = LogFactory.getLog(DefaultResponseBuilder.class);
 
     static {
         SAMLSSOUtil.doBootstrap();

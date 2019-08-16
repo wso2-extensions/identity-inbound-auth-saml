@@ -32,7 +32,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
  */
 public abstract class SSOAuthnRequestAbstractValidator implements SSOAuthnRequestValidator {
 
-    private static Log log = LogFactory.getLog(SSOAuthnRequestAbstractValidator.class);
+    private static final Log log = LogFactory.getLog(SSOAuthnRequestAbstractValidator.class);
 
     protected String splitAppendedTenantDomain(String issuer) throws UserStoreException, IdentityException {
 

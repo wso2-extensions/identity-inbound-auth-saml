@@ -58,7 +58,7 @@ import java.util.concurrent.Executors;
  */
 public class LogoutRequestSender {
 
-    private static Log log = LogFactory.getLog(LogoutRequestSender.class);
+    private static final Log log = LogFactory.getLog(LogoutRequestSender.class);
 
     private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
 

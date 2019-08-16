@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class SAMLSubjectQueryValidator extends AbstractSAMLQueryValidator {
 
-    private final static Log log = LogFactory.getLog(SAMLSubjectQueryValidator.class);
+    private static final Log log = LogFactory.getLog(SAMLSubjectQueryValidator.class);
 
     /**
      * This method is used to validate SubjectQuery super class

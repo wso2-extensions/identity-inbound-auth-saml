@@ -51,7 +51,7 @@ import javax.xml.transform.stream.StreamResult;
  */
 public class SAMLSOAPUtils {
 
-    private static Log log = LogFactory.getLog(SAMLSOAPUtils.class);
+    private static final Log log = LogFactory.getLog(SAMLSOAPUtils.class);
 
     /**
      *

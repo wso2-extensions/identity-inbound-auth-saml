@@ -46,7 +46,7 @@ import java.util.Collection;
 
 public class SAMLSSOConfigService extends AbstractAdmin {
 
-    private static Log log = LogFactory.getLog(SAMLSSOConfigService.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOConfigService.class);
 
 
     /**

@@ -74,7 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 public class TestUtils {
 
-    private static Log log = LogFactory.getLog(TestUtils.class);
+    private static final Log log = LogFactory.getLog(TestUtils.class);
 
     public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
 

@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
 
-    private static Log log = LogFactory.getLog(IdPInitLogoutRequestProcessor.class);
+    private static final Log log = LogFactory.getLog(IdPInitLogoutRequestProcessor.class);
 
     private String spEntityID;
     private String returnTo;

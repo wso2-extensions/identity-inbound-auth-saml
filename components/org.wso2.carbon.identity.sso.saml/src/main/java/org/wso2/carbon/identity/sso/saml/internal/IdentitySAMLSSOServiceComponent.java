@@ -67,7 +67,7 @@ import javax.servlet.Servlet;
          immediate = true)
 public class IdentitySAMLSSOServiceComponent {
 
-    private static Log log = LogFactory.getLog(IdentitySAMLSSOServiceComponent.class);
+    private static final Log log = LogFactory.getLog(IdentitySAMLSSOServiceComponent.class);
     private static int defaultSingleLogoutRetryCount = 5;
 
     private static ServerConfigurationService serverConfigurationService = null;

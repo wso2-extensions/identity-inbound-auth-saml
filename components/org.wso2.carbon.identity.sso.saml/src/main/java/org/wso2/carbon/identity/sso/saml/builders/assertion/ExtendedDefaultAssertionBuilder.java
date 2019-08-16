@@ -44,7 +44,7 @@ public class ExtendedDefaultAssertionBuilder extends DefaultSAMLAssertionBuilder
     /**
      * Standard login
      */
-    private final static Log log = LogFactory.getLog(ExtendedDefaultAssertionBuilder.class);
+    private static final Log log = LogFactory.getLog(ExtendedDefaultAssertionBuilder.class);
 
     /**
      * This method is used to initialize

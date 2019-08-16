@@ -47,7 +47,7 @@ import java.util.List;
 
 public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedirectSignatureValidator {
 
-    private final static Log log = LogFactory.getLog(SAML2HTTPRedirectDeflateSignatureValidator.class);
+    private static final Log log = LogFactory.getLog(SAML2HTTPRedirectDeflateSignatureValidator.class);
 
     /**
      * Build a criteria set suitable for input to the trust engine.

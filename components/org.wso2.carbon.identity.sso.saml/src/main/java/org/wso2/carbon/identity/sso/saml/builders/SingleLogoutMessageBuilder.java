@@ -45,7 +45,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 public class SingleLogoutMessageBuilder {
 
-    private static Log log = LogFactory.getLog(SingleLogoutMessageBuilder.class);
+    private static final Log log = LogFactory.getLog(SingleLogoutMessageBuilder.class);
 
     static {
         SAMLSSOUtil.doBootstrap();

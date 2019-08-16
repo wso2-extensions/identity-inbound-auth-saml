@@ -41,7 +41,7 @@ import java.util.List;
 
 public class SAMLSSOConfigServiceClient {
 
-    private static Log log = LogFactory.getLog(SAMLSSOConfigServiceClient.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOConfigServiceClient.class);
 
     private IdentitySAMLSSOConfigServiceStub stub;
 

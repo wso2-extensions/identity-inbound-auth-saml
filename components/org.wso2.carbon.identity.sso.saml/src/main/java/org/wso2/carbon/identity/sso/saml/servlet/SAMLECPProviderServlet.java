@@ -54,7 +54,7 @@ import javax.xml.transform.TransformerException;
 
 public class SAMLECPProviderServlet extends HttpServlet {
 
-    private static Log log = LogFactory.getLog(SAMLECPProviderServlet.class);
+    private static final Log log = LogFactory.getLog(SAMLECPProviderServlet.class);
 
     protected void doGet(HttpServletRequest httpServletRequest,
                          HttpServletResponse httpServletResponse) {
