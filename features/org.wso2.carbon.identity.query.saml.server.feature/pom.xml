@@ -66,7 +66,7 @@
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.query.saml</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.sso.saml.server:compatible:${identity.inbound.auth.saml.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.core:compatible:${carbon.identity.framework.version}</importFeatureDef>
                             </importFeatures>
