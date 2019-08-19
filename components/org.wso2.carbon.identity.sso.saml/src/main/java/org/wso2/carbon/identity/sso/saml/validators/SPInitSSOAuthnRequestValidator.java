@@ -179,8 +179,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             } else {
                 // Validate the assertion consumer url,  only if request is not signed.
                 String acsUrl = authnReq.getAssertionConsumerServiceURL();
-                if (StringUtils.isBlank(acsUrl) || !serviceProviderConfigs.getAssertionConsumerUrlList().contains
-                        (acsUrl)) {
+                if (StringUtils.isNotEmpty(acsUrl) && !serviceProviderConfigs.getAssertionConsumerUrlList()
+                        .contains(acsUrl)) {
                     String msg = "ALERT: Invalid Assertion Consumer URL value '" + acsUrl + "' in the " +
                             "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
                             "'. Possibly " + "an attempt for a spoofing attack";
