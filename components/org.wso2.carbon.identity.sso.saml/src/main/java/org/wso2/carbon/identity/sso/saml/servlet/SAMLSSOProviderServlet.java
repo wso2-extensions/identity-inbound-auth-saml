@@ -1085,7 +1085,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
         populateAuthnReqDTOWithCachedSessionEntry(authnReqDTO, sessionDTO);
-        populateAuthenticationContextClassRefResult(req, sessionDTO, authnReqDTO);
+        populateAuthenticationContextClassRefResult(authResult, sessionDTO, authnReqDTO);
 
         String tenantDomain = authnReqDTO.getTenantDomain();
         String issuer = authnReqDTO.getIssuer();
@@ -1213,15 +1213,17 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Reads the ACR from the framework and associate it to the ACR to be returned.
      *
-     * @param req         Original or wrapped HttpServletRequest
+     * @param authenticationResult  Authentication result object
      * @param sessionDTO  the SAML Session DTO
      * @param authnReqDTO the SAML Request DTO
      */
-    private void populateAuthenticationContextClassRefResult(HttpServletRequest req, SAMLSSOSessionDTO sessionDTO,
+    private void populateAuthenticationContextClassRefResult(AuthenticationResult authenticationResult,
+                                                             SAMLSSOSessionDTO sessionDTO,
                                                              SAMLSSOAuthnReqDTO authnReqDTO) {
 
-        SessionAuthHistory sessionAuthHistory = (SessionAuthHistory) req.getAttribute(
+        SessionAuthHistory sessionAuthHistory = (SessionAuthHistory) authenticationResult.getProperty(
                 FrameworkConstants.SESSION_AUTH_HISTORY);
+
         if (sessionAuthHistory != null && sessionAuthHistory.getSelectedAcrValue() != null) {
             if (log.isDebugEnabled()) {
                 log.debug(
