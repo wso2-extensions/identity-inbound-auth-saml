@@ -132,8 +132,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
 
             // Validate signature if request signature validation enabled.
             if (serviceProviderConfigs.isDoValidateSignatureInRequests()) {
-                List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(serviceProviderConfigs
-                        .getTenantDomain());
+                List<String> idpUrlSet = SAMLSSOUtil.getDestinationFromTenantDomain(tenantDomain);
                 if (authnReq.getDestination() == null
                         || !idpUrlSet.contains(authnReq.getDestination())) {
                     String msg = "Destination validation for Authentication Request failed. " +
