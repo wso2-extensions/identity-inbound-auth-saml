@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
@@ -33,6 +34,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.security.KeyStore;
+import java.security.Security;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -61,6 +63,8 @@ public class EncryptionTests extends PowerMockTestCase {
 
     @Test
     public void testSetEncryptedAssertionWithKeyEncryptionAlgorithm() throws Exception {
+
+        Security.addProvider(new BouncyCastleProvider()); // Check this
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();

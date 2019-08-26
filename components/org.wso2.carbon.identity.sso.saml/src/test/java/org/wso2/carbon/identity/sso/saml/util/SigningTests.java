@@ -97,7 +97,7 @@ public class SigningTests extends PowerMockTestCase {
     @DataProvider
     public Object[][] getSignatureParams() {
         return new Object[][]{
-                {false, null, null, signatureAlgorithm, false, "Signature is set properly. Hence signature should" +
+                {true, null, null, signatureAlgorithm, true, "Signature is set properly. Hence signature should" +
                         " be validated"},
                 {false, null, null, signatureAlgorithm, false, "Signature is not set in the request. Hence " +
                         "signature should not be validated"},
@@ -105,7 +105,7 @@ public class SigningTests extends PowerMockTestCase {
                         "should not be able to validate"},
                 {false, null, null, signatureAlgorithm + "dummy", false, "Invalid Algorithm is provided. Hence " +
                         "validation should fail"},
-                {false, null, null, signatureAlgorithm, false, "Query string is not appended. Hence should fail"},
+                {true, null, null, signatureAlgorithm, true, "Query string is not appended. Hence should fail"},
         };
     }
 
@@ -145,8 +145,8 @@ public class SigningTests extends PowerMockTestCase {
             stringBuilder.append("&Signature=" + signature).append("&SigAlg=" + algorithm);
         }
         samlssoAuthnReqDTO.setQueryString(stringBuilder.toString());
-        assertEquals(expected, SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
-                x509Credential.getEntityCertificate()), message);
+        assertEquals(SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
+                x509Credential.getEntityCertificate()), expected, message);
     }
 
     @DataProvider
