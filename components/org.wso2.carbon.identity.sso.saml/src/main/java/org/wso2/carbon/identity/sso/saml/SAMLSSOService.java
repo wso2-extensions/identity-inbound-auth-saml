@@ -216,29 +216,31 @@ public class SAMLSSOService {
                 .getPersistenceManager();
         String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
-        Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
-        Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
+        if (sessionInfoData != null) {
+            Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
+            Map<String, String> rpSessionsList = sessionInfoData.getRPSessionsList();
 
-        List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
+            List<SingleLogoutRequestDTO> singleLogoutReqDTOs = new ArrayList<>();
 
-        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
-            String key = entry.getKey();
-            SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
+            for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : sessionsList.entrySet()) {
+                String key = entry.getKey();
+                SAMLSSOServiceProviderDO serviceProviderDO = entry.getValue();
 
-            // If issuer is the logout request initiator, then not sending the logout request to the issuer.
-            if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()
-                    && !serviceProviderDO.isDoFrontChannelLogout()) {
-                SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
-                        sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
-                        serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
-                singleLogoutReqDTOs.add(logoutReqDTO);
+                // If issuer is the logout request initiator, then not sending the logout request to the issuer.
+                if (!key.equals(issuer) && serviceProviderDO.isDoSingleLogout()
+                        && !serviceProviderDO.isDoFrontChannelLogout()) {
+                    SingleLogoutRequestDTO logoutReqDTO = SAMLSSOUtil.createLogoutRequestDTO(serviceProviderDO,
+                            sessionInfoData.getSubject(key), sessionIndex, rpSessionsList.get(key),
+                            serviceProviderDO.getCertAlias(), serviceProviderDO.getTenantDomain());
+                    singleLogoutReqDTOs.add(logoutReqDTO);
+                }
             }
-        }
 
-        // Send logout requests to all session participants.
-        LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
-                new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
-        SAMLSSOUtil.removeSession(sessionId, issuer);
+            // Send logout requests to all session participants.
+            LogoutRequestSender.getInstance().sendLogoutRequests(singleLogoutReqDTOs.toArray(
+                    new SingleLogoutRequestDTO[singleLogoutReqDTOs.size()]));
+            SAMLSSOUtil.removeSession(sessionId, issuer);
+        }
     }
 
 }
