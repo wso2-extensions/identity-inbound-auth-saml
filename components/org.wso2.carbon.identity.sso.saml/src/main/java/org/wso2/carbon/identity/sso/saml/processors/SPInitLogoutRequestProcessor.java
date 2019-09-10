@@ -111,13 +111,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             String issuer = logoutRequest.getIssuer().getValue();
 
-            // Replace SP's issuer value with the actual issuer value in SAML SP registry.
-            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
-            if (issuerQualifier != null) {
-                issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer , issuerQualifier);
-                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
-            }
-
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
@@ -130,10 +123,18 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                         (sessionId);
             }
             SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+            issuer = getTenantAwareIssuer(issuer, sessionInfoData);
+
+            // Replace SP's issuer value with the actual issuer value in SAML SP registry.
+            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
+            if (issuerQualifier != null) {
+                issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer , issuerQualifier);
+                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
+            }
+
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
 
-            issuer = getTenantAwareIssuer(issuer, sessionInfoData);
             SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
 
 

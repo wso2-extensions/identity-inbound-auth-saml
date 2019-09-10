@@ -73,7 +73,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.setVersion(SAMLVersion.VERSION_11);
 
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
         assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
     }
@@ -85,15 +85,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         request.getIssuer().setValue(StringUtils.EMPTY);
         request.getIssuer().setSPProvidedID(StringUtils.EMPTY);
 
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
-        assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
-        assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
-    }
-
-    @Test
-    public void testValidateIssuerDoesNotExistError() throws Exception {
-
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(SAMLTestRequestBuilder.buildDefaultAuthnRequest(), false);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
         assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
     }
@@ -104,7 +96,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.getIssuer().setFormat("Invalid-Issuer-Format");
 
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
         assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
     }
@@ -122,7 +114,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
 
         request.setSubject(subjectImplExtend);
 
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertFalse(validationResp.isValid(), "Authentication request validation should give invalid.");
         assertNotNull(validationResp.getResponse(), "Authentication request validation response should not be null.");
     }
@@ -139,7 +131,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
 
         AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
         request.setAssertionConsumerServiceURL("http://localhost:8080/home.jsp");
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertFalse(validationResp.isValid(), "Authentication request validation should not valid");
         assertNull(validationResp.getId(), "Authentication request validation response will have no id");
         assertNull(validationResp.getAssertionConsumerURL(), "Authentication request validation response will have  ACS url");
@@ -153,7 +145,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     public void testValidateNoError() throws Exception {
 
         AuthnRequest request = SAMLTestRequestBuilder.buildDefaultAuthnRequest();
-        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request, true);
+        SAMLSSOReqValidationResponseDTO validationResp = executeValidate(request);
         assertTrue(validationResp.isValid(), "Authentication request validation should valid");
         assertEquals(validationResp.getId(), request.getID(), "Authentication request validation response should have" +
                 " the same ID as the request.");
@@ -188,7 +180,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         assertEquals(issuer, actualIssuer, "Should give the issuer without appended tenant domain.");
     }
 
-    private SAMLSSOReqValidationResponseDTO executeValidate (AuthnRequest request, boolean shouldMakeSAMLIssuerExist)
+    private SAMLSSOReqValidationResponseDTO executeValidate (AuthnRequest request)
             throws Exception {
 
         SAMLSSOUtil.doBootstrap();
@@ -208,7 +200,6 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
         when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIssuer()).thenReturn(new IssuerBuilder().buildObject());
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(shouldMakeSAMLIssuerExist);
         when(SAMLSSOUtil.getServiceProviderConfig(anyString(), anyString())).thenReturn(mockserviceProviderConfigs);
 
         return authnRequestValidator.validate();

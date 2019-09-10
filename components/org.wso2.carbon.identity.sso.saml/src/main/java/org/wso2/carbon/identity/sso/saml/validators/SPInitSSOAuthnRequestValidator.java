@@ -26,8 +26,6 @@ import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.Subject;
-import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -35,6 +33,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLAuthenticationContextClassRefDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+
 import java.util.List;
 
 public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
@@ -43,8 +42,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
     AuthnRequest authnReq;
     String queryString;
 
-
     public SPInitSSOAuthnRequestValidator(AuthnRequest authnReq) throws IdentityException {
+
         this.authnReq = authnReq;
     }
 
@@ -65,14 +64,6 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
         try {
             SAMLSSOReqValidationResponseDTO validationResponse = new SAMLSSOReqValidationResponseDTO();
             Issuer issuer = authnReq.getIssuer();
-            Subject subject = authnReq.getSubject();
-            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            if (StringUtils.isEmpty(tenantDomain)) {
-                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Validating SAML Request  of the Issuer :" + issuer + " of tenant domain:" + tenantDomain);
-            }
 
             // Validate the version
             if (!(SAMLVersion.VERSION_20.equals(authnReq.getVersion()))) {
@@ -116,18 +107,31 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
+            String issuerName = splitAppendedTenantDomain(issuer.getValue());
+
+            String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+
+            Subject subject = authnReq.getSubject();
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Request  of the Issuer :" + issuerName + " of tenant domain:" + tenantDomain);
+            }
+
             // Check whether SP is registered or not.
-            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(validationResponse
-                    .getIssuer(), tenantDomain);
+            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(issuerName,
+                    tenantDomain);
             if (serviceProviderConfigs == null) {
                 String msg = "A Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is not " +
                         "registered. Service Provider should be registered in advance.";
                 String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
-                        authnReq.getAssertionConsumerServiceURL() );
+                        authnReq.getAssertionConsumerServiceURL());
                 log.warn(msg);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
+            } else if (SAMLSSOUtil.getIssuerWithQualifierInThreadLocal() != null) {
+                // Validation response's Issuer is set to Issuer With Qualifier.
+                validationResponse.setIssuerQualifier(SAMLSSOUtil.getIssuerQualifier());
+                validationResponse.setIssuer(SAMLSSOUtil.getIssuerWithQualifierInThreadLocal());
             }
 
             // Validate signature if request signature validation enabled.
@@ -192,34 +196,6 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 }
             }
 
-            String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
-            String issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifier(validationResponse.getIssuer(), issuerQualifier);
-            if (issuerWithQualifier != null && SAMLSSOUtil.isValidSAMLIssuer(splitAppendedTenantDomain(validationResponse
-                    .getIssuer()), issuerWithQualifier, SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-                if (log.isDebugEnabled()) {
-                    String message = "A SAML request with issuer: " + validationResponse.getIssuer() + " is received." +
-                            " A valid Service Provider configuration with the Issuer: " + validationResponse.getIssuer() +
-                            " and Issuer Qualifier: " + issuerQualifier + " is identified by the name: " + issuerWithQualifier;
-                    log.debug(message);
-                }
-                //Validation response's Issuer is set to Issuer With Qualifier
-                validationResponse.setIssuerQualifier(issuerQualifier);
-                validationResponse.setIssuer(issuerWithQualifier);
-            } else if (!SAMLSSOUtil.isSAMLIssuerExists(splitAppendedTenantDomain(validationResponse.getIssuer()),
-                    SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-                String message = "A SAML Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is"
-                        + " not registered. Service Provider should be registered in advance";
-                log.error(message);
-                String errorResp = SAMLSSOUtil
-                        .buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, null);
-                validationResponse.setResponse(errorResp);
-                validationResponse.setValid(false);
-                return validationResponse;
-            }
-
-
-            SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(validationResponse.getIssuer());
-
             // Issuer Format attribute
             if ((StringUtils.isNotBlank(issuer.getFormat())) && !(issuer.getFormat()
                     .equals(SAMLSSOConstants.Attribute.ISSUER_FORMAT))) {
@@ -275,6 +251,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
     }
 
     private void setRequestedAuthnContext(SAMLSSOReqValidationResponseDTO validationResponse) {
+
         if (authnReq.getRequestedAuthnContext() != null) {
 
             if (authnReq.getRequestedAuthnContext().getComparison() == null || StringUtils
@@ -296,6 +273,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
 
     /**
      * Validating issueInstant time
+     *
      * @return
      */
     private String validateRequestIssueInstant() {
