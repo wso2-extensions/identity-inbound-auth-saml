@@ -1364,7 +1364,7 @@ public class SAMLSSOUtil {
 
         }
 
-		
+
 		/*
          * IMPORTANT : checking if the consumer index in the request matches the
 		 * given id to the SP
@@ -2406,6 +2406,27 @@ public class SAMLSSOUtil {
     public static SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer, String tenantDomain)
             throws IdentityException {
 
+        String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
+        String issuerWithQualifier = null;
+        if (issuerQualifier != null) {
+            issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifier(issuer, issuerQualifier);
+            if (SAMLSSOUtil.isValidSAMLIssuer(issuer, issuerWithQualifier,
+                                SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
+                if (log.isDebugEnabled()) {
+                    String message = "A SAML request with issuer: " + issuer + " is received." +
+                            " A valid Service Provider configuration with the Issuer: " + issuer +
+                            " and Issuer Qualifier: " + issuerQualifier + " is identified by the name: " +
+                            issuerWithQualifier;
+                    log.debug(message);
+                }
+                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuerWithQualifier);
+
+            }
+        }
+
+        if (issuerWithQualifier != null){
+            issuer = issuerWithQualifier;
+        }
         // Check for SaaS service providers available.
         SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
                 .getInstance();

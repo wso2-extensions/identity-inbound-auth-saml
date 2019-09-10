@@ -212,11 +212,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             }
 
             String tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
-            if (StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            }
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
 
             String issuerQualifier = req.getParameter(SAMLSSOConstants.INBOUND_ISSUER_QUALIFIER);
             SAMLSSOUtil.setIssuerQualifier(issuerQualifier);
