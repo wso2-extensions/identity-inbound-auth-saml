@@ -129,7 +129,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 validationResponse.setValid(false);
                 return validationResponse;
             } else if (SAMLSSOUtil.getIssuerWithQualifierInThreadLocal() != null) {
-                //Validation response's Issuer is set to Issuer With Qualifier
+                // Validation response's Issuer is set to Issuer With Qualifier.
                 validationResponse.setIssuerQualifier(SAMLSSOUtil.getIssuerQualifier());
                 validationResponse.setIssuer(SAMLSSOUtil.getIssuerWithQualifierInThreadLocal());
             }
