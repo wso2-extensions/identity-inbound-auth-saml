@@ -36,17 +36,19 @@ public abstract class SSOAuthnRequestAbstractValidator implements SSOAuthnReques
 
     protected String splitAppendedTenantDomain(String issuer) throws UserStoreException, IdentityException {
 
-        if (IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
-            if (issuer.contains("@")) {
-                String tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
-                issuer = issuer.substring(0, issuer.lastIndexOf('@'));
-                if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(issuer)) {
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        if (StringUtils.isNotBlank(issuer) && issuer.contains("@")) {
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = issuer.substring(issuer.lastIndexOf('@') + 1);
+                if (StringUtils.isNotBlank(tenantDomain)) {
                     SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + " has been split.");
-                    }
                 }
             }
+            issuer = issuer.substring(0, issuer.lastIndexOf('@'));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Tenant Domain: " + tenantDomain + " & Issuer name: " + issuer + " has been split.");
         }
 
         if (IdentityUtil.isBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())) {

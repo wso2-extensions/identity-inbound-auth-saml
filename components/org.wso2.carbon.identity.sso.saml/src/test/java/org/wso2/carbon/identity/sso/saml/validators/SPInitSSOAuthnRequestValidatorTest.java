@@ -163,7 +163,8 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
     @DataProvider(name = "testSplitAppendedTenantDomain")
     public static Object[][] issuerStrings() {
         return new Object[][]{{"travelocity@tenant.com", "tenant.com", "travelocity"},
-                {"travelocity", null, "travelocity"}};
+                {"travelocity", null, "travelocity"},
+                {"travelocity@tenant.com", null, "travelocity"}};
     }
 
     @Test(dataProvider = "testSplitAppendedTenantDomain")
@@ -175,6 +176,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
 
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.validateTenantDomain(anyString())).thenReturn(tenantDomain);
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(tenantDomain);
 
         String issuer = authnRequestValidator.splitAppendedTenantDomain(unsplittedIssuer);
         assertEquals(issuer, actualIssuer, "Should give the issuer without appended tenant domain.");
