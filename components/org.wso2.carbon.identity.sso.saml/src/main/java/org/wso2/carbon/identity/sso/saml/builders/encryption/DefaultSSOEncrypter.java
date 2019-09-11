@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders.encryption;
 
+import net.shibboleth.utilities.java.support.xml.NamespaceSupport;
 import org.apache.xml.security.utils.Base64;
 // import org.opensaml.Configuration;  Previous Version (New Version Below)
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
@@ -27,7 +28,7 @@ import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.XMLObjectBuilder;
 import org.opensaml.security.crypto.JCAConstants;
 import org.opensaml.security.crypto.KeySupport;
-import org.opensaml.xmlsec.EncryptionParameters; // Previous Version (New Version Below)
+// import org.opensaml.xmlsec.EncryptionParameters;  Previous Version (New Version Below)
 import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
 import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
@@ -56,10 +57,6 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
     public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String encryptionAlgorithm) throws IdentityException {
         try {
 
-//            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
-//                    KeySupport.generateKey(IdentityApplicationManagementUtil
-//                            .getAssertionEncryptionAlgorithmURIByConfig(), 1024, null));
-
             Credential symmetricCredential = CredentialSupport.getSimpleCredential(
                     KeySupport.generateKey(JCAConstants.KEY_ALGO_AES,
                             256,null));
@@ -79,6 +76,9 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
 
             EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+            NamespaceSupport.appendNamespaceDeclaration(encrypted.getEncryptedData().getKeyInfo().
+                    getEncryptedKeys().get(0).getEncryptionMethod().getOrderedChildren().
+                    get(0).getDOM(), "http://www.w3.org/2000/09/xmldsig#", "ds");
             return encrypted;
         } catch (Exception e) {
             throw IdentityException.error("Error while Encrypting Assertion", e);
@@ -89,9 +89,6 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
     public EncryptedAssertion doEncryptedAssertion(Assertion assertion, X509Credential cred, String alias, String
             assertionEncryptionAlgorithm, String keyEncryptionAlgorithm) throws IdentityException {
         try {
-
-//            Credential symmetricCredential = CredentialSupport.getSimpleCredential(
-//                    KeySupport.generateKey(assertionEncryptionAlgorithm,1024, null)); // Need to be changed
 
             Credential symmetricCredential = CredentialSupport.getSimpleCredential(
                     KeySupport.generateKey(JCAConstants.KEY_ALGO_AES,
@@ -126,6 +123,9 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
 
             EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+            NamespaceSupport.appendNamespaceDeclaration(encrypted.getEncryptedData().getKeyInfo().
+                            getEncryptedKeys().get(0).getEncryptionMethod().getOrderedChildren().
+                            get(0).getDOM(), "http://www.w3.org/2000/09/xmldsig#", "ds");
             return encrypted;
         } catch (Exception e) {
             throw IdentityException.error("Error while Encrypting Assertion", e);

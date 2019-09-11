@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.security.x509.X509Credential;
@@ -45,6 +46,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,6 +114,8 @@ public class SigningTests extends PowerMockTestCase {
     @Test(dataProvider = "getSignatureParams")
     public void testSignatureValidate(boolean addSignature, String prependEncodedMessage, String signature, String
             algorithm, boolean expected, String message) throws Exception {
+
+        Security.addProvider(new BouncyCastleProvider()); // Check this
 
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);

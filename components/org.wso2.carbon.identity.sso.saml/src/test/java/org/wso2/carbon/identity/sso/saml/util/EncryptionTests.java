@@ -81,6 +81,8 @@ public class EncryptionTests extends PowerMockTestCase {
     @Test
     public void testSetEncryptedAssertionWithNoKeyEncryptionAlgorithm() throws Exception{
 
+        Security.addProvider(new BouncyCastleProvider()); // Check this
+
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion, TestConstants

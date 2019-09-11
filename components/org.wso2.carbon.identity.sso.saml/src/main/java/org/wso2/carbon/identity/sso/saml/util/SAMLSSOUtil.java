@@ -28,7 +28,7 @@ import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 // import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
 import org.opensaml.core.config.InitializationService;
 // import org.opensaml.common.impl.SecureRandomIdentifierGenerator; Previous Version (New Version Below)
- import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
+import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.config.SAMLConfigurationInitializer;
 import org.opensaml.saml.saml2.core.ArtifactResponse;
@@ -697,6 +697,15 @@ public class SAMLSSOUtil {
 //
 //                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_7 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
 //                initializer_7.init();
+
+                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+                initializer_5.init();
+                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+                initializer_6.init();
+                org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
+                initializer_7.init();
+                org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
+                initializer_8.init();
 
                 isBootStrapped = true;
             } catch (InitializationException e) {

@@ -566,6 +566,6 @@
     </build>
     <properties>
         <java-support.version>7.3.0</java-support.version>
-        <opensaml3.version>3.2.0</opensaml3.version>
+        <opensaml3.version>3.3.1</opensaml3.version>
     </properties>
 </project>

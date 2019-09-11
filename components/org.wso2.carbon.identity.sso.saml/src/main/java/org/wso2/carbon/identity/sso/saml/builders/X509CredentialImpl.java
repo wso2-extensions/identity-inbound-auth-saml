@@ -330,6 +330,6 @@ public class X509CredentialImpl implements X509Credential {
     @Override
     public UsageType getUsageType() {
         // TODO Auto-generated method stub
-        return null;
+        return UsageType.UNSPECIFIED;
     }
 }

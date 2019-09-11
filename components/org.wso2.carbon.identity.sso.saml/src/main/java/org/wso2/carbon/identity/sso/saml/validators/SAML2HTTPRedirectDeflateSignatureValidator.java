@@ -65,9 +65,11 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      */
     private static CriteriaSet buildCriteriaSet(String issuer) {
         CriteriaSet criteriaSet = new CriteriaSet();
-        if (StringUtils.isNotEmpty(issuer)) {
-            criteriaSet.add(new EntityIdCriterion(issuer));
-        }
+
+        //TODO add later
+//        if (StringUtils.isNotEmpty(issuer)) {
+//            criteriaSet.add(new EntityIdCriterion(issuer));
+//        }
         criteriaSet.add(new UsageCriterion(UsageType.SIGNING));
         return criteriaSet;
     }
@@ -253,6 +255,8 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
                 SAMLSSOUtil.getX509CredentialImplForTenant(domainName,
                         alias);
 
+        System.out.println("Credential Entity Id : " + credential.getEntityId());
+
         List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);
         CollectionCredentialResolver credResolver = new CollectionCredentialResolver(credentials);
@@ -281,6 +285,8 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
 
         // creating the SAML2HTTPRedirectDeflateSignatureRule
         X509CredentialImpl credential = new X509CredentialImpl(certificate);
+
+        System.out.println("Credential Entity Id : " + credential.getEntityId());
 
         List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);

@@ -132,7 +132,7 @@ public class TestUtils {
     }
 
     public static Assertion getDecryptedAssertion(EncryptedAssertion encryptedAssertion, X509Credential x509Credential)
-            throws DecryptionException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+            throws DecryptionException {
 
         KeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(x509Credential);
         Decrypter decrypter = new Decrypter(null, keyResolver, null);
@@ -255,6 +255,16 @@ public class TestUtils {
 
                 org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
                 initializer_4.init();
+
+                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+                initializer_5.init();
+                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+                initializer_6.init();
+                org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
+                initializer_7.init();
+                org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
+                initializer_8.init();
+
                 isBootStrapped = true;
             } catch (InitializationException e) {
                 log.error("Error in bootstrapping the OpenSAML2 library", e);
