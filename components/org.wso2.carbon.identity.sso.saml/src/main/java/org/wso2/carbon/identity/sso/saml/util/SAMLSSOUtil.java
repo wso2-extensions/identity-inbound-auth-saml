@@ -2547,4 +2547,31 @@ public class SAMLSSOUtil {
             return false;
         }
     }
+
+    /**
+     * Appends service provider qualifier to the issuer if a service provider qualifier is present in the request.
+     *
+     * @param queryParamDTOs query parameters present in the request.
+     * @param issuer service provider entity id present in the request.
+     * @return issuer value with qualifier appended.
+     */
+    public static String resolveIssuerQualifier(QueryParamDTO[] queryParamDTOs, String issuer){
+
+        String issuerQualifier = getSPQualifierExists(queryParamDTOs);
+        if (StringUtils.isNotBlank(issuerQualifier)) {
+            return SAMLSSOUtil.getIssuerWithQualifier(issuer, issuerQualifier);
+        } else {
+            return issuer;
+        }
+    }
+
+    private static String getSPQualifierExists(QueryParamDTO[] queryParamDTOs) {
+
+        for (QueryParamDTO queryParamDTO : queryParamDTOs) {
+            if (SAMLSSOConstants.QueryParameter.SP_QUALIFIER.toString().equals(queryParamDTO.getKey())) {
+                return queryParamDTO.getValue();
+            }
+        }
+        return null;
+    }
 }

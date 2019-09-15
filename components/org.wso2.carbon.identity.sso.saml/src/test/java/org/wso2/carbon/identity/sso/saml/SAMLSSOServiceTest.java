@@ -198,6 +198,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         boolean isLogout = false;
 
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
                 .thenCallRealMethod();
         when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);

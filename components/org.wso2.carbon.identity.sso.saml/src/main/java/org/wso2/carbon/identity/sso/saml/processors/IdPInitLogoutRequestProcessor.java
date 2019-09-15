@@ -32,6 +32,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.Map;
 
+import static org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil.splitAppendedTenantDomain;
+
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
 
     private static final Log log = LogFactory.getLog(IdPInitLogoutRequestProcessor.class);
@@ -122,10 +124,12 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
         for (QueryParamDTO queryParamDTO : queryParamDTOs) {
             if (SAMLSSOConstants.QueryParameter.SP_ENTITY_ID.toString().equals(queryParamDTO.getKey())) {
-                this.spEntityID = queryParamDTO.getValue();
+                String issuer = splitAppendedTenantDomain(queryParamDTO.getValue());
+                this.spEntityID = SAMLSSOUtil.resolveIssuerQualifier(queryParamDTOs, issuer);
             } else if (SAMLSSOConstants.QueryParameter.RETURN_TO.toString().equals(queryParamDTO.getKey())) {
                 this.returnTo = queryParamDTO.getValue();
             }
         }
     }
+
 }

@@ -113,7 +113,8 @@ public class SAMLSSOConstants {
         ACS("acs"),
         SLO("slo"),
         RETURN_TO("returnTo"),
-        SP_ENTITY_ID("spEntityID");
+        SP_ENTITY_ID("spEntityID"),
+        SP_QUALIFIER("spQualifier");
 
         private final String parameterName;
 

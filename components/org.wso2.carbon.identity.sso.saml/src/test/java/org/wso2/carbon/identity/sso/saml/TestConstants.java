@@ -30,6 +30,7 @@ public class TestConstants {
 
     public static final String SP_ENTITY_ID_WITH_TENANT_DOMAIN = "travelocity.com@tenant.com";
     public static final String SP_ENTITY_ID = "travelocity.com";
+    public static final String SP_QUALIFIER = "wso2";
     public static final String SAML_SSO_IDP_URL = "https://localhost:9443/samlsso";
     public static final String BASIC_AUTHN_MODE = "usernamePasswordBasedAuthn";
     public static final String LOACALHOST_DOMAIN = "localhost";
