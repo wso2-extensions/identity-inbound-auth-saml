@@ -1910,6 +1910,7 @@
                                     </td>
                                 </tr>
     
+                                <tr><td></td></tr>
                                 <!-- IdP Entity ID Alias-->
                                 <tr>
                                     <td title="Defines an aliad value to override IdP Entity ID of resident IdP">
@@ -1917,7 +1918,8 @@
                                     </td>
                                     <td><input type="text" id="idpEntityIDAlias" name="idpEntityIDAlias"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getIdpEntityIDAlias())) ?
-                                               Encode.forHtmlAttribute(provider.getIdpEntityIDAlias()) : ""%>"/>
+                                               Encode.forHtmlAttribute(provider.getIdpEntityIDAlias()) : ""%>"
+                                               class="text-box-big" />
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             <fmt:message key="enable.idp.entity.id.alias.help"/>
                                         </div>
