@@ -503,6 +503,106 @@
                             <!--opensaml-storage-api;inline=true,opensaml-storage-impl;inline=true,opensaml-xacml-api;inline=true,opensaml-xacml-impl;inline=true,-->
                             <!--opensaml-xacml-saml-api;inline=true,opensaml-xacml-saml-impl;inline=true,opensaml-xmlsec-api;inline=true,opensaml-xmlsec-impl;inline=true-->
                         <!--</Embed-Dependency>-->
+                        <!--<Include-Resource>-->
+                            <!--@opensaml-core-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-core-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-core-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-core-${opensaml.version}.jar!/conf/**,-->
+                            <!--@opensaml-core-${opensaml.version}.jar!/META-INF/services/**,-->
+
+                            <!--@opensaml-saml-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-saml-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-saml-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-saml-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-soap-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-soap-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-soap-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-soap-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-security-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-security-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-security-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-security-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-security-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-security-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-security-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-security-impl-${opensaml.version}.jar!/conf/**,-->
+                            <!--@opensaml-security-impl-${opensaml.version}.jar!/**.properties,-->
+
+                            <!--@opensaml-storage-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-storage-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-storage-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-storage-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/conf/**,-->
+
+                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/conf/**,-->
+                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/META-INF/services/**,-->
+
+                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/**.xml,-->
+                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/templates/**.vm,-->
+                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/schema/**.xsd,-->
+                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/conf/**,-->
+                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/META-INF/services/**,-->
+
+                            <!--@java-support-${shibboleth.version}.jar!/**.xml,-->
+                            <!--@java-support-${shibboleth.version}.jar!/templates/**.vm,-->
+                            <!--@java-support-${shibboleth.version}.jar!/schema/**.xsd,-->
+                            <!--@java-support-${shibboleth.version}.jar!/conf/**,-->
+                        <!--</Include-Resource>-->
                     </instructions>
                 </configuration>
             </plugin>

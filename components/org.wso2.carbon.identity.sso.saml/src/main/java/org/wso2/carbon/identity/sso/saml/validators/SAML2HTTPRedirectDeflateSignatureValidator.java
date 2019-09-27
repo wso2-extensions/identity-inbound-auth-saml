@@ -20,12 +20,19 @@ package org.wso2.carbon.identity.sso.saml.validators;
 // import org.opensaml.ws.security.SecurityPolicyException; Previous Version (New Version Below)
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
+import org.opensaml.core.config.ConfigurationService;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.saml.config.SAMLConfigurationInitializer;
 import org.opensaml.security.SecurityException;
 // import org.opensaml.ws.transport.http.HTTPTransportUtils; Previous Version (New Version Below)
 import net.shibboleth.utilities.java.support.net.URISupport;
 //import org.opensaml.xml.security.CriteriaSet; Previous Version (New Version Below)
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
 //import org.opensaml.xml.security.SecurityHelper; Previous Version (New Version Below)
+import org.opensaml.xmlsec.algorithm.AlgorithmDescriptor;
+import org.opensaml.xmlsec.algorithm.AlgorithmRegistry;
+import org.opensaml.xmlsec.algorithm.AlgorithmSupport;
 import org.opensaml.xmlsec.config.DefaultSecurityConfigurationBootstrap;
 import org.opensaml.security.credential.impl.CollectionCredentialResolver;
 import org.opensaml.security.credential.Credential;
@@ -50,11 +57,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
 
 public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedirectSignatureValidator {
 
     private static final Log log = LogFactory.getLog(SAML2HTTPRedirectDeflateSignatureValidator.class);
+    private static boolean isBootStrapped = false;
 
     /**
      * Build a criteria set suitable for input to the trust engine.
@@ -245,6 +255,8 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     public boolean validateSignature(String queryString, String issuer, String alias,
                                      String domainName) throws SecurityException,
             IdentitySAML2SSOException {
+//        doBootstrap();
+        System.out.println(AlgorithmSupport.getKeyAlgorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1"));
         byte[] signature = getSignature(queryString);
         byte[] signedContent = getSignedContent(queryString);
         String algorithmUri = getSigAlg(queryString);
@@ -278,6 +290,8 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     public boolean validateSignature(String queryString, String issuer, X509Certificate certificate)
             throws SecurityException {
 
+//        doBootstrap();
+        System.out.println(AlgorithmSupport.getKeyAlgorithm("http://www.w3.org/2000/09/xmldsig#rsa-sha1"));
         byte[] signature = getSignature(queryString);
         byte[] signedContent = getSignedContent(queryString);
         String algorithmUri = getSigAlg(queryString);
@@ -295,4 +309,68 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
         SignatureTrustEngine engine = new ExplicitKeySignatureTrustEngine(credResolver, kiResolver);
         return engine.validate(signature, signedContent, algorithmUri, criteriaSet, null);
     }
+
+    public static void doBootstrap() {
+        if (!isBootStrapped) {
+
+            Thread thread = Thread.currentThread();
+            ClassLoader loader = thread.getContextClassLoader();
+            thread.setContextClassLoader(InitializationService.class.getClassLoader());
+
+            try {
+                InitializationService.initialize();
+
+                SAMLConfigurationInitializer initializer_1 = new SAMLConfigurationInitializer();
+                initializer_1.init();
+
+                org.opensaml.saml.config.XMLObjectProviderInitializer initializer_2 = new org.opensaml.saml.config.XMLObjectProviderInitializer();
+                initializer_2.init();
+
+                org.opensaml.core.xml.config.XMLObjectProviderInitializer initializer_3 = new org.opensaml.core.xml.config.XMLObjectProviderInitializer();
+                initializer_3.init();
+
+                org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
+                initializer_4.init();
+
+//                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_5 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+//                initializer_5.init();
+//
+//                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_6 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+//                initializer_6.init();
+//
+//                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_7 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+//                initializer_7.init();
+
+                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+                initializer_5.init();
+                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+                initializer_6.init();
+                org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
+                initializer_7.init();
+                org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
+                initializer_8.init();
+//                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_9 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+//                initializer_9.init();
+
+//                AlgorithmRegistry algorithmRegistry = new AlgorithmRegistry();
+//                ServiceLoader<AlgorithmDescriptor> descriptorsLoader = ServiceLoader.load(AlgorithmDescriptor.class, AlgorithmRegistry.class.getClassLoader());
+//                Iterator iter = descriptorsLoader.iterator();
+//
+//                while(iter.hasNext()) {
+//                    AlgorithmDescriptor descriptor = (AlgorithmDescriptor)iter.next();
+////                    this.log.debug("Registering AlgorithmDescriptor of type '{}' with URI '{}': {}", new Object[]{descriptor.getType(), descriptor.getURI(), descriptor.getClass().getName()});
+//                    algorithmRegistry.register(descriptor);
+//                }
+//
+//                ConfigurationService.register(AlgorithmRegistry.class, algorithmRegistry);
+
+                isBootStrapped = true;
+            } catch (InitializationException e) {
+                log.error("Error in bootstrapping the OpenSAML2 library", e);
+            } finally {
+                thread.setContextClassLoader(loader);
+            }
+        }
+    }
+
 }
