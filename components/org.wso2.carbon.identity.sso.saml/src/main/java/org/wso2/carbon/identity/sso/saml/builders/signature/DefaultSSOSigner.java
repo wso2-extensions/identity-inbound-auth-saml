@@ -18,11 +18,8 @@
 package org.wso2.carbon.identity.sso.saml.builders.signature;
 
 import org.apache.xml.security.c14n.Canonicalizer;
-import org.opensaml.core.config.InitializationException;
-import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.common.SAMLObjectContentReference;
-import org.opensaml.saml.config.SAMLConfigurationInitializer;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.XMLObjectBuilder;
@@ -38,7 +35,6 @@ import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.support.Signer;
 import org.opensaml.xmlsec.signature.X509Certificate;
 import org.opensaml.xmlsec.signature.X509Data;
-// import org.opensaml.xml.validation.ValidationException; // Not Sure
 import org.wso2.carbon.identity.base.IdentityException;
 
 import javax.xml.namespace.QName;
@@ -66,16 +62,9 @@ public class DefaultSSOSigner implements SSOSigner {
 
         if (request.getSignature() != null) {
             try {
-//                SignatureValidator validator = new SignatureValidator(cred);
-//                validator.validate(request.getSignature());
                 SignatureValidator.validate(request.getSignature(), cred);
                 isSignatureValid = true;
-            }
-//            catch (ValidationException e) {
-//                throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
-//                        "invalid.", e);
-//            }
-            catch (SignatureException e) {
+            } catch (SignatureException e) {
                 throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
                         "invalid.", e);
             }

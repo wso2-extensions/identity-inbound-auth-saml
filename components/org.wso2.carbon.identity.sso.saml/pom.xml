@@ -17,18 +17,21 @@
   ~  under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <parent>
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
         <relativePath>../../pom.xml</relativePath>
         <version>5.6.20-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - SAML Web Browser SSO</name>
     <description>A custom wso2 products or solution</description>
     <url>http://www.wso2.com</url>
+
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -217,13 +220,7 @@
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-security-impl</artifactId>
-            <version>${opensaml.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.santuario</groupId>-->
-            <!--<artifactId>xmlsec</artifactId>-->
-            <!--<version>2.0.5</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-storage-api</artifactId>
@@ -292,6 +289,7 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -360,107 +358,7 @@
                             org.apache.xml.security.c14n ; version="[1.4.2.patched,2.0.0]",
                             org.apache.xml.security.signature ; version="[1.4.2.patched,2.0.0]",
                             org.apache.xml.security.utils ; version="[1.4.2.patched,2.0.0]",
-                            org.opensaml.core,
-                            org.opensaml.core.config,
-                            org.opensaml.core.criterion,
-                            org.opensaml.core.xml,
-                            org.opensaml.core.xml.config,
-                            org.opensaml.core.xml.io,
-                            <!--org.opensaml.core.xml.persist,-->
-                            org.opensaml.core.xml.schema,
-                            org.opensaml.core.xml.schema.impl,
-                            org.opensaml.core.xml.util,
-                            org.opensaml.saml.common,
-                            org.opensaml.saml.common.assertion,
-                            org.opensaml.saml.common.binding,
-                            org.opensaml.saml.common.binding.artifact,
-                            org.opensaml.saml.common.binding.artifact.impl,
-                            org.opensaml.saml.common.binding.decoding,
-                            org.opensaml.saml.common.binding.encoding,
-                            org.opensaml.saml.common.binding.impl,
-                            org.opensaml.saml.common.binding.security.impl,
-                            org.opensaml.saml.common.messaging,
-                            org.opensaml.saml.common.messaging.context,
-                            org.opensaml.saml.common.messaging.context.navigate,
-                            <!--org.opensaml.saml.common.messaging.soap,-->
-                            org.opensaml.saml.common.profile,
-                            org.opensaml.saml.common.profile.impl,
-                            org.opensaml.saml.common.profile.logic,
-                            org.opensaml.saml.common.xml,
-                            org.opensaml.saml.config,
-                            org.opensaml.saml.criterion,
-                            org.opensaml.saml.saml1.binding.artifact,
-                            org.opensaml.saml.saml1.binding.decoding.impl,
-                            org.opensaml.saml.saml1.binding.encoding.impl,
-                            org.opensaml.saml.saml1.binding.impl,
-                            org.opensaml.saml.saml1.core,
-                            org.opensaml.saml.saml1.core.impl,
-                            org.opensaml.saml.saml1.profile,
-                            org.opensaml.saml.saml1.profile.impl,
-                            org.opensaml.saml.saml2.assertion,
-                            org.opensaml.saml.saml2.assertion.impl,
-                            org.opensaml.saml.saml2.binding.artifact,
-                            org.opensaml.saml.saml2.binding.decoding.impl,
-                            org.opensaml.saml.saml2.binding.encoding.impl,
-                            org.opensaml.saml.saml2.binding.impl,
-                            org.opensaml.saml.saml2.binding.security.impl,
-                            org.opensaml.saml.saml2.common,
-                            org.opensaml.saml.saml2.core,
-                            org.opensaml.saml.saml2.core.impl,
-                            org.opensaml.saml.saml2.ecp,
-                            org.opensaml.saml.saml2.ecp.impl,
-                            org.opensaml.saml.saml2.encryption,
-                            org.opensaml.saml.saml2.metadata,
-                            org.opensaml.saml.saml2.metadata.impl,
-                            org.opensaml.saml.saml2.profile,
-                            org.opensaml.saml.saml2.profile.context,
-                            org.opensaml.saml.saml2.profile.impl,
-                            org.opensaml.saml.saml2.wssecurity,
-                            org.opensaml.saml.saml2.wssecurity.messaging.impl,
-                            org.opensaml.saml.security.impl,
-                            org.opensaml.security,
-                            org.opensaml.security.credential,
-                            <!--org.opensaml.security.credential.criteria.impl,-->
-                            org.opensaml.security.credential.impl,
-                            org.opensaml.security.criteria,
-                            org.opensaml.security.crypto,
-                            <!--org.opensaml.security.httpclient,-->
-                            <!--org.opensaml.security.httpclient.impl,-->
-                            <!--org.opensaml.security.messaging,-->
-                            <!--org.opensaml.security.messaging.impl,-->
-                            <!--org.opensaml.security.trust,-->
-                            <!--org.opensaml.security.trust.impl,-->
-                            org.opensaml.security.x509,
-                            <!--org.opensaml.security.x509.impl,-->
-                            <!--org.opensaml.security.x509.tls,-->
-                            <!--org.opensaml.security.x509.tls.impl,-->
-                            org.opensaml.soap.common,
-                            org.opensaml.soap.soap11,
-                            <!--org.opensaml.soap.soap11.decoder.http.impl,-->
-                            <!--org.opensaml.soap.soap11.encoder.http.impl,-->
-                            <!--org.opensaml.soap.soap11.impl,-->
-                            <!--org.opensaml.soap.soap11.messaging.impl,-->
-                            <!--org.opensaml.soap.soap11.profile.impl,-->
-                            <!--org.opensaml.soap.soap12,-->
-                            <!--org.opensaml.soap.util,-->
-                            org.opensaml.xmlsec,
-                            <!--org.opensaml.xmlsec.algorithm,-->
-                            <!--org.opensaml.xmlsec.algorithm.descriptors,-->
-                            org.opensaml.xmlsec.config,
-                            <!--org.opensaml.xmlsec.config.impl,-->
-                            <!--org.opensaml.xmlsec.context,-->
-                            <!--org.opensaml.xmlsec.criterion,-->
-                            org.opensaml.xmlsec.crypto,
-                            org.opensaml.xmlsec.encryption,
-                            <!--org.opensaml.xmlsec.encryption.impl,-->
-                            <!--org.opensaml.xmlsec.encryption.support,-->
-                            <!--org.opensaml.xmlsec.impl,-->
-                            org.opensaml.xmlsec.keyinfo,
-                            org.opensaml.xmlsec.keyinfo.impl,
-                            org.opensaml.xmlsec.signature,
-                            org.opensaml.xmlsec.signature.impl,
-                            org.opensaml.xmlsec.signature.support,
-                            org.opensaml.xmlsec.signature.support.impl,
+                            org.opensaml.*,
                             net.shibboleth.utilities.java.support.*,
                             org.w3c.dom, org.w3c.dom.bootstrap,
                             org.w3c.dom.ls,
@@ -490,119 +388,13 @@
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.handler; version="${carbon.identity.package.import.version.range}",
+
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,
                             org.wso2.carbon.identity.sso.saml.*; version="${identity.inbound.auth.saml.exp.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
-                        <!--<Embed-Dependency>-->
-                            <!--groupId=net.shibboleth.utilities;inline=true,artifactId=opensaml-core;inline=true,opensaml-soap-api;inline=true,-->
-                            <!--opensaml-soap-impl;inline=true,opensaml-profile-api;inline=true,opensaml-profile-impl;inline=true,opensaml-saml-api;inline=true,-->
-                            <!--opensaml-saml-impl;inline=true,opensaml-messaging-api;inline=true,opensaml-messaging-impl;inline=true,opensaml-security-api;inline=true,-->
-                            <!--opensaml-storage-api;inline=true,opensaml-storage-impl;inline=true,opensaml-xacml-api;inline=true,opensaml-xacml-impl;inline=true,-->
-                            <!--opensaml-xacml-saml-api;inline=true,opensaml-xacml-saml-impl;inline=true,opensaml-xmlsec-api;inline=true,opensaml-xmlsec-impl;inline=true-->
-                        <!--</Embed-Dependency>-->
-                        <!--<Include-Resource>-->
-                            <!--@opensaml-core-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-core-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-core-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-core-${opensaml.version}.jar!/conf/**,-->
-                            <!--@opensaml-core-${opensaml.version}.jar!/META-INF/services/**,-->
-
-                            <!--@opensaml-saml-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-saml-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-saml-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-saml-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-saml-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-messaging-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-messaging-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-soap-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-soap-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-soap-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-soap-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-soap-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-profile-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-security-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-security-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-security-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-security-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-security-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-security-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-security-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-security-impl-${opensaml.version}.jar!/conf/**,-->
-                            <!--@opensaml-security-impl-${opensaml.version}.jar!/**.properties,-->
-
-                            <!--@opensaml-storage-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-storage-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-storage-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-storage-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-storage-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xacml-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xacml-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xacml-saml-api-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xacml-saml-impl-${opensaml.version}.jar!/conf/**,-->
-
-                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/conf/**,-->
-                            <!--@opensaml-xmlsec-api-${opensaml.version}.jar!/META-INF/services/**,-->
-
-                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/**.xml,-->
-                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/templates/**.vm,-->
-                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/schema/**.xsd,-->
-                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/conf/**,-->
-                            <!--@opensaml-xmlsec-impl-${opensaml.version}.jar!/META-INF/services/**,-->
-
-                            <!--@java-support-${shibboleth.version}.jar!/**.xml,-->
-                            <!--@java-support-${shibboleth.version}.jar!/templates/**.vm,-->
-                            <!--@java-support-${shibboleth.version}.jar!/schema/**.xsd,-->
-                            <!--@java-support-${shibboleth.version}.jar!/conf/**,-->
-                        <!--</Include-Resource>-->
                     </instructions>
                 </configuration>
             </plugin>
@@ -669,8 +461,4 @@
             </plugin>
         </plugins>
     </build>
-    <properties>
-        <java-support.version>7.3.0</java-support.version>
-        <opensaml3.version>3.3.1</opensaml3.version>
-    </properties>
 </project>

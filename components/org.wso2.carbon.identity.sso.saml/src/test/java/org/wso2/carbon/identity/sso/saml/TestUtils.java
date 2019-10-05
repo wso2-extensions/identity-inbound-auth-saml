@@ -22,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-// import org.opensaml.Configuration; Previous Version (New Version Below)
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.config.InitializationService;
@@ -34,7 +33,6 @@ import org.opensaml.xmlsec.encryption.support.DecryptionException;
 import org.opensaml.xmlsec.encryption.EncryptedKey;
 import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.core.xml.io.UnmarshallerFactory;
-// import org.opensaml.xml.security.SecurityHelper; Previous Version (New Version Below)
 import org.opensaml.security.credential.CredentialSupport;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.xmlsec.keyinfo.KeyInfoCredentialResolver;
@@ -244,6 +242,7 @@ public class TestUtils {
         if (!isBootStrapped) {
             try {
                 InitializationService.initialize();
+
                 org.opensaml.saml.config.SAMLConfigurationInitializer initializer_1 = new org.opensaml.saml.config.SAMLConfigurationInitializer();
                 initializer_1.init();
 
@@ -258,16 +257,22 @@ public class TestUtils {
 
                 org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
                 initializer_5.init();
+
                 org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
                 initializer_6.init();
+
                 org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
                 initializer_7.init();
+
                 org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
                 initializer_8.init();
 
+                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_9 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+                initializer_9.init();
+
                 isBootStrapped = true;
             } catch (InitializationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
+                log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
     }

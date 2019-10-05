@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 import org.joda.time.DateTime;
-// import org.opensaml.Configuration; Previous Version (New Version Below)
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.common.SAMLObjectBuilder;
 import org.opensaml.saml.common.SAMLVersion;
@@ -35,10 +34,9 @@ import org.opensaml.saml.saml2.core.Status;
 import org.opensaml.saml.saml2.core.StatusCode;
 import org.opensaml.core.xml.XMLObjectBuilderFactory;
 import org.opensaml.security.x509.BasicX509Credential;
-import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.impl.SignatureImpl;
-// import org.opensaml.xml.validation.ValidationException; // Not Sure
+import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
@@ -183,26 +181,10 @@ public class SAMLSSOArtifactResolver {
         }
 
         try {
-//            BasicX509Credential credential = new BasicX509Credential();
-//            credential.setEntityCertificate(serviceProviderDO.getX509Certificate());
             BasicX509Credential credential = new BasicX509Credential(serviceProviderDO.getX509Certificate());
-//            SignatureValidator validator = new SignatureValidator(credential);
-//            validator.validate(signImpl);
             SignatureValidator.validate(signImpl, credential);
             return true;
-        }
-//        catch (ValidationException e) {
-//            String message = "Signature validation failed for SAML2 Artifact Resolve with artifact: " +
-//                    artifactResolve.getArtifact().getArtifact() + " issuer: " +
-//                    artifactResolve.getIssuer().getValue();
-//            log.warn(message);
-//            // Logging the error only in debug mode since this is an open endpoint.
-//            if (log.isDebugEnabled()) {
-//                log.debug(message, e);
-//            }
-//            return false;
-//        }
-        catch (SignatureException e) {
+        } catch (SignatureException e) {
             String message = "Signature validation failed for SAML2 Artifact Resolve with artifact: " +
                     artifactResolve.getArtifact().getArtifact() + " issuer: " +
                     artifactResolve.getIssuer().getValue();

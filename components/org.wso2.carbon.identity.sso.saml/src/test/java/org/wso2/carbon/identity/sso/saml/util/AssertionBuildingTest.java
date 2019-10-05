@@ -19,11 +19,9 @@
 package org.wso2.carbon.identity.sso.saml.util;
 
 import org.apache.axis2.transport.http.HTTPConstants;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mockito.Mock;
-// import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
 import org.opensaml.core.config.InitializationService;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.Assertion;

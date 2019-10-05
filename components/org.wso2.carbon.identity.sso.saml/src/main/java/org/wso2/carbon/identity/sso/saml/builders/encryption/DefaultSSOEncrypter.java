@@ -17,9 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders.encryption;
 
-import net.shibboleth.utilities.java.support.xml.NamespaceSupport;
 import org.apache.xml.security.utils.Base64;
-// import org.opensaml.Configuration;  Previous Version (New Version Below)
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
@@ -28,11 +26,8 @@ import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.XMLObjectBuilder;
 import org.opensaml.security.crypto.JCAConstants;
 import org.opensaml.security.crypto.KeySupport;
-// import org.opensaml.xmlsec.EncryptionParameters;  Previous Version (New Version Below)
 import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
-import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
-// import org.opensaml.xml.security.SecurityHelper;  Previous Version (New Version CredentialSupport, KeySupport)
 import org.opensaml.security.credential.CredentialSupport;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoGenerator;
@@ -40,6 +35,7 @@ import org.opensaml.security.x509.X509Credential;
 import org.opensaml.xmlsec.signature.KeyInfo;
 import org.opensaml.xmlsec.signature.X509Certificate;
 import org.opensaml.xmlsec.signature.X509Data;
+import net.shibboleth.utilities.java.support.xml.NamespaceSupport;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;

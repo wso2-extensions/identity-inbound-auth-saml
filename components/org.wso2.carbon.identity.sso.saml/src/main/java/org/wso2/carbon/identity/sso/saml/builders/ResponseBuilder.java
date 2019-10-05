@@ -22,8 +22,6 @@ import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 
-import java.security.NoSuchAlgorithmException;
-
 public interface ResponseBuilder {
 
     /**

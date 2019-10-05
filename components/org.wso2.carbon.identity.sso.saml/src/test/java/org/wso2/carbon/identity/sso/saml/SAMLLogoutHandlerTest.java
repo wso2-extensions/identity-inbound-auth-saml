@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.mockito.Mock;
-// import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
 import org.opensaml.core.config.InitializationService;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
