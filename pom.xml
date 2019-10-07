@@ -143,7 +143,8 @@
                 <artifactId>opensaml</artifactId>
                 <version>${opensaml2.wso2.version}</version>
             </dependency>
-            <!--Start of SAML3 Dependencies-->
+            
+            <!--OpenSAML3 dependencies-->
             <dependency>
                 <groupId>org.wso2.orbit.org.opensaml</groupId>
                 <artifactId>opensaml-saml-impl</artifactId>
@@ -244,14 +245,14 @@
                 <artifactId>opensaml-xmlsec-impl</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
-            <!--End of SAML3 Dependencies-->
-            <!--Start of Shibboleth Dependencies-->
+
+            <!--Shibboleth dependencies-->
             <dependency>
                 <groupId>net.shibboleth.utilities</groupId>
                 <artifactId>java-support</artifactId>
                 <version>${shibboleth.version}</version>
             </dependency>
-            <!--End of Shibboleth Dependencies-->
+
             <dependency>
                 <groupId>org.wso2.orbit.joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -583,7 +584,7 @@
         <shibboleth.version>7.3.0</shibboleth.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
-        <opensaml2.wso2.osgi.version.range>[3.2.0,4.0.0)</opensaml2.wso2.osgi.version.range>
+        <opensaml2.wso2.osgi.version.range>[3.3.1,4.0.0)</opensaml2.wso2.osgi.version.range>
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)
