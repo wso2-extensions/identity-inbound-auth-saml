@@ -80,6 +80,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return "SAMLLogoutHandler";
     }
 
+    /**
+     * Method to retrieve samlssoTokenId from the event.
+     *
+     * @param event Session termination event.
+     * @return samlssoTokenId.
+     */
     protected String getSamlSSOTokenIdFromEvent(Event event) {
 
         String samlssoTokenId = null;
@@ -95,6 +101,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return samlssoTokenId;
     }
 
+    /**
+     * Method to check whether the logout request is initiated from IdP.
+     *
+     * @param event Session termination event.
+     * @return Whether the logout request is initiated from IdP.
+     */
     protected boolean isIDPInitiatedLogoutRequest(Event event) {
 
         boolean isIdpInitiated = true;
@@ -111,6 +123,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return isIdpInitiated;
     }
 
+    /**
+     * Method to retrieve the logout request issuer from the authentication context.
+     *
+     * @param event Session termination event.
+     * @return Issuer.
+     */
     protected String getIssuerFromContext(Event event) {
 
         AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get(EventProperty.CONTEXT);
