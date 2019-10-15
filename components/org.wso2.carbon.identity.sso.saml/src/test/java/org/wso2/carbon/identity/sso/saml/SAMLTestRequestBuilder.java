@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
-import org.opensaml.core.config.InitializationService;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.common.SAMLObjectContentReference;
 import org.opensaml.saml.common.xml.SAMLConstants;
@@ -56,6 +55,7 @@ import net.shibboleth.utilities.java.support.xml.SerializeSupport;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.SAMLInitializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -186,7 +186,7 @@ public class SAMLTestRequestBuilder {
 
     public static String encodeRequestMessage(RequestAbstractType requestMessage) throws MarshallingException,
             IOException, InitializationException {
-        InitializationService.initialize();
+        SAMLInitializer.doBootstrap();
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
         Marshaller marshaller = XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(requestMessage);
@@ -234,7 +234,7 @@ public class SAMLTestRequestBuilder {
     public static void setSignature(RequestAbstractType request, String signatureAlgorithm,
                                     String digestAlgorithm, boolean includeCert, X509Credential x509Credential)
             throws Exception {
-        InitializationService.initialize();
+        SAMLInitializer.doBootstrap();
         if (StringUtils.isEmpty(signatureAlgorithm)) {
             signatureAlgorithm = IdentityApplicationManagementUtil.getXMLSignatureAlgorithms().get(
                     IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1);
