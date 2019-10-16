@@ -146,16 +146,6 @@
             
             <!--OpenSAML3 dependencies-->
             <dependency>
-                <groupId>org.wso2.orbit.org.opensaml</groupId>
-                <artifactId>opensaml-saml-impl</artifactId>
-                <version>${opensaml2.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-saml-impl</artifactId>
-                <version>${opensaml.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-core</artifactId>
                 <version>${opensaml.version}</version>
@@ -183,6 +173,11 @@
             <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
                 <version>${opensaml.version}</version>
             </dependency>
             <dependency>
