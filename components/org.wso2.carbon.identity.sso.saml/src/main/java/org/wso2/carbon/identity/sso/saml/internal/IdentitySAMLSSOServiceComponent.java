@@ -39,6 +39,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
@@ -108,6 +110,18 @@ public class IdentitySAMLSSOServiceComponent {
         // Register a SSOServiceProviderConfigManager object as an OSGi Service
         ctxt.getBundleContext().registerService(SSOServiceProviderConfigManager.class.getName(),
                 SSOServiceProviderConfigManager.getInstance(), null);
+
+        ServiceRegistration samlSsoConfigServiceRegistration =
+                ctxt.getBundleContext().registerService(SAMLSSOConfigServiceImpl.class, new SAMLSSOConfigServiceImpl(),
+                        null);
+        if (samlSsoConfigServiceRegistration != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("SAMLSSOConfigService registered.");
+            }
+        } else {
+            log.error("SAMLSSOConfigService could not be registered.");
+        }
+
         String redirectHtmlPath = null;
         FileInputStream fis = null;
         try {
