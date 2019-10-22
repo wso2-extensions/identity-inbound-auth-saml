@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -83,6 +84,26 @@ public class SAMLSSOConfigService extends AbstractAdmin {
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         return configAdmin.getServiceProviders();
+    }
+
+    /**
+     * Returns SAML Service provider information
+     *
+     * @param issuer unique identifier of SAML the service provider.
+     * @return SAMLSSOServiceProviderDTO containing service provider configurations.
+     * @throws IdentityException
+     */
+    public SAMLSSOServiceProviderDTO getServiceProvider(String issuer) throws IdentityException {
+
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+        SAMLSSOServiceProviderInfoDTO serviceProviders = configAdmin.getServiceProviders();
+
+        for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
+            if (StringUtils.equals(sp.getIssuer(), issuer)) {
+                return sp;
+            }
+        }
+        return null;
     }
 
     /**
