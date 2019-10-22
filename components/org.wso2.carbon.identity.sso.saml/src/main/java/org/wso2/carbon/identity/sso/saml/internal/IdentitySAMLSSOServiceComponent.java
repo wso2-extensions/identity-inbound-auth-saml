@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
@@ -111,7 +112,8 @@ public class IdentitySAMLSSOServiceComponent {
                 SSOServiceProviderConfigManager.getInstance(), null);
 
         ServiceRegistration samlSsoConfigServiceRegistration =
-                ctxt.getBundleContext().registerService(SAMLSSOConfigService.class, new SAMLSSOConfigService(), null);
+                ctxt.getBundleContext().registerService(SAMLSSOConfigServiceImpl.class, new SAMLSSOConfigServiceImpl(),
+                        null);
         if (samlSsoConfigServiceRegistration != null) {
             if (log.isDebugEnabled()) {
                 log.debug("SAMLSSOConfigService registered.");
