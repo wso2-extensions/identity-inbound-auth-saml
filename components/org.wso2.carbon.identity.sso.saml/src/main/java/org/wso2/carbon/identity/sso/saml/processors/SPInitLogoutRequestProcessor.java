@@ -184,9 +184,11 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     private void setX509Certificate(String issuer, SAMLSSOServiceProviderDO logoutReqIssuer) {
 
         try {
-            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(issuer);
-            logoutReqIssuer.setX509Certificate(serviceProviderConfigs.getX509Certificate());
-
+            SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(issuer,
+                    logoutReqIssuer.getTenantDomain());
+            if (serviceProviderConfigs != null) {
+                logoutReqIssuer.setX509Certificate(serviceProviderConfigs.getX509Certificate());
+            }
         } catch (IdentityException e) {
             String errorMessage = String.format("An error occurred while retrieving the application " +
                     "certificate for file based SAML service provider with the issuer name '%s'. " +
@@ -235,7 +237,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         return reqValidationResponseDTO;
     }
 
-    private SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer)
+    private SAMLSSOServiceProviderDO getServiceProviderConfig(String issuer, String tenantDomain)
             throws IdentityException {
 
         try {
@@ -244,14 +246,21 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
                     .getServiceProvider(issuer);
             if (ssoIdpConfigs == null) {
-                IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                .getTenantId(),
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
-                        .getPersistanceManager();
-                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                        (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                try {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+                            .getThreadLocalCarbonContext();
+                    int tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+                    privilegedCarbonContext.setTenantId(tenantId);
+                    privilegedCarbonContext.setTenantDomain(tenantDomain);
+                    IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
+                            (RegistryType.SYSTEM_CONFIGURATION);
+                    ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
             }
             return ssoIdpConfigs;
         } catch (Exception e) {
@@ -263,7 +272,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             destination, String responseSigningAlgorithmUri, String responseDigestAlgorithmUri,
                                                                String issuer) throws IdentityException, IOException {
 
-        SAMLSSOServiceProviderDO providerDO = getServiceProviderConfig(issuer);
+        SAMLSSOServiceProviderDO providerDO = getServiceProviderConfig(issuer,
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
 
         SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         LogoutResponse logoutResp = new SingleLogoutMessageBuilder().buildLogoutResponse(id, status, statMsg,
