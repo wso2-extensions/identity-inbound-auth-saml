@@ -292,8 +292,8 @@ public class X509CredentialImpl implements X509Credential {
     }
 
     /***
-     * get a credential context set
-     * @return Method not supported so will return null
+     * Get the credential context set.
+     * @return This method is not supported so, the return is null.
      */
     @Override
     public CredentialContextSet getCredentialContextSet() {
@@ -330,8 +330,8 @@ public class X509CredentialImpl implements X509Credential {
     }
 
     /**
-     * get the usage type
-     * @return method not supported in turn will return default value
+     * Get the usage type.
+     * @return This method is not supported so, it returns the default value.
      */
     @Override
     public UsageType getUsageType() {

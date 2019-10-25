@@ -239,6 +239,7 @@ public class TestUtils {
     }
 
     public static void doBootstrap() {
+
         if (!isBootStrapped) {
             try {
                 SAMLInitializer.doBootstrap();
@@ -247,5 +248,6 @@ public class TestUtils {
                 log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
+        
     }
 }

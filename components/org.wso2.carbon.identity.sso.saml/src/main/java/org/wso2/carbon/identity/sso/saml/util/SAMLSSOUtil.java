@@ -862,6 +862,7 @@ public class SAMLSSOUtil {
     }
 
     public static String createID() {
+
         SecureRandomIdentifierGenerationStrategy generator = new SecureRandomIdentifierGenerationStrategy();
         return generator.generateIdentifier();
 
