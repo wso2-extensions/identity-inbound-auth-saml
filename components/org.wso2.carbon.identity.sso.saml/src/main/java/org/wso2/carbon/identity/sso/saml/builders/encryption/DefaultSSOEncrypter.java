@@ -72,6 +72,13 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
 
             EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+
+            /*
+               The process below will append a namespace declaration to the encrypted assertion.
+               This is executed due to the fact that one of the attributes required does not get
+               set automatically in OpenSAML 3 as in OpenSAML 2. If this process is skipped then
+               an error will be thrown when decrypting the assertion.
+             */
             NamespaceSupport.appendNamespaceDeclaration(encrypted.getEncryptedData().getKeyInfo().
                     getEncryptedKeys().get(0).getEncryptionMethod().getOrderedChildren().
                     get(0).getDOM(), "http://www.w3.org/2000/09/xmldsig#", "ds");
@@ -119,6 +126,13 @@ public class DefaultSSOEncrypter implements SSOEncrypter {
             encrypter.setKeyPlacement(Encrypter.KeyPlacement.INLINE);
 
             EncryptedAssertion encrypted = encrypter.encrypt(assertion);
+
+            /*
+               The process below will append a namespace declaration to the encrypted assertion.
+               This is executed due to the fact that one of the attributes required does not get
+               set automatically in OpenSAML 3 as in OpenSAML 2. If this process is skipped then
+               an error will be thrown when decrypting the assertion.
+             */
             NamespaceSupport.appendNamespaceDeclaration(encrypted.getEncryptedData().getKeyInfo().
                             getEncryptedKeys().get(0).getEncryptionMethod().getOrderedChildren().
                             get(0).getDOM(), "http://www.w3.org/2000/09/xmldsig#", "ds");

@@ -58,7 +58,10 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     private static CriteriaSet buildCriteriaSet(String issuer) {
         CriteriaSet criteriaSet = new CriteriaSet();
 
-        //TODO add later
+        /*
+            The process below is currently commented due to a
+            failure at an unit test - TODO
+         */
 //        if (StringUtils.isNotEmpty(issuer)) {
 //            criteriaSet.add(new EntityIdCriterion(issuer));
 //        }

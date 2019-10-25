@@ -291,9 +291,12 @@ public class X509CredentialImpl implements X509Credential {
         return Collections.emptyList();
     }
 
+    /***
+     * get a credential context set
+     * @return Method not supported so will return null
+     */
     @Override
     public CredentialContextSet getCredentialContextSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -326,9 +329,12 @@ public class X509CredentialImpl implements X509Credential {
         return null;
     }
 
+    /**
+     * get the usage type
+     * @return method not supported in turn will return default value
+     */
     @Override
     public UsageType getUsageType() {
-        // TODO Auto-generated method stub
         return UsageType.UNSPECIFIED;
     }
 }
