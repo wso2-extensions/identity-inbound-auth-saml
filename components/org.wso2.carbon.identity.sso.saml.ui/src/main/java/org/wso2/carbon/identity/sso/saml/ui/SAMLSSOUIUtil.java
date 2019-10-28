@@ -133,6 +133,7 @@ public class SAMLSSOUIUtil {
 
     /**
      * Check front-Channel logout enable and if not enable return false.
+     *
      * @param isSpEdit Operation on service provider, create or edit.
      * @param provider SAML2 service provider configuration.
      * @return boolean true if front channel logout enabled.
