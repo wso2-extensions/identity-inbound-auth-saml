@@ -2188,14 +2188,14 @@ public class SAMLSSOUtil {
         if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
             destination = serviceProviderDO.getSloRequestURL();
             if (log.isDebugEnabled()) {
-                log.debug("Destination of the logout request is set to the " +
-                        "SLO request URL of the SP: " + serviceProviderDO.getSloRequestURL());
+                log.debug("Destination of the logout request is set to the SLO request URL: " +
+                        serviceProviderDO.getSloRequestURL() + " of the SP: " + serviceProviderDO.getIssuer());
             }
         } else {
             destination = serviceProviderDO.getAssertionConsumerUrl();
             if (log.isDebugEnabled()) {
-                log.debug("Destination of the logout request is set to the " +
-                        "ACS URL of the SP: " + serviceProviderDO.getAssertionConsumerUrl());
+                log.debug("Destination of the logout request is set to the ACS URL: " +
+                        serviceProviderDO.getAssertionConsumerUrl() + " of the SP: " + serviceProviderDO.getIssuer());
             }
         }
 
@@ -2293,7 +2293,7 @@ public class SAMLSSOUtil {
 
         try {
             byte[] rawSignature = SigningUtil.signWithURI(credential, signatureAlgorithmURI,
-                    httpQueryString.toString().getBytes("UTF-8"));
+                    httpQueryString.toString().getBytes(StandardCharsets.UTF_8));
 
             String base64Signature = Base64.encodeBytes(rawSignature, Base64.DONT_BREAK_LINES);
 
