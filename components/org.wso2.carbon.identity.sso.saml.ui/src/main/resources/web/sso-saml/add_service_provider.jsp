@@ -826,7 +826,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td><input type="text" id="issuer" name="issuer" maxlength="100"
-                                               class="text-box-big"
+                                               style="width: 400px;"
                                                value="<%=isEditSP? Encode.forHtmlAttribute(SAMLSSOUIUtil.getIssuerWithoutQualifier(provider.getIssuer())):""%>"
                                             <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
                                         <input type="hidden" id="hiddenIssuer" name="hiddenIssuer"
@@ -842,7 +842,7 @@
                                     </td>
                                     <td><input type="text" id="issuerQualifier" name="issuerQualifier"
                                                maxlength="100"
-                                               class="text-box-big"
+                                               style="width: 400px;"
                                                value="<%=isEditSP && provider.getIssuerQualifier() != null ?
                                                Encode.forHtmlAttribute(provider.getIssuerQualifier()):""%>" <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
                                         <input type="hidden" id="hiddenIssuerQualifier" name="hiddenIssuerQualifier"
@@ -860,7 +860,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td>
-                                        <input type="text" id="assertionConsumerURLTxt" class="text-box-big" value=""
+                                        <input type="text" id="assertionConsumerURLTxt" style="width: 400px;" value=""
                                                white-list-patterns="https-url"/>
                                         <input id="addAssertionConsumerURLBtn" type="button"
                                                value="<fmt:message key="saml.sso.add.acs"/>"
@@ -954,7 +954,7 @@
                                     </td>
                                     <td>
                                         <input type="text" id="nameIdFormat"
-                                               name="nameIdFormat" class="text-box-big"
+                                               name="nameIdFormat" style="width: 400px;"
                                                value="<%=isEditSP? Encode.forHtmlAttribute(provider.getNameIDFormat().replace("/", ":")):"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"%>"/>
                                     </td>
                                 </tr>
@@ -1045,7 +1045,7 @@
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
-                                        <select id="alias" name="alias">
+                                        <select style="width:300px;" id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
                                                     boolean isDefaultAliasSet = false;
@@ -1080,7 +1080,7 @@
                                         <fmt:message key="sp.certAlias"/>
                                     </td>
                                     <td>
-                                        <select id="alias" name="alias">
+                                        <select style="width:300px;" id="alias" name="alias">
                                             <%
                                                 if (aliasSet != null) {
                                                     boolean isDefaultAliasSet = false;
@@ -1119,7 +1119,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td>
-                                        <select id="signingAlgorithm" name="signingAlgorithm">
+                                        <select style="width:300px;" id="signingAlgorithm" name="signingAlgorithm">
                                             <%
                                                 if (spConfigClient.getSigningAlgorithmUris() != null) {
                                                     for (String signingAlgo : spConfigClient.getSigningAlgorithmUris()) {
@@ -1156,7 +1156,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td>
-                                        <select id="digestAlgorithm" name="digestAlgorithm">
+                                        <select style="width:300px;" id="digestAlgorithm" name="digestAlgorithm">
                                             <%
                                                 if (spConfigClient.getDigestAlgorithmURIs() != null) {
                                                     for (String digestAlgo : spConfigClient.getDigestAlgorithmURIs()) {
@@ -1193,7 +1193,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td>
-                                        <select id="assertionEncryptionAlgorithm" name="assertionEncryptionAlgorithm">
+                                        <select style="width:300px;" id="assertionEncryptionAlgorithm" name="assertionEncryptionAlgorithm">
                                             <%
                                                 if (spConfigClient.getAssertionEncryptionAlgorithmURIs() != null) {
                                                     for (String assertionEncryptionAlgo : spConfigClient.getAssertionEncryptionAlgorithmURIs()) {
@@ -1230,7 +1230,7 @@
                                         <font color="red">*</font>
                                     </td>
                                     <td>
-                                        <select id="keyEncryptionAlgorithm" name="keyEncryptionAlgorithm">
+                                        <select style="width:300px;" id="keyEncryptionAlgorithm" name="keyEncryptionAlgorithm">
                                             <%
                                                 if (spConfigClient.getKeyEncryptionAlgorithmURIs() != null) {
                                                     for (String keyEncryptionAlgo : spConfigClient.getKeyEncryptionAlgorithmURIs()) {
@@ -1337,7 +1337,7 @@
                                     <td><input type="text" id="sloResponseURL" name="sloResponseURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloResponseURL())) ?
                Encode.forHtmlAttribute(provider.getSloResponseURL()) : ""%>"
-                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
+                                               style="width: 400px;" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
             
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout response accepting endpoint
@@ -1352,7 +1352,7 @@
                                     <td><input type="text" id="sloRequestURL" name="sloRequestURL"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getSloRequestURL())) ?
                Encode.forHtmlAttribute(provider.getSloRequestURL()) : ""%>"
-                                               class="text-box-big" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
+                                               style="width: 400px;" <%=isSingleLogoutEnabled(isEditSP, provider) ? "" : "disabled=\"disabled\""%>>
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             Single logout request accepting endpoint
                                         </div>
@@ -1589,7 +1589,7 @@
                                     </td>
                                     <td>
                                         <input type="text" id="audience" name="audience"
-                                               class="text-box-big"/>
+                                               style="width: 400px;"/>
                                         <input id="addAudience" name="addAudience" type="button"
                                                value="<fmt:message key="saml.sso.add.audience"/>"
                                                onclick="addAudienceFunc()"/>
@@ -1612,7 +1612,7 @@
                                     </td>
                                     <td>
                                         <input type="text" id="audience" name="audience"
-                                               class="text-box-big" disabled="disabled"/>
+                                               style="width: 400px;" disabled="disabled"/>
                                         <input id="addAudience" name="addAudience" type="button"
                                                disabled="disabled" value="<fmt:message key="saml.sso.add.audience"/>"
                                                onclick="addAudienceFunc()"/>
@@ -1682,7 +1682,7 @@
                                     </td>
                                     <td>
                                         <input type="text" id="recipient" name="recipient"
-                                               class="text-box-big"/>
+                                               style="width: 400px;"/>
                                         <input id="addRecipient" name="addRecipient" type="button"
                                                value="<fmt:message key="saml.sso.add.recipient"/>"
                                                onclick="addRecipientFunc()"/>
@@ -1704,7 +1704,7 @@
                                     </td>
                                     <td>
                                         <input type="text" id="recipient" name="recipient"
-                                               class="text-box-big" disabled="disabled"/>
+                                               style="width: 400px;" disabled="disabled"/>
                                         <input id="addRecipient" name="addRecipient" type="button"
                                                disabled="disabled" value="<fmt:message key="saml.sso.add.recipient"/>"
                                                onclick="addRecipientFunc()"/>
@@ -1782,7 +1782,7 @@
                                         <fmt:message key="sp.returnTo.url"/>
                                     </td>
                                     <td>
-                                        <input type="text" id="returnToURLTxtBox" class="text-box-big" <%=(isEditSP &&
+                                        <input type="text" id="returnToURLTxtBox" style="width: 400px;" <%=(isEditSP &&
                                                 provider.getIdPInitSLOEnabled()) ? "" : "disabled=\"disabled\""%> />
                                         <input id="addReturnToURL"
                                                type="button" <%=(isEditSP && provider.getIdPInitSLOEnabled()) ? "" : "disabled=\"disabled\""%>
@@ -1919,7 +1919,7 @@
                                     <td><input type="text" id="idpEntityIDAlias" name="idpEntityIDAlias"
                                                value="<%=(isEditSP && StringUtils.isNotBlank(provider.getIdpEntityIDAlias())) ?
                                                Encode.forHtmlAttribute(provider.getIdpEntityIDAlias()) : ""%>"
-                                               class="text-box-big" />
+                                               style="width: 400px;" />
                                         <div class="sectionHelp" style="margin-top: 2px;">
                                             <fmt:message key="enable.idp.entity.id.alias.help"/>
                                         </div>
@@ -2001,7 +2001,7 @@
                     </thead>
                     <tbody>
                     <tr>
-                        <td><span>URL: </span><input type="url" class="text-box-big" id="metadataFromUrl"
+                        <td><span>URL: </span><input type="url" style="width: 400px;" id="metadataFromUrl"
                                                      name="metadataFromUrl"/></td>
                     </tr>
                     <tr>
