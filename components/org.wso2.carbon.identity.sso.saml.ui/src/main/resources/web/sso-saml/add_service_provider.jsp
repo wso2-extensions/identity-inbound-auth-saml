@@ -1982,7 +1982,7 @@
                             <input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button"
                                    onclick="doSubmit();"/>
                             <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>"
-                                   onclick="doCancel();"/></td>
+                                   onclick="doCancel('metadata');"/></td>
                     </tr>
                     </tbody>
                 </table>
@@ -2009,7 +2009,7 @@
                             <input type="submit" class="button" value="<fmt:message key='saml.sso.upload'/>"
                                    class="button"/ >
                             <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>"
-                                   onclick="doCancel();"/></td>
+                                   onclick="doCancel('url');"/></td>
                     </tr>
                     </tbody>
                 </table>
@@ -2051,8 +2051,20 @@
                     document.uploadServiceProvider.submit();
                 }
 
-                function doCancel() {
-                    document.getElementById("metadataFromFileSystem").value = "";
+                function doCancel(caller) {
+                    if (caller == "metadata") {
+                        if (document.getElementById("metadataFromFileSystem").value == '') {
+                            clearAll();
+                        } else {
+                            document.getElementById("metadataFromFileSystem").value = "";
+                        }
+                    } else {
+                        if (document.getElementById("metadataFromUrl").value.length == 0) {
+                            clearAll();
+                        } else {
+                            document.getElementById("metadataFromUrl").value = "";
+                        }
+                    }
 
                 }
 
