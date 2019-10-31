@@ -162,7 +162,7 @@ public class FileBasedConfigManager {
             if ((getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.FRONT_CHANNEL_LOGOUT)) != null) {
                 spDO.setDoFrontChannelLogout(Boolean.valueOf(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig
                         .FRONT_CHANNEL_LOGOUT)));
-                if(spDO.isDoFrontChannelLogout()) {
+                if (spDO.isDoFrontChannelLogout()) {
                     if (getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig.FRONT_CHANNEL_LOGOUT_BINDING) != null) {
                         spDO.setFrontChannelLogoutBinding(getTextValue(elem, SAMLSSOConstants.FileBasedSPConfig
                                 .FRONT_CHANNEL_LOGOUT_BINDING));

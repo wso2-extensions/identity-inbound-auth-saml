@@ -201,7 +201,7 @@ public class SAMLSSOService {
     }
 
     /**
-     * Gets all the session participants from session ID send logout requests to them
+     * Gets all the session participants from session ID send logout requests to them.
      *
      * @param sessionId
      * @param issuer

@@ -305,7 +305,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void handleInvalidRequestMessage(HttpServletRequest req, HttpServletResponse resp, String sessionId)
             throws IOException, IdentityException, ServletException {
 
-        log.debug("Invalid request message or single logout message ");
+        if (log.isDebugEnabled()) {
+            log.debug("An invalid request message or single logout message received with session id : " + sessionId);
+        }
 
         if (sessionId == null) {
             String errorResp = SAMLSSOUtil.buildErrorResponse(
@@ -314,7 +316,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             sendNotification(errorResp, SAMLSSOConstants.Notification.INVALID_MESSAGE_STATUS,
                     SAMLSSOConstants.Notification.INVALID_MESSAGE_MESSAGE, null, req, resp);
         } else {
-            // Non-SAML request are assumed to be logout requests
+            // Non-SAML request are assumed to be logout requests.
             sendToFrameworkForLogout(req, resp, null, null, sessionId, true,
                     false);
         }
@@ -998,33 +1000,24 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throws IOException {
 
         PrintWriter out = resp.getWriter();
-        out.println("<html>");
-        out.println("<body>");
-        out.println("<p>You are now redirected back to " + Encode.forHtmlContent(acUrl));
-        out.println(" If the redirection fails, please click the post button.</p>");
-        out.println("<form method='post' action='" + Encode.forHtmlAttribute(acUrl) + "'>");
-        out.println("<p>");
-        out.println("<input type='hidden' name='" + samlMessageType + "' value='"
-                + Encode.forHtmlAttribute(samlMessage) + "'/>");
+        String finalPage = "<html><body><p>You are now redirected back to " + Encode.forHtmlContent(acUrl) +
+                " If the redirection fails, please click the post button.</p><form method='post' action='" +
+                Encode.forHtmlAttribute(acUrl) + "'><p><input type='hidden' name='" + samlMessageType + "' value='"
+                + Encode.forHtmlAttribute(samlMessage) + "'/>";
 
         if (relayState != null) {
-            out.println("<input type='hidden' name='RelayState' value='"
-                    + Encode.forHtmlAttribute(relayState) + "'/>");
+            finalPage = finalPage + "<input type='hidden' name='RelayState' value='"
+                    + Encode.forHtmlAttribute(relayState) + "'/>";
         }
 
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
-            out.println("<input type='hidden' name='AuthenticatedIdPs' value='" +
-                    Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
+            finalPage = finalPage + "<input type='hidden' name='AuthenticatedIdPs' value='" +
+                    Encode.forHtmlAttribute(authenticatedIdPs) + "'/>";
         }
 
-        out.println("<button type='submit'>POST</button>");
-        out.println("</p>");
-        out.println("</form>");
-        out.println("<script type='text/javascript'>");
-        out.println("document.forms[0].submit();");
-        out.println("</script>");
-        out.println("</body>");
-        out.println("</html>");
+        finalPage = finalPage + "<button type='submit'>POST</button></p></form><script type='text/javascript'>" +
+                "document.forms[0].submit();</script></body></html>";
+        out.print(finalPage);
     }
 
     private void generateSamlPostPageFromFile(HttpServletResponse resp, String acUrl, String samlMessage,
@@ -1821,7 +1814,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
             throws IOException {
 
-        response.setContentType("text/html; charset=UTF-8");
+        response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
             generateSamlPostPageFromFile(response, acUrl, encodedRequestMessage, null, null,
                     SAMLSSOConstants.SAML_REQUEST);
@@ -1915,9 +1908,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         try {
             httpQueryString = new StringBuilder(SAMLSSOConstants.SAML_REQUEST + "=" +
-                    URLEncoder.encode(SAMLSSOUtil.compressResponse(logoutRequestString), "UTF-8"));
+                    URLEncoder.encode(SAMLSSOUtil.compressResponse(logoutRequestString),
+                            StandardCharsets.UTF_8.name()));
             httpQueryString.append("&" + SAMLSSOConstants.SIG_ALG + "=" +
-                    URLEncoder.encode(signatureAlgorithmUri, "UTF-8"));
+                    URLEncoder.encode(signatureAlgorithmUri, StandardCharsets.UTF_8.name()));
             SAMLSSOUtil.addSignatureToHTTPQueryString(httpQueryString, signatureAlgorithmUri,
                     new X509CredentialImpl(tenantDomain));
         } catch (IOException e) {
