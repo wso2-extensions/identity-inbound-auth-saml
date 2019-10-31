@@ -2302,7 +2302,7 @@ public class SAMLSSOUtil {
             }
 
             httpQueryString.append("&" + SAMLSSOConstants.SIGNATURE + "=" +
-                    URLEncoder.encode(base64Signature, "UTF-8").trim());
+                    URLEncoder.encode(base64Signature, StandardCharsets.UTF_8.name()).trim());
 
         } catch (org.opensaml.xml.security.SecurityException e) {
             log.error("Unable to sign query string", e);

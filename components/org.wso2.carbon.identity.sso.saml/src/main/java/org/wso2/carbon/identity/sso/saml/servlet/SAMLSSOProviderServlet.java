@@ -1814,7 +1814,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
             throws IOException {
 
-        response.setContentType("text/html; charset=UTF-8");
+        response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
             generateSamlPostPageFromFile(response, acUrl, encodedRequestMessage, null, null,
                     SAMLSSOConstants.SAML_REQUEST);
@@ -1909,9 +1909,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         try {
             httpQueryString = new StringBuilder(SAMLSSOConstants.SAML_REQUEST + "=" +
                     URLEncoder.encode(SAMLSSOUtil.compressResponse(logoutRequestString),
-                            StandardCharsets.UTF_8.toString()));
+                            StandardCharsets.UTF_8.name()));
             httpQueryString.append("&" + SAMLSSOConstants.SIG_ALG + "=" +
-                    URLEncoder.encode(signatureAlgorithmUri, StandardCharsets.UTF_8.toString()));
+                    URLEncoder.encode(signatureAlgorithmUri, StandardCharsets.UTF_8.name()));
             SAMLSSOUtil.addSignatureToHTTPQueryString(httpQueryString, signatureAlgorithmUri,
                     new X509CredentialImpl(tenantDomain));
         } catch (IOException e) {
