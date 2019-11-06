@@ -356,6 +356,11 @@
                 <artifactId>org.wso2.carbon.identity.idp.metadata.saml2</artifactId>
                 <version>${identity.metadata.saml2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.saml.common</groupId>
+                <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+                <version>${saml.common.util.version}</version>
+            </dependency>
 
             <!-- Pax Logging -->
             <dependency>
@@ -566,6 +571,8 @@
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
 
+        <saml.common.util.version>1.0.0-SNAPSHOT</saml.common.util.version>
+        <saml.common.util.version.range>[1.0.0,2.0.0)</saml.common.util.version.range>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <commons-httpclient.wso2.osgi.version.range>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version.range>
         <commons-httpclient.wso2.osgi.version>[3.1.0,4.0.0)</commons-httpclient.wso2.osgi.version>

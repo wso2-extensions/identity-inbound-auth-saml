@@ -110,6 +110,7 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml.common</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.saml.common:org.wso2.carbon.identity.saml.common.util</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>
