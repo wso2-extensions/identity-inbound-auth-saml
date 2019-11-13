@@ -17,8 +17,8 @@
  */
 package org.wso2.carbon.identity.sso.saml.validators;
 
+import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.apache.commons.lang.StringUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.opensaml.security.SecurityException;
 import net.shibboleth.utilities.java.support.net.URISupport;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
@@ -32,7 +32,6 @@ import org.opensaml.xmlsec.signature.support.SignatureTrustEngine;
 import org.opensaml.xmlsec.signature.support.impl.ExplicitKeySignatureTrustEngine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xml.security.utils.Base64;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
@@ -119,15 +118,14 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
             /* Split 'Signature=<sig_value>' query param using '=' as the delimiter,
 		      and get the Signature value */
             signature = URLDecoder.decode(signatureQueryParam.split("=")[1], "UTF-8");
-            return Base64.decode(signature);
-        } catch (UnsupportedEncodingException | Base64DecodingException e) {
+        } catch (UnsupportedEncodingException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Encoding or Decoding not supported.", e);
             }
             // JVM is required to support UTF-8
             return new byte[0];
         }
-
+        return Base64Support.decode(signature);
     }
 
     /**
