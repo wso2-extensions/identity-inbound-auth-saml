@@ -51,9 +51,8 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     /**
      * Build a criteria set suitable for input to the trust engine.
      *
-     * @param issuer
-     * @return
-     * @throws SecurityException
+     * @param  issuer      Issuer of the SAML request.
+     * @return criteriaSet Criteria set which acts as input to the trust engine.
      */
     private static CriteriaSet buildCriteriaSet(String issuer) {
         CriteriaSet criteriaSet = new CriteriaSet();
@@ -70,10 +69,11 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     }
 
     /**
-     * @param queryString
-     * @return
-     * @throws SecurityException
-     * @throws IdentitySAML2SSOException
+     * Extract the signature algorithm from the query string.
+     *
+     * @param  queryString The raw HTTP query string from the request.
+     * @return sigAlg      The signature algorithm.
+     * @throws SecurityException If the signature algorithm cannot be extracted.
      */
     private static String getSigAlg(String queryString) throws SecurityException {
         String sigAlgQueryParam = URISupport.getRawQueryStringParameter(queryString, "SigAlg");
@@ -105,10 +105,9 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * Defaults to the Base64-decoded value of the HTTP request parameter named
      * <code>Signature</code>.
      *
-     * @param queryString
-     * @return
-     * @throws SecurityException
-     * @throws IdentitySAML2SSOException
+     * @param  queryString The raw HTTP query string from the request.
+     * @return byte[] containing the signature.
+     * @throws SecurityException If the signature algorithm cannot be extracted.
      */
     protected static byte[] getSignature(String queryString) throws SecurityException {
         String signatureQueryParam = URISupport.getRawQueryStringParameter(queryString, "Signature");
@@ -121,15 +120,9 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
 		      and get the Signature value */
             signature = URLDecoder.decode(signatureQueryParam.split("=")[1], "UTF-8");
             return Base64.decode(signature);
-        } catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException | Base64DecodingException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Encoding not supported.", e);
-            }
-            // JVM is required to support UTF-8
-            return new byte[0];
-        } catch (Base64DecodingException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Decoding not supported.", e);
+                log.debug("Encoding or Decoding not supported.", e);
             }
             // JVM is required to support UTF-8
             return new byte[0];
@@ -138,9 +131,11 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     }
 
     /**
-     * @param queryString
-     * @return
-     * @throws SecurityException
+     * Extract the signed content from the query string.
+     *
+     * @param  queryString The raw HTTP query string from the request.
+     * @return byte[] containing the signed content.
+     * @throws SecurityException Thrown if there is an error during request processing.
      */
     protected static byte[] getSignedContent(String queryString) throws SecurityException {
         // We need the raw non-URL-decoded query string param values for
@@ -177,9 +172,9 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * Extract the raw request parameters and build a string representation of
      * the content that was signed.
      *
-     * @param queryString the raw HTTP query string from the request
-     * @return a string representation of the signed content
-     * @throws SecurityException thrown if there is an error during request processing
+     * @param  queryString The raw HTTP query string from the request.
+     * @return A string representation of the signed content.
+     * @throws SecurityException Thrown if there is an error during request processing.
      */
     private static String buildSignedContentString(String queryString) throws SecurityException {
         StringBuilder builder = new StringBuilder();
@@ -204,10 +199,10 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      * The appended value will be in the form 'paramName=paramValue' (minus the
      * quotes).
      *
-     * @param builder     string builder to which to append the parameter
-     * @param queryString the URL query string containing parameters
-     * @param paramName   the name of the parameter to append
-     * @return true if parameter was found, false otherwise
+     * @param  builder     String builder to which to append the parameter.
+     * @param  queryString The URL query string containing parameters.
+     * @param  paramName   The name of the parameter to append.
+     * @return true if parameter was found, false otherwise.
      */
     private static boolean appendParameter(StringBuilder builder, String queryString,
                                            String paramName) {
@@ -228,13 +223,15 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     }
 
     /**
-     * @param queryString
-     * @param issuer
-     * @param alias
-     * @param domainName
-     * @return
-     * @throws SecurityException
-     * @throws IdentitySAML2SSOException
+     * Validates the signature of the given SAML request using the given domain name and alias.
+     *
+     * @param  queryString SAML request (passed an an HTTP query parameter).
+     * @param  issuer      Issuer of the SAML request.
+     * @param  alias       Name given to a CA certificate.
+     * @param  domainName  The tenant domain name.
+     * @return A boolean value representing whether the signature is valid or not.
+     * @throws SecurityException Thrown if there is an error during request processing.
+     * @throws IdentitySAML2SSOException Thrown if there is an error when creating X509CredentialImpl object.
      */
     @Override
     public boolean validateSignature(String queryString, String issuer, String alias,
@@ -259,13 +256,13 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     }
 
     /**
-     * Validates the signature of the given SAML request against tge given certificate.
+     * Validates the signature of the given SAML request against the given certificate.
      *
-     * @param queryString SAML request (passed an an HTTP query parameter)
-     * @param issuer      Issuer of the SAML request
-     * @param certificate Certificate for validating the signature
-     * @return
-     * @throws SecurityException
+     * @param  queryString SAML request (passed an an HTTP query parameter).
+     * @param  issuer      Issuer of the SAML request.
+     * @param  certificate Certificate for validating the signature.
+     * @return A boolean value representing whether the signature is valid or not.
+     * @throws SecurityException Thrown if there is an error during request processing.
      */
     @Override
     public boolean validateSignature(String queryString, String issuer, X509Certificate certificate)
