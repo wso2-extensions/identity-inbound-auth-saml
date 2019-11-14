@@ -120,7 +120,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
             signature = URLDecoder.decode(signatureQueryParam.split("=")[1], "UTF-8");
         } catch (UnsupportedEncodingException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Encoding or Decoding not supported.", e);
+                log.debug("Encoding not supported.", e);
             }
             // JVM is required to support UTF-8
             return new byte[0];
