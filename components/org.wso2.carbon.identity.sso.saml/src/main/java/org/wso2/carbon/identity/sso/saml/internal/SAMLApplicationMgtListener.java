@@ -17,11 +17,13 @@
  */
 package org.wso2.carbon.identity.sso.saml.internal;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -38,6 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -56,6 +59,58 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
     public int getDefaultOrderId() {
 
         return 15;
+    }
+
+    @Override
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider,
+                                          String tenantDomain,
+                                          String userName) throws IdentityApplicationManagementException {
+
+        handleSAMLInboundAssociationRemoval(serviceProvider);
+        return true;
+    }
+
+    private void handleSAMLInboundAssociationRemoval(ServiceProvider sp) throws IdentityApplicationManagementException {
+
+        // Get the stored app.
+        int appId = sp.getApplicationID();
+
+        ServiceProvider storedSp = SAMLSSOUtil.getApplicationMgtService().getServiceProvider(appId);
+
+        InboundAuthenticationRequestConfig storedSAMLInboundConfig = getSAMLInboundConfig(storedSp);
+        InboundAuthenticationRequestConfig updatedSAMLInboundConfig = getSAMLInboundConfig(sp);
+
+        if (isSAMLInboundAssociationRemoved(storedSAMLInboundConfig, updatedSAMLInboundConfig)) {
+            // Remove SAML inbound data.
+            String deletedIssuer = storedSAMLInboundConfig.getInboundAuthKey();
+            try {
+                SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(deletedIssuer);
+            } catch (IdentityException e) {
+                String msg = "Error removing SAML inbound data for issuer: %s associated with " +
+                        "service provider with id: %s during application update.";
+                throw new IdentityApplicationManagementException(String.format(msg, deletedIssuer, appId), e);
+            }
+        }
+    }
+
+    private boolean isSAMLInboundAssociationRemoved(InboundAuthenticationRequestConfig storedSAMLInboundConfig,
+                                                    InboundAuthenticationRequestConfig updatedSAMLInboundConfig) {
+
+        return storedSAMLInboundConfig != null && updatedSAMLInboundConfig == null;
+    }
+
+    private InboundAuthenticationRequestConfig getSAMLInboundConfig(ServiceProvider sp) {
+
+        if (sp != null && sp.getInboundAuthenticationConfig() != null) {
+            if (ArrayUtils.isNotEmpty(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())) {
+                return Arrays.stream(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())
+                        .filter(inbound -> StandardInboundProtocols.SAML2.equals(inbound.getInboundAuthType()))
+                        .findAny()
+                        .orElse(null);
+            }
+        }
+
+        return null;
     }
 
     public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
