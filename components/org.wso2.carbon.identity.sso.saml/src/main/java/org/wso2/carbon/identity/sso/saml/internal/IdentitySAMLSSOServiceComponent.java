@@ -111,9 +111,11 @@ public class IdentitySAMLSSOServiceComponent {
         ctxt.getBundleContext().registerService(SSOServiceProviderConfigManager.class.getName(),
                 SSOServiceProviderConfigManager.getInstance(), null);
 
+        SAMLSSOConfigServiceImpl samlSSOConfigService = new SAMLSSOConfigServiceImpl();
         ServiceRegistration samlSsoConfigServiceRegistration =
-                ctxt.getBundleContext().registerService(SAMLSSOConfigServiceImpl.class, new SAMLSSOConfigServiceImpl(),
-                        null);
+                ctxt.getBundleContext().registerService(SAMLSSOConfigServiceImpl.class, samlSSOConfigService, null);
+        SAMLSSOUtil.setSamlssoConfigService(samlSSOConfigService);
+
         if (samlSsoConfigServiceRegistration != null) {
             if (log.isDebugEnabled()) {
                 log.debug("SAMLSSOConfigService registered.");
