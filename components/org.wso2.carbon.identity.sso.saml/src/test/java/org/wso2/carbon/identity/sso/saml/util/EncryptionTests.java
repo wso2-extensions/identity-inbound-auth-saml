@@ -64,7 +64,8 @@ public class EncryptionTests extends PowerMockTestCase {
     @Test
     public void testSetEncryptedAssertionWithKeyEncryptionAlgorithm() throws Exception {
 
-        Security.addProvider(new BouncyCastleProvider()); // Check this
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
@@ -81,7 +82,8 @@ public class EncryptionTests extends PowerMockTestCase {
     @Test
     public void testSetEncryptedAssertionWithNoKeyEncryptionAlgorithm() throws Exception{
 
-        Security.addProvider(new BouncyCastleProvider()); // Check this
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();

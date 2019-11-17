@@ -49,7 +49,7 @@ import org.opensaml.security.SecurityException;
 import org.opensaml.xmlsec.crypto.XMLSigningUtil;
 import org.opensaml.security.x509.X509Credential;
 import org.opensaml.xmlsec.signature.SignableXMLObject;
- import net.shibboleth.utilities.java.support.codec.Base64Support;
+import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 import org.w3c.dom.Element;
@@ -1349,9 +1349,9 @@ public class SAMLSSOUtil {
         }
 
 
-		/*
-         * IMPORTANT : checking if the consumer index in the request matches the
-         * given id to the SP
+        /*
+           IMPORTANT : checking if the consumer index in the request matches the
+           given id to the SP
          */
         if (((spDO.getAttributeConsumingServiceIndex() == null ||
                 "".equals(spDO.getAttributeConsumingServiceIndex())) &&

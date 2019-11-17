@@ -62,6 +62,7 @@ public class X509CredentialImpl implements X509Credential {
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
     private X509Certificate signingCert = null;
+    private String entityId = "";
 
     private static KeyStore superTenantSignKeyStore = null;
 
@@ -259,6 +260,12 @@ public class X509CredentialImpl implements X509Credential {
         signingCert = cert;
     }
 
+    public X509CredentialImpl(X509Certificate cert, String entityId) {
+
+        this(cert);
+        this.entityId = entityId;
+    }
+
     /**
      * Retrieves the publicKey
      */
@@ -291,7 +298,7 @@ public class X509CredentialImpl implements X509Credential {
         return Collections.emptyList();
     }
 
-    /***
+    /**
      * Get the credential context set.
      * @return This method is not supported so, the return is null.
      */
@@ -305,10 +312,13 @@ public class X509CredentialImpl implements X509Credential {
         return X509Credential.class;
     }
 
+    /**
+     * Get the entity id of the credential.
+     * @return entityId Entity Id of the credential.
+     */
     @Override
     public String getEntityId() {
-        // TODO Auto-generated method stub
-        return null;
+        return entityId;
     }
 
     @Override

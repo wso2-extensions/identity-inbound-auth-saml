@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.sso.saml.validators;
 
 import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.apache.commons.lang.StringUtils;
+import org.opensaml.core.criterion.EntityIdCriterion;
 import org.opensaml.security.SecurityException;
 import net.shibboleth.utilities.java.support.net.URISupport;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
@@ -55,14 +56,9 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      */
     private static CriteriaSet buildCriteriaSet(String issuer) {
         CriteriaSet criteriaSet = new CriteriaSet();
-
-        /*
-            The process below is currently commented due to a
-            failure at an unit test - TODO
-         */
-//        if (StringUtils.isNotEmpty(issuer)) {
-//            criteriaSet.add(new EntityIdCriterion(issuer));
-//        }
+        if (StringUtils.isNotBlank(issuer)) {
+            criteriaSet.add(new EntityIdCriterion(issuer));
+        }
         criteriaSet.add(new UsageCriterion(UsageType.SIGNING));
         return criteriaSet;
     }
@@ -76,7 +72,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
      */
     private static String getSigAlg(String queryString) throws SecurityException {
         String sigAlgQueryParam = URISupport.getRawQueryStringParameter(queryString, "SigAlg");
-        if (StringUtils.isEmpty(sigAlgQueryParam)) {
+        if (StringUtils.isBlank(sigAlgQueryParam)) {
             throw new SecurityException(
                     "Could not extract Signature Algorithm from query string");
         }
@@ -272,7 +268,7 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
         CriteriaSet criteriaSet = buildCriteriaSet(issuer);
 
         // creating the SAML2HTTPRedirectDeflateSignatureRule
-        X509CredentialImpl credential = new X509CredentialImpl(certificate);
+        X509CredentialImpl credential = new X509CredentialImpl(certificate, issuer);
 
         List<Credential> credentials = new ArrayList<Credential>();
         credentials.add(credential);

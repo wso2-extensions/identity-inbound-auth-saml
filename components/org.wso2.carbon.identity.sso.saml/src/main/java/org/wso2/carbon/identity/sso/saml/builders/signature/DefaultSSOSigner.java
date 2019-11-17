@@ -65,8 +65,7 @@ public class DefaultSSOSigner implements SSOSigner {
                 SignatureValidator.validate(request.getSignature(), cred);
                 isSignatureValid = true;
             } catch (SignatureException e) {
-                throw IdentityException.error("Signature Validation Failed for the SAML Assertion : Signature is " +
-                        "invalid.", e);
+                throw IdentityException.error("Signature Validation Failed for the SAML Assertion.", e);
             }
         }
         return isSignatureValid;

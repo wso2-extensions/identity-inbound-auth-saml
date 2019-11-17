@@ -114,7 +114,8 @@ public class SigningTests extends PowerMockTestCase {
     public void testSignatureValidate(boolean addSignature, String prependEncodedMessage, String signature, String
             algorithm, boolean expected, String message) throws Exception {
 
-        Security.addProvider(new BouncyCastleProvider()); // Check this
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
 
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
