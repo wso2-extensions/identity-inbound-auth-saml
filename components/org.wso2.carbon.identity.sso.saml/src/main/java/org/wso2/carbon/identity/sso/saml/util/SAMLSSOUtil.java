@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -192,6 +193,7 @@ public class SAMLSSOUtil {
     private static Boolean spCertificateExpiryValidationEnabled;
     private static int samlAuthenticationRequestValidityPeriod = 5*60;
     private static ApplicationManagementService applicationMgtService;
+    private static SAMLSSOConfigServiceImpl samlssoConfigService;
     private static volatile List<SAMLExtensionProcessor> extensionProcessors;
 
     private SAMLSSOUtil() {
@@ -290,6 +292,16 @@ public class SAMLSSOUtil {
     public static ApplicationManagementService getApplicationMgtService() {
 
         return applicationMgtService;
+    }
+
+    public static SAMLSSOConfigServiceImpl getSAMLSSOConfigService() {
+
+        return samlssoConfigService;
+    }
+
+    public static void setSamlssoConfigService(SAMLSSOConfigServiceImpl samlssoConfigService) {
+
+        SAMLSSOUtil.samlssoConfigService = samlssoConfigService;
     }
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
