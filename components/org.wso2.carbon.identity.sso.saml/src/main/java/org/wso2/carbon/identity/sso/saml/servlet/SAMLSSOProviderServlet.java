@@ -1776,7 +1776,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throws IdentityException, IOException {
 
         SessionInfoData sessionInfoData = SAMLSSOUtil.getSessionInfoData(sessionIndex);
-        String subject = sessionInfoData.getSubject(samlssoServiceProviderDO.getIssuer());
+        String subject = sessionInfoData.getSubject(originalLogoutRequestIssuer);
 
         LogoutRequest logoutRequest = SAMLSSOUtil.buildLogoutRequest(samlssoServiceProviderDO, subject, sessionIndex);
         storeFrontChannelSLOParticipantInfo(samlssoServiceProviderDO, originalLogoutRequestIssuer, logoutRequest,
