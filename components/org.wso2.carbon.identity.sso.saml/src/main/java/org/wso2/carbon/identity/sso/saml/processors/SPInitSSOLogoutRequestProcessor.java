@@ -17,9 +17,8 @@
  */
 package org.wso2.carbon.identity.sso.saml.processors;
 
-import org.opensaml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.LogoutRequest;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 
 /**

@@ -18,9 +18,10 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -33,6 +34,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.security.KeyStore;
+import java.security.Security;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -62,6 +64,9 @@ public class EncryptionTests extends PowerMockTestCase {
     @Test
     public void testSetEncryptedAssertionWithKeyEncryptionAlgorithm() throws Exception {
 
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
+
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
@@ -76,6 +81,9 @@ public class EncryptionTests extends PowerMockTestCase {
 
     @Test
     public void testSetEncryptedAssertionWithNoKeyEncryptionAlgorithm() throws Exception{
+
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();

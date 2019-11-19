@@ -21,10 +21,10 @@ package org.wso2.carbon.identity.sso.saml.builders;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.credential.CredentialContextSet;
-import org.opensaml.xml.security.credential.UsageType;
-import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.CredentialContextSet;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -62,6 +62,7 @@ public class X509CredentialImpl implements X509Credential {
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
     private X509Certificate signingCert = null;
+    private String entityId = "";
 
     private static KeyStore superTenantSignKeyStore = null;
 
@@ -259,6 +260,12 @@ public class X509CredentialImpl implements X509Credential {
         signingCert = cert;
     }
 
+    public X509CredentialImpl(X509Certificate cert, String entityId) {
+
+        this(cert);
+        this.entityId = entityId;
+    }
+
     /**
      * Retrieves the publicKey
      */
@@ -291,9 +298,12 @@ public class X509CredentialImpl implements X509Credential {
         return Collections.emptyList();
     }
 
+    /**
+     * Get the credential context set.
+     * @return This method is not supported so, the return is null.
+     */
     @Override
-    public CredentialContextSet getCredentalContextSet() {
-        // TODO Auto-generated method stub
+    public CredentialContextSet getCredentialContextSet() {
         return null;
     }
 
@@ -302,10 +312,13 @@ public class X509CredentialImpl implements X509Credential {
         return X509Credential.class;
     }
 
+    /**
+     * Get the entity id of the credential.
+     * @return entityId Entity Id of the credential.
+     */
     @Override
     public String getEntityId() {
-        // TODO Auto-generated method stub
-        return null;
+        return entityId;
     }
 
     @Override
@@ -326,9 +339,12 @@ public class X509CredentialImpl implements X509Credential {
         return null;
     }
 
+    /**
+     * Get the usage type.
+     * @return This method is not supported so, it returns the default value.
+     */
     @Override
     public UsageType getUsageType() {
-        // TODO Auto-generated method stub
-        return null;
+        return UsageType.UNSPECIFIED;
     }
 }

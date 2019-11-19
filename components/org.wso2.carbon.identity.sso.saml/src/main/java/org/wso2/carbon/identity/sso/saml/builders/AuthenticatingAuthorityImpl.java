@@ -17,10 +17,10 @@
  */
 package org.wso2.carbon.identity.sso.saml.builders;
 
-import org.opensaml.common.impl.AbstractSAMLObject;
-import org.opensaml.common.xml.SAMLConstants;
-import org.opensaml.saml2.core.AuthenticatingAuthority;
-import org.opensaml.xml.XMLObject;
+import org.opensaml.saml.common.AbstractSAMLObject;
+import org.opensaml.saml.common.xml.SAMLConstants;
+import org.opensaml.saml.saml2.core.AuthenticatingAuthority;
+import org.opensaml.core.xml.XMLObject;
 
 import java.util.List;
 

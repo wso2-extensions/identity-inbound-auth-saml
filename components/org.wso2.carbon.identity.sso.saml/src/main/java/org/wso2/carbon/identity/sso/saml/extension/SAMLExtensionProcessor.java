@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.sso.saml.extension;
 
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.RequestAbstractType;
-import org.opensaml.saml2.core.StatusResponseType;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.opensaml.saml.saml2.core.StatusResponseType;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;

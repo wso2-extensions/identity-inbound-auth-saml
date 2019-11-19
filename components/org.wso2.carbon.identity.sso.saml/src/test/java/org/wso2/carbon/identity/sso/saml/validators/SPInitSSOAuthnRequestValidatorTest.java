@@ -19,13 +19,13 @@
 package org.wso2.carbon.identity.sso.saml.validators;
 
 import org.apache.commons.lang.StringUtils;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.SubjectConfirmation;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.SubjectConfirmationBuilder;
-import org.opensaml.saml2.core.impl.SubjectImpl;
-import org.opensaml.xml.XMLObject;
+import org.opensaml.saml.common.SAMLVersion;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.SubjectConfirmation;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.SubjectConfirmationBuilder;
+import org.opensaml.saml.saml2.core.impl.SubjectImpl;
+import org.opensaml.core.xml.XMLObject;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;

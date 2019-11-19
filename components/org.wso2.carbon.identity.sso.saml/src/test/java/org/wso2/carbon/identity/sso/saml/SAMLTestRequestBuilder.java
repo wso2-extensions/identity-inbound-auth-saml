@@ -21,45 +21,44 @@ package org.wso2.carbon.identity.sso.saml;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.joda.time.DateTime;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.common.impl.SAMLObjectContentReference;
-import org.opensaml.common.xml.SAMLConstants;
-import org.opensaml.saml2.common.Extensions;
-import org.opensaml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameIDPolicy;
-import org.opensaml.saml2.core.RequestAbstractType;
-import org.opensaml.saml2.core.RequestedAuthnContext;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
-import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
-import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.XMLObjectBuilder;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallerFactory;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.security.SigningUtil;
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Data;
-import org.opensaml.xml.util.Base64;
-import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.common.SAMLVersion;
+import org.opensaml.saml.common.SAMLObjectContentReference;
+import org.opensaml.saml.common.xml.SAMLConstants;
+import org.opensaml.saml.saml2.core.Extensions;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.NameIDPolicy;
+import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.opensaml.saml.saml2.core.RequestedAuthnContext;
+import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
+import org.opensaml.saml.saml2.core.impl.AuthnRequestBuilder;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
+import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilder;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
+import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.xmlsec.crypto.XMLSigningUtil;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.Signer;
+import org.opensaml.xmlsec.signature.X509Data;
+import net.shibboleth.utilities.java.support.codec.Base64Support;
+import net.shibboleth.utilities.java.support.xml.SerializeSupport;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -186,11 +185,11 @@ public class SAMLTestRequestBuilder {
     }
 
     public static String encodeRequestMessage(RequestAbstractType requestMessage) throws MarshallingException,
-            IOException, ConfigurationException {
-        DefaultBootstrap.bootstrap();
+            IOException, InitializationException {
+        SAMLInitializer.doBootstrap();
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-        Marshaller marshaller = Configuration.getMarshallerFactory().getMarshaller(requestMessage);
+        Marshaller marshaller = XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(requestMessage);
         Element authDOM = null;
         authDOM = marshaller.marshall(requestMessage);
 
@@ -198,13 +197,11 @@ public class SAMLTestRequestBuilder {
         Deflater deflater = new Deflater(Deflater.DEFLATED, true);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
-        StringWriter rspWrt = new StringWriter();
-        XMLHelper.writeNode(authDOM, rspWrt);
-        deflaterOutputStream.write(rspWrt.toString().getBytes());
+        SerializeSupport.writeNode(authDOM, deflaterOutputStream);
         deflaterOutputStream.close();
 
         /* Encoding the compressed message */
-        String encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+        String encodedRequestMessage = Base64Support.encode(byteArrayOutputStream.toByteArray(), Base64Support.UNCHUNKED);
 
         byteArrayOutputStream.write(byteArrayOutputStream.toByteArray());
         byteArrayOutputStream.toString();
@@ -214,13 +211,13 @@ public class SAMLTestRequestBuilder {
 
     public static void addSignatureToHTTPQueryString(StringBuilder httpQueryString,
                                                      String signatureAlgorithmURI, X509Credential credential) throws
-            UnsupportedEncodingException, org.opensaml.xml.security.SecurityException {
+            UnsupportedEncodingException, org.opensaml.security.SecurityException {
         httpQueryString.append("&SigAlg=");
         httpQueryString.append(URLEncoder.encode(signatureAlgorithmURI, "UTF-8").trim());
-        byte[] rawSignature = SigningUtil.signWithURI(credential, signatureAlgorithmURI,
+        byte[] rawSignature = XMLSigningUtil.signWithURI(credential, signatureAlgorithmURI,
                 httpQueryString.toString().getBytes("UTF-8"));
 
-        String base64Signature = Base64.encodeBytes(rawSignature, Base64.DONT_BREAK_LINES);
+        String base64Signature = Base64Support.encode(rawSignature, Base64Support.UNCHUNKED);
         httpQueryString.append("&Signature=" + URLEncoder.encode(base64Signature, "UTF-8").trim());
     }
 
@@ -237,7 +234,7 @@ public class SAMLTestRequestBuilder {
     public static void setSignature(RequestAbstractType request, String signatureAlgorithm,
                                     String digestAlgorithm, boolean includeCert, X509Credential x509Credential)
             throws Exception {
-        DefaultBootstrap.bootstrap();
+        SAMLInitializer.doBootstrap();
         if (StringUtils.isEmpty(signatureAlgorithm)) {
             signatureAlgorithm = IdentityApplicationManagementUtil.getXMLSignatureAlgorithms().get(
                     IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1);
@@ -255,8 +252,8 @@ public class SAMLTestRequestBuilder {
         if (includeCert) {
             KeyInfo keyInfo = (KeyInfo) buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
             X509Data data = (X509Data) buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
-            org.opensaml.xml.signature.X509Certificate cert = (org.opensaml.xml.signature.X509Certificate)
-                    buildXMLObject(org.opensaml.xml.signature.X509Certificate.DEFAULT_ELEMENT_NAME);
+            org.opensaml.xmlsec.signature.X509Certificate cert = (org.opensaml.xmlsec.signature.X509Certificate)
+                    buildXMLObject(org.opensaml.xmlsec.signature.X509Certificate.DEFAULT_ELEMENT_NAME);
             String value = null;
             value = org.apache.xml.security.utils.Base64.encode(x509Credential.getEntityCertificate().getEncoded());
             cert.setValue(value);
@@ -271,7 +268,7 @@ public class SAMLTestRequestBuilder {
         List<Signature> signatureList = new ArrayList<Signature>();
         signatureList.add(signature);
         // Marshall and Sign
-        MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+        MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport.getMarshallerFactory();
         Marshaller marshaller = marshallerFactory.getMarshaller(request);
         marshaller.marshall(request);
         org.apache.xml.security.Init.init();
@@ -285,12 +282,12 @@ public class SAMLTestRequestBuilder {
      * @return Base 64 encoded xml string
      */
     public static String encode(String xmlString) {
-        String encodedRequestMessage = Base64.encodeBytes(xmlString.getBytes(), Base64.DONT_BREAK_LINES);
+        String encodedRequestMessage = Base64Support.encode(xmlString.getBytes(), Base64Support.UNCHUNKED);
         return encodedRequestMessage.trim();
     }
 
     private static XMLObject buildXMLObject(QName objectQName) {
-        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);
+        XMLObjectBuilder builder = XMLObjectProviderRegistrySupport.getBuilderFactory().getBuilder(objectQName);
         return builder.buildObject(objectQName.getNamespaceURI(), objectQName.getLocalPart(), objectQName.getPrefix());
     }
 

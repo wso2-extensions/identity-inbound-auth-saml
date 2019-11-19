@@ -20,12 +20,11 @@ package org.wso2.carbon.identity.sso.saml.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Assertion;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;

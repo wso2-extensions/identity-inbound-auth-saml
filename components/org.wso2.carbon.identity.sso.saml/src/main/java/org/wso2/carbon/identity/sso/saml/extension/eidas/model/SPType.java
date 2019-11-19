@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.extension.eidas.model;
 
-import org.opensaml.common.SAMLObject;
+import org.opensaml.saml.common.SAMLObject;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.util.EidasConstants;
 
 import javax.xml.namespace.QName;

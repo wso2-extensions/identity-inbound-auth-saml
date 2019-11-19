@@ -20,9 +20,10 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.security.x509.X509Credential;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
@@ -45,11 +46,11 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -113,6 +114,9 @@ public class SigningTests extends PowerMockTestCase {
     public void testSignatureValidate(boolean addSignature, String prependEncodedMessage, String signature, String
             algorithm, boolean expected, String message) throws Exception {
 
+        // This is done to avoid info logs which represent "Algorithm not registered"
+        Security.addProvider(new BouncyCastleProvider());
+
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
         mockStatic(IdentityUtil.class);
@@ -145,8 +149,8 @@ public class SigningTests extends PowerMockTestCase {
             stringBuilder.append("&Signature=" + signature).append("&SigAlg=" + algorithm);
         }
         samlssoAuthnReqDTO.setQueryString(stringBuilder.toString());
-        assertEquals(expected, SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
-                x509Credential.getEntityCertificate()), message);
+        assertEquals(SAMLSSOUtil.validateAuthnRequestSignature(samlssoAuthnReqDTO,
+                x509Credential.getEntityCertificate()), expected, message);
     }
 
     @DataProvider

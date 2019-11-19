@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.6.22-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -40,22 +40,48 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml1</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>opensaml.wso2</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>opensaml.wso2</groupId>
+                    <artifactId>opensaml2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.orbit.org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.orbit.org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.security.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
@@ -76,6 +102,16 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml1</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.wso2</groupId>
@@ -92,10 +128,126 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.metadata.saml2</groupId>
             <artifactId>org.wso2.carbon.identity.sp.metadata.saml2</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.orbit.org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
             <artifactId>org.wso2.carbon.identity.sso.saml.common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>opensaml.wso2</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>opensaml.wso2</groupId>
+                    <artifactId>opensaml2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml1</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.orbit.org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!--SAML Common Util dependency-->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.saml.common</groupId>
+            <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+        </dependency>
+
+        <!--OpenSAML3 dependencies-->
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-soap-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-soap-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-profile-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-profile-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-messaging-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-messaging-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-storage-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-storage-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xacml-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xacml-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xacml-saml-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xacml-saml-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xmlsec-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xmlsec-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.shibboleth.utilities</groupId>
+            <artifactId>java-support</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -169,6 +321,7 @@
                             org.wso2.carbon.identity.sp.metadata.saml2.exception; version="${identity.metadata.saml2.imp.pkg.version.range}",
                             org.wso2.carbon.identity.sp.metadata.saml2.util; version="${identity.metadata.saml2.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.model,
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                             org.wso2.carbon.idp.mgt.util,
                             javax.crypto,
                             javax.xml.stream,
@@ -198,29 +351,8 @@
                             org.apache.xml.security.c14n ; version="[1.4.2.patched,2.0.0]",
                             org.apache.xml.security.signature ; version="[1.4.2.patched,2.0.0]",
                             org.apache.xml.security.utils ; version="[1.4.2.patched,2.0.0]",
-                            org.opensaml,
-                            org.opensaml.common,
-                            org.opensaml.common.impl,
-                            org.opensaml.saml1.core,
-                            org.opensaml.saml2.core,
-                            org.opensaml.saml2.core.impl,
-                            org.opensaml.saml2.encryption,
-                            org.opensaml.ws.security,
-                            org.opensaml.ws.transport.http,
-                            org.opensaml.xml,
-                            org.opensaml.xml.encryption,
-                            org.opensaml.xml.io,
-                            org.opensaml.xml.schema,
-                            org.opensaml.xml.schema.impl,
-                            org.opensaml.xml.security,
-                            org.opensaml.xml.security.credential,
-                            org.opensaml.xml.security.criteria,
-                            org.opensaml.xml.security.keyinfo,
-                            org.opensaml.xml.security.x509,
-                            org.opensaml.xml.signature,
-                            org.opensaml.xml.signature.impl,
-                            org.opensaml.xml.util,
-                            org.opensaml.xml.validation,
+                            org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
+                            net.shibboleth.utilities.java.support.*; version="${opensaml2.wso2.osgi.version.range}",
                             org.w3c.dom, org.w3c.dom.bootstrap,
                             org.w3c.dom.ls,
                             org.wso2.carbon.core,

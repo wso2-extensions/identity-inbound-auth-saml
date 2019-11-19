@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.mockito.Mock;
-import org.opensaml.DefaultBootstrap;
+import org.opensaml.core.config.InitializationService;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -65,7 +65,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 /**
  * Unit Tests for SAMLLogoutHandler.
  */
-@PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, DefaultBootstrap.class,
+@PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
         KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
