@@ -148,8 +148,9 @@
 
         function disableSingleLogout(chkbx) {
             if ($(chkbx).is(':checked')) {
-                if(!$("#enableFrontChannelHTTPRedirectBinding").is(':checked') && !$("#enableFrontChannelHTTPPostBinding").is(':checked')) {
-                    $("#enableBackChannelLogout").prop('checked',true);
+                if (!$("#enableFrontChannelHTTPRedirectBinding").is(':checked')
+                    && !$("#enableFrontChannelHTTPPostBinding").is(':checked')) {
+                    $("#enableBackChannelLogout").prop('checked', true);
                 }
                 $("#sloResponseURL").prop('disabled', false);
                 $("#sloRequestURL").prop('disabled', false);

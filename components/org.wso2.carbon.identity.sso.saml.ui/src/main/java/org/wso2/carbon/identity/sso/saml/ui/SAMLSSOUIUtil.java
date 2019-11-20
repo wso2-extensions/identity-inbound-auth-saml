@@ -151,21 +151,20 @@ public class SAMLSSOUIUtil {
      */
     public static boolean isHTTPRedirectBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
 
-        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals
+        return (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_REDIRECT_BINDING.equals
                 (provider.getFrontChannelLogoutBinding()));
-
     }
 
     /**
-     * Check front-Channel logout HTTP Post Binding enable and if not enable return false.
+     * Check front-Channel logout HTTP Post Binding enable and if not enabled, return false.
      * @param isSpEdit Operation on service provider, create or edit.
      * @param provider SAML2 service provider configuration
      * @return boolean true if post binding enabled.
      */
     public static boolean isHTTPPostBindingEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
 
-        return  (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_POST_BINDING.equals
-                (provider.getFrontChannelLogoutBinding())) ;
+        return (isSpEdit && provider != null && SAMLSSOProviderConstants.HTTP_POST_BINDING.equals
+                (provider.getFrontChannelLogoutBinding()));
     }
 
     public static boolean isAttributeProfileEnabled(boolean isSpEdit, SAMLSSOServiceProviderDTO provider) {
