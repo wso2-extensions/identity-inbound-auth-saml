@@ -16,12 +16,13 @@
 package org.wso2.carbon.identity.sso.saml;
 
 /**
- * Container for error codes related to OAuth component.
+ * Container for error codes related to SAML component.
  */
 public enum ErrorMessage {
 
-    INVALID_REQUEST("70001"),
-    CONFLICTING_SAML_ISSUER("70002");
+    // Client errors starts with 60, server errors starts with 65.
+    INVALID_REQUEST("60001"),
+    CONFLICTING_SAML_ISSUER("60002");
 
     ErrorMessage(String errorCode) {
 

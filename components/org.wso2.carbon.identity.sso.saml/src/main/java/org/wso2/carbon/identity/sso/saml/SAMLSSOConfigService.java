@@ -42,16 +42,8 @@ public class SAMLSSOConfigService extends AbstractAdmin {
         try {
             return samlssoConfigService.addRPServiceProvider(spDto);
         } catch (IdentityException ex) {
-            String message = "Error while creating SAML service provider. " + ex.getMessage();
-            if (ex instanceof IdentitySAML2ClientException) {
-                if (log.isDebugEnabled()) {
-                    log.debug(message, ex);
-                }
-                log.error(message);
-            } else {
-                log.error(message, ex);
-            }
-            throw ex;
+            String message = "Error while creating SAML service provider.";
+            throw handleException(ex, message);
         }
     }
 
@@ -66,17 +58,21 @@ public class SAMLSSOConfigService extends AbstractAdmin {
         try {
             return samlssoConfigService.uploadRPServiceProvider(metadata);
         } catch (IdentitySAML2SSOException ex) {
-            String message = "Error while uploading SAML service provider. " + ex.getMessage();
-            if (ex instanceof IdentitySAML2ClientException) {
-                if (log.isDebugEnabled()) {
-                    log.debug(message, ex);
-                }
-                log.error(message);
-            } else {
-                log.error(message, ex);
-            }
-            throw ex;
+            String message = "Error while uploading SAML service provider.";
+            throw handleException(ex, message);
         }
+    }
+
+    private <T extends Exception> T handleException(T ex, String message) {
+
+        if (ex instanceof IdentitySAML2ClientException) {
+            if (log.isDebugEnabled()) {
+                log.debug(message, ex);
+            }
+        } else {
+            log.error(message, ex);
+        }
+        return ex;
     }
 
     /**

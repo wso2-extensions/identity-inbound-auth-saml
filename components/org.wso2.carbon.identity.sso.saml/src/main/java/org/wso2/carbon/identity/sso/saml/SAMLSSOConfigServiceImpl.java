@@ -76,7 +76,7 @@ public class SAMLSSOConfigServiceImpl {
         } catch (IdentitySAML2SSOException ex) {
             throw ex;
         } catch (IdentityException e) {
-            throw new IdentitySAML2SSOException("Error while uploading service provider", e);
+            throw new IdentitySAML2SSOException("Error while uploading service provider metadata.", e);
         }
     }
 

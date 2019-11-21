@@ -164,16 +164,11 @@ public class SAMLSSOConfigAdmin {
             }
         }
 
-        try {
-            boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
-
-            if (response) {
-                return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
-            } else {
-                throw buildClientException(CONFLICTING_SAML_ISSUER, "SAML issuer already exists.");
-            }
-        } catch (IdentityException e) {
-            throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
+        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
+        if (response) {
+            return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
+        } else {
+            throw buildClientException(CONFLICTING_SAML_ISSUER, "SAML issuer already exists.");
         }
     }
 
@@ -191,10 +186,11 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
 
         validateIssuer(serviceProviderDTO.getIssuer());
-        validateIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
-
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
+
+        validateIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
         serviceProviderDO.setIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
+
         serviceProviderDO.setAssertionConsumerUrls(serviceProviderDTO.getAssertionConsumerUrls());
         serviceProviderDO.setDefaultAssertionConsumerUrl(serviceProviderDTO.getDefaultAssertionConsumerUrl());
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
@@ -282,10 +278,11 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
 
         validateIssuer(serviceProviderDO.getIssuer());
-        validateIssuerQualifier(serviceProviderDO.getIssuerQualifier());
-
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
+
+        validateIssuerQualifier(serviceProviderDO.getIssuerQualifier());
         serviceProviderDTO.setIssuerQualifier(serviceProviderDO.getIssuerQualifier());
+
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
         serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
