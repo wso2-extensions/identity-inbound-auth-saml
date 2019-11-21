@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.sso.saml;
  */
 public enum ErrorMessage {
 
-    INVALID_REQUEST("60001"),
-    CONFLICTING_SAML_ISSUER("60002");
+    INVALID_REQUEST("70001"),
+    CONFLICTING_SAML_ISSUER("70002");
 
     ErrorMessage(String errorCode) {
 
