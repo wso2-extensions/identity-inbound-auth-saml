@@ -73,9 +73,10 @@ public class SAMLSSOConfigServiceImpl {
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
+        } catch (IdentitySAML2SSOException ex) {
+            throw ex;
         } catch (IdentityException e) {
-            log.error("Error while uploading service provider", e);
-            throw new IdentitySAML2SSOException("Error while uploading service provider");
+            throw new IdentitySAML2SSOException("Error while uploading service provider", e);
         }
     }
 

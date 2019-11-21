@@ -24,6 +24,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 
 public class SAMLSSOConfigService extends AbstractAdmin {
@@ -38,7 +39,20 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
-        return samlssoConfigService.addRPServiceProvider(spDto);
+        try {
+            return samlssoConfigService.addRPServiceProvider(spDto);
+        } catch (IdentityException ex) {
+            String message = "Error while creating SAML service provider. " + ex.getMessage();
+            if (ex instanceof IdentitySAML2ClientException) {
+                if (log.isDebugEnabled()) {
+                    log.debug(message, ex);
+                }
+                log.error(message);
+            } else {
+                log.error(message, ex);
+            }
+            throw ex;
+        }
     }
 
     /**
@@ -49,7 +63,20 @@ public class SAMLSSOConfigService extends AbstractAdmin {
 
     public SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
 
-        return samlssoConfigService.uploadRPServiceProvider(metadata);
+        try {
+            return samlssoConfigService.uploadRPServiceProvider(metadata);
+        } catch (IdentitySAML2SSOException ex) {
+            String message = "Error while uploading SAML service provider. " + ex.getMessage();
+            if (ex instanceof IdentitySAML2ClientException) {
+                if (log.isDebugEnabled()) {
+                    log.debug(message, ex);
+                }
+                log.error(message);
+            } else {
+                log.error(message, ex);
+            }
+            throw ex;
+        }
     }
 
     /**

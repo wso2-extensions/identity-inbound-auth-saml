@@ -31,15 +31,20 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
+import org.wso2.carbon.identity.sso.saml.ErrorMessage;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
+
+import static org.wso2.carbon.identity.sso.saml.ErrorMessage.CONFLICTING_SAML_ISSUER;
+import static org.wso2.carbon.identity.sso.saml.ErrorMessage.INVALID_REQUEST;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -147,7 +152,7 @@ public class SAMLSSOConfigAdmin {
             //pass metadata to samlSSOServiceProvider object
             samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
         } catch (InvalidMetadataException e) {
-            throw IdentityException.error("Error parsing SP metadata", e);
+            throw buildClientException(INVALID_REQUEST, "Error parsing SP metadata.", e);
         }
 
         if (samlssoServiceProviderDO.getX509Certificate() != null) {
@@ -165,34 +170,28 @@ public class SAMLSSOConfigAdmin {
             if (response) {
                 return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
             } else {
-                throw IdentityException.error("Error while adding new service provider");
+                throw buildClientException(CONFLICTING_SAML_ISSUER, "SAML issuer already exists.");
             }
         } catch (IdentityException e) {
             throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
         }
     }
 
+    private IdentitySAML2ClientException buildClientException(ErrorMessage error, String message) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message);
+    }
+
+    private IdentitySAML2ClientException buildClientException(ErrorMessage error, String message, Exception e) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message, e);
+    }
+
     private SAMLSSOServiceProviderDO createSAMLSSOServiceProviderDO(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
 
-        if (serviceProviderDTO.getIssuer() == null || "".equals(serviceProviderDTO.getIssuer())) {
-            String message = "A value for the Issuer is mandatory";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (serviceProviderDTO.getIssuer().contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier()) && serviceProviderDTO.getIssuerQualifier()
-                .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
+        validateIssuer(serviceProviderDTO.getIssuer());
+        validateIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
 
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
         serviceProviderDO.setIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
@@ -221,8 +220,7 @@ public class SAMLSSOConfigAdmin {
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
         } else {
-            serviceProviderDTO.setNameIDFormat(serviceProviderDTO.getNameIDFormat().replace("/",
-                    ":"));
+            serviceProviderDTO.setNameIDFormat(serviceProviderDTO.getNameIDFormat().replace("/", ":"));
         }
 
         serviceProviderDO.setNameIDFormat(serviceProviderDTO.getNameIDFormat());
@@ -259,28 +257,32 @@ public class SAMLSSOConfigAdmin {
         return serviceProviderDO;
     }
 
+    private void validateIssuerQualifier(String issuerQualifier) throws IdentitySAML2ClientException {
+
+        if (StringUtils.isNotBlank(issuerQualifier) && issuerQualifier.contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
+            throw buildClientException(INVALID_REQUEST, message);
+        }
+    }
+
+    private void validateIssuer(String issuer) throws IdentitySAML2ClientException {
+
+        if (StringUtils.isBlank(issuer)) {
+            throw buildClientException(INVALID_REQUEST, "A value for the Issuer is mandatory.");
+        }
+
+        if (issuer.contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
+            throw buildClientException(INVALID_REQUEST, message);
+        }
+    }
+
     private SAMLSSOServiceProviderDTO createSAMLSSOServiceProviderDTO(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
         SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
 
-        if (serviceProviderDO.getIssuer() == null || "".equals(serviceProviderDO.getIssuer())) {
-            String message = "A value for the Issuer is mandatory";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (serviceProviderDO.getIssuer().contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) && serviceProviderDO.getIssuerQualifier()
-                .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
+        validateIssuer(serviceProviderDO.getIssuer());
+        validateIssuerQualifier(serviceProviderDO.getIssuerQualifier());
 
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
         serviceProviderDTO.setIssuerQualifier(serviceProviderDO.getIssuerQualifier());
