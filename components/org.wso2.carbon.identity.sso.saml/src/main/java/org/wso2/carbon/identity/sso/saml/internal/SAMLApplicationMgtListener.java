@@ -80,15 +80,19 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                 .getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
 
         if (sp != null) {
-            String deletedIssuer = getSAMLIssuer(sp);
-            if (StringUtils.isNotBlank(deletedIssuer)) {
+            String issuerToBeDeleted = getSAMLIssuer(sp);
+            if (StringUtils.isNotBlank(issuerToBeDeleted)) {
                 try {
-                    SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(deletedIssuer);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Removing SAML inbound data for issuer: " + issuerToBeDeleted + " associated with " +
+                                "service provider: " + applicationName + " of tenantDomain: " + tenantDomain);
+                    }
+                    SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(issuerToBeDeleted);
                 } catch (IdentityException e) {
                     String msg = "Error removing SAML inbound data for issuer: %s associated with " +
                             "service provider: %s of tenantDomain: %s during application delete.";
                     throw new IdentityApplicationManagementException(
-                            String.format(msg, deletedIssuer, applicationName, tenantDomain), e);
+                            String.format(msg, issuerToBeDeleted, applicationName, tenantDomain), e);
                 }
             }
         }
