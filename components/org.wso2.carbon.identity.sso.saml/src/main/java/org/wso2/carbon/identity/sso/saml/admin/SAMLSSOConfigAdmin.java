@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
-import org.wso2.carbon.identity.sso.saml.ErrorMessage;
+import org.wso2.carbon.identity.sso.saml.Error;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -43,8 +43,8 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 
-import static org.wso2.carbon.identity.sso.saml.ErrorMessage.CONFLICTING_SAML_ISSUER;
-import static org.wso2.carbon.identity.sso.saml.ErrorMessage.INVALID_REQUEST;
+import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
+import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -172,12 +172,12 @@ public class SAMLSSOConfigAdmin {
         }
     }
 
-    private IdentitySAML2ClientException buildClientException(ErrorMessage error, String message) {
+    private IdentitySAML2ClientException buildClientException(Error error, String message) {
 
         return new IdentitySAML2ClientException(error.getErrorCode(), message);
     }
 
-    private IdentitySAML2ClientException buildClientException(ErrorMessage error, String message, Exception e) {
+    private IdentitySAML2ClientException buildClientException(Error error, String message, Exception e) {
 
         return new IdentitySAML2ClientException(error.getErrorCode(), message, e);
     }

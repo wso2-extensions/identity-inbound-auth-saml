@@ -16,9 +16,9 @@
 package org.wso2.carbon.identity.sso.saml;
 
 /**
- * Container for error codes related to SAML component.
+ * Container for error codes related to SAML service provider component.
  */
-public enum ErrorMessage {
+public enum Error {
 
     // Client errors starts with 60, server errors starts with 65.
     INVALID_REQUEST("60001"),
@@ -26,7 +26,7 @@ public enum ErrorMessage {
 
     UNEXPECTED_SERVER_ERROR("65001");
 
-    ErrorMessage(String errorCode) {
+    Error(String errorCode) {
 
         this.errorCode = errorCode;
     }

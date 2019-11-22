@@ -45,8 +45,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.Collection;
 
-import static org.wso2.carbon.identity.sso.saml.ErrorMessage.INVALID_REQUEST;
-import static org.wso2.carbon.identity.sso.saml.ErrorMessage.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.sso.saml.Error.UNEXPECTED_SERVER_ERROR;
 
 /**
  * Providers an OSGi service layer for SAML service provider configuration management operations.
@@ -322,7 +322,7 @@ public class SAMLSSOConfigServiceImpl {
         }
     }
 
-    private void setErrorCode(IdentityException ex, ErrorMessage errorMessage) {
+    private void setErrorCode(IdentityException ex, Error errorMessage) {
 
         if (StringUtils.isBlank(ex.getErrorCode())) {
             ex.setErrorCode(errorMessage.getErrorCode());
