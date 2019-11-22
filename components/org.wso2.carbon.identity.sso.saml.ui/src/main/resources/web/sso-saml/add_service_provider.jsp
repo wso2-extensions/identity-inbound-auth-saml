@@ -652,7 +652,6 @@
         CertData certData = null;
 
         String applicationSPName = request.getParameter("spName");
-        session.setAttribute("application-sp-name", applicationSPName);
 
         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTO = null;
         ArrayList<SAMLSSOServiceProviderDTO> providers =
@@ -832,6 +831,8 @@
                                             <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
                                         <input type="hidden" id="hiddenIssuer" name="hiddenIssuer"
                                                value="<%=isEditSP? Encode.forHtmlAttribute(provider.getIssuer()):""%>"/>
+                                        <input type="hidden" id="application-sp-name" name="application-sp-name"
+                                               value="<%=Encode.forHtmlAttribute(applicationSPName)%>"/>
                                     </td>
                                 </tr>
                                 <%
@@ -1993,6 +1994,10 @@
                   action="upload_service_provider_from_url_finish.jsp?SPAction=<%=spAction%>"
                   id="uploadServiceProviderFromUrl" name="uploadServiceProviderFromUrl" target="_self"
                   onsubmit="return doValidationUrl();">
+
+
+                <input type="hidden" name="application-sp-name"
+                       value="<%=Encode.forHtmlAttribute(applicationSPName)%>"/>
 
                 <table class="styledLeft" width="100%">
                     <thead>

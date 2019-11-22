@@ -55,8 +55,7 @@
     String user = null;
     SAMLSSOConfigServiceClient client;
     session.setAttribute(SAMLSSOUIConstants.CONFIG_CLIENT, null);
-    String spName = (String) session.getAttribute("application-sp-name");
-    session.removeAttribute("application-sp-name");
+    String spName = request.getParameter("application-sp-name");
     boolean status = false;
     String attributeConsumingServiceIndex = null;
 
