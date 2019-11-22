@@ -22,7 +22,9 @@ public enum ErrorMessage {
 
     // Client errors starts with 60, server errors starts with 65.
     INVALID_REQUEST("60001"),
-    CONFLICTING_SAML_ISSUER("60002");
+    CONFLICTING_SAML_ISSUER("60002"),
+
+    UNEXPECTED_SERVER_ERROR("65001");
 
     ErrorMessage(String errorCode) {
 

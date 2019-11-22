@@ -420,7 +420,7 @@ public class SAMLSSOConfigAdmin {
             }
         } catch (IdentityException e) {
             log.error("Error obtaining a registry intance for reading service provider list", e);
-            throw IdentityException.error("Error obtaining a registry intance for reading service provider list", e);
+            throw IdentityException.error("Error obtaining a registry instance for reading service provider list", e);
         }
 
         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTO = new SAMLSSOServiceProviderInfoDTO();

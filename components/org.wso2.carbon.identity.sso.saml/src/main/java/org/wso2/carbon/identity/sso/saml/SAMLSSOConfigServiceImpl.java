@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.admin.SAMLSSOConfigAdmin;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
@@ -43,6 +44,9 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.Collection;
+
+import static org.wso2.carbon.identity.sso.saml.ErrorMessage.INVALID_REQUEST;
+import static org.wso2.carbon.identity.sso.saml.ErrorMessage.UNEXPECTED_SERVER_ERROR;
 
 /**
  * Providers an OSGi service layer for SAML service provider configuration management operations.
@@ -58,8 +62,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-        return configAdmin.addRelyingPartyServiceProvider(spDto);
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            return configAdmin.addRelyingPartyServiceProvider(spDto);
+        } catch (IdentityException ex) {
+            String tenantDomain = getTenantDomain();
+            throw handleException("Error while creating service provider in tenantDomain: " + tenantDomain, ex);
+        }
     }
 
     /**
@@ -73,10 +82,9 @@ public class SAMLSSOConfigServiceImpl {
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
-        } catch (IdentitySAML2SSOException ex) {
-            throw ex;
         } catch (IdentityException e) {
-            throw new IdentitySAML2SSOException("Error while uploading service provider metadata.", e);
+            String tenantDomain = getTenantDomain();
+            throw handleException("Error while uploading service provider metadata in tenantDomain:" + tenantDomain, e);
         }
     }
 
@@ -86,8 +94,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
 
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-        return configAdmin.getServiceProviders();
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            return configAdmin.getServiceProviders();
+        } catch (IdentityException ex) {
+            String tenantDomain = getTenantDomain();
+            throw handleException("Error while retrieving SAML service providers of tenantDomain: " + tenantDomain, ex);
+        }
     }
 
     /**
@@ -99,15 +112,21 @@ public class SAMLSSOConfigServiceImpl {
      */
     public SAMLSSOServiceProviderDTO getServiceProvider(String issuer) throws IdentityException {
 
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-        SAMLSSOServiceProviderInfoDTO serviceProviders = configAdmin.getServiceProviders();
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            SAMLSSOServiceProviderInfoDTO serviceProviders = configAdmin.getServiceProviders();
 
-        for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
-            if (StringUtils.equals(sp.getIssuer(), issuer)) {
-                return sp;
+            for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
+                if (StringUtils.equals(sp.getIssuer(), issuer)) {
+                    return sp;
+                }
             }
+            return null;
+        } catch (IdentityException ex) {
+            String msg = "Error retrieving SAML service provider for issuer: " + issuer + " of tenantDomain: "
+                    + getTenantDomain();
+            throw handleException(msg, ex);
         }
-        return null;
     }
 
     /**
@@ -282,6 +301,32 @@ public class SAMLSSOConfigServiceImpl {
     private Registry getGovernanceRegistry() {
 
         return (Registry) CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
+    }
+
+    private IdentitySAML2SSOException handleException(String message, IdentityException ex) {
+
+        setErrorCodeIfNotDefined(ex);
+        if (ex instanceof IdentitySAML2SSOException) {
+            return (IdentitySAML2SSOException) ex;
+        } else {
+            return new IdentitySAML2SSOException(message, ex);
+        }
+    }
+
+    private void setErrorCodeIfNotDefined(IdentityException ex) {
+
+        if (ex instanceof IdentitySAML2ClientException) {
+            setErrorCode(ex, INVALID_REQUEST);
+        } else {
+            setErrorCode(ex, UNEXPECTED_SERVER_ERROR);
+        }
+    }
+
+    private void setErrorCode(IdentityException ex, ErrorMessage errorMessage) {
+
+        if (StringUtils.isBlank(ex.getErrorCode())) {
+            ex.setErrorCode(errorMessage.getErrorCode());
+        }
     }
 }
 
