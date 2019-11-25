@@ -44,6 +44,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.sso.saml.Error.UNEXPECTED_SERVER_ERROR;
@@ -66,8 +67,7 @@ public class SAMLSSOConfigServiceImpl {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             return configAdmin.addRelyingPartyServiceProvider(spDto);
         } catch (IdentityException ex) {
-            String tenantDomain = getTenantDomain();
-            throw handleException("Error while creating service provider in tenantDomain: " + tenantDomain, ex);
+            throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
         }
     }
 
@@ -84,7 +84,7 @@ public class SAMLSSOConfigServiceImpl {
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
         } catch (IdentityException e) {
             String tenantDomain = getTenantDomain();
-            throw handleException("Error while uploading service provider metadata in tenantDomain:" + tenantDomain, e);
+            throw handleException("Error while uploading SAML SP metadata in tenantDomain: " + tenantDomain, e);
         }
     }
 
@@ -99,7 +99,7 @@ public class SAMLSSOConfigServiceImpl {
             return configAdmin.getServiceProviders();
         } catch (IdentityException ex) {
             String tenantDomain = getTenantDomain();
-            throw handleException("Error while retrieving SAML service providers of tenantDomain: " + tenantDomain, ex);
+            throw handleException("Error while retrieving SAML SPs of tenantDomain: " + tenantDomain, ex);
         }
     }
 
@@ -118,13 +118,18 @@ public class SAMLSSOConfigServiceImpl {
 
             for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
                 if (StringUtils.equals(sp.getIssuer(), issuer)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("SAML SP found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
+                    }
                     return sp;
                 }
             }
+            if (log.isDebugEnabled()) {
+                log.debug("SAML SP not found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
+            }
             return null;
         } catch (IdentityException ex) {
-            String msg = "Error retrieving SAML service provider for issuer: " + issuer + " of tenantDomain: "
-                    + getTenantDomain();
+            String msg = "Error retrieving SAML SP for issuer: " + issuer + " of tenantDomain: " + getTenantDomain();
             throw handleException(msg, ex);
         }
     }
@@ -133,17 +138,13 @@ public class SAMLSSOConfigServiceImpl {
      * @return
      * @throws IdentityException
      */
-    private KeyStoreData[] getKeyStores() throws IdentityException {
+    private KeyStoreData[] getKeyStores(int tenantId) throws IdentityException {
 
         try {
-            KeyStoreAdmin admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext()
-                    .getTenantId(), getGovernanceRegistry());
-            boolean isSuperAdmin = MultitenantConstants.SUPER_TENANT_ID == CarbonContext
-                    .getThreadLocalCarbonContext().getTenantId() ? true : false;
-            return admin.getKeyStores(isSuperAdmin);
+            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId, getGovernanceRegistry());
+            return admin.getKeyStores(isSuperTenant(tenantId));
         } catch (SecurityConfigException e) {
-            log.error("Error when loading the key stores from registry", e);
-            throw IdentityException.error("Error when loading the key stores from registry", e);
+            throw new IdentityException("Error when loading the key stores from registry", e);
         }
     }
 
@@ -153,25 +154,39 @@ public class SAMLSSOConfigServiceImpl {
      */
     public String[] getCertAliasOfPrimaryKeyStore() throws IdentityException {
 
-        KeyStoreData[] keyStores = getKeyStores();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        KeyStoreData[] keyStores = getKeyStores(tenantId);
         KeyStoreData primaryKeyStore = null;
-        for (int i = 0; i < keyStores.length; i++) {
-            boolean superTenant = MultitenantConstants.SUPER_TENANT_ID == CarbonContext
-                    .getThreadLocalCarbonContext().getTenantId() ? true : false;
-            if (superTenant && KeyStoreUtil.isPrimaryStore(keyStores[i].getKeyStoreName())) {
-                primaryKeyStore = keyStores[i];
-                break;
-            } else if (!superTenant
-                    && SAMLSSOUtil.generateKSNameFromDomainName(getTenantDomain()).equals(
-                    keyStores[i].getKeyStoreName())) {
-                primaryKeyStore = keyStores[i];
+
+        Predicate<String> isPrimaryKeyStore = getIsPrimaryKeyStoreFunction(tenantId);
+        for (KeyStoreData keyStore : keyStores) {
+            if (isPrimaryKeyStore.test(keyStore.getKeyStoreName())) {
+                primaryKeyStore = keyStore;
                 break;
             }
         }
+
         if (primaryKeyStore != null) {
             return getStoreEntries(primaryKeyStore.getKeyStoreName());
         }
-        throw IdentityException.error("Primary Keystore cannot be found.");
+
+        String msg = "Primary Keystore cannot be found for tenantDomain: " + getTenantDomain();
+        throw buildServerError(msg);
+    }
+
+    private Predicate<String> getIsPrimaryKeyStoreFunction(int tenantId) {
+
+        if (isSuperTenant(tenantId)) {
+            return KeyStoreUtil::isPrimaryStore;
+        } else {
+            return keystoreName -> SAMLSSOUtil.generateKSNameFromDomainName(getTenantDomain()).equals(keystoreName);
+        }
+    }
+
+    private boolean isSuperTenant(int tenantId) {
+
+        return MultitenantConstants.SUPER_TENANT_ID == tenantId;
     }
 
     public String[] getSigningAlgorithmUris() {
@@ -227,8 +242,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
 
-        SAMLSSOConfigAdmin ssoConfigAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-        return ssoConfigAdmin.removeServiceProvider(issuer);
+        try {
+            SAMLSSOConfigAdmin ssoConfigAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            return ssoConfigAdmin.removeServiceProvider(issuer);
+        } catch (IdentityException ex) {
+            String msg = "Error removing SAML SP with issuer: " + issuer + " in tenantDomain: " + getTenantDomain();
+            throw handleException(msg, ex);
+        }
     }
 
     /**
@@ -237,20 +257,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public String[] getClaimURIs() throws IdentityException {
 
-        String tenatUser = MultitenantUtils.getTenantAwareUsername(CarbonContext
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext
                 .getThreadLocalCarbonContext().getUsername());
-        String domainName = MultitenantUtils.getTenantDomain(tenatUser);
+        String tenantDomain = MultitenantUtils.getTenantDomain(tenantAwareUsername);
         String[] claimUris = null;
         try {
-            UserRealm realm = IdentityTenantUtil.getRealm(domainName, tenatUser);
-            String claimDialect = IdentityUtil
-                    .getProperty(IdentityConstants.ServerConfig.SSO_ATTRIB_CLAIM_DIALECT);
-
-            if (claimDialect == null || "".equals(claimDialect)) {
-                // set default
-                claimDialect = SAMLSSOConstants.CLAIM_DIALECT_URL;
-            }
-
+            UserRealm realm = IdentityTenantUtil.getRealm(tenantDomain, tenantAwareUsername);
+            String claimDialect = getClaimDialect();
             ClaimMapping[] claims = realm.getClaimManager().getAllClaimMappings(claimDialect);
             claimUris = new String[claims.length];
 
@@ -260,13 +273,23 @@ public class SAMLSSOConfigServiceImpl {
             }
 
         } catch (IdentityException e) {
-            log.error("Error while getting realm for " + tenatUser, e);
-            throw IdentityException.error("Error while getting realm for " + tenatUser + e);
+            String msg = "Error while getting realm for user: " + tenantAwareUsername + " of tenantDomain: " + tenantDomain;
+            throw handleException(msg, e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            log.error("Error while getting claims for " + tenatUser, e);
-            throw IdentityException.error("Error while getting claims for " + tenatUser + e);
+            String msg = "Error getting all claim URIs for tenantDomain: " + tenantDomain;
+            throw buildServerError(msg, e);
         }
         return claimUris;
+    }
+
+    private String getClaimDialect() {
+
+        String claimDialect = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ATTRIB_CLAIM_DIALECT);
+        if (StringUtils.isBlank(claimDialect)) {
+            // Set the default wso2 carbon claim dialect.
+            claimDialect = SAMLSSOConstants.CLAIM_DIALECT_URL;
+        }
+        return claimDialect;
     }
 
     /**
@@ -282,8 +305,8 @@ public class SAMLSSOConfigServiceImpl {
                     getGovernanceRegistry());
             return admin.getStoreEntries(keyStoreName);
         } catch (SecurityConfigException e) {
-            log.error("Error reading entries from the key store : " + keyStoreName);
-            throw IdentityException.error("Error reading entries from the keystore" + e);
+            String message = "Error reading entries from the key store: " + keyStoreName;
+            throw new IdentityException(message, e);
         }
     }
 
@@ -327,6 +350,16 @@ public class SAMLSSOConfigServiceImpl {
         if (StringUtils.isBlank(ex.getErrorCode())) {
             ex.setErrorCode(errorMessage.getErrorCode());
         }
+    }
+
+    private IdentityException buildServerError(String message) {
+
+        return new IdentityException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message);
+    }
+
+    private IdentityException buildServerError(String message, Exception ex) {
+
+        return new IdentityException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, ex);
     }
 }
 

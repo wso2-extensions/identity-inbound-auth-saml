@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -85,8 +86,8 @@ public class SAMLSSOConfigAdmin {
             }
             return persistenceManager.addServiceProvider(registry, serviceProviderDO);
         } catch (IdentityException e) {
-            log.error("Error obtaining a registry for adding a new service provider", e);
-            throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
+            String message = "Error obtaining a registry for adding a new service provider";
+            throw new IdentityException(message, e);
         }
     }
 
@@ -168,7 +169,9 @@ public class SAMLSSOConfigAdmin {
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
-            throw buildClientException(CONFLICTING_SAML_ISSUER, "SAML issuer already exists.");
+            String issuer = samlssoServiceProviderDO.getIssuer();
+            String msg = "SAML issuer: " + issuer + " already exists in tenantDomain: " + getTenantDomain();
+            throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
         }
     }
 
@@ -419,8 +422,8 @@ public class SAMLSSOConfigAdmin {
                 serviceProviders[i] = providerDTO;
             }
         } catch (IdentityException e) {
-            log.error("Error obtaining a registry intance for reading service provider list", e);
-            throw IdentityException.error("Error obtaining a registry instance for reading service provider list", e);
+            String message = "Error obtaining a registry instance for reading service provider list";
+            throw new IdentityException(message, e);
         }
 
         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTO = new SAMLSSOServiceProviderInfoDTO();
@@ -445,9 +448,13 @@ public class SAMLSSOConfigAdmin {
             IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
             return persistenceManager.removeServiceProvider(registry, issuer);
         } catch (IdentityException e) {
-            log.error("Error removing a Service Provider");
-            throw IdentityException.error("Error removing a Service Provider", e);
+            throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }
+    }
+
+    protected String getTenantDomain() {
+
+        return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
 }

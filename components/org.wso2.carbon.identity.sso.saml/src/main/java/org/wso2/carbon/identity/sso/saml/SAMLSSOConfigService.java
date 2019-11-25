@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 public class SAMLSSOConfigService extends AbstractAdmin {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigService.class);
-    private SAMLSSOConfigServiceImpl samlssoConfigService = new SAMLSSOConfigServiceImpl();
+    private SAMLSSOConfigServiceImpl samlSSOConfigServiceImpl = new SAMLSSOConfigServiceImpl();
 
     /**
      * @param spDto
@@ -40,10 +40,9 @@ public class SAMLSSOConfigService extends AbstractAdmin {
     public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
         try {
-            return samlssoConfigService.addRPServiceProvider(spDto);
+            return samlSSOConfigServiceImpl.addRPServiceProvider(spDto);
         } catch (IdentityException ex) {
-            String message = "Error while creating SAML service provider.";
-            throw handleException(ex, message);
+            throw handleException(ex);
         }
     }
 
@@ -56,23 +55,10 @@ public class SAMLSSOConfigService extends AbstractAdmin {
     public SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
 
         try {
-            return samlssoConfigService.uploadRPServiceProvider(metadata);
+            return samlSSOConfigServiceImpl.uploadRPServiceProvider(metadata);
         } catch (IdentitySAML2SSOException ex) {
-            String message = "Error while uploading SAML service provider.";
-            throw handleException(ex, message);
+            throw handleException(ex);
         }
-    }
-
-    private <T extends Exception> T handleException(T ex, String message) {
-
-        if (ex instanceof IdentitySAML2ClientException) {
-            if (log.isDebugEnabled()) {
-                log.debug(message, ex);
-            }
-        } else {
-            log.error(message, ex);
-        }
-        return ex;
     }
 
     /**
@@ -81,7 +67,11 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
 
-        return samlssoConfigService.getServiceProviders();
+        try {
+            return samlSSOConfigServiceImpl.getServiceProviders();
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
     }
 
     /**
@@ -93,7 +83,11 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public SAMLSSOServiceProviderDTO getServiceProvider(String issuer) throws IdentityException {
 
-        return samlssoConfigService.getServiceProvider(issuer);
+        try {
+            return samlSSOConfigServiceImpl.getServiceProvider(issuer);
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
     }
 
     /**
@@ -102,47 +96,51 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public String[] getCertAliasOfPrimaryKeyStore() throws IdentityException {
 
-        return samlssoConfigService.getCertAliasOfPrimaryKeyStore();
+        try {
+            return samlSSOConfigServiceImpl.getCertAliasOfPrimaryKeyStore();
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
     }
 
     public String[] getSigningAlgorithmUris() {
 
-        return samlssoConfigService.getSigningAlgorithmUris();
+        return samlSSOConfigServiceImpl.getSigningAlgorithmUris();
     }
 
     public String getSigningAlgorithmUriByConfig() {
 
-        return samlssoConfigService.getSigningAlgorithmUriByConfig();
+        return samlSSOConfigServiceImpl.getSigningAlgorithmUriByConfig();
     }
 
     public String[] getDigestAlgorithmURIs() {
 
-        return samlssoConfigService.getDigestAlgorithmURIs();
+        return samlSSOConfigServiceImpl.getDigestAlgorithmURIs();
     }
 
     public String getDigestAlgorithmURIByConfig() {
 
-        return samlssoConfigService.getDigestAlgorithmURIByConfig();
+        return samlSSOConfigServiceImpl.getDigestAlgorithmURIByConfig();
     }
 
     public String[] getAssertionEncryptionAlgorithmURIs() {
 
-        return samlssoConfigService.getAssertionEncryptionAlgorithmURIs();
+        return samlSSOConfigServiceImpl.getAssertionEncryptionAlgorithmURIs();
     }
 
     public String getAssertionEncryptionAlgorithmURIByConfig() {
 
-        return samlssoConfigService.getAssertionEncryptionAlgorithmURIByConfig();
+        return samlSSOConfigServiceImpl.getAssertionEncryptionAlgorithmURIByConfig();
     }
 
     public String[] getKeyEncryptionAlgorithmURIs() {
 
-        return samlssoConfigService.getKeyEncryptionAlgorithmURIs();
+        return samlSSOConfigServiceImpl.getKeyEncryptionAlgorithmURIs();
     }
 
     public String getKeyEncryptionAlgorithmURIByConfig() {
 
-        return samlssoConfigService.getKeyEncryptionAlgorithmURIByConfig();
+        return samlSSOConfigServiceImpl.getKeyEncryptionAlgorithmURIByConfig();
     }
 
     /**
@@ -152,7 +150,11 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
 
-        return samlssoConfigService.removeServiceProvider(issuer);
+        try {
+            return samlSSOConfigServiceImpl.removeServiceProvider(issuer);
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
     }
 
     /**
@@ -161,7 +163,22 @@ public class SAMLSSOConfigService extends AbstractAdmin {
      */
     public String[] getClaimURIs() throws IdentityException {
 
-        return samlssoConfigService.getClaimURIs();
+        try {
+            return samlSSOConfigServiceImpl.getClaimURIs();
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
     }
 
+    private <T extends Exception> T handleException(T ex) {
+
+        if (ex instanceof IdentitySAML2ClientException) {
+            if (log.isDebugEnabled()) {
+                log.debug(ex);
+            }
+        } else {
+            log.error(ex);
+        }
+        return ex;
+    }
 }
