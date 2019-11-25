@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -31,15 +32,20 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
+import org.wso2.carbon.identity.sso.saml.Error;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
+
+import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
+import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -80,8 +86,8 @@ public class SAMLSSOConfigAdmin {
             }
             return persistenceManager.addServiceProvider(registry, serviceProviderDO);
         } catch (IdentityException e) {
-            log.error("Error obtaining a registry for adding a new service provider", e);
-            throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
+            String message = "Error obtaining a registry for adding a new service provider";
+            throw new IdentityException(message, e);
         }
     }
 
@@ -147,7 +153,7 @@ public class SAMLSSOConfigAdmin {
             //pass metadata to samlSSOServiceProvider object
             samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
         } catch (InvalidMetadataException e) {
-            throw IdentityException.error("Error parsing SP metadata", e);
+            throw buildClientException(INVALID_REQUEST, "Error parsing SP metadata.", e);
         }
 
         if (samlssoServiceProviderDO.getX509Certificate() != null) {
@@ -159,43 +165,35 @@ public class SAMLSSOConfigAdmin {
             }
         }
 
-        try {
-            boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
-
-            if (response) {
-                return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
-            } else {
-                throw IdentityException.error("Error while adding new service provider");
-            }
-        } catch (IdentityException e) {
-            throw IdentityException.error("Error obtaining a registry for adding a new service provider", e);
+        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
+        if (response) {
+            return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
+        } else {
+            String issuer = samlssoServiceProviderDO.getIssuer();
+            String msg = "SAML issuer: " + issuer + " already exists in tenantDomain: " + getTenantDomain();
+            throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
         }
+    }
+
+    private IdentitySAML2ClientException buildClientException(Error error, String message) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message);
+    }
+
+    private IdentitySAML2ClientException buildClientException(Error error, String message, Exception e) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message, e);
     }
 
     private SAMLSSOServiceProviderDO createSAMLSSOServiceProviderDO(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
 
-        if (serviceProviderDTO.getIssuer() == null || "".equals(serviceProviderDTO.getIssuer())) {
-            String message = "A value for the Issuer is mandatory";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (serviceProviderDTO.getIssuer().contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier()) && serviceProviderDTO.getIssuerQualifier()
-                .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
+        validateIssuer(serviceProviderDTO.getIssuer());
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
+
+        validateIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
         serviceProviderDO.setIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
+
         serviceProviderDO.setAssertionConsumerUrls(serviceProviderDTO.getAssertionConsumerUrls());
         serviceProviderDO.setDefaultAssertionConsumerUrl(serviceProviderDTO.getDefaultAssertionConsumerUrl());
         serviceProviderDO.setCertAlias(serviceProviderDTO.getCertAlias());
@@ -221,8 +219,7 @@ public class SAMLSSOConfigAdmin {
         if (serviceProviderDTO.getNameIDFormat() == null) {
             serviceProviderDTO.setNameIDFormat(NameIdentifier.EMAIL);
         } else {
-            serviceProviderDTO.setNameIDFormat(serviceProviderDTO.getNameIDFormat().replace("/",
-                    ":"));
+            serviceProviderDTO.setNameIDFormat(serviceProviderDTO.getNameIDFormat().replace("/", ":"));
         }
 
         serviceProviderDO.setNameIDFormat(serviceProviderDTO.getNameIDFormat());
@@ -259,31 +256,36 @@ public class SAMLSSOConfigAdmin {
         return serviceProviderDO;
     }
 
+    private void validateIssuerQualifier(String issuerQualifier) throws IdentitySAML2ClientException {
+
+        if (StringUtils.isNotBlank(issuerQualifier) && issuerQualifier.contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
+            throw buildClientException(INVALID_REQUEST, message);
+        }
+    }
+
+    private void validateIssuer(String issuer) throws IdentitySAML2ClientException {
+
+        if (StringUtils.isBlank(issuer)) {
+            throw buildClientException(INVALID_REQUEST, "A value for the Issuer is mandatory.");
+        }
+
+        if (issuer.contains("@")) {
+            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
+            throw buildClientException(INVALID_REQUEST, message);
+        }
+    }
+
     private SAMLSSOServiceProviderDTO createSAMLSSOServiceProviderDTO(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
         SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
 
-        if (serviceProviderDO.getIssuer() == null || "".equals(serviceProviderDO.getIssuer())) {
-            String message = "A value for the Issuer is mandatory";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (serviceProviderDO.getIssuer().contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) && serviceProviderDO.getIssuerQualifier()
-                .contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value";
-            log.error(message);
-            throw IdentityException.error(message);
-        }
-
+        validateIssuer(serviceProviderDO.getIssuer());
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
+
+        validateIssuerQualifier(serviceProviderDO.getIssuerQualifier());
         serviceProviderDTO.setIssuerQualifier(serviceProviderDO.getIssuerQualifier());
+
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
         serviceProviderDTO.setDefaultAssertionConsumerUrl(serviceProviderDO.getDefaultAssertionConsumerUrl());
         serviceProviderDTO.setCertAlias(serviceProviderDO.getCertAlias());
@@ -420,8 +422,8 @@ public class SAMLSSOConfigAdmin {
                 serviceProviders[i] = providerDTO;
             }
         } catch (IdentityException e) {
-            log.error("Error obtaining a registry intance for reading service provider list", e);
-            throw IdentityException.error("Error obtaining a registry intance for reading service provider list", e);
+            String message = "Error obtaining a registry instance for reading service provider list";
+            throw new IdentityException(message, e);
         }
 
         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTO = new SAMLSSOServiceProviderInfoDTO();
@@ -446,9 +448,13 @@ public class SAMLSSOConfigAdmin {
             IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
             return persistenceManager.removeServiceProvider(registry, issuer);
         } catch (IdentityException e) {
-            log.error("Error removing a Service Provider");
-            throw IdentityException.error("Error removing a Service Provider", e);
+            throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }
+    }
+
+    protected String getTenantDomain() {
+
+        return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
 }

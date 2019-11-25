@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -112,7 +113,17 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
         samlssoServiceProviderDTO.setIssuer(issuer);
-        Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
+        Assert.assertTrue(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO));
+    }
+
+    @Test(expectedExceptions = IdentitySAML2ClientException.class)
+    public void testCreateSAMLSSOServiceProviderDOWithInvalidIssuerQualifier() throws Exception {
+
+        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+        samlssoServiceProviderDTO.setIssuer("travelocity.com");
+        // Qualifier cannot have '@'.
+        samlssoServiceProviderDTO.setIssuerQualifier("something@qualifier");
+        samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO);
     }
 
     @Test

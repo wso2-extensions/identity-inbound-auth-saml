@@ -28,10 +28,23 @@ public class IdentitySAML2SSOException extends IdentityException {
     private static final long serialVersionUID = 7027553884968546755L;
 
     public IdentitySAML2SSOException(String message) {
+
         super(message);
     }
 
     public IdentitySAML2SSOException(String message, Throwable cause) {
+
         super(message, cause);
     }
+
+    public IdentitySAML2SSOException(String errorCode, String message) {
+
+        super(errorCode, message);
+    }
+
+    public IdentitySAML2SSOException(String errorCode, String message, Throwable cause) {
+
+        super(errorCode, message, cause);
+    }
+
 }
