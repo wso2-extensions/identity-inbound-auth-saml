@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +44,10 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -55,6 +60,8 @@ import static org.wso2.carbon.identity.sso.saml.Error.UNEXPECTED_SERVER_ERROR;
 public class SAMLSSOConfigServiceImpl {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigServiceImpl.class);
+    private static final int CONNECTION_TIMEOUT_IN_SECONDS = 10;
+    private static final int READ_TIMEOUT_IN_SECONDS = 20;
 
     /**
      * @param spDto
@@ -86,6 +93,45 @@ public class SAMLSSOConfigServiceImpl {
             String tenantDomain = getTenantDomain();
             throw handleException("Error while uploading SAML SP metadata in tenantDomain: " + tenantDomain, e);
         }
+    }
+
+    /**
+     * @param metadataUrl
+     * @return
+     * @throws IdentitySAML2SSOException
+     */
+    public SAMLSSOServiceProviderDTO createSAMLSpWithMetadataUrl(String metadataUrl) throws IdentitySAML2SSOException {
+
+        InputStream in = null;
+        try {
+            URL url = new URL(metadataUrl);
+            URLConnection con = url.openConnection();
+            con.setConnectTimeout(getConnectionTimeoutInMillis());
+            con.setReadTimeout(getReadTimeoutInMillis());
+            in = con.getInputStream();
+
+            String metadata = IOUtils.toString(in);
+            return uploadRPServiceProvider(metadata);
+        } catch (IOException e) {
+            String tenantDomain = getTenantDomain();
+            throw handleIOException("Error while creating SAML service provider in tenantDomain: " + tenantDomain, e);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+    }
+
+    private int getConnectionTimeoutInMillis() {
+
+        return CONNECTION_TIMEOUT_IN_SECONDS * 1000;
+    }
+
+    private int getReadTimeoutInMillis() {
+
+        return READ_TIMEOUT_IN_SECONDS * 1000;
+    }
+
+    private IdentitySAML2SSOException handleIOException(String message, IOException e) {
+        return new IdentitySAML2SSOException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, e);
     }
 
     /**
