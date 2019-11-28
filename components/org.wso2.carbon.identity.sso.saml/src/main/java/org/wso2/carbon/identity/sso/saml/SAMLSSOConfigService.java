@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.AbstractAdmin;
@@ -27,10 +26,6 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 public class SAMLSSOConfigService extends AbstractAdmin {
 
