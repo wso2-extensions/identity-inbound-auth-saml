@@ -290,8 +290,10 @@ public class OpenSAML3Util {
      */
     public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
             throws IdentitySAML2QueryException {
-        if (tenantDomain.trim() == null || alias.trim() == null) {
+        if (StringUtils.isBlank(tenantDomain) || StringUtils.isBlank(alias)) {
             log.error("Invalid parameters; domain name : " + tenantDomain + ", " +
+                    "alias : " + alias);
+            throw new IllegalArgumentException("Invalid parameters; domain name : " + tenantDomain + ", " +
                     "alias : " + alias);
         }
         int tenantId;
@@ -307,7 +309,7 @@ public class OpenSAML3Util {
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
         try {
-            if (tenantId != -1234) {// for tenants, load private key from their generated key store
+            if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
             } else {
                 // for super tenant, load the default pub. cert using the
@@ -319,14 +321,14 @@ public class OpenSAML3Util {
             credentialImpl = new X509CredentialImpl(cert);
 
         } catch (KeyStoreException e) {
-            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of "
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of: "
                     + tenantDomain;
             log.error(errorMsg, e);
             throw new IdentitySAML2QueryException(errorMsg,e);
         } catch (Exception e) {
             //keyStoreManager throws Exception
-            log.error("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
-            throw new IdentitySAML2QueryException("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
+            log.error("Unable to load key store manager for the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to load key store manager for the tenant domain: " + tenantDomain, e);
         }
         return credentialImpl;
     }
