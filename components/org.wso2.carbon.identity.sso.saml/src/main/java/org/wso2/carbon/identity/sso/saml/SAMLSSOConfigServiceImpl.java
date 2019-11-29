@@ -332,7 +332,7 @@ public class SAMLSSOConfigServiceImpl {
         if (ex instanceof IdentitySAML2SSOException) {
             return (IdentitySAML2SSOException) ex;
         } else {
-            return new IdentitySAML2SSOException(message, ex);
+            return new IdentitySAML2SSOException(ex.getErrorCode(), message, ex);
         }
     }
 
