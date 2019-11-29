@@ -15,6 +15,8 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +45,10 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -55,6 +61,14 @@ import static org.wso2.carbon.identity.sso.saml.Error.UNEXPECTED_SERVER_ERROR;
 public class SAMLSSOConfigServiceImpl {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigServiceImpl.class);
+
+    private static final String CONNECTION_TIMEOUT_XPATH = "SSOService.SAMLMetadataUrlConnectionTimeout";
+    private static final String READ_TIMEOUT_XPATH = "SSOService.SAMLMetadataUrlReadTimeout";
+    private static final String MAX_SIZE_XPATH = "SSOService.SAMLMetadataUrlResponseMaxSize";
+
+    private static final int CONNECTION_TIMEOUT_IN_MILLIS = 5000;
+    private static final int READ_TIMEOUT_IN_MILLIS = 5000;
+    private static final int MAX_SIZE_IN_BYTES = 51200;
 
     /**
      * @param spDto
@@ -72,6 +86,23 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     /**
+     * Creates a SAML service provider.
+     *
+     * @param spDto DTO containing the SAML SP configuration.
+     * @return SAMLSSOServiceProviderDTO with the information on the created SAML SP.
+     * @throws IdentityException
+     */
+    public SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
+
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            return configAdmin.addSAMLServiceProvider(spDto);
+        } catch (IdentityException ex) {
+            throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
+        }
+    }
+
+    /**
      * @param metadata
      * @return
      * @throws IdentitySAML2SSOException
@@ -81,11 +112,82 @@ public class SAMLSSOConfigServiceImpl {
 
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Creating SAML Service Provider with metadata: " + metadata);
+            }
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
         } catch (IdentityException e) {
             String tenantDomain = getTenantDomain();
             throw handleException("Error while uploading SAML SP metadata in tenantDomain: " + tenantDomain, e);
         }
+    }
+
+    /**
+     * Create a service provider with configurations provided via a metadata URL.
+     *
+     * @param metadataUrl URL to fetch the SAML SP metadata file.
+     * @return SAMLSSOServiceProviderDTO with the information on the created SAML SP.
+     * @throws IdentitySAML2SSOException
+     */
+    public SAMLSSOServiceProviderDTO createServiceProviderWithMetadataURL(String metadataUrl)
+            throws IdentitySAML2SSOException {
+
+        InputStream in = null;
+        try {
+            URL url = new URL(metadataUrl);
+            URLConnection con = url.openConnection();
+            con.setConnectTimeout(getConnectionTimeoutInMillis());
+            con.setReadTimeout(getReadTimeoutInMillis());
+            in = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes());
+
+            String metadata = IOUtils.toString(in);
+            return uploadRPServiceProvider(metadata);
+        } catch (IOException e) {
+            String tenantDomain = getTenantDomain();
+            throw handleIOException("Error while creating SAML service provider in tenantDomain: " + tenantDomain, e);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+    }
+
+    private int getConnectionTimeoutInMillis() {
+
+        return getHttpConnectionConfigValue(CONNECTION_TIMEOUT_XPATH, CONNECTION_TIMEOUT_IN_MILLIS);
+    }
+
+    private int getReadTimeoutInMillis() {
+
+        return getHttpConnectionConfigValue(READ_TIMEOUT_XPATH, READ_TIMEOUT_IN_MILLIS);
+    }
+
+    private int getMaxSizeInBytes() {
+
+        return getHttpConnectionConfigValue(MAX_SIZE_XPATH, MAX_SIZE_IN_BYTES);
+    }
+
+    /**
+     * Read HTTP connection configurations from identity.xml file.
+     *
+     * @param xPath xpath of the config property.
+     * @return Config property value.
+     */
+    private int getHttpConnectionConfigValue(String xPath, int defaultValue) {
+
+        int configValue = defaultValue;
+        String config = IdentityUtil.getProperty(xPath);
+        if (StringUtils.isNotBlank(config)) {
+            try {
+                configValue = Integer.parseInt(config);
+            } catch (NumberFormatException e) {
+                log.error("Provided HTTP connection config value in " + xPath + " should be an integer type. Value : "
+                        + config);
+            }
+        }
+        return configValue;
+    }
+
+    private IdentitySAML2SSOException handleIOException(String message, IOException e) {
+        return new IdentitySAML2SSOException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, e);
     }
 
     /**

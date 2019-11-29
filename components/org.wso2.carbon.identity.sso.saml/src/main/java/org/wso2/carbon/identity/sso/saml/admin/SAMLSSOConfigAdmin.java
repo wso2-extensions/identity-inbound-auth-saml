@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
@@ -75,11 +76,12 @@ public class SAMLSSOConfigAdmin {
         IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
                 .getPersistanceManager();
         try {
+            String issuer = getIssuerWithQualifier(serviceProviderDO);
             SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(serviceProviderDO.getIssuer());
+                    getServiceProvider(issuer);
 
             if (samlssoServiceProviderDO != null) {
-                String message = "A Service Provider with the name " + serviceProviderDO.getIssuer() + " is already loaded" +
+                String message = "A Service Provider with the name " + issuer + " is already loaded" +
                         " from the file system.";
                 log.error(message);
                 return false;
@@ -88,6 +90,52 @@ public class SAMLSSOConfigAdmin {
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
+        }
+    }
+
+    /**
+     * Add a new service provider
+     *
+     * @param serviceProviderDTO service Provider DTO
+     * @return true if successful, false otherwise
+     * @throws IdentityException if fails to load the identity persistence manager
+     */
+    public SAMLSSOServiceProviderDTO addSAMLServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
+        try {
+            // Issuer value of the created SAML SP.
+            String issuer = getIssuerWithQualifier(serviceProviderDO);
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                    getServiceProvider(issuer);
+            if (samlssoServiceProviderDO != null) {
+                String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
+                throw buildClientException(CONFLICTING_SAML_ISSUER, message);
+            }
+            return persistSAMLServiceProvider(serviceProviderDO);
+        } catch (IdentityException e) {
+            String message = "Error obtaining a registry for adding a new service provider";
+            throw new IdentityException(message, e);
+        }
+    }
+
+    private String getIssuerWithQualifier(SAMLSSOServiceProviderDO serviceProviderDO) {
+
+        return SAMLSSOUtil.getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier());
+    }
+
+    private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO)
+            throws IdentityException {
+
+        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
+        if (response) {
+            return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
+        } else {
+            String issuer = samlssoServiceProviderDO.getIssuer();
+            String msg = "SAML issuer: " + issuer + " already exists in tenantDomain: " + getTenantDomain();
+            throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
         }
     }
 
@@ -153,7 +201,7 @@ public class SAMLSSOConfigAdmin {
             //pass metadata to samlSSOServiceProvider object
             samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
         } catch (InvalidMetadataException e) {
-            throw buildClientException(INVALID_REQUEST, "Error parsing SP metadata.", e);
+            throw buildClientException(INVALID_REQUEST, "Error parsing SAML SP metadata.", e);
         }
 
         if (samlssoServiceProviderDO.getX509Certificate() != null) {
@@ -165,14 +213,7 @@ public class SAMLSSOConfigAdmin {
             }
         }
 
-        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
-        if (response) {
-            return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
-        } else {
-            String issuer = samlssoServiceProviderDO.getIssuer();
-            String msg = "SAML issuer: " + issuer + " already exists in tenantDomain: " + getTenantDomain();
-            throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
-        }
+        return persistSAMLServiceProvider(samlssoServiceProviderDO);
     }
 
     private IdentitySAML2ClientException buildClientException(Error error, String message) {

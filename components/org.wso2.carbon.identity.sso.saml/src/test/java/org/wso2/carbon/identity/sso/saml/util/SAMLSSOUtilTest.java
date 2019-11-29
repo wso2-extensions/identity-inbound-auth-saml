@@ -464,4 +464,35 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
     }
+
+    @DataProvider(name = "issuerProvider")
+    public Object[][] getIssuerData() {
+
+        return new Object[][]{
+                {"travelocity.com", null, "travelocity.com"},
+                {"travelocity.com", "", "travelocity.com"},
+                {"travelocity.com", "wso2.com", "travelocity.com:urn:sp:qualifier:wso2.com"},
+        };
+    }
+
+    @Test(dataProvider = "issuerProvider")
+    public void testGetIssuerWithQualifier(String issuer, String qualifier, String expected) throws Exception {
+
+        assertEquals(SAMLSSOUtil.getIssuerWithQualifier(issuer, qualifier), expected);
+    }
+
+    @DataProvider(name = "issuerWithQualifierProvider")
+    public Object[][] getIssuerWithQualifierData() {
+
+        return new Object[][]{
+                {"travelocity.com", "travelocity.com"},
+                {"travelocity.com:urn:sp:qualifier:wso2.com", "travelocity.com"},
+        };
+    }
+
+    @Test(dataProvider = "issuerWithQualifierProvider")
+    public void testGetIssuerWithoutQualifier(String issuerWithQualifier, String expected) throws Exception {
+
+        assertEquals(SAMLSSOUtil.getIssuerWithoutQualifier(issuerWithQualifier), expected);
+    }
 }
