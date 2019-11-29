@@ -187,6 +187,7 @@ public class OpenSAML3Util {
      */
     private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
+
         try {
             SAMLQueryRequestUtil.doBootstrap();
             return setSSOSignature(request, signatureAlgorithm, digestAlgorithm, cred);
@@ -210,6 +211,7 @@ public class OpenSAML3Util {
      */
     public static SignableXMLObject setSSOSignature(SignableXMLObject signableXMLObject, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
+
         Signature signature = (Signature) buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
         signature.setSigningCredential(cred);
         signature.setSignatureAlgorithm(signatureAlgorithm);
@@ -264,20 +266,19 @@ public class OpenSAML3Util {
      */
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
                                                String domainName) throws IdentitySAML2QueryException {
-        boolean isSignatureValid = false;
         if (request.getSignature() != null) {
             try {
                 X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
             } catch (SignatureException e) {
-                log.error("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
-                        +alias+" ,domainname: "+domainName,e);
-                throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
-                        +alias+" ,domainname: "+domainName,e);
+                log.error("Unable to validate Signature of the request id: " + request.getID() + " with alias: "
+                        + alias + " ,domainname: " + domainName, e);
+                throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id: " + request.getID() + " with alias: "
+                        + alias + " ,domainname: " + domainName, e);
             }
         }
-        return isSignatureValid;
+        return false;
     }
 
     /**
@@ -318,6 +319,10 @@ public class OpenSAML3Util {
             }
             java.security.cert.X509Certificate cert =
                     (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
+
+            if (cert == null) {
+                throw new IdentitySAML2QueryException("Certificate with the alias: " + alias + " could not be found.");
+            }
             credentialImpl = new X509CredentialImpl(cert);
 
         } catch (KeyStoreException e) {
