@@ -95,101 +95,89 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!--SAML Common Util dependency-->
+		<dependency>
+			<groupId>org.wso2.carbon.identity.saml.common</groupId>
+			<artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+		</dependency>
+		<!--OpenSAML3 dependencies-->
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-core</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-soap-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-soap-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-profile-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-profile-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-saml-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-saml-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-messaging-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-messaging-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-security-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-storage-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-storage-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xacml-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xacml-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xacml-saml-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xacml-saml-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xmlsec-api</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml-xmlsec-impl</artifactId>
-			<version>${opensaml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.shibboleth.utilities</groupId>
 			<artifactId>java-support</artifactId>
-			<version>${java-support.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
@@ -242,19 +230,15 @@
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 						<Import-Package>javax.servlet,
 							javax.servlet.http,
-							*;resolution:=optional
+							*;resolution:=optional,
+							org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
+							org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
+							net.shibboleth.utilities.java.support.*; version="${opensaml2.wso2.osgi.version.range}",
 						</Import-Package>
 						<Export-Package>!org.wso2.carbon.identity.query.saml.internal,
 							org.wso2.carbon.identity.query.saml.*; version="${identity.inbound.auth.saml.exp.version}",
 						</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
-						<Embed-Dependency>
-							groupId=net.shibboleth.utilities;inline=true,artifactId=opensaml-core;inline=true,opensaml-soap-api;inline=true,
-							opensaml-soap-impl;inline=true,opensaml-profile-api;inline=true,opensaml-profile-impl;inline=true,opensaml-saml-api;inline=true,
-							opensaml-saml-impl;inline=true,opensaml-messaging-api;inline=true,opensaml-messaging-impl;inline=true,opensaml-security-api;inline=true,
-							opensaml-storage-api;inline=true,opensaml-storage-impl;inline=true,opensaml-xacml-api;inline=true,opensaml-xacml-impl;inline=true,
-							opensaml-xacml-saml-api;inline=true,opensaml-xacml-saml-impl;inline=true,opensaml-xmlsec-api;inline=true,opensaml-xmlsec-impl;inline=true
-						</Embed-Dependency>
 					</instructions>
 				</configuration>
 			</plugin>
@@ -325,8 +309,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<properties>
-		<java-support.version>7.3.0</java-support.version>
-		<opensaml.version>3.3.1</opensaml.version>
-	</properties>
 </project>

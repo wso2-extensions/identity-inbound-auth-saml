@@ -187,6 +187,7 @@ public class OpenSAML3Util {
      */
     private static SignableXMLObject doSetSignature(SignableXMLObject request, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
+
         try {
             SAMLQueryRequestUtil.doBootstrap();
             return setSSOSignature(request, signatureAlgorithm, digestAlgorithm, cred);
@@ -210,6 +211,7 @@ public class OpenSAML3Util {
      */
     public static SignableXMLObject setSSOSignature(SignableXMLObject signableXMLObject, String signatureAlgorithm, String
             digestAlgorithm, X509Credential cred) throws IdentitySAML2QueryException {
+
         Signature signature = (Signature) buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
         signature.setSigningCredential(cred);
         signature.setSignatureAlgorithm(signatureAlgorithm);
@@ -264,20 +266,19 @@ public class OpenSAML3Util {
      */
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
                                                String domainName) throws IdentitySAML2QueryException {
-        boolean isSignatureValid = false;
         if (request.getSignature() != null) {
             try {
                 X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
             } catch (SignatureException e) {
-                log.error("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
-                        +alias+" ,domainname: "+domainName,e);
-                throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id:"+request.getID()+" with alias:"
-                        +alias+" ,domainname: "+domainName,e);
+                log.error("Unable to validate Signature of the request id: " + request.getID() + " with alias: "
+                        + alias + " ,domainname: " + domainName, e);
+                throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id: " + request.getID() + " with alias: "
+                        + alias + " ,domainname: " + domainName, e);
             }
         }
-        return isSignatureValid;
+        return false;
     }
 
     /**
@@ -290,8 +291,10 @@ public class OpenSAML3Util {
      */
     public static X509CredentialImpl getX509CredentialImplForTenant(String tenantDomain, String alias)
             throws IdentitySAML2QueryException {
-        if (tenantDomain.trim() == null || alias.trim() == null) {
+        if (StringUtils.isBlank(tenantDomain) || StringUtils.isBlank(alias)) {
             log.error("Invalid parameters; domain name : " + tenantDomain + ", " +
+                    "alias : " + alias);
+            throw new IllegalArgumentException("Invalid parameters; domain name : " + tenantDomain + ", " +
                     "alias : " + alias);
         }
         int tenantId;
@@ -307,7 +310,7 @@ public class OpenSAML3Util {
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
         try {
-            if (tenantId != -1234) {// for tenants, load private key from their generated key store
+            if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
             } else {
                 // for super tenant, load the default pub. cert using the
@@ -316,17 +319,21 @@ public class OpenSAML3Util {
             }
             java.security.cert.X509Certificate cert =
                     (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
+
+            if (cert == null) {
+                throw new IdentitySAML2QueryException("Certificate with the alias: " + alias + " could not be found.");
+            }
             credentialImpl = new X509CredentialImpl(cert);
 
         } catch (KeyStoreException e) {
-            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of "
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of: "
                     + tenantDomain;
             log.error(errorMsg, e);
             throw new IdentitySAML2QueryException(errorMsg,e);
         } catch (Exception e) {
             //keyStoreManager throws Exception
-            log.error("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
-            throw new IdentitySAML2QueryException("Unable to load key store manager for the tenant domain:"+tenantDomain,e);
+            log.error("Unable to load key store manager for the tenant domain: " + tenantDomain, e);
+            throw new IdentitySAML2QueryException("Unable to load key store manager for the tenant domain: " + tenantDomain, e);
         }
         return credentialImpl;
     }
