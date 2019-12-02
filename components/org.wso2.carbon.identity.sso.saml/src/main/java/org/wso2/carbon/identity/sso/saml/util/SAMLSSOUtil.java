@@ -2500,9 +2500,7 @@ public class SAMLSSOUtil {
      */
     public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
 
-        String issuerWithoutQualifier = StringUtils.substringBeforeLast
-                (issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
-        return issuerWithoutQualifier;
+        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
     }
 
     /**
@@ -2513,8 +2511,11 @@ public class SAMLSSOUtil {
      */
     public static String getIssuerWithQualifier(String issuer, String qualifier) {
 
-        String issuerWithQualifier = issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
-        return issuerWithQualifier;
+        if (StringUtils.isNotBlank(qualifier)) {
+            return issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        } else {
+            return issuer;
+        }
     }
 
     /**
