@@ -49,6 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Handles validation of SP initiated logout requests.
+ */
 public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProcessor {
 
     private static final Log log = LogFactory.getLog(SPInitLogoutRequestProcessor.class);
@@ -84,9 +87,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             // Validate the subject of the logout request.
             logoutRequestValidators.add(LambdaExceptionUtils.rethrowFunction(this::validateSubject));
 
-            // Validate session indexes of the logout request.
-            logoutRequestValidators.add(LambdaExceptionUtils.rethrowFunction(this::validateSessionIndexes));
-
             // Run all validators against the logout request to validate.
             for (Function<LogoutRequest, ValidationResult<SAMLSSOReqValidationResponseDTO>> validator :
                     logoutRequestValidators) {
@@ -108,8 +108,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
-            String sessionIndex = logoutRequest.getSessionIndexes().size() > 0 ? logoutRequest
-                    .getSessionIndexes().get(0).getSessionIndex() : null;
+            String sessionIndex = getSessionIndex(sessionId, logoutRequest);
             /* 'SessionIndex' attribute can be optional in the SAML logout request. In that case we need to retrieve
             the session index from session Id. */
             if (sessionIndex == null) {
@@ -122,7 +121,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             // Replace SP's issuer value with the actual issuer value in SAML SP registry.
             String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
             if (issuerQualifier != null) {
-                issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer , issuerQualifier);
+                issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer, issuerQualifier);
                 SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
             }
 
@@ -205,7 +204,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     }
 
     /**
-     * Builds the SAML error response and sets the compressed value to the reqValidationResponseDTO
+     * Builds the SAML error response and sets the compressed value to the reqValidationResponseDTO.
      *
      * @param id
      * @param status
@@ -351,27 +350,6 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         return validationResult;
     }
 
-    private ValidationResult<SAMLSSOReqValidationResponseDTO> validateSessionIndexes(LogoutRequest logoutRequest)
-            throws IOException, IdentityException {
-
-        String issuer = logoutRequest.getIssuer().getValue();
-
-        ValidationResult<SAMLSSOReqValidationResponseDTO> validationResult = new ValidationResult<>();
-        validationResult.setValidationStatus(true);
-
-        if (logoutRequest.getSessionIndexes() == null) {
-            String message = "At least one Session Index should be present in the Logout Request";
-            log.error(message);
-            validationResult.setValue(buildErrorResponse(logoutRequest.getID(),
-                    SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, logoutRequest.getDestination(),
-                    defaultSigningAlgoUri, defaultDigestAlgoUri,
-                    issuer));
-            validationResult.setValidationStatus(false);
-        }
-
-        return validationResult;
-    }
-
     private ValidationResult<SAMLSSOReqValidationResponseDTO> validatePrincipleSession(String sessionId,
                                                                                        LogoutRequest logoutRequest)
             throws IOException, IdentityException {
@@ -380,20 +358,19 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         ValidationResult<SAMLSSOReqValidationResponseDTO> validationResult = new ValidationResult<>();
         validationResult.setValidationStatus(true);
 
-        if (StringUtils.isBlank(sessionId)) {
-            String message = "Session was already Expired";
-            log.error("ssoTokenId cookie not found in the logout request");
-            validationResult.setValue(buildErrorResponse(logoutRequest.getID(), SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
-                    message, logoutRequest.getDestination(), defaultSigningAlgoUri, defaultDigestAlgoUri,
+        if ((logoutRequest.getSessionIndexes() == null || logoutRequest.getSessionIndexes().isEmpty()) &&
+                StringUtils.isBlank(sessionId)) {
+            String message = "Session index should be present in the logout request or in request cookies.";
+            validationResult.setValue(buildErrorResponse(logoutRequest.getID(),
+                    SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, message, logoutRequest.getDestination(),
+                    defaultSigningAlgoUri, defaultDigestAlgoUri,
                     issuer));
             validationResult.setValidationStatus(false);
+            log.error(message);
+            return validationResult;
         }
 
-        // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
-        SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
-                .getPersistenceManager();
-
-        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+        String sessionIndex = getSessionIndex(sessionId, logoutRequest);
 
         if (StringUtils.isBlank(sessionIndex)) {
             String message = "Error while retrieving the Session Index ";
@@ -406,6 +383,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             validationResult.setValidationStatus(false);
         }
 
+        SSOSessionPersistenceManager ssoSessionPersistenceManager =
+                SSOSessionPersistenceManager.getPersistenceManager();
         SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
 
         if (sessionInfoData == null) {
@@ -479,5 +458,15 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 }
             }
         }
+    }
+
+    private String getSessionIndex(String sessionId, LogoutRequest logoutRequest) {
+
+        SSOSessionPersistenceManager ssoSessionPersistenceManager =
+                SSOSessionPersistenceManager.getPersistenceManager();
+        if (!logoutRequest.getSessionIndexes().isEmpty()) {
+            return logoutRequest.getSessionIndexes().get(0).getSessionIndex();
+        }
+        return ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
     }
 }
