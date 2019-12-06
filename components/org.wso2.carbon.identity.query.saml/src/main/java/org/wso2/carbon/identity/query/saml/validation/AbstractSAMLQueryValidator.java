@@ -154,25 +154,24 @@ public class AbstractSAMLQueryValidator implements SAMLQueryValidator {
      * @throws IdentitySAML2QueryException If unable to collect issuer information
      */
     protected boolean validateIssuer(RequestAbstractType request) throws IdentitySAML2QueryException {
-        //get full qualified issuer
+        //get full quealified issuer
         Issuer issuer = request.getIssuer();
+        boolean validIssuer = false;
         if (issuer.getValue() == null) {
             throw new IdentitySAML2QueryException("Issuer value is empty. Unable to validate issuer");
         } else {
-            if (SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT.equals(issuer.getFormat())) {
+            if (issuer.getFormat() != null && issuer.getFormat().equals(SAMLQueryRequestConstants.GenericConstants.ISSUER_FORMAT)) {
                     ssoIdpConfig = SAMLQueryRequestUtil.getServiceProviderConfig(issuer.getValue());
                     if (ssoIdpConfig == null) {
                         log.error(SAMLQueryRequestConstants.ServiceMessages.NULL_ISSUER);
-                        return false;
+                        return validIssuer;
                     } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
-                        }
-                        return true;
+                        log.debug(SAMLQueryRequestConstants.ServiceMessages.SUCCESS_ISSUER + ssoIdpConfig.getIssuer());
+                        return !validIssuer;
                     }
             } else {
                 log.error("NameID format is invalid in request ID:" + request.getID() + " and issuer: " + issuer.getValue());
-                return false;
+                return validIssuer;
             }
         }
     }
