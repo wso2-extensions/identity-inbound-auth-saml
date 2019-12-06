@@ -1401,7 +1401,8 @@
                                 <!-- EnableAttributeProfile -->
                                 <%
                                     boolean show = false;
-                                    if (applicationSPName == null || applicationSPName.isEmpty()) {
+                                    if ((applicationSPName == null || applicationSPName.isEmpty()) && provider !=
+                                            null) {
                                         show = provider.getRequestedClaims() != null && provider.getRequestedClaims().length > 0 &&
                                                 provider.getRequestedClaims()[0] != null;
                                     } else {
