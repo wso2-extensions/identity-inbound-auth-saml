@@ -45,7 +45,8 @@
     String user = null;
     SAMLSSOConfigServiceClient client;
     session.setAttribute(SAMLSSOUIConstants.CONFIG_CLIENT, null);
-    String spName = request.getParameter("application-sp-name");
+    String spName = (String) session.getAttribute("application-sp-name");
+    session.removeAttribute("application-sp-name");
     String attributeConsumingServiceIndex;
     backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     configContext = (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
