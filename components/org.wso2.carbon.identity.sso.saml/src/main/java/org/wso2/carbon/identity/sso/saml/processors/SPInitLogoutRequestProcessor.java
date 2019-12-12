@@ -130,10 +130,10 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             SAMLSSOServiceProviderDO logoutReqIssuer = sessionsList.get(issuer);
 
-
             // Validate signature of the logout request.
             if (logoutReqIssuer.isDoValidateSignatureInRequests()) {
-                //obtaining x509 Certificate
+
+                // Obtaining x509 Certificate.
                 setX509Certificate(issuer, logoutReqIssuer);
                 validationResult = validateSignature(logoutRequest, logoutReqIssuer, subject, queryString);
                 if (!validationResult.getValidationStatus()) {
