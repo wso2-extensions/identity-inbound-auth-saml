@@ -826,7 +826,7 @@
                                         <fmt:message key="sp.issuer"/>
                                         <font color="red">*</font>
                                     </td>
-                                    <td><input type="text" id="issuer" name="issuer" maxlength="100"
+                                    <td><input type="text" id="issuer" name="issuer" maxlength="150"
                                                style="width: 400px;"
                                                value="<%=isEditSP? Encode.forHtmlAttribute(SAMLSSOUIUtil.getIssuerWithoutQualifier(provider.getIssuer())):""%>"
                                             <%=isEditSP ? "disabled=\"disabled\"" : ""%>/>
