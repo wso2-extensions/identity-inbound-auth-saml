@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.ui.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
@@ -77,14 +78,16 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
                     throw new CarbonException("File with extension " +
                             getFileName(fileItem.getFileItem().getName()) + " is not supported!");
                 } else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(fileItem.getDataHandler().getInputStream()));
-                    String temp;
-                    String policyContent = "";
-                    while ((temp = br.readLine()) != null) {
-                        policyContent += temp;
+                    StringBuilder policyContent = new StringBuilder();
+                    try (InputStreamReader ir = new InputStreamReader(fileItem.getDataHandler().getInputStream());
+                         BufferedReader br = new BufferedReader(ir)) {
+                        String temp;
+                        while ((temp = br.readLine()) != null) {
+                            policyContent.append(temp);
+                        }
                     }
-                    if (!"".equals(policyContent)) {
-                            serviceProviderDTO = client.uploadServiceProvider(policyContent);
+                    if (StringUtils.isNotEmpty(policyContent.toString())) {
+                        serviceProviderDTO = client.uploadServiceProvider(policyContent.toString());
                     }
                 }
             }
