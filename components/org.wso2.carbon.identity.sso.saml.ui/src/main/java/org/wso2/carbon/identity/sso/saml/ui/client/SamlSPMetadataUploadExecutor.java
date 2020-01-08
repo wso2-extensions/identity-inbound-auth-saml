@@ -77,14 +77,16 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
                     throw new CarbonException("File with extension " +
                             getFileName(fileItem.getFileItem().getName()) + " is not supported!");
                 } else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(fileItem.getDataHandler().getInputStream()));
-                    String temp;
-                    String policyContent = "";
-                    while ((temp = br.readLine()) != null) {
-                        policyContent += temp;
+                    StringBuilder policyContent = new StringBuilder();
+                    try (InputStreamReader ir = new InputStreamReader(fileItem.getDataHandler().getInputStream());
+                         BufferedReader br = new BufferedReader(ir)) {
+                        String temp;
+                        while ((temp = br.readLine()) != null) {
+                            policyContent.append(temp);
+                        }
                     }
-                    if (!"".equals(policyContent)) {
-                            serviceProviderDTO = client.uploadServiceProvider(policyContent);
+                    if (!"".equals(policyContent.toString())) {
+                        serviceProviderDTO = client.uploadServiceProvider(policyContent.toString());
                     }
                 }
             }
