@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.ui.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO;
@@ -85,7 +86,7 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
                             policyContent.append(temp);
                         }
                     }
-                    if (!"".equals(policyContent.toString())) {
+                    if (StringUtils.isNotEmpty(policyContent.toString())) {
                         serviceProviderDTO = client.uploadServiceProvider(policyContent.toString());
                     }
                 }
