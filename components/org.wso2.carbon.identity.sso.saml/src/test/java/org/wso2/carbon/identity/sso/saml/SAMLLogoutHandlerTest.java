@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.event.Event;
@@ -67,7 +68,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
-        KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class})
+        KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class })
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     private static String SESSION_INDEX_ONE = "theSessionIndex";
@@ -175,6 +176,7 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     public void testHandleEvent() throws Exception {
 
         Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_TERMINATE.name(), "issuerOne");
+        mockStatic(IdentityTenantUtil.class);
         samlLogoutHandler.handleEvent(eventOne);
         SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE);
         SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO);

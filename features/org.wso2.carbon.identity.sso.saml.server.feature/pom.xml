@@ -51,11 +51,6 @@
             <groupId>org.wso2.orbit.joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authentication.endpoint</artifactId>
-            <type>war</type>
-        </dependency>
     </dependencies>
 
     <build>
