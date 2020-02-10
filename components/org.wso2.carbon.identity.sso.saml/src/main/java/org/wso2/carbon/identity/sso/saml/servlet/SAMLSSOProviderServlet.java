@@ -26,6 +26,8 @@ import org.opensaml.core.xml.XMLObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
@@ -1336,7 +1338,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      */
     private void storeTokenIdCookie(String sessionId, HttpServletRequest req, HttpServletResponse resp,
                                     String tenantDomain) {
-        Cookie samlssoTokenIdCookie = new Cookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
+        ServletCookie samlssoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
                 .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
         int defaultMaxAge = IdPManagementUtil.getIdleSessionTimeOut(tenantDomain) * 60;
@@ -1345,6 +1347,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         samlssoTokenIdCookie.setHttpOnly(true);
         samlssoTokenIdCookie.setPath("/");
         samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
+        samlssoTokenIdCookie.setSameSite(SameSiteCookie.None);
 
         if (samlssoTokenIdCookieConfig != null) {
             int age = defaultMaxAge;
@@ -1364,18 +1367,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (StringUtils.equals(cookie.getName(), "samlssoTokenId")) {
+                    ServletCookie samlSsoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, cookie.getValue());
                     if (log.isDebugEnabled()) {
                         log.debug("SSO tokenId Cookie is removed");
                     }
-                    cookie.setHttpOnly(true);
-                    cookie.setSecure(true);
-                    cookie.setPath("/");
+                    samlSsoTokenIdCookie.setHttpOnly(true);
+                    samlSsoTokenIdCookie.setSecure(true);
+                    samlSsoTokenIdCookie.setPath("/");
+                    samlSsoTokenIdCookie.setSameSite(SameSiteCookie.None);
 
                     if (samlssoTokenIdCookieConfig != null) {
-                        updateSAMLSSOIdCookieConfig(cookie, samlssoTokenIdCookieConfig, 0);
+                        updateSAMLSSOIdCookieConfig(samlSsoTokenIdCookie, samlssoTokenIdCookieConfig, 0);
                     }
-                    cookie.setMaxAge(0);
-                    resp.addCookie(cookie);
+                    samlSsoTokenIdCookie.setMaxAge(0);
+                    resp.addCookie(samlSsoTokenIdCookie);
                     break;
                 }
             }
@@ -1604,7 +1609,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
-    private void updateSAMLSSOIdCookieConfig(Cookie cookie, IdentityCookieConfig
+    private void updateSAMLSSOIdCookieConfig(ServletCookie cookie, IdentityCookieConfig
             samlSSOIdCookieConfig, int age) {
 
         if (samlSSOIdCookieConfig.getDomain() != null) {
@@ -1618,6 +1623,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
         if (samlSSOIdCookieConfig.getVersion() > 0) {
             cookie.setVersion(samlSSOIdCookieConfig.getVersion());
+        }
+        if (samlSSOIdCookieConfig.getSameSite() != null) {
+            cookie.setSameSite(samlSSOIdCookieConfig.getSameSite());
         }
         cookie.setMaxAge(age);
         cookie.setHttpOnly(samlSSOIdCookieConfig.isHttpOnly());

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -75,7 +76,8 @@ import static org.testng.Assert.assertTrue;
  * Unit test cases for SAMLSSOUtil.
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class,IdentityPersistenceManager.class,SSOServiceProviderConfigManager.class})
+        KeyStoreManager.class,IdentityPersistenceManager.class,SSOServiceProviderConfigManager.class,
+        IdentityTenantUtil.class})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Mock
@@ -129,6 +131,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         mockStatic(IdentityProviderManager.class);
         when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
+        mockStatic(IdentityTenantUtil.class);
     }
 
     private void prepareForGetSPConfig() throws Exception {
