@@ -1347,7 +1347,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         samlssoTokenIdCookie.setHttpOnly(true);
         samlssoTokenIdCookie.setPath("/");
         samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
-        samlssoTokenIdCookie.setSameSite(SameSiteCookie.None);
+        samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
         if (samlssoTokenIdCookieConfig != null) {
             int age = defaultMaxAge;
@@ -1374,7 +1374,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     samlSsoTokenIdCookie.setHttpOnly(true);
                     samlSsoTokenIdCookie.setSecure(true);
                     samlSsoTokenIdCookie.setPath("/");
-                    samlSsoTokenIdCookie.setSameSite(SameSiteCookie.None);
+                    samlSsoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
                     if (samlssoTokenIdCookieConfig != null) {
                         updateSAMLSSOIdCookieConfig(samlSsoTokenIdCookie, samlssoTokenIdCookieConfig, 0);
