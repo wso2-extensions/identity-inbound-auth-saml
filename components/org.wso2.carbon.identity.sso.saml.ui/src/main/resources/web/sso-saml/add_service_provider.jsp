@@ -1969,6 +1969,9 @@
                   id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
                   onsubmit="return doValidation();">
 
+                <input type="hidden" id="application-sp-name" name="application-sp-name"
+                      value="<%=Encode.forHtmlAttribute(applicationSPName)%>"/>
+
                 <table class="styledLeft" width="100%">
                     <thead>
                     <tr>
