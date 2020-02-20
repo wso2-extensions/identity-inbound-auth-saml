@@ -50,7 +50,7 @@ public class SamlSPMetadataUploadExecutor extends AbstractFileUploadExecutor {
         String webContext = (String) httpServletRequest.getAttribute(CarbonConstants.WEB_CONTEXT);
         String serverURL = (String) httpServletRequest.getAttribute(CarbonConstants.SERVER_URL);
         String cookie = (String) httpServletRequest.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-        String spName = httpServletRequest.getParameter("application-sp-name");
+        String spName = getFormFieldsMap().get("application-sp-name").get(0);
         log.info(spName);
         errorRedirectionPage = getContextRoot(httpServletRequest) + "/" + webContext
                 + "/sso-saml/add_service_provider.jsp?spName=" + spName;
