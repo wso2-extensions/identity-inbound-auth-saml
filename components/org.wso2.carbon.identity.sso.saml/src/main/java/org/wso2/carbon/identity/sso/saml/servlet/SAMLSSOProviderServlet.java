@@ -1089,6 +1089,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         if (serviceProviderConfigs != null) {
             populateAuthnReqDTOWithRequiredServiceProviderConfigs(authnReqDTO, serviceProviderConfigs);
+            if (assertionConsumerURL == null) {
+                assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
+            }
         }
 
         if (authResult == null || !authResult.isAuthenticated()) {
