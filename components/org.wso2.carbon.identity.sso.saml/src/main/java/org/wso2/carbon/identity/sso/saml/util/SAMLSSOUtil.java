@@ -1179,7 +1179,9 @@ public class SAMLSSOUtil {
             return samlHTTPRedirectSignatureValidator.validateSignature(queryString, issuer, certificate);
 
         } catch (SecurityException e) {
-            log.error("Error validating deflate signature", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error validating deflate signature", e);
+            }
             return false;
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
