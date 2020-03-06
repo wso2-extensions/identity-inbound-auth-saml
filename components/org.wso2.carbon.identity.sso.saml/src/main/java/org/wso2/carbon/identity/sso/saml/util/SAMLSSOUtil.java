@@ -2427,7 +2427,6 @@ public class SAMLSSOUtil {
                     log.debug(message);
                 }
                 SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuerWithQualifier);
-
             }
         }
 
