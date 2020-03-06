@@ -107,6 +107,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 return validationResponse;
             }
 
+            // Remove the appended tenant domain from the issuer.
             String issuerName = splitAppendedTenantDomain(issuer.getValue());
 
             String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
