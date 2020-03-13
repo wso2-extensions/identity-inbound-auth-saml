@@ -68,7 +68,12 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
                 if (log.isDebugEnabled()) {
                     AuthenticationContext context = (AuthenticationContext) event.getEventProperties().
                             get(EventProperty.CONTEXT);
-                    log.debug("There are no SAML participants in the session : " + context.getSessionIdentifier());
+                    if (context != null) {
+                        log.debug("There are no SAML participants in the session : " +
+                                context.getSessionIdentifier());
+                    } else {
+                        log.debug("There are no SAML participants in the session.");
+                    }
                 }
             }
         }
