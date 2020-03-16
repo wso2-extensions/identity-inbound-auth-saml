@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+/**
+ * Handles validation of authentication request according to IdP Initiated SAML SSO.
+ */
 public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static final Log log = LogFactory.getLog(IdPInitSSOAuthnRequestValidator.class);
