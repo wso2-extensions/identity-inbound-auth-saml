@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -96,6 +97,23 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            if (!StringUtils.isNotBlank(spDto.getSigningAlgorithmURI())
+                    || !Arrays.asList(getSigningAlgorithmUris()).contains(spDto.getSigningAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST, "Invalid Response Signing Algorithm.");
+            }
+            if (!StringUtils.isNotBlank(spDto.getDigestAlgorithmURI())
+                    || !Arrays.asList(getDigestAlgorithmURIs()).contains(spDto.getDigestAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST, "Invalid Response Digest Algorithm.");
+            }
+            if (!StringUtils.isNotBlank(spDto.getAssertionEncryptionAlgorithmURI())
+                    || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
+                    (spDto.getAssertionEncryptionAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST, "Invalid Assertion Encryption Algorithm.");
+            }
+            if (!StringUtils.isNotBlank(spDto.getKeyEncryptionAlgorithmURI())
+                    || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(spDto.getKeyEncryptionAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST, "Invalid Key Encryption Algorithm.");
+            }
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
@@ -462,6 +480,11 @@ public class SAMLSSOConfigServiceImpl {
     private IdentityException buildServerError(String message, Exception ex) {
 
         return new IdentityException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, ex);
+    }
+
+    private IdentitySAML2ClientException buildClientException(Error error, String message) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message);
     }
 }
 
