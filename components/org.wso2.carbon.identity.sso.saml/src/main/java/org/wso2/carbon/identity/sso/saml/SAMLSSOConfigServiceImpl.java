@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -96,6 +97,27 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            if (StringUtils.isBlank(spDto.getSigningAlgorithmURI())
+                    || !Arrays.asList(getSigningAlgorithmUris()).contains(spDto.getSigningAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Response Signing Algorithm: " + spDto.getSigningAlgorithmURI());
+            }
+            if (StringUtils.isBlank(spDto.getDigestAlgorithmURI())
+                    || !Arrays.asList(getDigestAlgorithmURIs()).contains(spDto.getDigestAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Response Digest Algorithm: " + spDto.getDigestAlgorithmURI());
+            }
+            if (StringUtils.isBlank(spDto.getAssertionEncryptionAlgorithmURI())
+                    || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
+                    (spDto.getAssertionEncryptionAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Assertion Encryption Algorithm: " + spDto.getAssertionEncryptionAlgorithmURI());
+            }
+            if (StringUtils.isBlank(spDto.getKeyEncryptionAlgorithmURI())
+                    || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(spDto.getKeyEncryptionAlgorithmURI())) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Key Encryption Algorithm: " + spDto.getKeyEncryptionAlgorithmURI());
+            }
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
@@ -462,6 +484,11 @@ public class SAMLSSOConfigServiceImpl {
     private IdentityException buildServerError(String message, Exception ex) {
 
         return new IdentityException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, ex);
+    }
+
+    private IdentitySAML2ClientException buildClientException(Error error, String message) {
+
+        return new IdentitySAML2ClientException(error.getErrorCode(), message);
     }
 }
 
