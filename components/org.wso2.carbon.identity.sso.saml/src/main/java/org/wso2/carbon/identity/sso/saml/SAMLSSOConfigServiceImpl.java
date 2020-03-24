@@ -97,22 +97,26 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            if (!StringUtils.isNotBlank(spDto.getSigningAlgorithmURI())
+            if (StringUtils.isBlank(spDto.getSigningAlgorithmURI())
                     || !Arrays.asList(getSigningAlgorithmUris()).contains(spDto.getSigningAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST, "Invalid Response Signing Algorithm.");
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Response Signing Algorithm: " + spDto.getSigningAlgorithmURI());
             }
-            if (!StringUtils.isNotBlank(spDto.getDigestAlgorithmURI())
+            if (StringUtils.isBlank(spDto.getDigestAlgorithmURI())
                     || !Arrays.asList(getDigestAlgorithmURIs()).contains(spDto.getDigestAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST, "Invalid Response Digest Algorithm.");
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Response Digest Algorithm: " + spDto.getDigestAlgorithmURI());
             }
-            if (!StringUtils.isNotBlank(spDto.getAssertionEncryptionAlgorithmURI())
+            if (StringUtils.isBlank(spDto.getAssertionEncryptionAlgorithmURI())
                     || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
                     (spDto.getAssertionEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST, "Invalid Assertion Encryption Algorithm.");
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Assertion Encryption Algorithm: " + spDto.getAssertionEncryptionAlgorithmURI());
             }
-            if (!StringUtils.isNotBlank(spDto.getKeyEncryptionAlgorithmURI())
+            if (StringUtils.isBlank(spDto.getKeyEncryptionAlgorithmURI())
                     || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(spDto.getKeyEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST, "Invalid Key Encryption Algorithm.");
+                throw buildClientException(INVALID_REQUEST,
+                        "Invalid Key Encryption Algorithm: " + spDto.getKeyEncryptionAlgorithmURI());
             }
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
