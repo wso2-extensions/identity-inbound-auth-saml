@@ -2585,7 +2585,7 @@ public class SAMLSSOUtil {
 
         if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
             if (log.isDebugEnabled()) {
-                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context:" +
+                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context: " +
                         defaultUrlContext);
             }
             return urlFromConfig;
