@@ -45,9 +45,12 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.FrontChannelSLOParticipantInfo;
 import org.wso2.carbon.identity.sso.saml.FrontChannelSLOParticipantStore;
@@ -213,7 +216,22 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 return;
             }
 
-            String tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
+            String tenantDomain = null;
+            if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+                if (log.isDebugEnabled()) {
+                    log.debug("Tenant domain from context: " + tenantDomain);
+                }
+            }
+
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = req.getParameter(MultitenantConstants.TENANT_DOMAIN);
+                if (log.isDebugEnabled()) {
+                    log.debug("Tenant domain not available in context. Tenant domain from query param: " +
+                            tenantDomain);
+                }
+            }
+
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
 
             String issuerQualifier = req.getParameter(SAMLSSOConstants.INBOUND_ISSUER_QUALIFIER);
@@ -792,8 +810,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String sessionDataKey = UUIDGenerator.generateUUID();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, false, true);
-        String selfPath = req.getContextPath();
+        String selfPath = ServiceURLBuilder.create().addPath(req.getContextPath()).build().getRelativeURL();
         // Setting authentication request context
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 
@@ -847,7 +864,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void sendToFrameworkForLogout(HttpServletRequest request, HttpServletResponse response,
                                           SAMLSSOReqValidationResponseDTO signInRespDTO, String relayState,
                                           String sessionId,
-                                          boolean invalid, boolean isPost) throws ServletException, IOException {
+                                          boolean invalid, boolean isPost) throws ServletException, IOException,
+            URLBuilderException {
 
         SAMLSSOSessionDTO sessionDTO = new SAMLSSOSessionDTO();
         sessionDTO.setHttpQueryString(request.getQueryString());
@@ -874,10 +892,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String sessionDataKey = UUIDGenerator.generateUUID();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
-
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, false, true);
-
-        String selfPath = request.getContextPath();
+        String selfPath = ServiceURLBuilder.create().addPath(request.getContextPath()).build().getRelativeURL();
 
         //Add all parameters to authentication context before sending to authentication
         // framework
