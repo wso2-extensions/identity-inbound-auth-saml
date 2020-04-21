@@ -1746,22 +1746,24 @@ public class SAMLSSOUtil {
     }
 
     public static String getNotificationEndpoint(){
-        String redirectURL = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-                .NOTIFICATION_ENDPOINT);
-        if (StringUtils.isBlank(redirectURL)){
-            redirectURL = IdentityUtil.getServerURL(SAMLSSOConstants.NOTIFICATION_ENDPOINT, false, false);
+
+        try {
+            return resolveUrl(SAMLSSOConstants.NOTIFICATION_ENDPOINT, IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                    .NOTIFICATION_ENDPOINT));
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException("Error while resolving default endpoint that handles SAML error " +
+                    "notifications", e);
         }
-        return redirectURL;
     }
 
-    public static String getDefaultLogoutEndpoint(){
-        String defaultLogoutLocation = IdentityUtil.getProperty(IdentityConstants.ServerConfig
-                .DEFAULT_LOGOUT_ENDPOINT);
-        if (StringUtils.isBlank(defaultLogoutLocation)){
-            defaultLogoutLocation = IdentityUtil.getServerURL(SAMLSSOConstants
-                    .DEFAULT_LOGOUT_ENDPOINT, false, false);
+    public static String getDefaultLogoutEndpoint() {
+
+        try {
+            return resolveUrl(SAMLSSOConstants.DEFAULT_LOGOUT_ENDPOINT, IdentityUtil.getProperty(IdentityConstants.ServerConfig
+                    .DEFAULT_LOGOUT_ENDPOINT));
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException("Error while resolving the default endpoint that handles SAML logout ", e);
         }
-        return defaultLogoutLocation;
     }
 
     public static boolean isSAMLIssuerExists(String issuerName, String tenantDomain) throws IdentitySAML2SSOException {
@@ -2580,6 +2582,16 @@ public class SAMLSSOUtil {
         return null;
     }
 
+    /**
+     * Resolves the public service url given the default context and the url picked from the configuration based on
+     * the 'tenant_context.enable_tenant_qualified_urls' mode set in deployment.toml.
+     *
+     * @param defaultUrlContext default url context path
+     * @param urlFromConfig     url picked from the file configuration
+     * @return absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
+     * from the file config
+     * @throws URLBuilderException when fail to build the absolute public url
+     */
     private static String resolveUrl(String defaultUrlContext, String urlFromConfig) throws URLBuilderException {
 
         if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
