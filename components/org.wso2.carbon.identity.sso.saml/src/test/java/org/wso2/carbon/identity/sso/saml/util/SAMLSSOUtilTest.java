@@ -34,7 +34,11 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -76,9 +80,11 @@ import static org.testng.Assert.assertTrue;
  * Unit test cases for SAMLSSOUtil.
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class,IdentityPersistenceManager.class,SSOServiceProviderConfigManager.class,
-        IdentityTenantUtil.class})
+        KeyStoreManager.class, IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
+        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
+
+    private static final String SAMPLE_TENANTED_SAML_URL = "https://localhost:9443/t/wso2.com/samlsso";
 
     @Mock
     private RealmService realmService;
@@ -106,6 +112,11 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Mock
     private SSOServiceProviderConfigManager ssoServiceProviderConfigManager;
 
+    @Mock
+    ServiceURL serviceURL;
+    @Mock
+    private ServiceURLBuilder serviceURLBuilder;
+
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
         return new PowerMockObjectFactory();
@@ -118,19 +129,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         SAMLSSOUtil.setRealmService(realmService);
 
-        Property property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-        property.setValue(TestConstants.LOACALHOST_DOMAIN);
-        Property[] properties = {property};
-        when(federatedAuthenticatorConfig.getProperties()).thenReturn(properties);
-        when(federatedAuthenticatorConfig.getName()).thenReturn(
-                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
-        FederatedAuthenticatorConfig[] fedAuthConfs = {federatedAuthenticatorConfig};
-        when(identityProvider.getFederatedAuthenticatorConfigs()).thenReturn(fedAuthConfs);
-
-        mockStatic(IdentityProviderManager.class);
-        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
-        when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
+        prepareResidentIdP();
         mockStatic(IdentityTenantUtil.class);
     }
 
@@ -150,6 +149,40 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         mockStatic(SSOServiceProviderConfigManager.class);
         when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
         when(ssoServiceProviderConfigManager.getServiceProvider(TestConstants.ISSUER_WITH_QUALIFIER)).thenReturn(samlssoServiceProviderDO);
+    }
+
+    private void prepareServiceURLBuilder() throws URLBuilderException {
+
+        mockStatic(ServiceURLBuilder.class);
+        when(ServiceURLBuilder.create()).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.addPath(any())).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.addParameter(any(), any())).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.build()).thenReturn(serviceURL);
+    }
+
+    private void setTenantQualifiedUrlMode() {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
+    }
+
+    private void prepareResidentIdP() throws IdentityProviderManagementException {
+
+        mockStatic(IdentityProviderManager.class);
+        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
+        when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
+
+        Property property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+        property.setValue(TestConstants.LOACALHOST_DOMAIN);
+        Property[] properties = {property};
+
+        when(federatedAuthenticatorConfig.getProperties()).thenReturn(properties);
+        when(federatedAuthenticatorConfig.getName()).thenReturn(
+                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+        FederatedAuthenticatorConfig[] fedAuthConfs = {federatedAuthenticatorConfig};
+        when(identityProvider.getFederatedAuthenticatorConfigs()).thenReturn(fedAuthConfs);
     }
 
     @Test
@@ -240,30 +273,82 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testGetDestinationForServerURL() throws Exception {
+    public void testGetDestinationFromServerURLBuilder() throws Exception {
 
-        prepareForGetIssuer();
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean())).thenReturn(TestConstants
-                .SAMPLE_SERVER_URL);
+        prepareResidentIdP();
+        prepareServiceURLBuilder();
+
+        when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
         List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
                 .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one destination url");
-        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Server URL is not present " +
-                "in destination URLs");
+        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
+                "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
     }
 
     @Test
-    public void testGetDestinationForTenant() throws Exception {
+    public void testGetDestinationFromServerURLBuilderAtTenantedURLMode() throws Exception {
 
-        prepareForGetIssuer();
+        prepareResidentIdP();
+        prepareServiceURLBuilder();
+        setTenantQualifiedUrlMode();
+
+        when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
+        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                .WSO2_TENANT_DOMAIN);
+        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
+                "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
+    }
+
+    @Test
+    public void testGetDestinationFromFile() throws Exception {
+
+        prepareResidentIdP();
+        prepareServiceURLBuilder();
+
+        mockStatic(IdentityUtil.class);
+        mockStatic(IdentityConstants.class);
+        when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL)).thenReturn(TestConstants
+                .SAMPLE_SERVER_URL);
+        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                .WSO2_TENANT_DOMAIN);
+        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected " +
+                "SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+    }
+
+    @Test
+    public void testGetDestinationFromFileInTenantedURLMode() throws Exception {
+
+        prepareResidentIdP();
+        prepareServiceURLBuilder();
+        setTenantQualifiedUrlMode();
+
+        mockStatic(IdentityUtil.class);
+        mockStatic(IdentityConstants.class);
+        when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL)).thenReturn(TestConstants
+                .SAMPLE_SERVER_URL);
+        when(serviceURL.getAbsolutePublicURL()).thenReturn(SAMPLE_TENANTED_SAML_URL);
+        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                .WSO2_TENANT_DOMAIN);
+        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one destination url");
+        assertEquals(destinationFromTenantDomain.get(0), SAMPLE_TENANTED_SAML_URL, "Expected default built " +
+                "SAML destination URL: " + SAMPLE_TENANTED_SAML_URL);
+        assertNotEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected to not to " +
+                "return SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+    }
+
+    @Test
+    public void testGetDestinationFromPredefinedDestinationURLs() throws Exception {
+
+        prepareResidentIdP();
+        prepareServiceURLBuilder();
+
         List destinationUrls = new ArrayList();
         destinationUrls.add("https://url1");
         destinationUrls.add("https://url2");
-        mockStatic(IdentityUtil.class);
         mockStatic(IdentityApplicationManagementUtil.class);
-        when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean())).thenReturn(TestConstants
-                .SAMPLE_SERVER_URL);
         when(IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(any(FederatedAuthenticatorConfig[]
                 .class), eq(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME), eq(IdentityApplicationConstants
                 .Authenticator.SAML2SSO.DESTINATION_URL_PREFIX))).thenReturn(destinationUrls);

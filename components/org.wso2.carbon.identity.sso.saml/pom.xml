@@ -220,6 +220,12 @@
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-storage-impl</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.opensaml</groupId>
@@ -249,11 +255,7 @@
             <groupId>net.shibboleth.utilities</groupId>
             <artifactId>java-support</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
@@ -264,6 +266,13 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>

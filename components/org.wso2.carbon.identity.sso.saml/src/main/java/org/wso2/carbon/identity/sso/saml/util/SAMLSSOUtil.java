@@ -69,7 +69,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -642,11 +645,15 @@ public class SAMLSSOUtil {
                 IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, IdentityApplicationConstants.Authenticator
                         .SAML2SSO.DESTINATION_URL_PREFIX));
         if (destinationURLs.size() == 0) {
-            String configDestination = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
-            if (StringUtils.isBlank(configDestination)) {
-                configDestination = IdentityUtil.getServerURL(SAMLSSOConstants.SAMLSSO_URL, true, true);
+
+            String destinationURL = resolveUrl(SAMLSSOConstants.SAMLSSO_URL, IdentityUtil.getProperty
+                    (IdentityConstants.ServerConfig.SSO_IDP_URL));
+            destinationURLs.add(destinationURL);
+
+            if (log.isDebugEnabled()) {
+                log.debug("No destination URLs configured for resident IdP in tenant: " + tenantDomain + ". Resolved " +
+                        "default destination URL: " + destinationURL);
             }
-            destinationURLs.add(configDestination);
         }
 
         return destinationURLs;
@@ -2571,5 +2578,18 @@ public class SAMLSSOUtil {
             }
         }
         return null;
+    }
+
+    private static String resolveUrl(String defaultUrlContext, String urlFromConfig) throws URLBuilderException {
+
+        if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context: " +
+                        defaultUrlContext);
+            }
+            return urlFromConfig;
+        }
+
+        return ServiceURLBuilder.create().addPath(defaultUrlContext).build().getAbsolutePublicURL();
     }
 }
