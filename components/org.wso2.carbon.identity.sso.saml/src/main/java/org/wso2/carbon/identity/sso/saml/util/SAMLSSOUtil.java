@@ -93,6 +93,7 @@ import org.wso2.carbon.identity.sso.saml.builders.signature.SSOSigner;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
@@ -1337,12 +1338,8 @@ public class SAMLSSOUtil {
         SAMLSSOServiceProviderDO spDO = spConfigManager.getServiceProvider(authnReqDTO.getIssuer());
 
         if (spDO == null) {
-            IdentityPersistenceManager persistenceManager =
-                    IdentityPersistenceManager.getPersistanceManager();
 
-            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().
-                    getRegistry(RegistryType.SYSTEM_CONFIGURATION);
-            spDO = persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
+            spDO = getSAMLServiceProviderFromRegistry(authnReqDTO.getIssuer(), authnReqDTO.getTenantDomain());
         }
 
         if (!authnReqDTO.isIdPInitSSOEnabled()) {
@@ -2603,5 +2600,53 @@ public class SAMLSSOUtil {
         }
 
         return ServiceURLBuilder.create().addPath(defaultUrlContext).build().getAbsolutePublicURL();
+    }
+
+    private static int getTenantIdFromDomain(String tenantDomain) throws IdentitySAML2SSOException {
+
+        int tenantId;
+        try {
+            tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+                throw new IdentitySAML2ClientException("Invalid tenant domain: " + tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for " +
+                    "tenant domain : " + tenantDomain, e);
+        }
+
+        return tenantId;
+    }
+
+    private static SAMLSSOServiceProviderDO getSAMLServiceProviderFromRegistry(String issuer, String tenantDomain)
+            throws
+            IdentitySAML2SSOException {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+
+        }
+        int tenantId = getTenantIdFromDomain(tenantDomain);
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext
+                    .getThreadLocalCarbonContext();
+            privilegedCarbonContext.setTenantId(tenantId);
+            privilegedCarbonContext.setTenantDomain(tenantDomain);
+            IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+
+            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
+
+            Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().
+                    getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+            return persistenceManager.getServiceProvider(registry, issuer);
+
+        } catch (IdentityException | RegistryException e) {
+            throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
+                    + "issuer : " + issuer + " in tenant domain : " + tenantDomain);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 }
