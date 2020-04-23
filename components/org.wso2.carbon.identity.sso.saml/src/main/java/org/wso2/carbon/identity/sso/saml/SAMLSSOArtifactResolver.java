@@ -134,7 +134,7 @@ public class SAMLSSOArtifactResolver {
         // Checking for issuer.
         if (StringUtils.equals(artifactInfo.getAuthnReqDTO().getIssuer(), artifactResolve.getIssuer().getValue())) {
 
-            String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+            String tenantDomain = artifactInfo.getAuthnReqDTO().getTenantDomain();
             SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(
                     tenantDomain, SAMLSSOUtil.splitAppendedTenantDomain(artifactResolve.getIssuer().getValue()));
 
