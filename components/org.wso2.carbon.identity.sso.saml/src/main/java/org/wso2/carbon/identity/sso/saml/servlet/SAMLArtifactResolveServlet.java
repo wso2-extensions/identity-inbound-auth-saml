@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -236,13 +237,11 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
     private void sendNotification(String status, String message, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
-        String redirectURL = CarbonUIUtil.getAdminConsoleURL(req);
-        redirectURL = redirectURL.replace("samlsso/carbon/",
-                "authenticationendpoint/samlsso_notification.do");
-        //TODO Send status codes rather than full messages in the GET request
-        Map<String, String> queryParams = new HashMap<>();
-        queryParams.put(SAMLSSOConstants.STATUS, status);
-        queryParams.put(SAMLSSOConstants.STATUS_MSG, message);
-        resp.sendRedirect(FrameworkUtils.appendQueryParamsToUrl(redirectURL, queryParams));
+        String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
+
+        String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.encode(status, "UTF-8") +
+                "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode(message, "UTF-8");
+        String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
+        resp.sendRedirect(queryAppendedUrl);
     }
 }
