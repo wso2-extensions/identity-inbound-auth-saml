@@ -903,6 +903,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authenticationRequest.setRequestQueryParams(request.getParameterMap());
         authenticationRequest.setCommonAuthCallerPath(selfPath);
         authenticationRequest.setPost(isPost);
+        authenticationRequest.setTenantDomain(SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (signInRespDTO != null) {
             authenticationRequest.setRelyingParty(signInRespDTO.getIssuer());
