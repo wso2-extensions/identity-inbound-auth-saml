@@ -810,7 +810,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String sessionDataKey = UUIDGenerator.generateUUID();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
-        String selfPath = ServiceURLBuilder.create().addPath(req.getContextPath()).build().getRelativeURL();
+        String selfPath = ServiceURLBuilder.create().addPath(req.getContextPath()).build().getRelativeInternalURL();
         // Setting authentication request context
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 
@@ -892,7 +892,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String sessionDataKey = UUIDGenerator.generateUUID();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
-        String selfPath = ServiceURLBuilder.create().addPath(request.getContextPath()).build().getRelativeURL();
+        String selfPath = ServiceURLBuilder.create().addPath(request.getContextPath()).build().getRelativeInternalURL();
 
         //Add all parameters to authentication context before sending to authentication
         // framework
