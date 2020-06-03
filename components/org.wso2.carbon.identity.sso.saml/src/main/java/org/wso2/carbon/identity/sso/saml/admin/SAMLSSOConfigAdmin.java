@@ -114,6 +114,8 @@ public class SAMLSSOConfigAdmin {
                 throw buildClientException(CONFLICTING_SAML_ISSUER, message);
             }
             return persistSAMLServiceProvider(serviceProviderDO);
+        } catch (IdentitySAML2ClientException e){
+            throw e;
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -134,7 +136,8 @@ public class SAMLSSOConfigAdmin {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
             String issuer = samlssoServiceProviderDO.getIssuer();
-            String msg = "SAML issuer: " + issuer + " already exists in tenantDomain: " + getTenantDomain();
+            String msg = "An application with the SAML issuer: " + issuer + " already exists in tenantDomain: " +
+                    getTenantDomain();
             throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
         }
     }
