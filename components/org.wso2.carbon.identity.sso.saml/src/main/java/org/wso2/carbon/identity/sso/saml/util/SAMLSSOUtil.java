@@ -930,6 +930,11 @@ public class SAMLSSOUtil {
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+        privilegedCarbonContext.setTenantId(tenantId);
+        privilegedCarbonContext.setTenantDomain(tenantDomain);
+
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
@@ -944,6 +949,8 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
         return credentialImpl;
     }
