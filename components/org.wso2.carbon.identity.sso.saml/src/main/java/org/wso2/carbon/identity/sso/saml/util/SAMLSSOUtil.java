@@ -931,9 +931,8 @@ public class SAMLSSOUtil {
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
 
-        FrameworkUtils.startTenantFlow(tenantDomain);
-
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
             } else { // for super tenant, load the default pub. cert using the
