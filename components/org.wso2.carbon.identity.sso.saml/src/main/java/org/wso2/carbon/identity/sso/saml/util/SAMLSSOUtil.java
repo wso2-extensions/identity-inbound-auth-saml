@@ -60,6 +60,7 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -930,7 +931,7 @@ public class SAMLSSOUtil {
         X509CredentialImpl credentialImpl = null;
         KeyStore keyStore;
 
-        PrivilegedCarbonContext.startTenantFlow();
+        FrameworkUtils.startTenantFlow(tenantDomain);
         PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
         privilegedCarbonContext.setTenantId(tenantId);
         privilegedCarbonContext.setTenantDomain(tenantDomain);
@@ -950,7 +951,7 @@ public class SAMLSSOUtil {
             String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
         } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+            FrameworkUtils.endTenantFlow();
         }
         return credentialImpl;
     }
