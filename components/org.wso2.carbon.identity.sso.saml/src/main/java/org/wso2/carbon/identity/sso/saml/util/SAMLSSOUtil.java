@@ -932,9 +932,6 @@ public class SAMLSSOUtil {
         KeyStore keyStore;
 
         FrameworkUtils.startTenantFlow(tenantDomain);
-        PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-        privilegedCarbonContext.setTenantId(tenantId);
-        privilegedCarbonContext.setTenantDomain(tenantDomain);
 
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
