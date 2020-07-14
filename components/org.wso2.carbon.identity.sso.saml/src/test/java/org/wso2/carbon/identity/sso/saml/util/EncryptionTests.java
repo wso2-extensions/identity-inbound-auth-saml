@@ -27,6 +27,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.*;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
@@ -46,7 +47,8 @@ import static org.testng.Assert.assertEquals;
  * Unit tests for SAML request encryption functionality.
  */
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*"})
-@PrepareForTest({IdentityUtil.class, KeyStoreManager.class, KeyStore.class, X509CredentialImpl.class})
+@PrepareForTest({IdentityUtil.class, KeyStoreManager.class, KeyStore.class, X509CredentialImpl.class,
+        FrameworkServiceComponent.class})
 public class EncryptionTests extends PowerMockTestCase {
 
     @Mock
@@ -69,6 +71,10 @@ public class EncryptionTests extends PowerMockTestCase {
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
+        mockStatic(FrameworkServiceComponent.class);
+        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
                 TestConstants.ASSERTION_ENCRYPTION_ALGO, TestConstants.KEY_ENCRYPTION_ALGO, TestConstants.WSO2_CARBON,
                 "carbon.super");
@@ -87,6 +93,10 @@ public class EncryptionTests extends PowerMockTestCase {
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
+        mockStatic(FrameworkServiceComponent.class);
+        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion, TestConstants
                 .ASSERTION_ENCRYPTION_ALGO, TestConstants.WSO2_CARBON, "carbon.super");
 
