@@ -60,6 +60,7 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -931,6 +932,7 @@ public class SAMLSSOUtil {
         KeyStore keyStore;
 
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
             } else { // for super tenant, load the default pub. cert using the
@@ -944,6 +946,8 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
         return credentialImpl;
     }

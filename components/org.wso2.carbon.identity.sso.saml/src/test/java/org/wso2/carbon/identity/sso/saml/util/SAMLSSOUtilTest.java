@@ -29,6 +29,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -81,7 +82,7 @@ import static org.testng.Assert.assertTrue;
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
         KeyStoreManager.class, IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
-        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class})
+        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANTED_SAML_URL = "https://localhost:9443/t/wso2.com/samlsso";
@@ -376,6 +377,10 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetX509CredentialImplForSuperTenant() throws Exception {
 
         prepareForGetIssuer();
+        mockStatic(FrameworkServiceComponent.class);
+        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(-1234))).thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
@@ -388,6 +393,9 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetX509CredentialImplForTenant() throws Exception {
 
         prepareForGetIssuer();
+        mockStatic(FrameworkServiceComponent.class);
+        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
