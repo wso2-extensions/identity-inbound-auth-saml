@@ -1092,7 +1092,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
         populateAuthnReqDTOWithCachedSessionEntry(authnReqDTO, sessionDTO);
-        populateAuthenticationContextClassRefResult(authResult, sessionDTO, authnReqDTO);
+
+        if (authResult != null) {
+            populateAuthenticationContextClassRefResult(authResult, sessionDTO, authnReqDTO);
+        }
 
         String tenantDomain = authnReqDTO.getTenantDomain();
         String issuer = authnReqDTO.getIssuer();
