@@ -1231,8 +1231,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                                              SAMLSSOSessionDTO sessionDTO,
                                                              SAMLSSOAuthnReqDTO authnReqDTO) {
 
-        SessionAuthHistory sessionAuthHistory = (SessionAuthHistory) authenticationResult.getProperty(
-                FrameworkConstants.SESSION_AUTH_HISTORY);
+        SessionAuthHistory sessionAuthHistory = null;
+        if (authenticationResult != null) {
+            sessionAuthHistory = (SessionAuthHistory) authenticationResult.getProperty(
+                    FrameworkConstants.SESSION_AUTH_HISTORY);
+        }
 
         if (sessionAuthHistory != null && sessionAuthHistory.getSelectedAcrValue() != null) {
             if (log.isDebugEnabled()) {
