@@ -932,9 +932,10 @@ public class SAMLSSOUtil {
         KeyStore keyStore;
 
         try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
+                FrameworkUtils.startTenantFlow(tenantDomain);
                 keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                FrameworkUtils.endTenantFlow();
             } else { // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
                 keyStore = keyStoreManager.getPrimaryKeyStore();
@@ -946,8 +947,6 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
-        } finally {
-            FrameworkUtils.endTenantFlow();
         }
         return credentialImpl;
     }
