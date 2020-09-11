@@ -933,9 +933,12 @@ public class SAMLSSOUtil {
 
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
-                FrameworkUtils.startTenantFlow(tenantDomain);
-                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
-                FrameworkUtils.endTenantFlow();
+                try {
+                    FrameworkUtils.startTenantFlow(tenantDomain);
+                    keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                } finally {
+                    FrameworkUtils.endTenantFlow();
+                }
             } else { // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
                 keyStore = keyStoreManager.getPrimaryKeyStore();
