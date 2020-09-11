@@ -1194,7 +1194,7 @@ public class SAMLSSOUtil {
 
         } catch (SecurityException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Error validating deflate signature", e);
+                log.debug("Error validating deflate signature for the issuer: " + issuer, e);
             }
             return false;
         } catch (ClassNotFoundException e) {
