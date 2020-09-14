@@ -1965,7 +1965,8 @@
             <%
                 if (!isEditSP) {
             %>
-            <form method="POST" action="../../fileupload/service?<csrf:tokenname/>=<csrf:tokenvalue/>"
+            <form method="POST"
+                  action="../../fileupload/service?<csrf:tokenname/>=<csrf:tokenvalue/>&application-sp-name=<%=Encode.forHtmlAttribute(applicationSPName)%>"
                   id="uploadServiceProvider" name="uploadServiceProvider" target="_self" enctype="multipart/form-data"
                   onsubmit="return doValidation();">
 
