@@ -17,13 +17,18 @@
  */
 package org.wso2.carbon.identity.sso.saml.util;
 
+import net.shibboleth.utilities.java.support.codec.Base64Support;
+import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
-import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.ArtifactResponse;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -41,15 +46,10 @@ import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml.saml2.core.impl.StatusBuilder;
 import org.opensaml.saml.saml2.core.impl.StatusCodeBuilder;
 import org.opensaml.saml.saml2.core.impl.StatusMessageBuilder;
-import org.opensaml.core.config.InitializationException;
-import org.opensaml.core.xml.XMLObject;
-import org.opensaml.core.xml.io.Marshaller;
-import org.opensaml.core.xml.io.MarshallerFactory;
 import org.opensaml.security.SecurityException;
-import org.opensaml.xmlsec.crypto.XMLSigningUtil;
 import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.crypto.XMLSigningUtil;
 import org.opensaml.xmlsec.signature.SignableXMLObject;
-import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 import org.w3c.dom.Element;
@@ -78,8 +78,8 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.DefaultResponseBuilder;
@@ -224,6 +224,16 @@ public class SAMLSSOUtil {
         spCertificateExpiryValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
                 SAMLSSOConstants.SAML_SP_CERTIFICATE_EXPIRY_VALIDATION_ENABLED));
         return spCertificateExpiryValidationEnabled;
+    }
+
+    /**
+     * Check whether use the application certificate to encrypt the SAML assertion.
+     * @return true if use the app certificate.
+     */
+    public static boolean isSAMLAssertionEncryptWithAppCert() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML_ASSERTION_ENCRYPT_WITH_APP_CERT));
     }
 
     /**
@@ -789,6 +799,7 @@ public class SAMLSSOUtil {
         }
     }
 
+    @Deprecated
     public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String encryptionAlgorithm,
                                                            String alias, String domainName) throws IdentityException {
         doBootstrap();
@@ -816,18 +827,17 @@ public class SAMLSSOUtil {
     }
 
     public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String assertionEncryptionAlgorithm,
-                                                           String keyEncryptionAlgorithm, String alias, String
-                                                                   domainName) throws IdentityException {
+                                                           String keyEncryptionAlgorithm, X509Credential cred)
+            throws IdentityException {
+
         doBootstrap();
         try {
-            X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
-
             synchronized (Runtime.getRuntime().getClass()) {
                 ssoEncrypter = (SSOEncrypter) Class.forName(IdentityUtil.getProperty(
                         SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH).trim()).newInstance();
                 ssoEncrypter.init();
             }
-            return ssoEncrypter.doEncryptedAssertion(assertion, cred, alias, assertionEncryptionAlgorithm,
+            return ssoEncrypter.doEncryptedAssertion(assertion, cred, null, assertionEncryptionAlgorithm,
                     keyEncryptionAlgorithm);
         } catch (ClassNotFoundException e) {
             throw IdentityException.error("Class not found: "
@@ -841,6 +851,15 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             throw IdentityException.error("Error while signing the SAML Response message.", e);
         }
+    }
+
+    @Deprecated
+    public static EncryptedAssertion setEncryptedAssertion(Assertion assertion, String assertionEncryptionAlgorithm,
+                                                           String keyEncryptionAlgorithm, String alias, String
+                                                                   domainName) throws IdentityException {
+
+        X509Credential cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+        return setEncryptedAssertion(assertion, assertionEncryptionAlgorithm, keyEncryptionAlgorithm, cred);
     }
 
     public static Assertion buildSAMLAssertion(SAMLSSOAuthnReqDTO authReqDTO, DateTime notOnOrAfter,

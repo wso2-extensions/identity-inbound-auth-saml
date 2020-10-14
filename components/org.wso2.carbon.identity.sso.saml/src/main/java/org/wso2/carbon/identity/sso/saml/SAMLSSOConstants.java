@@ -68,6 +68,7 @@ public class SAMLSSOConstants {
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD_ENABLED = "SSOService.SAML2AuthenticationRequestValidityPeriodEnabled";
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD = "SSOService.SAML2AuthenticationRequestValidityPeriod";
     public static final String SAML_SP_CERTIFICATE_EXPIRY_VALIDATION_ENABLED = "SSOService.SAMLSPCertificateExpiryValidationEnable";
+    public static final String SAML_ASSERTION_ENCRYPT_WITH_APP_CERT = "SSOService.SAMLAssertionEncyptWithAppCert";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
             "<SOAP-ENV:Body>";
     public static final String END_SOAP_BINDING = "</SOAP-ENV:Body>" +
