@@ -24,7 +24,9 @@ import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
 import org.wso2.carbon.identity.sso.saml.dao.impl.SAML2ArtifactInfoDAOImpl;
@@ -32,6 +34,8 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+
+import java.security.cert.X509Certificate;
 
 /**
  * This class is used to build the default SAML response.
@@ -100,9 +104,11 @@ public class DefaultResponseBuilder implements ResponseBuilder {
             String alias = authReqDTO.getCertAlias();
             String assertionEncryptionAlgorithm = authReqDTO.getAssertionEncryptionAlgorithmUri();
             String keyEncryptionAlgorithm = authReqDTO.getKeyEncryptionAlgorithmUri();
-            if (alias != null) {
+
+            X509Credential cred = getX509Credential(authReqDTO, domainName, alias);
+            if (cred != null) {
                 EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
-                        assertionEncryptionAlgorithm, keyEncryptionAlgorithm, alias, domainName);
+                        assertionEncryptionAlgorithm, keyEncryptionAlgorithm, cred);
                 response.getEncryptedAssertions().add(encryptedAssertion);
             } else {
                 log.warn("Certificate alias is not found. Assertion is not encrypted and not included in response");
@@ -142,4 +148,26 @@ public class DefaultResponseBuilder implements ResponseBuilder {
         return response;
     }
 
+    private X509Credential getX509Credential(SAMLSSOAuthnReqDTO authReqDTO, String domainName, String alias)
+            throws IdentityException {
+
+        X509Credential cred = null;
+        if (SAMLSSOUtil.isSAMLAssertionEncryptWithAppCert()) {
+            SAMLSSOServiceProviderDO serviceProviderConfigs =
+                    SAMLSSOUtil.getServiceProviderConfig(authReqDTO.getIssuer(), domainName);
+            X509Certificate cert = serviceProviderConfigs.getX509Certificate();
+            if (cert != null) {
+                return new X509CredentialImpl(cert);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Use certificate alias to encrypt since the application certificate is not found for " +
+                        "issuer:" + authReqDTO.getIssuer());
+            }
+        }
+
+        if (alias != null) {
+            cred = SAMLSSOUtil.getX509CredentialImplForTenant(domainName, alias);
+        }
+        return cred;
+    }
 }
