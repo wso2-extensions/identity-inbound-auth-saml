@@ -248,7 +248,11 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDO.setSloRequestURL(serviceProviderDTO.getSloRequestURL());
         serviceProviderDO.setLoginPageURL(serviceProviderDTO.getLoginPageURL());
         serviceProviderDO.setDoSignResponse(serviceProviderDTO.isDoSignResponse());
-        serviceProviderDO.setDoSignAssertions(serviceProviderDTO.isDoSignAssertions());
+        /*
+        According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we should not
+        reply on any property to decide this behaviour. Hence the property is set to sign by default.
+        */
+        serviceProviderDO.setDoSignAssertions(true);
         serviceProviderDO.setNameIdClaimUri(serviceProviderDTO.getNameIdClaimUri());
         serviceProviderDO.setSigningAlgorithmUri(serviceProviderDTO.getSigningAlgorithmURI());
         serviceProviderDO.setDigestAlgorithmUri(serviceProviderDTO.getDigestAlgorithmURI());
@@ -352,7 +356,11 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setSloRequestURL(serviceProviderDO.getSloRequestURL());
         serviceProviderDTO.setSloResponseURL(serviceProviderDO.getSloResponseURL());
         serviceProviderDTO.setDoSignResponse(serviceProviderDO.isDoSignResponse());
-        serviceProviderDTO.setDoSignAssertions(serviceProviderDO.isDoSignAssertions());
+        /*
+        According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we should not
+        reply on any property to decide this behaviour. Hence the property is set to sign by default.
+        */
+        serviceProviderDTO.setDoSignAssertions(true);
         serviceProviderDTO.setNameIdClaimUri(serviceProviderDO.getNameIdClaimUri());
         serviceProviderDTO.setSigningAlgorithmURI(serviceProviderDO.getSigningAlgorithmUri());
         serviceProviderDTO.setDigestAlgorithmURI(serviceProviderDO.getDigestAlgorithmUri());
@@ -427,7 +435,11 @@ public class SAMLSSOConfigAdmin {
                 }
 
                 providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
-                providerDTO.setDoSignAssertions(providerDO.isDoSignAssertions());
+                /*
+                According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we
+                should not reply on any property to decide this behaviour. Hence the property is set to sign by default.
+                */
+                providerDTO.setDoSignAssertions(true);
                 providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
                 providerDTO.setDoFrontChannelLogout(providerDO.isDoFrontChannelLogout());
                 providerDTO.setFrontChannelLogoutBinding(providerDO.getFrontChannelLogoutBinding());
