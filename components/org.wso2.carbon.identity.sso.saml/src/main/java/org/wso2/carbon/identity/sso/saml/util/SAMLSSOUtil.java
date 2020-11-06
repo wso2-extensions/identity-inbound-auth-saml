@@ -951,9 +951,13 @@ public class SAMLSSOUtil {
         KeyStore keyStore;
 
         try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
-                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                try {
+                    FrameworkUtils.startTenantFlow(tenantDomain);
+                    keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                } finally {
+                    FrameworkUtils.endTenantFlow();
+                }
             } else { // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
                 keyStore = keyStoreManager.getPrimaryKeyStore();
@@ -965,8 +969,6 @@ public class SAMLSSOUtil {
         } catch (Exception e) {
             String errorMsg = "Error instantiating an X509CredentialImpl object for the public certificate of " + tenantDomain;
             throw new IdentitySAML2SSOException(errorMsg, e);
-        } finally {
-            FrameworkUtils.endTenantFlow();
         }
         return credentialImpl;
     }
@@ -1211,7 +1213,7 @@ public class SAMLSSOUtil {
 
         } catch (SecurityException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Error validating deflate signature", e);
+                log.debug("Error validating deflate signature for the issuer: " + issuer, e);
             }
             return false;
         } catch (ClassNotFoundException e) {
