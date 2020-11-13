@@ -189,15 +189,23 @@ public class SAMLSSOService {
      * @param sessionId
      * @return
      * @throws IdentityException
+     * @deprecated use {@link #invalidateSession(String)} instead.
      */
     public SAMLSSOReqValidationResponseDTO doSingleLogout(String sessionId)
             throws IdentityException {
+       return invalidateSession(sessionId);
+    }
+
+    /**
+     * Invalidates the SSO session for the given session ID.
+     * @param sessionId sessionId.
+     * @return SAMLSSOReqValidationResponseDTO.
+     * @throws IdentityException
+     */
+    public SAMLSSOReqValidationResponseDTO invalidateSession(String sessionId) throws IdentityException {
+
         SPInitLogoutRequestProcessor logoutReqProcessor = SAMLSSOUtil.getSPInitLogoutRequestProcessor();
-        SAMLSSOReqValidationResponseDTO validationResponseDTO =
-                logoutReqProcessor.process(null,
-                        sessionId,
-                        null);
-        return validationResponseDTO;
+        return logoutReqProcessor.process(null, sessionId, null);
     }
 
     /**
