@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.event.IdentityEventConstants.EventName;
@@ -94,14 +95,22 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
     protected String getSamlSSOTokenIdFromEvent(Event event) {
 
         String samlssoTokenId = null;
-        if (event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
+        if (event.getEventProperties().get(EventProperty.REQUEST) != null &&
+                event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-            if (request != null) {
                 Cookie cookie = FrameworkUtils.getCookie(request, SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
                 if (cookie != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Found SamlssotokenId in the request object.");
+                    }
                     samlssoTokenId = cookie.getValue();
                 }
+        }
+        if (StringUtils.isEmpty(samlssoTokenId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("SamlssoTokenId is not found in the request object. Hence getting it from the context");
             }
+            samlssoTokenId = getsamlssoTokenIdFromContext(event);
         }
         return samlssoTokenId;
     }
@@ -118,8 +127,8 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
         if (request != null) {
             String slo = request.getParameter(SAMLSSOConstants.QueryParameter.SLO.toString());
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties()
-                    .get(EventProperty.CONTEXT);
+            AuthenticationContext context =
+                    (AuthenticationContext) event.getEventProperties().get(EventProperty.CONTEXT);
 
             if (context != null && slo == null) {
                 isIdpInitiated = false;
@@ -140,4 +149,24 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         return context.getRelyingParty();
     }
 
+    /**
+     * Get samlssoTokenId from session context.
+     *
+     * @param event Event.
+     * @return samlssoTokenId.
+     */
+    private String getsamlssoTokenIdFromContext(Event event) {
+
+        if (event.getEventProperties().get(EventProperty.SESSION_CONTEXT) != null) {
+            SessionContext sessionContext =
+                    (SessionContext) event.getEventProperties().get(EventProperty.SESSION_CONTEXT);
+            return (String) sessionContext.getProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Since the session context is not found in the event, Could not get the " +
+                        "samlssoTokenId cookie");
+            }
+            return null;
+        }
+    }
 }
