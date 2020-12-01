@@ -95,20 +95,19 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
     protected String getSamlSSOTokenIdFromEvent(Event event) {
 
         String samlssoTokenId = null;
-        if (event.getEventProperties().get(EventProperty.REQUEST) != null &&
-                event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
+        if (event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
                 Cookie cookie = FrameworkUtils.getCookie(request, SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
                 if (cookie != null) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Found SamlssotokenId in the request object.");
+                        log.debug("Found samlssotokenId in the request object: " + cookie.getValue());
                     }
                     samlssoTokenId = cookie.getValue();
                 }
         }
-        if (StringUtils.isEmpty(samlssoTokenId)) {
+        if (StringUtils.isBlank(samlssoTokenId)) {
             if (log.isDebugEnabled()) {
-                log.debug("SamlssoTokenId is not found in the request object. Hence getting it from the context");
+                log.debug("samlssoTokenId is not found in the request object. Hence getting it from the context");
             }
             samlssoTokenId = getsamlssoTokenIdFromContext(event);
         }

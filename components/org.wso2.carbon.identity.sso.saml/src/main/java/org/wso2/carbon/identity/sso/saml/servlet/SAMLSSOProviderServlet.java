@@ -1194,16 +1194,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
-     * Store SamlSSOTokenId In session context.
+     * Store samlssoTokenId in session context.
      *
-     * @param samlssoTokenId       samlssoTokenId.
-     * @param authenticationResult authenticationResult.
+     * @param samlssoTokenId       SamlssoTokenId cookie value.
+     * @param authenticationResult Authentication Result.
      */
     private void storeSamlSSOTokenIdInContext(String samlssoTokenId, AuthenticationResult authenticationResult) {
 
         String sessionIdentifier =
                 (String) authenticationResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
-        if (sessionIdentifier != null) {
+        if (StringUtils.isNotBlank(sessionIdentifier)) {
             SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier);
             if (sessionContext != null) {
                 if (authenticationResult.getSubject() != null) {
