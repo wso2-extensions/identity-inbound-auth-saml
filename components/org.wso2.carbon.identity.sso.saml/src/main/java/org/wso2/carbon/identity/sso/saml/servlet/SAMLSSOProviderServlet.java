@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.CommonAuthe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionAuthHistory;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -1172,6 +1173,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (authRespDTO.isSessionEstablished()) { // authenticated
 
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
+                storeSamlSSOTokenIdInContext(sessionId, authResult);
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
@@ -1187,6 +1189,40 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                         SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
                         authRespDTO.getAssertionConsumerURL(), req, resp);
+            }
+        }
+    }
+
+    /**
+     * Store samlssoTokenId in session context.
+     *
+     * @param samlssoTokenId       SamlssoTokenId cookie value.
+     * @param authenticationResult Authentication Result.
+     */
+    private void storeSamlSSOTokenIdInContext(String samlssoTokenId, AuthenticationResult authenticationResult) {
+
+        String sessionIdentifier =
+                (String) authenticationResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
+        if (StringUtils.isNotBlank(sessionIdentifier)) {
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier);
+            if (sessionContext != null) {
+                if (authenticationResult.getSubject() != null) {
+                    sessionContext.addProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE, samlssoTokenId);
+                    String tenantDomain = authenticationResult.getSubject().getTenantDomain();
+                    FrameworkUtils.addSessionContextToCache(sessionIdentifier, sessionContext, tenantDomain);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authenticated user attribute is not found in authentication result");
+                    }
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Session context is not found for the session identifier: " + sessionIdentifier);
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Session context identifier is not found in the authentication result.");
             }
         }
     }
