@@ -1399,7 +1399,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         ServletCookie samlssoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
                 .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
-        int defaultMaxAge = IdPManagementUtil.getIdleSessionTimeOut(tenantDomain) * 60;
+        int defaultMaxAge = IdPManagementUtil.getIdleSessionTimeOut(tenantDomain);
 
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
