@@ -62,6 +62,13 @@
         } else {
             attributeConsumingServiceIndex = "";
         }
+    
+        // Store the certificate contained inside the metadata from URL, in the session.
+        // This will be used by service provider update operation to know the certificate came inside SAML
+        // metadata from URL.
+        request.getSession().setAttribute(SAMLSSOUIConstants.SESSION_ATTRIBUTE_NAME_APPLICATION_CERTIFICATE,
+                serviceProviderDTO.getCertificateContent());
+        
         samlSsoServuceProviderConfigBean.clearBean();
         String message = resourceBundle.getString("sp.added.successfully");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
