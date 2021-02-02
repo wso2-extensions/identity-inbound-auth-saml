@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
+import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -148,10 +149,13 @@ public class SignKeyDataHolder implements X509Credential {
         }
 
         String keyStoreName = SAMLSSOUtil.generateKSNameFromDomainName(tenantDomain);
-        String keyAlias = tenantDomain;
         KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantID);
         KeyStore keyStore = keyMan.getKeyStore(keyStoreName);
-        issuerPrivateKey = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
+        String  keyAlias = SAMLSSOUtil.getSigningKeyAlias(tenantDomain);
+        if (StringUtils.isBlank(keyAlias)) {
+            throw new IdentityException("Signing key Alias of the tenant: " + tenantDomain + " is not valid");
+        }
+        issuerPrivateKey = (PrivateKey) keyMan.getPrivateKey(keyStoreName, keyAlias);
 
         Certificate[] certificates = keyStore.getCertificateChain(keyAlias);
         issuerCerts = Arrays.copyOf(certificates, certificates.length, X509Certificate[].class);
@@ -174,7 +178,7 @@ public class SignKeyDataHolder implements X509Credential {
             log.debug("Initializing Key Data for super tenant using system key store");
         }
 
-        String keyAlias = ServerConfiguration.getInstance().getFirstProperty(SECURITY_KEY_STORE_KEY_ALIAS);
+        String keyAlias = SAMLSSOUtil.getSigningKeyAlias(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         if (StringUtils.isBlank(keyAlias)) {
             throw new IdentityException("Invalid file configurations. The key alias is not found.");
         }

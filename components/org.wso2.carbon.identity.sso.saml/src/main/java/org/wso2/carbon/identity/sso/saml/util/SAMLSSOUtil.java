@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -109,10 +110,12 @@ import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidat
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
+import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -179,6 +182,7 @@ public class SAMLSSOUtil {
     private static RealmService realmService;
     private static ConfigurationContextService configCtxService;
     private static HttpService httpService;
+    private static IdpManager idpManager;
     private static boolean isBootStrapped = false;
     private static int singleLogoutRetryCount = 5;
     private static long singleLogoutRetryInterval = 60000;
@@ -796,6 +800,23 @@ public class SAMLSSOUtil {
                     + IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME), e);
         } catch (Exception e) {
             throw IdentityException.error("Error while signing the XML object.", e);
+        }
+    }
+
+    /**
+     * Get signing key alias of the the tenant.
+     *
+     * @param tenantDomain TenantDomain.
+     * @return Signing key alias of the the tenant.
+     * @throws IdentityException
+     */
+    public static String getSigningKeyAlias(String tenantDomain)
+            throws IdentityException {
+
+        try {
+            return KeyStoreMgtUtil.getSigningKeyAlias(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new IdentityException("Error while obtaining signing key alias tenant", e);
         }
     }
 
