@@ -1404,15 +1404,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
         samlssoTokenIdCookie.setPath("/");
-        samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
         samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
         if (samlssoTokenIdCookieConfig != null) {
-            int age = defaultMaxAge;
-            if (samlssoTokenIdCookieConfig.getMaxAge() > 0) {
-                age = samlssoTokenIdCookieConfig.getMaxAge();
-            }
-            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, age);
+            //-1 arguement was passed in place of null for age as parameter is primitive int
+            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, -1);
         }
         resp.addCookie(samlssoTokenIdCookie);
     }
@@ -1685,7 +1681,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (samlSSOIdCookieConfig.getSameSite() != null) {
             cookie.setSameSite(samlSSOIdCookieConfig.getSameSite());
         }
-        cookie.setMaxAge(age);
+        if(age>=0){
+            cookie.setMaxAge(age);
+        }
         cookie.setHttpOnly(samlSSOIdCookieConfig.isHttpOnly());
         cookie.setSecure(samlSSOIdCookieConfig.isSecure());
     }
