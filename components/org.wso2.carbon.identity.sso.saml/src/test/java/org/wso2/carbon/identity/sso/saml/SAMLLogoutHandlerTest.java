@@ -45,6 +45,7 @@ import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
+import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.security.KeyStore;
@@ -68,7 +69,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
-        KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class })
+        KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class,
+        KeyStoreMgtUtil.class})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     private static String SESSION_INDEX_ONE = "theSessionIndex";
@@ -170,6 +172,8 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID)).thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(keyStore);
+        mockStatic(KeyStoreMgtUtil.class);
+        when(KeyStoreMgtUtil.getSigningKeyAlias(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn("wso2carbon");
     }
 
     @Test
