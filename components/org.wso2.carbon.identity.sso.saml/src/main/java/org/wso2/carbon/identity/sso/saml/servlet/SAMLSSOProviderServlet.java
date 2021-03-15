@@ -1407,7 +1407,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
         if (samlssoTokenIdCookieConfig != null) {
-            //-1 arguement was passed in place of null for age as parameter is primitive int.
+            // -1 arguement was passed in place of null for age as parameter is primitive int.
             updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, -1);
         }
         resp.addCookie(samlssoTokenIdCookie);
