@@ -409,4 +409,27 @@ public class IdentitySAMLSSOServiceComponent {
         SAMLSSOUtil.removeExtensionProcessors(extensionProcessor);
     }
 
+    /**
+     * Add dependency to the ApplicationManagementService.
+     */
+    @Reference(
+            name = "identity.application.management.service",
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagementService"
+    )
+    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("ApplicationManagementService is available");
+        }
+    }
+
+    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("ApplicationManagementService is not available");
+        }
+    }
 }
