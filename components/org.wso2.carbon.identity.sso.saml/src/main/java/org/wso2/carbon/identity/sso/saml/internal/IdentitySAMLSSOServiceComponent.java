@@ -429,7 +429,7 @@ public class IdentitySAMLSSOServiceComponent {
     protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
 
         if (log.isDebugEnabled()) {
-            log.debug("ApplicationManagementService is not available");
+            log.debug("Unset the ApplicationManagementService");
         }
     }
 }
