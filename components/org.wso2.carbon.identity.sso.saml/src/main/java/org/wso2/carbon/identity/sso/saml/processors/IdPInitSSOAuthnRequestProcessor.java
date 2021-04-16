@@ -202,7 +202,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
             SAMLSSORespDTO errorResp =
                     buildErrorResponse(authnReqDTO.getId(),
                             statusCodes,
-                            "Authentication Failure, invalid username or password.", null);
+                            "Error processing the authentication request.", null);
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
             errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
