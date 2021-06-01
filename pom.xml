@@ -526,7 +526,7 @@
 
         <carbon.kernel.version>4.6.0</carbon.kernel.version>
         <carbon.kernel.feature.version>4.6.0</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>5.17.66</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.20.42</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.15.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
