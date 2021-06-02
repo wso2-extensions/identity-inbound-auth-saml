@@ -39,6 +39,7 @@ import java.util.List;
 public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static final Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     AuthnRequest authnReq;
     String queryString;
 
@@ -73,6 +74,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 if (log.isDebugEnabled()) {
                     log.debug("Invalid version in the SAMLRequest" + authnReq.getVersion());
                 }
+                diagnosticLog.error("Invalid version in the SAMLRequest" + authnReq.getVersion());
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -83,6 +85,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 String issueInstantInvalidationErrorMessage = validateRequestIssueInstant();
                 if (issueInstantInvalidationErrorMessage != null) {
                     log.error(issueInstantInvalidationErrorMessage);
+                    diagnosticLog.error(issueInstantInvalidationErrorMessage);
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             issueInstantInvalidationErrorMessage, null);
                     validationResponse.setResponse(errorResp);
@@ -102,6 +105,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                         "Issuer/ProviderName should not be empty in the Authentication Request.",
                         authnReq.getAssertionConsumerServiceURL());
                 log.debug("SAML Request issuer validation failed. Issuer should not be empty");
+                diagnosticLog.error("SAML Request issuer validation failed. Issuer should not be empty");
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -116,6 +120,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             if (log.isDebugEnabled()) {
                 log.debug("Validating SAML Request  of the Issuer :" + issuerName + " of tenant domain:" + tenantDomain);
             }
+            diagnosticLog.info("Validating SAML Request  of the Issuer :" + issuerName + " of tenant domain:" +
+                    tenantDomain);
 
             // Check whether SP is registered or not.
             SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(issuerName,
@@ -126,6 +132,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg,
                         authnReq.getAssertionConsumerServiceURL());
                 log.warn(msg);
+                diagnosticLog.error(msg);
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -144,6 +151,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                             "Received: [" + authnReq.getDestination() + "]." +
                             " Expected one in the list: [" + StringUtils.join(idpUrlSet, ',') + "]";
                     log.warn(msg);
+                    diagnosticLog.error(msg);
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             msg, authnReq.getAssertionConsumerServiceURL());
                     validationResponse.setResponse(errorResp);
@@ -159,6 +167,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 if (isCertificateExpired) {
                     String msg = "The Signature validation validation failed as the SP certificate is expired, of " +
                             "Issuer" + " :" + validationResponse.getIssuer() + " and tenantDomain:" + tenantDomain;
+                    diagnosticLog.error(msg);
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             msg, authnReq.getAssertionConsumerServiceURL());
                     validationResponse.setResponse(errorResp);
@@ -173,6 +182,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                     String msg = "Signature validation for Authentication Request failed for the request of Issuer :" +
                             validationResponse.getIssuer() + " in tenantDomain:" + tenantDomain;
                     log.warn(msg);
+                    diagnosticLog.error(msg);
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             msg, authnReq.getAssertionConsumerServiceURL());
                     validationResponse.setResponse(errorResp);
@@ -189,6 +199,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                             "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
                             "'. Possibly " + "an attempt for a spoofing attack";
                     log.error(msg);
+                    diagnosticLog.error(msg);
                     String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                             msg, authnReq.getAssertionConsumerServiceURL());
                     validationResponse.setResponse(errorResp);
@@ -206,6 +217,7 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                 if (log.isDebugEnabled()) {
                     log.debug("Invalid Issuer Format attribute value " + issuer.getFormat());
                 }
+                diagnosticLog.error("Invalid Issuer Format attribute value " + issuer.getFormat());
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -227,6 +239,8 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                     log.debug("Invalid Request message. A Subject confirmation method found " + subject
                             .getSubjectConfirmations().get(0));
                 }
+                diagnosticLog.error("Invalid Request message. A Subject confirmation method found " + subject
+                        .getSubjectConfirmations().get(0));
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -245,8 +259,10 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Request Validation is successful..");
             }
+            diagnosticLog.info("Authentication Request Validation is successful.");
             return validationResponse;
         } catch (Exception e) {
+            diagnosticLog.error("Error validating the authentication request. Error message: " + e.getMessage());
             throw IdentityException.error("Error validating the authentication request", e);
         }
     }
