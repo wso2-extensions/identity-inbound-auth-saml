@@ -44,9 +44,12 @@ import java.util.List;
 public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
     private static final Log log = LogFactory.getLog(IdPInitSSOAuthnRequestProcessor.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
+
+        diagnosticLog.info("Processing IDP initiated authentication request.");
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
 
@@ -56,6 +59,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                         "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not registered." +
                         " Service Provider should be registered in advance.";
                 log.warn(msg);
+                diagnosticLog.error(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
@@ -63,6 +67,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
             if (!serviceProviderConfigs.isIdPInitSSOEnabled()) {
                 String msg = "IdP initiated SSO not enabled for service provider '" + authnReqDTO.getIssuer() + "'.";
                 log.debug(msg);
+                diagnosticLog.error(msg);
                 return buildErrorResponse(null,
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
@@ -83,6 +88,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                              "AuthnRequest message from  the issuer '" + serviceProviderConfigs.getIssuer() +
                              "'. Possibly " + "an attempt for a spoofing attack";
                 log.error(msg);
+                diagnosticLog.error(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                                           SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, acsUrl);
             }
@@ -96,6 +102,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                         !authenticatedSubjectIdentifier.equals(authnReqDTO.getSubject())) {
                     String msg = "Provided username does not match with the requested subject";
                     log.warn(msg);
+                    diagnosticLog.error(msg);
 
                     List<String> statusCodes = new ArrayList<>();
                     statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
@@ -160,6 +167,9 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                                 authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
                                 "] -> Artifact: " + artifact);
                     }
+                    diagnosticLog.info("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                            authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                            "] -> Artifact: " + artifact);
 
                     samlssoRespDTO.setRespString(artifact);
                 } else {
@@ -176,6 +186,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
                         samlssoRespDTO.setRespString(SAMLSSOUtil.encode(samlResp));
                     } else {
+                        diagnosticLog.error("Unable to proceed. Response builder not available.");
                         throw new Exception("Response builder not available.");
                     }
                 }
@@ -194,6 +205,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
             return samlssoRespDTO;
         } catch (Exception e) {
             log.error("Error processing the authentication request", e);
+            diagnosticLog.error("Error processing the authentication request. Error message: " + e.getMessage());
 
             List<String> statusCodes = new ArrayList<String>();
             statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
@@ -238,6 +250,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
             }
             return ssoIdpConfigs;
         } catch (Exception e) {
+            diagnosticLog.error("Error while reading Service Provider configurations. Error message: " +
+                    e.getMessage());
             throw IdentityException.error("Error while reading Service Provider configurations", e);
         }
     }
