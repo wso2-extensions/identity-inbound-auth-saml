@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.sso.saml.cache;
 
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationBaseCache;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.concurrent.TimeUnit;
 
-public class SessionDataCache extends BaseCache<SessionDataCacheKey, SessionDataCacheEntry> {
+public class SessionDataCache extends AuthenticationBaseCache<SessionDataCacheKey, SessionDataCacheEntry> {
 
     private static final String SESSION_DATA_CACHE_NAME = "SAMLSSOSessionDataCache";
     private static volatile SessionDataCache instance;
