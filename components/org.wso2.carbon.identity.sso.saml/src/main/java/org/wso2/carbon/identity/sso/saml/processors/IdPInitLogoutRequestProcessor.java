@@ -37,6 +37,7 @@ import static org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil.splitAppendedTe
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
 
     private static final Log log = LogFactory.getLog(IdPInitLogoutRequestProcessor.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     private String spEntityID;
     private String returnTo;
@@ -44,6 +45,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
     public SAMLSSOReqValidationResponseDTO process(String sessionId, QueryParamDTO[] queryParamDTOs,
                                                    String serverURL) throws IdentityException {
 
+        diagnosticLog.info("Processing IDP intiated logout request.");
         init(queryParamDTOs);
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = new SAMLSSOReqValidationResponseDTO();
@@ -54,6 +56,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
             if (StringUtils.isBlank(sessionId)) {
                 log.error(SAMLSSOConstants.Notification.INVALID_SESSION);
+                diagnosticLog.error(SAMLSSOConstants.Notification.INVALID_SESSION);
                 validationResponseDTO.setValid(false);
                 validationResponseDTO.setLogoutFromAuthFramework(true);
                 return validationResponseDTO;
@@ -66,6 +69,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
             if (sessionInfoData == null) {
                 log.error(SAMLSSOConstants.Notification.INVALID_SESSION);
+                diagnosticLog.error(SAMLSSOConstants.Notification.INVALID_SESSION);
                 validationResponseDTO.setValid(false);
                 validationResponseDTO.setLogoutFromAuthFramework(true);
                 return validationResponseDTO;
@@ -77,6 +81,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
             if (StringUtils.isBlank(spEntityID)) {
                 if (StringUtils.isNotBlank(returnTo)) {
                     log.error(SAMLSSOConstants.Notification.NO_SP_ENTITY_PARAM);
+                    diagnosticLog.error(SAMLSSOConstants.Notification.NO_SP_ENTITY_PARAM);
                     validationResponseDTO.setValid(false);
                     return validationResponseDTO;
                 }
@@ -88,12 +93,14 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
                 if (logoutReqIssuer == null) {
                     log.error(String.format(SAMLSSOConstants.Notification.INVALID_SP_ENTITY_ID, spEntityID));
+                    diagnosticLog.error(String.format(SAMLSSOConstants.Notification.INVALID_SP_ENTITY_ID, spEntityID));
                     validationResponseDTO.setValid(false);
                     return validationResponseDTO;
                 }
 
                 if (!logoutReqIssuer.isIdPInitSLOEnabled()) {
                     log.error(String.format(SAMLSSOConstants.Notification.IDP_SLO_NOT_ENABLED, spEntityID));
+                    diagnosticLog.error(String.format(SAMLSSOConstants.Notification.IDP_SLO_NOT_ENABLED, spEntityID));
                     validationResponseDTO.setValid(false);
                     return validationResponseDTO;
                 }
@@ -102,6 +109,7 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                     if (!logoutReqIssuer.getIdpInitSLOReturnToURLList().contains(returnTo) && !logoutReqIssuer
                             .getAssertionConsumerUrlList().contains(returnTo)) {
                         log.error(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
+                        diagnosticLog.error(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
                         validationResponseDTO.setValid(false);
                         return validationResponseDTO;
                     }
@@ -115,6 +123,8 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
             validationResponseDTO.setValid(true);
 
         } catch (UserStoreException | IdentityException e) {
+            diagnosticLog.error(SAMLSSOConstants.Notification.IDP_SLO_VALIDATE_ERROR + ". Error message: " +
+                    e.getMessage());
             throw IdentityException.error(SAMLSSOConstants.Notification.IDP_SLO_VALIDATE_ERROR, e);
         }
         return validationResponseDTO;

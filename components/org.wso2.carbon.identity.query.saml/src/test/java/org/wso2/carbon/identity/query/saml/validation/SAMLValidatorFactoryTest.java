@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
-import org.junit.Assert;
+import org.testng.Assert;
 import org.mockito.Mockito;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
 import org.opensaml.saml.saml2.core.AttributeQuery;

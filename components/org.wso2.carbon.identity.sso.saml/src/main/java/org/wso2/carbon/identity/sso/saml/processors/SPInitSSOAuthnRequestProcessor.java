@@ -46,10 +46,12 @@ import java.util.List;
 public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
     private static final Log log = LogFactory.getLog(SPInitSSOAuthnRequestProcessor.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
 
+        diagnosticLog.info("Processing SP initiated SSO authentication request.");
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(authnReqDTO
                     .getIssuer(), authnReqDTO.getTenantDomain());
@@ -59,6 +61,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         "A SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() + "' is not registered." +
                                 " Service Provider should be registered in advance.";
                 log.warn(msg);
+                diagnosticLog.error(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
@@ -67,6 +70,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 String msg = "The SAML Service Provider with the Issuer '" + authnReqDTO.getIssuer() +
                                 "' is not ECP enabled.";
                 log.warn(msg);
+                diagnosticLog.error(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
                         SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
             }
@@ -82,6 +86,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                         !authenticatedSubjectIdentifier.equals(authnReqDTO.getSubject())) {
                     String msg = "Provided username does not match with the requested subject";
                     log.warn(msg);
+                    diagnosticLog.error(msg);
 
                     List<String> statusCodes = new ArrayList<>();
                     statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
@@ -151,6 +156,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                                 authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
                                 "] -> Artifact: " + artifact);
                     }
+                    diagnosticLog.info("Built SAML2 artifact for [SP: " + authnReqDTO.getIssuer() + ", subject: " +
+                            authnReqDTO.getSubject()  + ", tenant: " + authnReqDTO.getTenantDomain() +
+                            "] -> Artifact: " + artifact);
 
                     samlssoRespDTO.setRespString(artifact);
                 } else {
@@ -180,6 +188,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             return samlssoRespDTO;
         } catch (Exception e) {
             log.error("Error processing the authentication request", e);
+            diagnosticLog.error("Error processing the authentication request. Error message: " + e.getMessage());
 
             List<String> statusCodes = new ArrayList<String>();
             statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
@@ -187,7 +196,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
             SAMLSSORespDTO errorResp =
                     buildErrorResponse(authnReqDTO.getId(), statusCodes,
-                            "Authentication Failure, invalid username or password.", null);
+                            "Error processing the authentication request.", null);
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
             errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
@@ -225,6 +234,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             }
             return ssoIdpConfigs;
         } catch (Exception e) {
+            diagnosticLog.error("Error while reading Service Provider configurations. Error message: " +
+                    e.getMessage());
             throw IdentityException.error("Error while reading Service Provider configurations", e);
         }
     }

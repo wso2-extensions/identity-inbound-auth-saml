@@ -22,7 +22,7 @@ package org.wso2.carbon.identity.sso.saml.cache;
  * Represents a cache entry. Any value that needs to be included in the
  * cache must be encapsulated with a class deriving from this class.
  */
-public abstract class CacheEntry extends org.wso2.carbon.identity.application.common.cache.CacheEntry {
+public abstract class CacheEntry extends org.wso2.carbon.identity.core.cache.CacheEntry {
 
     private static final long serialVersionUID = -269579000793589533L;
 }

@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -85,6 +86,7 @@ import static org.testng.Assert.assertTrue;
 @PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
         SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
+@WithCarbonHome
 
 public class AssertionBuildingTest extends PowerMockTestCase {
 
