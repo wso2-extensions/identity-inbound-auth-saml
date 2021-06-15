@@ -2032,7 +2032,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throw new IdentityException("Error in compressing the SAML request message.", e);
         }
 
-        String redirectUrl = logoutRequest.getDestination() + "?" + httpQueryString.toString();
+        String redirectUrl = FrameworkUtils.appendQueryParamsStringToUrl(logoutRequest.getDestination(),
+                httpQueryString.toString());
 
         return redirectUrl;
     }
