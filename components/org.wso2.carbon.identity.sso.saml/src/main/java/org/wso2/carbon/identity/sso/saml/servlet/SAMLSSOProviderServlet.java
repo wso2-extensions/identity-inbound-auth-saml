@@ -1195,7 +1195,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             startTenantFlow(authnReqDTO.getTenantDomain());
 
             if (sessionId == null) {
-                sessionId = UUIDGenerator.generateUUID();
+                sessionId = getSamlSSOTokenIdFromSessionContext(authResult);
             }
 
             SAMLSSOService samlSSOService = new SAMLSSOService();
@@ -1205,7 +1205,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (authRespDTO.isSessionEstablished()) { // authenticated
 
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain());
-                storeSamlSSOTokenIdInContext(sessionId, authResult);
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
@@ -1226,12 +1225,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
-     * Store samlssoTokenId in session context.
+     * Get samlssoTokenId from session context.
      *
-     * @param samlssoTokenId       SamlssoTokenId cookie value.
      * @param authenticationResult Authentication Result.
      */
-    private void storeSamlSSOTokenIdInContext(String samlssoTokenId, AuthenticationResult authenticationResult) {
+    private String getSamlSSOTokenIdFromSessionContext(AuthenticationResult authenticationResult) {
 
         String sessionIdentifier =
                 (String) authenticationResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
@@ -1239,9 +1237,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier);
             if (sessionContext != null) {
                 if (authenticationResult.getSubject() != null) {
-                    sessionContext.addProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE, samlssoTokenId);
-                    String tenantDomain = authenticationResult.getSubject().getTenantDomain();
-                    FrameworkUtils.addSessionContextToCache(sessionIdentifier, sessionContext, tenantDomain);
+                    Object samlssoTokenId = sessionContext.getProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
+                    if (samlssoTokenId != null) {
+                        return (String) samlssoTokenId;
+                    }
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("Authenticated user attribute is not found in authentication result");
@@ -1257,6 +1256,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.debug("Session context identifier is not found in the authentication result.");
             }
         }
+        return UUIDGenerator.generateUUID();
     }
 
     private void handleLogoutResponseFromFramework(HttpServletRequest request, HttpServletResponse response,
