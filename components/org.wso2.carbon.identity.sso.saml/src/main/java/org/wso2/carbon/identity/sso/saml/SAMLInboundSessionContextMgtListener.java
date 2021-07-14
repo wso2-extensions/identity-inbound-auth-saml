@@ -40,12 +40,12 @@ import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_SSO_TOKEN_
 public class SAMLInboundSessionContextMgtListener implements SessionContextMgtListener {
 
     private static final Log log = LogFactory.getLog(SAMLInboundSessionContextMgtListener.class);
-    private static final String inboundType = "samlsso";
+    private static final String INBOUND_TYPE = "samlsso";
 
     @Override
     public String getInboundType() {
 
-        return inboundType;
+        return INBOUND_TYPE;
     }
 
     @Override
@@ -53,10 +53,16 @@ public class SAMLInboundSessionContextMgtListener implements SessionContextMgtLi
                                                   HttpServletResponse httpServletResponse,
                                                   AuthenticationContext context) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Handling onPreCreateSession for samlsso.");
+        }
         Cookie ssoTokenIdCookie = getTokenIdCookie(httpServletRequest);
         if (ssoTokenIdCookie != null) {
             sessionId = ssoTokenIdCookie.getValue();
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("samlssoTokenId not present in the request. Hence creating new value.");
+            }
             sessionId = UUIDGenerator.generateUUID();
         }
         Map<String, String> map = new HashMap<>();
@@ -69,10 +75,14 @@ public class SAMLInboundSessionContextMgtListener implements SessionContextMgtLi
                                                HttpServletResponse httpServletResponse,
                                                AuthenticationContext authenticationContext) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Handling onPreUpdateSession for samlsso.");
+        }
         return this.onPreCreateSession(sessionId, httpServletRequest, httpServletResponse, authenticationContext);
     }
 
     private Cookie getTokenIdCookie(HttpServletRequest req) {
+
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
