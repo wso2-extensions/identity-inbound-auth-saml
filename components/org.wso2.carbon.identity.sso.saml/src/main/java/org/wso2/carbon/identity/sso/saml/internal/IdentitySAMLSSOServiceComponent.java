@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLInboundSessionContextMgtListener;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
@@ -184,6 +186,8 @@ public class IdentitySAMLSSOServiceComponent {
 
             ctxt.getBundleContext().registerService(AbstractEventHandler.class.getName(),
                     new SAMLLogoutHandler(), null);
+            ctxt.getBundleContext().registerService(SessionContextMgtListener.class.getName(),
+                    new SAMLInboundSessionContextMgtListener(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
