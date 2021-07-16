@@ -55,6 +55,7 @@ public class SAMLSSOSessionDTO implements Serializable {
     private String requestedAuthnContextComparison;
     private List<ClaimMapping> requestedAttributes;
     private Properties properties;
+    private String loginTenantDomain;
 
     public String getHttpQueryString() {
         return httpQueryString;
@@ -358,5 +359,25 @@ public class SAMLSSOSessionDTO implements Serializable {
     public void setIssuerQualifier(String issuerQualifier) {
 
         this.issuerQualifier = issuerQualifier;
+    }
+
+    /**
+     * Get login tenant domain.
+     *
+     * @return loginTenantDomain login tenant domain.
+     */
+    public String getLoginTenantDomain() {
+
+        return loginTenantDomain;
+    }
+
+    /**
+     * Set login tenant domain.
+     *
+     * @param loginTenantDomain login tenant domain.
+     */
+    public void setLoginTenantDomain(String loginTenantDomain) {
+
+        this.loginTenantDomain = loginTenantDomain;
     }
 }
