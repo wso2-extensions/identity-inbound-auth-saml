@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +64,12 @@ public class SAMLInboundSessionContextMgtListener implements SessionContextMgtLi
             if (log.isDebugEnabled()) {
                 log.debug("samlssoTokenId not present in the request. Hence creating new value.");
             }
-            sessionId = UUIDGenerator.generateUUID();
+            if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                // Add suffix to the session id for identify saml sso token id cookies which has a tenanted path.
+                sessionId = UUIDGenerator.generateUUID() + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX;
+            } else {
+                sessionId = UUIDGenerator.generateUUID();
+            }
         }
         Map<String, String> map = new HashMap<>();
         map.put(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
