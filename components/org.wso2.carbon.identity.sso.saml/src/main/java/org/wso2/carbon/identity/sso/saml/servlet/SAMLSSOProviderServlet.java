@@ -129,7 +129,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private static final long serialVersionUID = -5182312441482721905L;
     private static final Log log = LogFactory.getLog(SAMLSSOProviderServlet.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     private SAMLSSOService samlSsoService = new SAMLSSOService();
 
@@ -214,8 +213,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             //TODO add debug log istocommonth and flowstatus
             String isToCommonOauth = req.getParameter(FrameworkConstants.RequestParams.TO_COMMONAUTH);
             if ("true".equals(isToCommonOauth) && flowStatus == null) {
-                diagnosticLog.info("'tocommonauth' parameter is set to true. Forwarding request to authentication" +
-                        "framework.");
                 sendRequestToFramework(req, resp);
                 return;
             }
@@ -226,7 +223,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 if (log.isDebugEnabled()) {
                     log.debug("Tenant domain from context: " + tenantDomain);
                 }
-                diagnosticLog.info("Tenant domain from context: " + tenantDomain);
             }
 
             if (StringUtils.isBlank(tenantDomain)) {
@@ -235,8 +231,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     log.debug("Tenant domain not available in context. Tenant domain from query param: " +
                             tenantDomain);
                 }
-                diagnosticLog.info("Tenant domain not available in context. Using tenant domain from query param: " +
-                        tenantDomain);
             }
 
             SAMLSSOUtil.setTenantDomainInThreadLocal(tenantDomain);
@@ -304,7 +298,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while handling SAML2 SSO request", e);
             }
-            diagnosticLog.error("Error occurred while handling SAML2 SSO request. Error message: " + e.getMessage());
             String errorResp = null;
             try {
                 errorResp = SAMLSSOUtil.buildErrorResponse(
@@ -312,13 +305,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         "Error occurred while handling SAML2 SSO request", null);
             } catch (IdentityException e1) {
                 log.error("Error while building SAML response", e1);
-                diagnosticLog.error("Error while building SAML response. Error message: " + e.getMessage());
             }
             sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, null, req, resp);
         } catch (IdentityException e) {
             log.error("Error when processing the authentication request!", e);
-            diagnosticLog.error("Error when processing the authentication request. Error message: " + e.getMessage());
             String errorResp = null;
             try {
                 errorResp = SAMLSSOUtil.buildErrorResponse(
@@ -326,7 +317,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         "Error when processing the authentication request", null);
             } catch (IdentityException e1) {
                 log.error("Error while building SAML response", e1);
-                diagnosticLog.error("Error while building SAML response. Error message: " + e1.getMessage());
             }
             sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                     SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, null, req, resp);
@@ -339,8 +329,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (log.isDebugEnabled()) {
             log.debug("An invalid request message or single logout message received with session id : " + sessionId);
         }
-        diagnosticLog.info("An invalid request message or single logout message received with session id : " +
-                sessionId);
 
         if (sessionId == null) {
             String errorResp = SAMLSSOUtil.buildErrorResponse(
@@ -398,14 +386,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             if (!isSuccessfullyLogout) {
                 log.warn("Redirecting to default logout page due to an invalid logout response.");
-                diagnosticLog.info("Redirecting to default logout page due to an invalid logout response.");
                 resp.sendRedirect(FrameworkUtils.getRedirectURL(SAMLSSOUtil.getDefaultLogoutEndpoint(), req));
                 if (log.isDebugEnabled()) {
                     log.debug("Single logout failed due to failure in logout response validation for logout " +
                             "response issuer: " + logoutResponseIssuer);
                 }
-                diagnosticLog.info("Single logout failed due to failure in logout response validation for logout " +
-                        "response issuer: " + logoutResponseIssuer);
             } else {
                 removeSPFromSession(frontChannelSLOParticipantInfo.getSessionIndex(), logoutResponseIssuer);
 
@@ -489,16 +474,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.debug("Destination of the logout response is set to the SLO response URL of the SP: " +
                         originalIssuer.getSloResponseURL());
             }
-            diagnosticLog.info("Destination of the logout response is set to the SLO response URL of the SP: " +
-                    originalIssuer.getSloResponseURL());
         } else {
             destination = originalIssuer.getDefaultAssertionConsumerUrl();
             if (log.isDebugEnabled()) {
                 log.debug("Destination of the logout response is set to the ACS URL of the SP: " +
                         originalIssuer.getAssertionConsumerUrl());
             }
-            diagnosticLog.info("Destination of the logout response is set to the ACS URL of the SP: " +
-                    originalIssuer.getAssertionConsumerUrl());
         }
 
         SingleLogoutMessageBuilder logoutMsgBuilder = new SingleLogoutMessageBuilder();
@@ -571,7 +552,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
                 String err = "Error Generating the SOAP Response";
                 log.error(err, e);
-                diagnosticLog.error(err + ". Error message: " + e.getMessage());
             }
         } else {
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
@@ -629,7 +609,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   boolean isPost, boolean isLogout) throws UserStoreException, IdentityException,
                                                                       IOException, ServletException {
 
-        diagnosticLog.info("Handling IDP initiated SSO flow.");
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
@@ -646,7 +625,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 if(log.isDebugEnabled()) {
                     log.debug("Invalid IdP initiated SAML SSO Request");
                 }
-                diagnosticLog.error("Invalid IdP initiated SAML SSO Request");
 
                 String errorResp = signInRespDTO.getResponse();
                 String acsUrl = signInRespDTO.getAssertionConsumerURL();
@@ -682,7 +660,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 if(log.isDebugEnabled()) {
                     log.debug("Invalid IdP initiated SAML Single Logout Request");
                 }
-                diagnosticLog.error("Invalid IdP initiated SAML Single Logout Request");
 
                 if (signInRespDTO.isLogoutFromAuthFramework()) {
                     sendToFrameworkForLogout(req, resp, null, null, sessionId, true, isPost);
@@ -769,7 +746,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.SAML_REQUEST)) {
                     log.debug("Invalid SAML SSO Request : " + samlRequest);
                 }
-                diagnosticLog.error("Invalid SAML SSO Request : " + samlRequest);
                 String errorResp = signInRespDTO.getResponse();
                 sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
                         SAMLSSOConstants.Notification.EXCEPTION_MESSAGE,
@@ -783,7 +759,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.SAML_REQUEST)) {
                     log.debug("Invalid SAML SSO Logout Request : " + samlRequest);
                 }
-                diagnosticLog.error("Invalid SAML SSO Logout Request : " + samlRequest);
                 if (signInRespDTO.isLogoutFromAuthFramework()) {
                     sendToFrameworkForLogout(req, resp, signInRespDTO, null, sessionId, true, isPost);
                 } else {
@@ -1001,14 +976,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (acUrl == null || acUrl.trim().length() == 0) {
             // if ACS is null. Send to error page
             log.error("ACS Url is Null");
-            diagnosticLog.error("Unexpected error in sending message out to application. ACS Url is null.");
             throw IdentityException.error("Unexpected error in sending message out");
         }
 
         if (response == null || response.trim().length() == 0) {
             // if response is null
             log.error("Response message is Null");
-            diagnosticLog.error("Unexpected error in sending message out to application. Response message is null.");
             throw IdentityException.error("Unexpected error in sending message out");
         }
 
@@ -1028,7 +1001,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
                     String message = "Error Generating the SOAP Response";
                     log.error(message, e);
-                    diagnosticLog.error(message + ". Error message: " + e.getMessage());
                 }
                 if (log.isDebugEnabled()) {
                     log.debug(soapResponse);
@@ -1175,9 +1147,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
                     return;
                 } else {
-                    diagnosticLog.error("Could not find " + "session state " +
-                            "information for issuer : " + issuer + " in tenant domain : " + tenantDomain + " for " +
-                            "session identifier : " + sessionDataKey);
                     throw IdentityException.error(IdentityException.class, "Could not find " + "session state " +
                             "information for issuer : " + issuer + " in tenant domain : " + tenantDomain + " for " +
                             "session identifier : " + sessionDataKey);
@@ -1496,7 +1465,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     if (log.isDebugEnabled()) {
                         log.debug("SSO tokenId Cookie is removed");
                     }
-                    diagnosticLog.info("samlssoTokenId Cookie is removed");
                     samlSsoTokenIdCookie.setHttpOnly(true);
                     samlSsoTokenIdCookie.setSecure(true);
 
@@ -1585,7 +1553,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             authResult = authResultCacheEntry.getResult();
         } else {
             log.error("Cannot find AuthenticationResult from the cache");
-            diagnosticLog.error("Cannot find AuthenticationResult from the cache");
         }
         return authResult;
     }
@@ -1633,13 +1600,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     if (log.isDebugEnabled()) {
                         log.debug(message);
                     }
-                    diagnosticLog.error(message);
                     throw IdentityException.error(message);
                 }
             } catch (UserStoreException e) {
                 String message = "Error occurred while getting tenant ID from tenantDomain " + tenantDomain;
                 log.error(message, e);
-                diagnosticLog.error(message + ". Error message: " + e.getMessage());
                 throw IdentityException.error(message, e);
             }
         } else {
@@ -1787,8 +1752,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     log.debug("No SaaS SAML service providers found for the issuer : " + issuer + ". Checking for " +
                             "SAML service providers registered in tenant domain : " + tenantDomain);
                 }
-                diagnosticLog.info("No SaaS SAML service providers found for the issuer : " + issuer + ". Checking for " +
-                        "SAML service providers registered in tenant domain : " + tenantDomain);
 
                 int tenantId;
                 if (StringUtils.isBlank(tenantDomain)) {
@@ -1798,8 +1761,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     try {
                         tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
                     } catch (UserStoreException e) {
-                        diagnosticLog.error("Error occurred while retrieving tenant id for the " +
-                                "tenant domain : " + tenantDomain + ". Error message: " + e.getMessage());
                         throw new IdentitySAML2SSOException("Error occurred while retrieving tenant id for the " +
                                 "tenant domain : " + tenantDomain, e);
                     }
@@ -1818,9 +1779,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     serviceProviderConfigs = persistenceManager.getServiceProvider(registry, issuer);
                     authnReqDTO.setStratosDeployment(false); // not stratos
                 } catch (IdentityException e) {
-                    diagnosticLog.error("Error occurred while retrieving SAML service provider for "
-                            + "issuer : " + issuer + " in tenant domain : " + tenantDomain + ". Error message: " +
-                            e.getMessage());
                     throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "
                             + "issuer : " + issuer + " in tenant domain : " + tenantDomain, e);
                 } finally {
@@ -1832,9 +1790,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             return serviceProviderConfigs;
         } catch (Exception e) {
-            diagnosticLog.error("Error while reading service provider " +
-                    "configurations for issuer : " + issuer + " in tenant domain : " + tenantDomain + ". Error " +
-                    "message: " + e.getMessage());
             throw IdentityException.error(IdentityException.class, "Error while reading service provider " +
                     "configurations for issuer : " + issuer + " in tenant domain : " + tenantDomain, e);
         }
@@ -2071,8 +2026,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOUtil.addSignatureToHTTPQueryString(httpQueryString, signatureAlgorithmUri,
                     new X509CredentialImpl(tenantDomain));
         } catch (IOException e) {
-            diagnosticLog.error("Error in compressing the SAML request message. Error message: " +
-                    e.getMessage());
             throw new IdentityException("Error in compressing the SAML request message.", e);
         }
 
@@ -2104,8 +2057,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.debug("Successfully validated destination of the authentication request " +
                         "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
             }
-            diagnosticLog.info("Successfully validated destination of the authentication request " +
-                    "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
         } else {
             try {
                 URL destinationUrl = new URL(authnReqDTO.getDestination());
@@ -2126,13 +2077,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     log.debug("Successfully validated destination of the authentication request " +
                             "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
                 }
-                diagnosticLog.info("Successfully validated destination of the authentication request " +
-                        "of issuer :" + issuer + " in tenant domain : " + tenantDomain);
             } else {
                 String msg = "Destination validation for authentication request failed. " + "Received: " +
                         authDestinationUrl + "." + " Expected one in the list: [" + StringUtils
                         .join(idpDestinationURLs, ',') + "]";
-                diagnosticLog.info(msg);
                 handleInvalidRequest(msg, authnReqDTO, req, resp);
                 return false;
             }
@@ -2157,7 +2105,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             ServletException {
 
         log.warn(msg);
-        diagnosticLog.error(msg);
         List<String> statusCodes = new ArrayList<>();
         statusCodes.add(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR);
         String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authnReqDTO.getId(), statusCodes, msg,
