@@ -34,7 +34,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static final Log log = LogFactory.getLog(IdPInitSSOAuthnRequestValidator.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     private String spEntityID;
     private String acs;
@@ -68,7 +67,6 @@ public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractVali
                 if(log.isDebugEnabled()) {
                     log.debug("spEntityID parameter not found in request");
                 }
-                diagnosticLog.error("spEntityID parameter not found in request");
                 validationResponse.setResponse(errorResp);
                 validationResponse.setValid(false);
                 return validationResponse;
@@ -78,7 +76,6 @@ public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractVali
                 String message = "A SAML Service Provider with the Issuer '" + spEntityID + "' is not registered. " +
                                  "Service Provider should be registered in advance";
                 log.error(message);
-                diagnosticLog.error(message);
                 String errorResp = SAMLSSOUtil.buildErrorResponse(SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR,
                                                                   message, null);
                 validationResponse.setResponse(errorResp);
@@ -100,10 +97,8 @@ public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractVali
             if (log.isDebugEnabled()) {
                 log.debug("IdP Initiated SSO request validation is successful");
             }
-            diagnosticLog.info("IdP Initiated SSO request validation is successful");
             return validationResponse;
         } catch (Exception e) {
-            diagnosticLog.error("Error validating the IdP Initiated SSO request. Error message: " + e.getMessage());
             throw IdentityException.error("Error validating the IdP Initiated SSO request", e);
         }
     }
@@ -116,8 +111,6 @@ public class IdPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractVali
                 try {
                     issuer = splitAppendedTenantDomain(queryParamDTO.getValue());
                 } catch (UserStoreException e) {
-                    diagnosticLog.error("Error occurred while splitting appended tenant domain from issuer. Error" +
-                            " message: " + e.getMessage());
                     throw new IdentityException("Error occurred while splitting appended tenant domain from issuer.", e);
                 }
                 this.spEntityID = SAMLSSOUtil.resolveIssuerQualifier(queryParamDTOs, issuer);

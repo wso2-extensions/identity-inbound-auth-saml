@@ -47,7 +47,6 @@ import java.util.List;
 public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedirectSignatureValidator {
 
     private static final Log log = LogFactory.getLog(SAML2HTTPRedirectDeflateSignatureValidator.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     /**
      * Build a criteria set suitable for input to the trust engine.
@@ -74,7 +73,6 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     private static String getSigAlg(String queryString) throws SecurityException {
         String sigAlgQueryParam = URISupport.getRawQueryStringParameter(queryString, "SigAlg");
         if (StringUtils.isBlank(sigAlgQueryParam)) {
-            diagnosticLog.error("Could not extract Signature Algorithm from query string");
             throw new SecurityException(
                     "Could not extract Signature Algorithm from query string");
         }
@@ -109,7 +107,6 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
     protected static byte[] getSignature(String queryString) throws SecurityException {
         String signatureQueryParam = URISupport.getRawQueryStringParameter(queryString, "Signature");
         if (StringUtils.isEmpty(signatureQueryParam)) {
-            diagnosticLog.error("Could not extract the Signature from query string");
             throw new SecurityException("Could not extract the Signature from query string");
         }
         String signature = null;
@@ -146,17 +143,14 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
         if (log.isDebugEnabled()) {
             log.debug("Constructing signed content string from URL query string " + queryString);
         }
-        diagnosticLog.info("Constructing signed content string from URL query string " + queryString);
         String constructed = buildSignedContentString(queryString);
         if (StringUtils.isEmpty(constructed)) {
-            diagnosticLog.error("Could not extract signed content string from query string");
             throw new SecurityException(
                     "Could not extract signed content string from query string");
         }
         if (log.isDebugEnabled()) {
             log.debug("Constructed signed content string for HTTP-Redirect DEFLATE " + constructed);
         }
-        diagnosticLog.info("Constructed signed content string for HTTP-Redirect DEFLATE " + constructed);
         try {
             return constructed.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -181,7 +175,6 @@ public class SAML2HTTPRedirectDeflateSignatureValidator implements SAML2HTTPRedi
 
         // One of these two is mandatory
         if (!appendParameter(builder, queryString, "SAMLRequest") && !appendParameter(builder, queryString, "SAMLResponse")) {
-            diagnosticLog.error("Extract of SAMLRequest or SAMLResponse from query string failed");
             throw new SecurityException(
                     "Extract of SAMLRequest or SAMLResponse from query string failed");
         }
