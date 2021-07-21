@@ -56,12 +56,13 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
     }
 
     /**
+     * Process IDP initiated Logout Request.
      *
-     * @param sessionId
-     * @param queryParamDTOs
-     * @param serverURL
-     * @param loginTenantDomain
-     * @return
+     * @param sessionId             Session Id.
+     * @param queryParamDTOs        Query Param DTOs.
+     * @param serverURL             Server url.
+     * @param loginTenantDomain     Login tenant Domain.
+     * @return  validationResponseDTO.
      * @throws IdentityException
      */
     public SAMLSSOReqValidationResponseDTO process(String sessionId, QueryParamDTO[] queryParamDTOs, String serverURL,

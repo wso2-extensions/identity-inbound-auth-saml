@@ -79,10 +79,12 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     }
 
     /**
-     * @param logoutRequest
-     * @param sessionId
-     * @param queryString
-     * @param loginTenantDomain
+     * Process SP initiated Logout Request.
+     *
+     * @param logoutRequest     Logout Request
+     * @param sessionId         Session Id
+     * @param queryString       Query String
+     * @param loginTenantDomain Login tenant domain
      * @return SAMLSSOReqValidationResponseDTO
      * @throws IdentityException
      */

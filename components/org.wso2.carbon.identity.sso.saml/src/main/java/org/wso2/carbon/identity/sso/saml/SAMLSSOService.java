@@ -103,14 +103,14 @@ public class SAMLSSOService {
      * If the user already having a SSO session then the Response
      * will be returned if not only the validation results will be returned.
      *
-     * @param samlReq
-     * @param queryString
-     * @param sessionId
-     * @param rpSessionId
-     * @param authnMode
-     * @param isPost
-     * @param loginTenantDomain
-     * @return
+     * @param samlReq             SAML Request
+     * @param queryString         Query String
+     * @param sessionId           Session ID
+     * @param rpSessionId         rpSession Id
+     * @param authnMode           Authn Mode
+     * @param isPost              Is Post
+     * @param loginTenantDomain   Login tenant domain
+     * @return    validationResp
      * @throws IdentityException
      */
     public SAMLSSOReqValidationResponseDTO validateSPInitSSORequest(String samlReq, String queryString,
@@ -189,16 +189,16 @@ public class SAMLSSOService {
      * If the user already having a SSO session then the Response
      * will be returned if not only the validation results will be returned.
      *
-     * @param relayState
-     * @param queryString
-     * @param queryParamDTOs
-     * @param serverURL
-     * @param sessionId
-     * @param rpSessionId
-     * @param authnMode
-     * @param isLogout
-     * @param loginTenantDomain
-     * @return
+     * @param relayState            Relay State
+     * @param queryString           Query String
+     * @param queryParamDTOs        Query Param DTOs
+     * @param serverURL             Server url
+     * @param sessionId             Session id
+     * @param rpSessionId           Rp Session id
+     * @param authnMode             Authn Mode
+     * @param isLogout              Is Logout
+     * @param loginTenantDomain     Login tenant Domain
+     * @return      validationResponseDTO
      * @throws IdentityException
      */
     public SAMLSSOReqValidationResponseDTO validateIdPInitSSORequest(String relayState, String queryString,

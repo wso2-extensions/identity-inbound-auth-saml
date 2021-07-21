@@ -1629,10 +1629,11 @@ public class SAMLSSOUtil {
     }
 
     /**
+     *  Removes the session.
      *
-     * @param sessionId
-     * @param issuer
-     * @param loginTenantDomain
+     * @param sessionId          Session id.
+     * @param issuer             Issuer.
+     * @param loginTenantDomain  Login tenant Domain.
      */
     public static void removeSession(String sessionId, String issuer, String loginTenantDomain) {
 
