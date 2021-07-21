@@ -90,8 +90,8 @@ public class SSOSessionPersistenceManager {
     /**
      * Adds Session Index to the cache.
      *
-     * @param key           Key which cache entry is indexed
-     * @param sessionIndex  Session Index.
+     * @param key                   Key which cache entry is indexed
+     * @param sessionIndex          Session Index.
      * @param loginTenantDomain     Tenant Domain where cache will add.
      */
     public static void addSessionIndexToCache(String key, String sessionIndex, String loginTenantDomain) {
@@ -116,8 +116,8 @@ public class SSOSessionPersistenceManager {
     /**
      * Retrieve the session information from the cache.
      *
-     * @param key String.
-     * @param loginTenantDomain Login Tenant Domain
+     * @param key                Cache key
+     * @param loginTenantDomain  Login Tenant Domain
      * @return SessionInfoData
      */
     public static SessionInfoData getSessionInfoDataFromCache(String key, String loginTenantDomain) {
@@ -148,8 +148,8 @@ public class SSOSessionPersistenceManager {
     /**
      * Retrieve the session index from the cache.
      *
-     * @param key String.
-     * @param loginTenantDomain String.
+     * @param key                Cache Key.
+     * @param loginTenantDomain  Login Tenant Domain.
      * @return session index.
      */
     public static String getSessionIndexFromCache(String key, String loginTenantDomain) {
@@ -180,7 +180,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Clears the Session Information from the cache.
      *
-     * @param key   Cache Key.
+     * @param key                   Cache Key.
      * @param loginTenantDomain     Login Tenant Domain.
      */
     public static void removeSessionInfoDataFromCache(String key, String loginTenantDomain) {
@@ -205,7 +205,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Clears the session index from cache.
      *
-     * @param key   Cache Key.
+     * @param key                   Cache Key.
      * @param loginTenantDomain     Login Tenant Domain.
      */
     public static void removeSessionIndexFromCache(String key, String loginTenantDomain) {
@@ -233,13 +233,13 @@ public class SSOSessionPersistenceManager {
     /**
      * Persists Session Information.
      *
-     * @param sessionIndex String .
-     * @param subject String.
-     * @param spDO SAMLSSOServiceProviderDO.
-     * @param rpSessionId String.
-     * @param issuer String.
-     * @param assertionConsumerURL String.
-     * @param loginTenantDomain String.
+     * @param sessionIndex          Session Index
+     * @param subject               Subject
+     * @param spDO                  SAMLSSOServiceProviderDO
+     * @param rpSessionId           Rp Session id
+     * @param issuer                Name of the issuer
+     * @param assertionConsumerURL  Assertion Consumer URL
+     * @param loginTenantDomain     Login Tenant Domain
      */
     public void persistSession(String sessionIndex, String subject, SAMLSSOServiceProviderDO spDO,
                                String rpSessionId, String issuer, String assertionConsumerURL, String loginTenantDomain)
@@ -280,7 +280,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Get the session info data for a particular session.
      *
-     * @param sessionIndex      Session Index.
+     * @param sessionIndex          Session Index.
      * @param loginTenantDomain     Login Tenant Domain.
      * @return SessionInfoData
      */
@@ -317,7 +317,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Check whether this is an existing session.
      *
-     * @param sessionIndex      Session Index.
+     * @param sessionIndex          Session Index.
      * @param loginTenantDomain     Login Tenant Domain.
      * @return true if this is an existing session, or else return false
      */
@@ -375,7 +375,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Checks the token id is an existing one.
      *
-     * @param tokenId   Token Id.
+     * @param tokenId               Token Id.
      * @param loginTenantDomain     Login Tenant Domain.
      * @return true if token id is a existing one.
      */
@@ -408,9 +408,9 @@ public class SSOSessionPersistenceManager {
     /**
      * Clear the session when logout is called.
      *
-     * @param sessionId created session id to invalidate
-     * @param issuer name of the issuer
-     * @param loginTenantDomain tenant domain where the cache is maintaining
+     * @param sessionId         created session id to invalidate
+     * @param issuer            name of the issuer
+     * @param loginTenantDomain login tenant domain
      */
     public static void removeSession(String sessionId, String issuer, String loginTenantDomain) {
 
@@ -491,7 +491,7 @@ public class SSOSessionPersistenceManager {
     /**
      * Get the session index from cache.
      *
-     * @param tokenId Token Id.
+     * @param tokenId           Token Id.
      * @param loginTenantDomain Login tenant Domain.
      * @return  Session Index.
      */
@@ -512,9 +512,9 @@ public class SSOSessionPersistenceManager {
     }
 
     /**
-     *Clears the session index from cache.
+     * Clears the session index from cache.
      *
-     * @param sessionId     Session Id.
+     * @param sessionId             Session Id.
      * @param loginTenantDomain     Login Tenant Domain.
      */
     public void removeTokenId(String sessionId, String loginTenantDomain) {

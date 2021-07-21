@@ -299,8 +299,8 @@ public class SAMLSSOService {
     /**
      * Gets all the session participants from session ID send logout requests to them.
      *
-     * @param sessionId     Session Id.
-     * @param issuer    Issuer.
+     * @param sessionId             Session Id.
+     * @param issuer                Name of the issuer.
      * @param loginTenantDomain     Login Tenant Domain.
      * @throws IdentityException
      */

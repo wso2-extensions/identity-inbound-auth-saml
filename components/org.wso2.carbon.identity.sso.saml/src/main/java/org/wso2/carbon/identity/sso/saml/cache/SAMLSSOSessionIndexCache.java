@@ -57,8 +57,8 @@ public class SAMLSSOSessionIndexCache extends BaseCache<SAMLSSOSessionIndexCache
     /**
      * Adds Session Index to the cache and session data store.
      *
-     * @param key   Key which cache entry is indexed.
-     * @param entry Actual object where cache entry is placed.
+     * @param key               Key which cache entry is indexed.
+     * @param entry             SAMLSSOSessionIndex Cache Entry.
      * @param loginTenantDomain Login Tenant Domain where cache will add.
      */
     @Override
@@ -85,8 +85,8 @@ public class SAMLSSOSessionIndexCache extends BaseCache<SAMLSSOSessionIndexCache
      * Retrieve the session Index from the cache.
      * At a cache miss data is loaded from the Session Data Store.
      *
-     * @param key SAMLSSOSessionIndexCacheKey Key which cache entry is indexed.
-     * @param loginTenantDomain Login Tenant Domain
+     * @param key                SAMLSSOSessionIndexCacheKey Key which cache entry is indexed.
+     * @param loginTenantDomain  Login Tenant Domain.
      * @return Cache entry
      */
     @Override
@@ -115,8 +115,8 @@ public class SAMLSSOSessionIndexCache extends BaseCache<SAMLSSOSessionIndexCache
     /**
      * Clears the Session Index from the cache and remove from session data store.
      *
-     * @param key Key to clear cache.
-     * @param loginTenantDomain Login Tenant Domain where cache was added.
+     * @param key                   Key to clear cache.
+     * @param loginTenantDomain     Login Tenant Domain where cache was added.
      */
     @Override
     public void clearCacheEntry(SAMLSSOSessionIndexCacheKey key, String loginTenantDomain) {

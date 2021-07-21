@@ -2249,10 +2249,10 @@ public class SAMLSSOUtil {
     /**
      * Get remaining session participants for SLO except for the original issuer.
      *
-     * @param sessionIndex Session index.
-     * @param issuer       Original issuer.
-     * @param isIdPInitSLO Whether IdP initiated SLO or not.
-     * @param loginTenantDomain  Login Tenant Domain
+     * @param sessionIndex          Session index.
+     * @param issuer                Original issuer.
+     * @param isIdPInitSLO          Whether IdP initiated SLO or not.
+     * @param loginTenantDomain     Login Tenant Domain
      * @return SP List with remaining session participants for SLO except for the original issuer.
      *
      */
@@ -2311,8 +2311,8 @@ public class SAMLSSOUtil {
     /**
      * Get SessionInfoData.
      *
-     * @param sessionIndex Session index.
-     * @param loginTenantDomain Tenant Domain.
+     * @param sessionIndex       Session index.
+     * @param loginTenantDomain  Login Tenant Domain.
      * @return Session Info Data.
      */
     public static SessionInfoData getSessionInfoData(String sessionIndex, String loginTenantDomain) {
@@ -2343,7 +2343,7 @@ public class SAMLSSOUtil {
     /**
      * Get Session Index.
      *
-     * @param sessionId Session id.
+     * @param sessionId         Session id.
      * @param loginTenantDomain Login Tenant Domain.
      * @return Session Index.
      */
