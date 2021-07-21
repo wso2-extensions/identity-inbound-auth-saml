@@ -18,13 +18,11 @@
 
 package org.wso2.carbon.identity.sso.saml.cache;
 
-import java.io.Serializable;
-
 /**
  * Cache key class. Any value that acts as a cache key must encapsulated with a class
  * overriding from this class.
  */
-public abstract class CacheKey implements Serializable {
+public abstract class CacheKey extends org.wso2.carbon.identity.core.cache.CacheEntry {
 
     private static final long serialVersionUID = -7965616737373453027L;
 
