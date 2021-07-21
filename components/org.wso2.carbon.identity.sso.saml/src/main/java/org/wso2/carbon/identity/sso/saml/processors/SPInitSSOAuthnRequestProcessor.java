@@ -99,11 +99,14 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             String sessionIndexId = null;
 
             if (isAuthenticated) {
-                if (sessionId != null && sessionPersistenceManager.isExistingTokenId(sessionId)) {
-                    sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+                if (sessionId != null && sessionPersistenceManager.
+                        isExistingTokenId(sessionId, authnReqDTO.getLoginTenantDomain())) {
+                    sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId,
+                            authnReqDTO.getLoginTenantDomain());
                 } else {
                     sessionIndexId = UUIDGenerator.generateUUID();
-                    sessionPersistenceManager.persistSession(sessionId, sessionIndexId);
+                    sessionPersistenceManager.persistSession(sessionId, sessionIndexId,
+                            authnReqDTO.getLoginTenantDomain());
                 }
 
                 //TODO check whether the same SP exists
@@ -135,7 +138,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(),
                             spDO, authnReqDTO.getRpSessionId(),
                             authnReqDTO.getIssuer(),
-                            authnReqDTO.getAssertionConsumerURL());
+                            authnReqDTO.getAssertionConsumerURL(),
+                            authnReqDTO.getLoginTenantDomain());
                 }
 
                 // Build the response for the successful scenario

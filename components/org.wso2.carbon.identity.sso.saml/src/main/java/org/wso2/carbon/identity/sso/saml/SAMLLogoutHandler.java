@@ -21,13 +21,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants.EventName;
 import org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -55,13 +58,14 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
         if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
             samlssoTokenId = getSamlSSOTokenIdFromEvent(event);
+            String loginTenantDomain = getLoginTenantDomainFromEvent(event);
             if (StringUtils.isNotBlank(samlssoTokenId)) {
                 if (!isIDPInitiatedLogoutRequest(event)) {
                     issuer = this.getIssuerFromContext(event);
                 }
 
                 try {
-                    samlSSOService.doSingleLogout(samlssoTokenId, issuer);
+                    samlSSOService.doSingleLogout(samlssoTokenId, issuer, loginTenantDomain);
                 } catch (IdentityException e) {
                     log.error("Error while SAML Logout Listener is doing single logout.", e);
                 }
@@ -112,6 +116,30 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
             samlssoTokenId = getsamlssoTokenIdFromContext(event);
         }
         return samlssoTokenId;
+    }
+
+    /**
+     * Method to retrieve Login Tenant Domain from the event.
+     *
+     * @param event Session termination event.
+     * @return Login Tenant Domain.
+     */
+    private String getLoginTenantDomainFromEvent(Event event) {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
+        String loginTenantDomain = null;
+        if (event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
+            HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
+            loginTenantDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        }
+
+        if (StringUtils.isBlank(loginTenantDomain)) {
+            loginTenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        }
+        return loginTenantDomain;
     }
 
     /**

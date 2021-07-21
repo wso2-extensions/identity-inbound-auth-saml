@@ -86,6 +86,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private boolean doValidateSignatureInArtifactResolve;
     private boolean samlECPEnabled;
     private long createdTimeStamp;
+    private String loginTenantDomain;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -717,5 +718,25 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     public void setIssuerQualifier(String issuerQualifier) {
 
         this.issuerQualifier = issuerQualifier;
+    }
+
+    /**
+     * Get login tenant domain.
+     *
+     * @return loginTenantDomain login tenant domain.
+     */
+    public String getLoginTenantDomain() {
+
+        return loginTenantDomain;
+    }
+
+    /**
+     * Set login tenant domain.
+     *
+     * @param loginTenantDomain login tenant domain.
+     */
+    public void setLoginTenantDomain(String loginTenantDomain) {
+
+        this.loginTenantDomain = loginTenantDomain;
     }
 }

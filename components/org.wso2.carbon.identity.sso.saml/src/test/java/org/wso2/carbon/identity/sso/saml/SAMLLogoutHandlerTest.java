@@ -107,6 +107,12 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
         SAMLSSOServiceProviderDO serviceProviderDOOne = new SAMLSSOServiceProviderDO();
         serviceProviderDOOne.setIssuer("issuerOne");
         serviceProviderDOOne.setDoSingleLogout(true);
@@ -122,10 +128,14 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         sessionInfoDataTwo.addServiceProvider("issuerOne", serviceProviderDOOne, null);
         sessionInfoDataTwo.addServiceProvider("issuerTwo", serviceProviderDOTwo, null);
 
-        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_ONE, SESSION_INDEX_ONE);
-        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_TWO, SESSION_INDEX_TWO);
-        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_ONE, sessionInfoDataOne);
-        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_TWO, sessionInfoDataTwo);
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_ONE, SESSION_INDEX_ONE,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SSOSessionPersistenceManager.addSessionIndexToCache(SESSION_TOKEN_ID_TWO, SESSION_INDEX_TWO,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_ONE, sessionInfoDataOne,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SSOSessionPersistenceManager.addSessionInfoDataToCache(SESSION_INDEX_TWO, sessionInfoDataTwo,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
         // creating mocks
         createMocks();
@@ -176,10 +186,11 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     public void testHandleEvent() throws Exception {
 
         Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_TERMINATE.name(), "issuerOne");
-        mockStatic(IdentityTenantUtil.class);
         samlLogoutHandler.handleEvent(eventOne);
-        SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE);
-        SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO);
+        SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         Assert.assertNull(sessionInfoDataOne);
         Assert.assertNotNull(sessionInfoDataTwo);
     }

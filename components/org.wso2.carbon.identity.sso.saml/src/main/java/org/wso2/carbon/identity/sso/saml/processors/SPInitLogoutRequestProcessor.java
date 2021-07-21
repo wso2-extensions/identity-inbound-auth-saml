@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.sso.saml.validators.ValidationResult;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,9 +66,30 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
      * @param queryString
      * @return
      * @throws IdentityException
+     *
+     * @deprecated This method was deprecated to move saml caches to the tenant space.
+     * Use {@link #process(LogoutRequest, String, String, String)}  instead.
      */
+    @Deprecated
     public SAMLSSOReqValidationResponseDTO process(LogoutRequest logoutRequest, String sessionId,
                                                    String queryString) throws IdentityException {
+
+        // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
+        return process(logoutRequest, sessionId, queryString, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Process SP initiated Logout Request.
+     *
+     * @param logoutRequest     Logout Request
+     * @param sessionId         Session Id
+     * @param queryString       Query String
+     * @param loginTenantDomain Login tenant domain
+     * @return SAMLSSOReqValidationResponseDTO
+     * @throws IdentityException
+     */
+    public SAMLSSOReqValidationResponseDTO process(LogoutRequest logoutRequest, String sessionId, String queryString,
+                                                   String loginTenantDomain) throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         reqValidationResponseDTO.setLogOutReq(true);
@@ -98,7 +120,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             // Validate whether we have principle session.
             ValidationResult<SAMLSSOReqValidationResponseDTO> validationResult =
-                    validatePrincipleSession(sessionId, logoutRequest);
+                    validatePrincipleSession(sessionId, logoutRequest, loginTenantDomain);
             if (!validationResult.getValidationStatus()) {
                 return validationResult.getValue();
             }
@@ -108,14 +130,15 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             // Get the sessions from the SessionPersistenceManager and prepare the logout responses.
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
-            String sessionIndex = getSessionIndex(sessionId, logoutRequest);
+            String sessionIndex = getSessionIndex(sessionId, logoutRequest, loginTenantDomain);
             /* 'SessionIndex' attribute can be optional in the SAML logout request. In that case we need to retrieve
             the session index from session Id. */
             if (sessionIndex == null) {
                 sessionIndex = SSOSessionPersistenceManager.getPersistenceManager().getSessionIndexFromTokenId
-                        (sessionId);
+                        (sessionId, loginTenantDomain);
             }
-            SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+            SessionInfoData sessionInfoData = ssoSessionPersistenceManager.
+                    getSessionInfo(sessionIndex, loginTenantDomain);
             issuer = getTenantAwareIssuer(issuer, sessionInfoData);
 
             // Replace SP's issuer value with the actual issuer value in SAML SP registry.
@@ -351,7 +374,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
     }
 
     private ValidationResult<SAMLSSOReqValidationResponseDTO> validatePrincipleSession(String sessionId,
-                                                                                       LogoutRequest logoutRequest)
+                                                                                       LogoutRequest logoutRequest,
+                                                                                       String loginTenantDomain)
             throws IOException, IdentityException {
 
         String issuer = logoutRequest.getIssuer().getValue();
@@ -370,7 +394,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             return validationResult;
         }
 
-        String sessionIndex = getSessionIndex(sessionId, logoutRequest);
+        String sessionIndex = getSessionIndex(sessionId, logoutRequest, loginTenantDomain);
 
         if (StringUtils.isBlank(sessionIndex)) {
             String message = "Error while retrieving the Session Index ";
@@ -385,7 +409,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager =
                 SSOSessionPersistenceManager.getPersistenceManager();
-        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex, loginTenantDomain);
 
         if (sessionInfoData == null) {
             String message = "No Established Sessions corresponding to Session Indexes provided.";
@@ -460,13 +484,13 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         }
     }
 
-    private String getSessionIndex(String sessionId, LogoutRequest logoutRequest) {
+    private String getSessionIndex(String sessionId, LogoutRequest logoutRequest, String loginTenantDomain) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager =
                 SSOSessionPersistenceManager.getPersistenceManager();
         if (!logoutRequest.getSessionIndexes().isEmpty()) {
             return logoutRequest.getSessionIndexes().get(0).getSessionIndex();
         }
-        return ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+        return ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId, loginTenantDomain);
     }
 }

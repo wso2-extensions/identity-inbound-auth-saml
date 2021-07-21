@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProces
 import org.wso2.carbon.identity.sso.saml.processors.SPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,7 +140,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
-                encodedAuthnRequest, queryString, null, null, TestConstants.BASIC_AUTHN_MODE, isPost);
+                encodedAuthnRequest, queryString, null, null, TestConstants.BASIC_AUTHN_MODE, isPost,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML authentication request.");
         assertFalse(samlssoReqValidationResponseDTO.isIdPInitSSO(), "Should not be an IDP initiated SAML SSO request.");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
@@ -155,7 +157,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOUtil.doBootstrap();
 
         SPInitLogoutRequestProcessor spInitLogoutRequestProcessor = mock(SPInitLogoutRequestProcessor.class);
-        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), anyString())).thenReturn(
+        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), anyString(), anyString())).thenReturn(
                 mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getSPInitLogoutRequestProcessor()).thenReturn(spInitLogoutRequestProcessor);
@@ -165,7 +167,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
-                encodedLogoutRequest, queryString, "sessionId", null, TestConstants.BASIC_AUTHN_MODE, isPost);
+                encodedLogoutRequest, queryString, "sessionId", null, TestConstants.BASIC_AUTHN_MODE,
+                isPost, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertNotNull(samlssoReqValidationResponseDTO, "Validation response of SP-init SLO request should not be " +
                 "null.");
     }
@@ -205,7 +208,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
-                relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout);
+                relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML authentication request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSSO(), "Should be an IDP initiated SAML SSO request.");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
@@ -233,14 +237,15 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         boolean isLogout = true;
 
         IdPInitLogoutRequestProcessor idPInitLogoutRequestProcessor = mock(IdPInitLogoutRequestProcessor.class);
-        when(idPInitLogoutRequestProcessor.process(anyString(), any(QueryParamDTO[].class), anyString()))
+        when(idPInitLogoutRequestProcessor.process(anyString(), any(QueryParamDTO[].class), anyString(), anyString()))
                 .thenReturn(mockValidIDPInitLogoutRequestProcessing(queryParamDTOs[2].getValue()));
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getIdPInitLogoutRequestProcessor()).thenReturn(idPInitLogoutRequestProcessor);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
-                relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout);
+                relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML SLO request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSLO(), "Should be an IDP initiated SLO request");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
@@ -321,7 +326,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SSOSessionPersistenceManager ssoSessionPersistenceManager = mock(SSOSessionPersistenceManager.class);
         mockStatic(SSOSessionPersistenceManager.class);
         when(SSOSessionPersistenceManager.getPersistenceManager()).thenReturn(ssoSessionPersistenceManager);
-        when(ssoSessionPersistenceManager.getSessionIndexFromTokenId(anyString())).thenReturn("theSessionIndex");
+        when(ssoSessionPersistenceManager.getSessionIndexFromTokenId(anyString(), anyString())).thenReturn("theSessionIndex");
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         assertTrue(samlssoService.doSingleLogout("aSeesionID").isLogOutReq(), " Should return" +

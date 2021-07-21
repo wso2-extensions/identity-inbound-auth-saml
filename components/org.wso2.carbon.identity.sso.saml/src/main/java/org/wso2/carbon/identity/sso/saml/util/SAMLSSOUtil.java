@@ -1618,10 +1618,28 @@ public class SAMLSSOUtil {
         return normalized.toString();
     }
 
+    /**
+     * @deprecated This method was deprecated to move saml caches to the tenant space.
+     * Use {@link #removeSession(String, String, String)}  )} instead.
+     */
+    @Deprecated
     public static void removeSession(String sessionId, String issuer) {
+
+        removeSession(sessionId, issuer, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     *  Removes the session.
+     *
+     * @param sessionId          Session id.
+     * @param issuer             Issuer.
+     * @param loginTenantDomain  Login tenant Domain.
+     */
+    public static void removeSession(String sessionId, String issuer, String loginTenantDomain) {
+
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-        ssoSessionPersistenceManager.removeSession(sessionId, issuer);
+        ssoSessionPersistenceManager.removeSession(sessionId, issuer, loginTenantDomain);
     }
 
     public static void setTenantDomainInThreadLocal(String tenantDomain) throws UserStoreException, IdentityException {
@@ -2215,9 +2233,31 @@ public class SAMLSSOUtil {
      * @param issuer       Original issuer.
      * @param isIdPInitSLO Whether IdP initiated SLO or not.
      * @return SP List with remaining session participants for SLO except for the original issuer.
+     *
+     * @deprecated This method was deprecated to move saml caches to the tenant space.
+     * Use {@link #getRemainingSessionParticipantsForSLO(String, String, boolean, String)}  instead.
      */
+    @Deprecated
     public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(
             String sessionIndex, String issuer, boolean isIdPInitSLO) {
+
+        // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
+        return getRemainingSessionParticipantsForSLO(sessionIndex, issuer, isIdPInitSLO,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Get remaining session participants for SLO except for the original issuer.
+     *
+     * @param sessionIndex          Session index.
+     * @param issuer                Original issuer.
+     * @param isIdPInitSLO          Whether IdP initiated SLO or not.
+     * @param loginTenantDomain     Login Tenant Domain
+     * @return SP List with remaining session participants for SLO except for the original issuer.
+     *
+     */
+    public static List<SAMLSSOServiceProviderDO> getRemainingSessionParticipantsForSLO(
+            String sessionIndex, String issuer, boolean isIdPInitSLO, String loginTenantDomain) {
 
         if (isIdPInitSLO) {
             issuer = null;
@@ -2225,7 +2265,7 @@ public class SAMLSSOUtil {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex, loginTenantDomain);
 
         List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList;
 
@@ -2257,12 +2297,29 @@ public class SAMLSSOUtil {
      *
      * @param sessionIndex Session index.
      * @return Session Info Data.
+     *
+     * @deprecated This method was deprecated to move SAMLSSOParticipantCache to the tenant space.
+     * Use {@link #getSessionInfoData(String, String)}  instead.
      */
+    @Deprecated
     public static SessionInfoData getSessionInfoData(String sessionIndex) {
+
+        // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
+        return getSessionInfoData(sessionIndex, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Get SessionInfoData.
+     *
+     * @param sessionIndex       Session index.
+     * @param loginTenantDomain  Login Tenant Domain.
+     * @return Session Info Data.
+     */
+    public static SessionInfoData getSessionInfoData(String sessionIndex, String loginTenantDomain) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+        SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex, loginTenantDomain);
 
         return sessionInfoData;
     }
@@ -2272,12 +2329,29 @@ public class SAMLSSOUtil {
      *
      * @param sessionId Session id.
      * @return Session Index.
+     *
+     * @deprecated This method was deprecated to move SAMLSSOSessionIndexCache to the tenant space.
+     * Use {@link #getSessionIndex(String, String)}  instead.
      */
+    @Deprecated
     public static String getSessionIndex(String sessionId) {
+
+        // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
+        return getSessionIndex(sessionId, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Get Session Index.
+     *
+     * @param sessionId         Session id.
+     * @param loginTenantDomain Login Tenant Domain.
+     * @return Session Index.
+     */
+    public static String getSessionIndex(String sessionId, String loginTenantDomain) {
 
         SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                 .getPersistenceManager();
-        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
+        String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId, loginTenantDomain);
 
         return sessionIndex;
     }

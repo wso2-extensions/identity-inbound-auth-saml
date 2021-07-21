@@ -125,13 +125,17 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     private void prepareForGetIssuer() throws Exception {
 
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
 
         SAMLSSOUtil.setRealmService(realmService);
 
         prepareResidentIdP();
-        mockStatic(IdentityTenantUtil.class);
     }
 
     private void prepareForGetSPConfig() throws Exception {
@@ -491,8 +495,8 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
                                                           int expected) {
 
         initializeData();
-        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
-                SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, issuer, isIdPInitSLO);
+        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = SAMLSSOUtil.getRemainingSessionParticipantsForSLO
+                (sessionIndex, issuer, isIdPInitSLO, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         assertEquals(samlssoServiceProviderDOList.size(), expected);
 
     }
@@ -512,6 +516,11 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void initializeData() {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+                thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO1.setIssuer("issuer1");
         samlssoServiceProviderDO1.setDoSingleLogout(true);
@@ -529,24 +538,30 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         sessionInfoData.addServiceProvider("issuer2", samlssoServiceProviderDO2, null);
         sessionInfoData.addServiceProvider("issuer3", samlssoServiceProviderDO3, null);
 
-        SSOSessionPersistenceManager.addSessionIndexToCache("samlssoTokenId", "sessionIndex");
-        SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionIndex", sessionInfoData);
+        SSOSessionPersistenceManager.addSessionIndexToCache("samlssoTokenId", "sessionIndex",
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SSOSessionPersistenceManager.addSessionInfoDataToCache("sessionIndex", sessionInfoData,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     @Test
     public void testGetSessionInfoData() {
 
         initializeData();
-        assertEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex"), sessionInfoData);
-        assertNotEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex1"), sessionInfoData);
+        assertEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex",
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
+        assertNotEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex1",
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
     }
 
     @Test
     public void testGetSessionIndex() {
 
         initializeData();
-        assertEquals(SAMLSSOUtil.getSessionIndex("samlssoTokenId"), "sessionIndex");
-        assertNull(SAMLSSOUtil.getSessionIndex("sessionId"), "Session Index is null.");
+        assertEquals(SAMLSSOUtil.getSessionIndex("samlssoTokenId",
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "sessionIndex");
+        assertNull(SAMLSSOUtil.getSessionIndex("sessionId",
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "Session Index is null.");
     }
 
 

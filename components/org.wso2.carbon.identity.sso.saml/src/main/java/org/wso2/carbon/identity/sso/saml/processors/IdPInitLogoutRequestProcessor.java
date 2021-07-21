@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Map;
 
@@ -41,8 +42,31 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
     private String spEntityID;
     private String returnTo;
 
+    /**
+     * @deprecated This method was deprecated to move SAMLSSOParticipantCache to the tenant space.
+     * Use {@link #process(String, QueryParamDTO[], String, String)} )} instead.
+     */
+    @Deprecated
     public SAMLSSOReqValidationResponseDTO process(String sessionId, QueryParamDTO[] queryParamDTOs,
                                                    String serverURL) throws IdentityException {
+
+        // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
+        return process(sessionId, queryParamDTOs, serverURL, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+    }
+
+    /**
+     * Process IDP initiated Logout Request.
+     *
+     * @param sessionId             Session Id.
+     * @param queryParamDTOs        Query Param DTOs.
+     * @param serverURL             Server url.
+     * @param loginTenantDomain     Login tenant Domain.
+     * @return  validationResponseDTO.
+     * @throws IdentityException
+     */
+    public SAMLSSOReqValidationResponseDTO process(String sessionId, QueryParamDTO[] queryParamDTOs, String serverURL,
+                                                   String loginTenantDomain) throws IdentityException {
 
         init(queryParamDTOs);
 
@@ -61,8 +85,9 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
             SSOSessionPersistenceManager ssoSessionPersistenceManager = SSOSessionPersistenceManager
                     .getPersistenceManager();
-            String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId);
-            SessionInfoData sessionInfoData = ssoSessionPersistenceManager.getSessionInfo(sessionIndex);
+            String sessionIndex = ssoSessionPersistenceManager.getSessionIndexFromTokenId(sessionId, loginTenantDomain);
+            SessionInfoData sessionInfoData = ssoSessionPersistenceManager.
+                    getSessionInfo(sessionIndex, loginTenantDomain);
 
             if (sessionInfoData == null) {
                 log.error(SAMLSSOConstants.Notification.INVALID_SESSION);
