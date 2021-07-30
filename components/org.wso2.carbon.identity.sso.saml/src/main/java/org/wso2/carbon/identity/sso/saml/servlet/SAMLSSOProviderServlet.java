@@ -1169,7 +1169,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             startTenantFlow(authnReqDTO.getTenantDomain());
 
             if (sessionId == null) {
-                sessionId = getSamlSSOTokenIdFromSessionContext(authResult);
+                sessionId = getSamlSSOTokenIdFromSessionContext(authResult, authnReqDTO.getLoginTenantDomain());
             }
 
             SAMLSSOService samlSSOService = new SAMLSSOService();
@@ -1203,13 +1203,16 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      * Get samlssoTokenId from session context.
      *
      * @param authenticationResult Authentication Result.
+     * @param loginTenantDomain    Login Tenant Domain.
      */
-    private String getSamlSSOTokenIdFromSessionContext(AuthenticationResult authenticationResult) {
+    private String getSamlSSOTokenIdFromSessionContext(AuthenticationResult authenticationResult,
+                                                       String loginTenantDomain) {
 
         String sessionIdentifier =
                 (String) authenticationResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
         if (StringUtils.isNotBlank(sessionIdentifier)) {
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier);
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier,
+                    loginTenantDomain);
             if (sessionContext != null) {
                 if (authenticationResult.getSubject() != null) {
                     Object samlssoTokenId = sessionContext.getProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
