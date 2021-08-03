@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.session;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -70,6 +71,7 @@ public class SSOSessionPersistenceManager {
     public static void addSessionInfoDataToCache(String key, SessionInfoData sessionInfoData,
                                                  String loginTenantDomain) {
 
+        removeSessionInfoDataFromCache(key, loginTenantDomain);
         SAMLSSOParticipantCacheKey cacheKey = new SAMLSSOParticipantCacheKey(key);
         SAMLSSOParticipantCacheEntry cacheEntry = new SAMLSSOParticipantCacheEntry();
         cacheEntry.setSessionInfoData(sessionInfoData);
@@ -429,12 +431,14 @@ public class SSOSessionPersistenceManager {
             if (issuer != null) {
                 if (cacheEntry.getSessionInfoData() != null && cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
                     SAMLSSOServiceProviderDO providerDO = cacheEntry.getSessionInfoData().getServiceProviderList().get(issuer);
+                    SessionInfoData sessionInfoData = cacheEntry.getSessionInfoData();
                     if (providerDO != null && providerDO.isDoSingleLogout()) {
-                        removeBackChannelSLOEnabledSPs(cacheEntry);
+                        removeBackChannelSLOEnabledSPs(cacheEntry, sessionIndex, loginTenantDomain);
                     } else {
-                        if(cacheEntry.getSessionInfoData() != null) {
-                            cacheEntry.getSessionInfoData().removeServiceProvider(issuer);
-                            if(log.isDebugEnabled()) {
+                        if (sessionInfoData != null) {
+                            sessionInfoData.removeServiceProvider(issuer);
+                            addSessionInfoDataToCache(sessionIndex, sessionInfoData);
+                            if (log.isDebugEnabled()) {
                                 log.debug("Removed service provider from session info data  with name " + issuer);
                             }
                         }
@@ -442,11 +446,12 @@ public class SSOSessionPersistenceManager {
                 }
             } else {
                 // Remove session participants in IdP initiated back-channel SLO.
-                removeBackChannelSLOEnabledSPs(cacheEntry);
+                removeBackChannelSLOEnabledSPs(cacheEntry, sessionIndex, loginTenantDomain);
             }
-
-            if (cacheEntry.getSessionInfoData() == null || cacheEntry.getSessionInfoData().getServiceProviderList() == null ||
-                    cacheEntry.getSessionInfoData().getServiceProviderList().isEmpty()) {
+            SAMLSSOParticipantCacheEntry newCacheEntry = SAMLSSOParticipantCache.getInstance().
+                    getValueFromCache(cacheKey, loginTenantDomain);
+            if (newCacheEntry.getSessionInfoData() == null || MapUtils.isEmpty(newCacheEntry.getSessionInfoData().
+                    getServiceProviderList())) {
                 //Clear the session info cache if there isn't session data or service providers
                 if(log.isDebugEnabled()) {
                     log.debug("Clearing the session data from cache with session index " + sessionIndex + " and issuer " + issuer);
@@ -457,16 +462,19 @@ public class SSOSessionPersistenceManager {
         }
     }
 
+    /**
+     * Remove back channel slo enabled service providers.
+     *
+     * @param cacheEntry SAML SSO Participant cache entry
+     * @Deprecated The logic of handing session info data cache is improved. Hence deprecating this method to
+     * use {@link #removeBackChannelSLOEnabledSPs(SAMLSSOParticipantCacheEntry, String, String)} method.
+     */
+    @Deprecated
     public static void removeBackChannelSLOEnabledSPs(SAMLSSOParticipantCacheEntry cacheEntry) {
 
         Set<String> sloSupportedIssuers = new HashSet<String>();
         // Filter out service providers which enabled the single logout and back-channel logout.
-        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
-                getServiceProviderList().entrySet()) {
-            if (entry.getValue().isDoSingleLogout() && !entry.getValue().isDoFrontChannelLogout()) {
-                sloSupportedIssuers.add(entry.getKey());
-            }
-        }
+        addSLOSupportedIssuers(cacheEntry, sloSupportedIssuers);
         // Remove service providers which enabled the single logout and back-channel logout.
         for (String sloSupportedIssuer : sloSupportedIssuers) {
             cacheEntry.getSessionInfoData().removeServiceProvider(sloSupportedIssuer);
@@ -475,6 +483,35 @@ public class SSOSessionPersistenceManager {
                         + sloSupportedIssuer);
             }
         }
+    }
+
+    private static void addSLOSupportedIssuers(SAMLSSOParticipantCacheEntry cacheEntry,
+                                               Set<String> sloSupportedIssuers) {
+
+        for (Map.Entry<String, SAMLSSOServiceProviderDO> entry : cacheEntry.getSessionInfoData().
+                getServiceProviderList().entrySet()) {
+            if (entry.getValue().isDoSingleLogout() && !entry.getValue().isDoFrontChannelLogout()) {
+                sloSupportedIssuers.add(entry.getKey());
+            }
+        }
+    }
+
+    public static void removeBackChannelSLOEnabledSPs(SAMLSSOParticipantCacheEntry cacheEntry, String sessionIndex,
+                                                      String loginTenantDomain) {
+
+        Set<String> sloSupportedIssuers = new HashSet<String>();
+        SessionInfoData sessionInfoData = cacheEntry.getSessionInfoData();
+        // Filter out service providers which enabled the single logout and back-channel logout.
+        addSLOSupportedIssuers(cacheEntry, sloSupportedIssuers);
+        // Remove service providers which enabled the single logout and back-channel logout.
+        for (String sloSupportedIssuer : sloSupportedIssuers) {
+            sessionInfoData.removeServiceProvider(sloSupportedIssuer);
+            if (log.isDebugEnabled()) {
+                log.debug("Removed back-channel SLO supported service provider from session info data with name "
+                        + sloSupportedIssuer);
+            }
+        }
+        addSessionInfoDataToCache(sessionIndex, sessionInfoData, loginTenantDomain);
     }
 
     /**

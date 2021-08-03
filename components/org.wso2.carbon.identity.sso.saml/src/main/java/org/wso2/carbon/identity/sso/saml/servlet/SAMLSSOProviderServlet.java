@@ -505,9 +505,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             SAMLSSOParticipantCacheEntry cacheEntry = SAMLSSOParticipantCache.getInstance().
                     getValueFromCache(cacheKey, loginTenantDomain);
 
-            if (cacheEntry.getSessionInfoData() != null &&
-                    cacheEntry.getSessionInfoData().getServiceProviderList() != null) {
-                cacheEntry.getSessionInfoData().removeServiceProvider(serviceProvider);
+            SessionInfoData sessionInfoData = cacheEntry.getSessionInfoData();
+            if (sessionInfoData != null && sessionInfoData.getServiceProviderList() != null) {
+                sessionInfoData.removeServiceProvider(serviceProvider);
+                SSOSessionPersistenceManager.addSessionInfoDataToCache(sessionIndex, sessionInfoData, loginTenantDomain);
             }
         }
     }
