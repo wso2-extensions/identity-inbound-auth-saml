@@ -82,8 +82,8 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         if (sp != null) {
             // TODO remove after testing
             if (log.isDebugEnabled()) {
-                log.debug("Service provider associated with the application name: " + applicationName +
-                        " is not null");
+                log.debug("Initiating the deletion of SAML inbound data associated with service provider: "
+                        + applicationName);
             }
             String issuerToBeDeleted = getSAMLIssuer(sp);
             if (StringUtils.isNotBlank(issuerToBeDeleted)) {
