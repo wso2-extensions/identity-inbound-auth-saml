@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.sso.saml.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.sso.saml.dao.SAML2ArtifactInfoDAO;
@@ -68,7 +68,7 @@ public class SAML2ArtifactInfoDAOImpl implements SAML2ArtifactInfoDAO {
                 preparedStatement.setString(7, saml2ArtifactInfo.getAssertionID());
             }), saml2ArtifactInfo, true);
         } catch (DataAccessException e) {
-            throw new ArtifactBindingException("Error while storing SAML2 artifact information.");
+            throw new ArtifactBindingException("Error while storing SAML2 artifact information.", e);
         }
     }
 
