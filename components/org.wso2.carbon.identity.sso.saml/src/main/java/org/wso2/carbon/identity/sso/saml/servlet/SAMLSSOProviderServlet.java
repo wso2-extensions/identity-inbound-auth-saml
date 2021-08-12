@@ -1197,8 +1197,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Store samlssoTokenId in session context.
      *
-     * @param samlssoTokenId       SamlssoTokenId cookie value.
-     * @param authenticationResult Authentication Result .
+     * @param samlssoTokenId SamlssoTokenId cookie value
+     * @param authenticationResult Authentication Result
      */
     private void storeSamlSSOTokenIdInContext(String samlssoTokenId, AuthenticationResult authenticationResult) {
 

@@ -151,8 +151,8 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
     /**
      * Get samlssoTokenId from session context.
      *
-     * @param event Event.
-     * @return samlssoTokenId.
+     * @param event Event
+     * @return samlssoTokenId
      */
     private String getsamlssoTokenIdFromContext(Event event) {
 
