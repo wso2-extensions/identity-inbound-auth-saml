@@ -1733,7 +1733,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (samlSSOIdCookieConfig.getSameSite() != null) {
             cookie.setSameSite(samlSSOIdCookieConfig.getSameSite());
         }
-        if (age!= null) {
+        if (age != null) {
             cookie.setMaxAge(age);
         }
         cookie.setHttpOnly(samlSSOIdCookieConfig.isHttpOnly());
