@@ -1414,7 +1414,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         ServletCookie samlssoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
                 .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
-        int defaultMaxAge = IdPManagementUtil.getIdleSessionTimeOut(tenantDomain);
 
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
@@ -1432,15 +1431,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             samlssoTokenIdCookie.setPath("/");
         }
 
-        samlssoTokenIdCookie.setMaxAge(defaultMaxAge);
         samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
         if (samlssoTokenIdCookieConfig != null) {
-            int age = defaultMaxAge;
-            if (samlssoTokenIdCookieConfig.getMaxAge() > 0) {
-                age = samlssoTokenIdCookieConfig.getMaxAge();
-            }
-            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, age, isTenantQualifiedCookie);
+            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, null, isTenantQualifiedCookie);
         }
         resp.addCookie(samlssoTokenIdCookie);
     }
@@ -1722,7 +1716,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void updateSAMLSSOIdCookieConfig(ServletCookie cookie, IdentityCookieConfig
-            samlSSOIdCookieConfig, int age, boolean isTenantQualifiedCookie) {
+            samlSSOIdCookieConfig, Integer age, boolean isTenantQualifiedCookie) {
 
         if (samlSSOIdCookieConfig.getDomain() != null) {
             cookie.setDomain(samlSSOIdCookieConfig.getDomain());
@@ -1739,7 +1733,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (samlSSOIdCookieConfig.getSameSite() != null) {
             cookie.setSameSite(samlSSOIdCookieConfig.getSameSite());
         }
-        cookie.setMaxAge(age);
+        if (age != null) {
+            cookie.setMaxAge(age);
+        }
         cookie.setHttpOnly(samlSSOIdCookieConfig.isHttpOnly());
         cookie.setSecure(samlSSOIdCookieConfig.isSecure());
     }
