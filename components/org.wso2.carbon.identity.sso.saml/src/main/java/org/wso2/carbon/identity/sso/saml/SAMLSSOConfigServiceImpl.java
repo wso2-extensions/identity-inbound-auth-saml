@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
@@ -132,8 +133,8 @@ public class SAMLSSOConfigServiceImpl {
 
     public SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
 
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             if (log.isDebugEnabled()) {
                 log.debug("Creating SAML Service Provider with metadata: " + metadata);
             }
@@ -439,7 +440,18 @@ public class SAMLSSOConfigServiceImpl {
         return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
-    private Registry getConfigSystemRegistry() {
+    private Registry getConfigSystemRegistry() throws IdentityException {
+
+        String tenantDomain = getTenantDomain();
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+            if (log.isDebugEnabled()) {
+                log.debug("Loading tenant registry for tenant domain: " + tenantDomain);
+            }
+        } catch (RegistryException e) {
+            throw new IdentityException("Error loading tenant registry for tenant domain " + tenantDomain, e);
+        }
 
         return (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getRegistry(RegistryType.SYSTEM_CONFIGURATION);
