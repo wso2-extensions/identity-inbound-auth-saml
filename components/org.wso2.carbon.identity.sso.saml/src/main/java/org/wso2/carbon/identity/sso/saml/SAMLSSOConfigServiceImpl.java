@@ -56,6 +56,7 @@ import java.util.function.Predicate;
 
 import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.sso.saml.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.sso.saml.Error.URL_NOT_FOUND;
 
 /**
  * Providers an OSGi service layer for SAML service provider configuration management operations.
@@ -167,7 +168,8 @@ public class SAMLSSOConfigServiceImpl {
             return uploadRPServiceProvider(metadata);
         } catch (IOException e) {
             String tenantDomain = getTenantDomain();
-            throw handleIOException("Error while creating SAML service provider in tenantDomain: " + tenantDomain, e);
+            throw handleIOException("Non-existing metadata URL for SAML service provider creation in tenantDomain: "
+                    + tenantDomain, e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -210,7 +212,7 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     private IdentitySAML2SSOException handleIOException(String message, IOException e) {
-        return new IdentitySAML2SSOException(UNEXPECTED_SERVER_ERROR.getErrorCode(), message, e);
+        return new IdentitySAML2ClientException(URL_NOT_FOUND.getErrorCode(), message, e);
     }
 
     /**
