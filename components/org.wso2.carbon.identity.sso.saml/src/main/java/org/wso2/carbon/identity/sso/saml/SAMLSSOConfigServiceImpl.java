@@ -168,7 +168,7 @@ public class SAMLSSOConfigServiceImpl {
             return uploadRPServiceProvider(metadata);
         } catch (IOException e) {
             String tenantDomain = getTenantDomain();
-            throw handleIOException("Non-existing metadata URL for SAML service provider creation in tenantDomain: "
+            throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
                     + tenantDomain, e);
         } finally {
             IOUtils.closeQuietly(in);
@@ -211,8 +211,8 @@ public class SAMLSSOConfigServiceImpl {
         return configValue;
     }
 
-    private IdentitySAML2SSOException handleIOException(String message, IOException e) {
-        return new IdentitySAML2ClientException(URL_NOT_FOUND.getErrorCode(), message, e);
+    private IdentitySAML2SSOException handleIOException(Error error, String message, IOException e) {
+        return new IdentitySAML2ClientException(error.getErrorCode(), message, e);
     }
 
     /**
