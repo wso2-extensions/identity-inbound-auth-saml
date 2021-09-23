@@ -127,7 +127,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         if (authReqDTO.getNameIDFormat() != null) {
             nameId.setFormat(authReqDTO.getNameIDFormat());
         } else {
-            nameId.setFormat(NameIdentifier.EMAIL);
+            nameId.setFormat(NameIdentifier.UNSPECIFIED);
         }
         subject.setNameID(nameId);
     }
