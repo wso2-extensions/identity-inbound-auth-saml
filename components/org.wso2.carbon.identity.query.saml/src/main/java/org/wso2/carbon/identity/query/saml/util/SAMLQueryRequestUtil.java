@@ -260,7 +260,7 @@ public class SAMLQueryRequestUtil {
         if (ssoIdPConfigs.getNameIDFormat() != null) {
             nameId.setFormat(ssoIdPConfigs.getNameIDFormat());
         } else {
-            nameId.setFormat(NameIdentifier.EMAIL);
+            nameId.setFormat(NameIdentifier.UNSPECIFIED);
         }
         subject.setNameID(nameId);
 
@@ -350,7 +350,7 @@ public class SAMLQueryRequestUtil {
         if (ssoIdPConfigs.getNameIDFormat() != null) {
             nameId.setFormat(ssoIdPConfigs.getNameIDFormat());
         } else {
-            nameId.setFormat(NameIdentifier.EMAIL);
+            nameId.setFormat(NameIdentifier.UNSPECIFIED);
         }
 
         subject.setNameID(nameId);
