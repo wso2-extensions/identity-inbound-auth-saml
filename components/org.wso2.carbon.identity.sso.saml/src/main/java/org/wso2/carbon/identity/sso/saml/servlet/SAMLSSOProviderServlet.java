@@ -1213,7 +1213,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     FrameworkUtils.addSessionContextToCache(sessionIdentifier, sessionContext, tenantDomain);
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated user attribute is not found in authentication result");
+                        log.debug("Authenticated user attribute is not found in authentication result.");
                     }
                 }
             } else {

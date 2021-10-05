@@ -107,7 +107,7 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         }
         if (StringUtils.isBlank(samlssoTokenId)) {
             if (log.isDebugEnabled()) {
-                log.debug("samlssoTokenId is not found in the request object. Hence getting it from the context");
+                log.debug("samlssoTokenId is not found in the request object. Hence getting it from the context.");
             }
             samlssoTokenId = getsamlssoTokenIdFromContext(event);
         }
@@ -160,13 +160,13 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
             SessionContext sessionContext =
                     (SessionContext) event.getEventProperties().get(EventProperty.SESSION_CONTEXT);
             return (String) sessionContext.getProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Since the session context is not found in the event, Could not get the " +
-                        "samlssoTokenId cookie");
-            }
-            return null;
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Since the session context is not found in the event, could not get the " +
+                    "samlssoTokenId cookie.");
+        }
+        return StringUtils.EMPTY;
+
     }
 
 }
