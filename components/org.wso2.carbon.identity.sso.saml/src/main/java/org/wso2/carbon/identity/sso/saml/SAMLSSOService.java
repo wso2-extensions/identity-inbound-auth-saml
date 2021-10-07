@@ -102,21 +102,22 @@ public class SAMLSSOService {
      * the HTTP Redirect binding. With HTTP POST binding these values are null.
      * If the user already having a SSO session then the Response
      * will be returned if not only the validation results will be returned.
+     * Logged in Tenant Domain will be used to maintain the caches in tenant space.
      *
-     * @param samlReq             SAML Request
-     * @param queryString         Query String
-     * @param sessionId           Session ID
-     * @param rpSessionId         rpSession Id
-     * @param authnMode           Authn Mode
-     * @param isPost              Is Post
-     * @param loginTenantDomain   Login tenant domain
-     * @return    validationResp
+     * @param samlReq              SAML Request
+     * @param queryString          Query String
+     * @param sessionId            Session ID
+     * @param rpSessionId          rpSession Id
+     * @param authnMode            Authn Mode
+     * @param isPost               Is Post
+     * @param loggedInTenantDomain Logged in tenant domain
+     * @return validationResp
      * @throws IdentityException
      */
     public SAMLSSOReqValidationResponseDTO validateSPInitSSORequest(String samlReq, String queryString,
                                                                     String sessionId, String rpSessionId,
                                                                     String authnMode, boolean isPost,
-                                                                    String loginTenantDomain)
+                                                                    String loggedInTenantDomain)
             throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResp = null;
@@ -139,7 +140,7 @@ public class SAMLSSOService {
         } else if (request instanceof LogoutRequest) {
             SPInitLogoutRequestProcessor logoutReqProcessor = SAMLSSOUtil.getSPInitLogoutRequestProcessor();
             validationResp =
-                    logoutReqProcessor.process((LogoutRequest) request, sessionId, queryString, loginTenantDomain);
+                    logoutReqProcessor.process((LogoutRequest) request, sessionId, queryString, loggedInTenantDomain);
         }
 
         Extensions extensions = ((RequestAbstractType) request).getExtensions();
@@ -209,16 +210,17 @@ public class SAMLSSOService {
             throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = null;
-        if(!isLogout) {
+        if (isLogout) {
+            IdPInitLogoutRequestProcessor idPInitLogoutRequestProcessor =
+                    SAMLSSOUtil.getIdPInitLogoutRequestProcessor();
+            validationResponseDTO = idPInitLogoutRequestProcessor.process(sessionId, queryParamDTOs, serverURL,
+                    loginTenantDomain);
+            validationResponseDTO.setIdPInitSLO(true);
+        } else {
             SSOAuthnRequestValidator authnRequestValidator = SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(
                     queryParamDTOs, relayState);
             validationResponseDTO = authnRequestValidator.validate();
             validationResponseDTO.setIdPInitSSO(true);
-        } else {
-            IdPInitLogoutRequestProcessor idPInitLogoutRequestProcessor = SAMLSSOUtil.getIdPInitLogoutRequestProcessor();
-            validationResponseDTO = idPInitLogoutRequestProcessor.process(sessionId, queryParamDTOs, serverURL,
-                    loginTenantDomain);
-            validationResponseDTO.setIdPInitSLO(true);
         }
         validationResponseDTO.setQueryString(queryString);
         validationResponseDTO.setRpSessionId(rpSessionId);

@@ -114,13 +114,13 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
             if (isAuthenticated) {
                 if (sessionId != null && sessionPersistenceManager.isExistingTokenId(sessionId,
-                        authnReqDTO.getLoginTenantDomain())) {
+                        authnReqDTO.getLoggedInTenantDomain())) {
                     sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId,
-                            authnReqDTO.getLoginTenantDomain());
+                            authnReqDTO.getLoggedInTenantDomain());
                 } else {
                     sessionIndexId = UUIDGenerator.generateUUID();
                     sessionPersistenceManager.persistSession(sessionId, sessionIndexId,
-                            authnReqDTO.getLoginTenantDomain());
+                            authnReqDTO.getLoggedInTenantDomain());
                 }
 
                 if (authMode.equals(SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD)) {
@@ -148,7 +148,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(), spDO,
                             authnReqDTO.getRpSessionId(), authnReqDTO.getIssuer(),
                             authnReqDTO.getAssertionConsumerURL(),
-                            authnReqDTO.getLoginTenantDomain());
+                            authnReqDTO.getLoggedInTenantDomain());
                 }
 
                 // Build the response for the successful scenario

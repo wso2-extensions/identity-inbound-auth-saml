@@ -58,14 +58,14 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
 
         if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
             samlssoTokenId = getSamlSSOTokenIdFromEvent(event);
-            String loginTenantDomain = getLoginTenantDomainFromEvent(event);
+            String loggedInTenantDomain = getLoggedInTenantDomainFromEvent(event);
             if (StringUtils.isNotBlank(samlssoTokenId)) {
                 if (!isIDPInitiatedLogoutRequest(event)) {
                     issuer = this.getIssuerFromContext(event);
                 }
 
                 try {
-                    samlSSOService.doSingleLogout(samlssoTokenId, issuer, loginTenantDomain);
+                    samlSSOService.doSingleLogout(samlssoTokenId, issuer, loggedInTenantDomain);
                 } catch (IdentityException e) {
                     log.error("Error while SAML Logout Listener is doing single logout.", e);
                 }
@@ -122,24 +122,24 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
      * Method to retrieve Login Tenant Domain from the event.
      *
      * @param event Session termination event.
-     * @return Login Tenant Domain.
+     * @return Logged in Tenant Domain.
      */
-    private String getLoginTenantDomainFromEvent(Event event) {
+    private String getLoggedInTenantDomainFromEvent(Event event) {
 
         if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
             return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        String loginTenantDomain = null;
+        String loggedInTenantDomain = null;
         if (event.getEventProperties().get(EventProperty.REQUEST) instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) event.getEventProperties().get(EventProperty.REQUEST);
-            loginTenantDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+            loggedInTenantDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
         }
 
-        if (StringUtils.isBlank(loginTenantDomain)) {
-            loginTenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(loggedInTenantDomain)) {
+            loggedInTenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         }
-        return loginTenantDomain;
+        return loggedInTenantDomain;
     }
 
     /**
