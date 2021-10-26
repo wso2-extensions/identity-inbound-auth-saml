@@ -55,7 +55,7 @@ public class SAMLSSOSessionDTO implements Serializable {
     private String requestedAuthnContextComparison;
     private List<ClaimMapping> requestedAttributes;
     private Properties properties;
-    private String loginTenantDomain;
+    private String loggedInTenantDomain;
 
     public String getHttpQueryString() {
         return httpQueryString;
@@ -362,22 +362,22 @@ public class SAMLSSOSessionDTO implements Serializable {
     }
 
     /**
-     * Get login tenant domain.
+     * Get logged in tenant domain.
      *
-     * @return loginTenantDomain login tenant domain.
+     * @return loggedInTenantDomain Logged in tenant domain.
      */
-    public String getLoginTenantDomain() {
+    public String getLoggedInTenantDomain() {
 
-        return loginTenantDomain;
+        return loggedInTenantDomain;
     }
 
     /**
-     * Set login tenant domain.
+     * Set logged in tenant domain.
      *
-     * @param loginTenantDomain login tenant domain.
+     * @param loggedInTenantDomain Logged in tenant domain.
      */
-    public void setLoginTenantDomain(String loginTenantDomain) {
+    public void setLoggedInTenantDomain(String loggedInTenantDomain) {
 
-        this.loginTenantDomain = loginTenantDomain;
+        this.loggedInTenantDomain = loggedInTenantDomain;
     }
 }

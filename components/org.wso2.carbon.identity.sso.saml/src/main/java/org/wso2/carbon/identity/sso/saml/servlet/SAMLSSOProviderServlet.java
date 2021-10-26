@@ -370,7 +370,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String inResponseToId = logoutResponse.getInResponseTo();
         FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo =
                 getFrontChannelSLOParticipantInfo(inResponseToId);
-        String loginTenantDomain = getLoginTenantDomain(req);
+        String loggedInTenantDomain = getLoggedInTenantDomain(req);
 
         if (frontChannelSLOParticipantInfo == null || !frontChannelSLOParticipantInfo.
                 getCurrentSLOInvokedParticipant().equals(logoutResponse.getIssuer().getValue())) {
@@ -394,13 +394,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 }
             } else {
                 removeSPFromSession(frontChannelSLOParticipantInfo.getSessionIndex(), logoutResponseIssuer,
-                        loginTenantDomain);
+                        loggedInTenantDomain);
 
                 List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
                         SAMLSSOUtil.getRemainingSessionParticipantsForSLO(
                                 frontChannelSLOParticipantInfo.getSessionIndex(),
                                 frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer(),
-                                frontChannelSLOParticipantInfo.isIdPInitSLO(), loginTenantDomain);
+                                frontChannelSLOParticipantInfo.isIdPInitSLO(), loggedInTenantDomain);
 
                 if (samlssoServiceProviderDOList.isEmpty()) {
                     respondToOriginalLogoutRequestIssuer(req, resp, sessionId, frontChannelSLOParticipantInfo);
@@ -411,7 +411,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             frontChannelSLOParticipantInfo.getRelayState(),
                             frontChannelSLOParticipantInfo.getReturnToURL(),
                             frontChannelSLOParticipantInfo.getSessionIndex(),
-                            frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer(), loginTenantDomain);
+                            frontChannelSLOParticipantInfo.getOriginalLogoutRequestIssuer(), loggedInTenantDomain);
                 }
             }
         }
@@ -434,9 +434,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                                       FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo)
             throws IOException, IdentityException, ServletException {
 
-        if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId, getLoginTenantDomain(req)) == null) {
+        if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId, getLoggedInTenantDomain(req)) == null) {
             // Remove tokenId Cookie when there is no session available.
-            removeTokenIdCookie(req, resp, getLoginTenantDomain(req));
+            removeTokenIdCookie(req, resp, getLoggedInTenantDomain(req));
         }
 
         if (frontChannelSLOParticipantInfo.isIdPInitSLO()) {
@@ -619,7 +619,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String defaultLogoutLocation = FrameworkUtils.getRedirectURL(SAMLSSOUtil.getDefaultLogoutEndpoint(), req);
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateIdPInitSSORequest(
                 relayState, queryString, getQueryParams(req), defaultLogoutLocation, sessionId, rpSessionId,
-                authMode, isLogout, getLoginTenantDomain(req));
+                authMode, isLogout, getLoggedInTenantDomain(req));
         setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) {
@@ -737,7 +737,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateSPInitSSORequest(
-                samlRequest, queryString, sessionId, rpSessionId, authMode, isPost, getLoginTenantDomain(req));
+                samlRequest, queryString, sessionId, rpSessionId, authMode, isPost, getLoggedInTenantDomain(req));
 
         setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
@@ -811,7 +811,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setRequestedAttributes(signInRespDTO.getRequestedAttributes());
         sessionDTO.setRequestedAuthnContextComparison(signInRespDTO.getRequestedAuthnContextComparison());
         sessionDTO.setProperties(signInRespDTO.getProperties());
-        sessionDTO.setLoginTenantDomain(getLoginTenantDomain(req));
+        sessionDTO.setLoggedInTenantDomain(getLoggedInTenantDomain(req));
 
         String sessionDataKey = UUIDGenerator.generateUUID();
         addSessionDataToCache(sessionDataKey, sessionDTO);
@@ -879,7 +879,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setSessionId(sessionId);
         sessionDTO.setLogoutReq(true);
         sessionDTO.setInvalidLogout(invalid);
-        sessionDTO.setLoginTenantDomain(getLoginTenantDomain(request));
+        sessionDTO.setLoggedInTenantDomain(getLoggedInTenantDomain(request));
 
         Properties properties = new Properties();
         properties.put(SAMLSSOConstants.IS_POST, isPost);
@@ -925,7 +925,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry
                 (authenticationRequest);
         addAuthenticationRequestToRequest(request, authRequest);
-        removeTokenIdCookie(request, response, sessionDTO.getLoginTenantDomain());
+        removeTokenIdCookie(request, response, sessionDTO.getLoggedInTenantDomain());
         sendRequestToFramework(request, response, sessionDataKey, FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO);
     }
 
@@ -1180,7 +1180,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             if (authRespDTO.isSessionEstablished()) { // authenticated
 
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain(),
-                        sessionDTO.getLoginTenantDomain());
+                        sessionDTO.getLoggedInTenantDomain());
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
@@ -1249,7 +1249,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String sessionIndex = validationResponseDTO.getSessionIndex();
             List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList =
                     SAMLSSOUtil.getRemainingSessionParticipantsForSLO(sessionIndex, sessionDTO.getIssuer(),
-                            validationResponseDTO.isIdPInitSLO(), sessionDTO.getLoginTenantDomain());
+                            validationResponseDTO.isIdPInitSLO(), sessionDTO.getLoggedInTenantDomain());
 
             // Get the SP list and check for other session participants that have enabled single logout.
             if (samlssoServiceProviderDOList.isEmpty()) {
@@ -1262,7 +1262,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 sendLogoutRequestToSessionParticipant(response, samlssoServiceProviderDOList,
                         originalIssuerLogoutRequestId, validationResponseDTO.isIdPInitSLO(), sessionDTO.getRelayState(),
                         validationResponseDTO.getReturnToURL(), sessionIndex, sessionDTO.getIssuer(),
-                        sessionDTO.getLoginTenantDomain());
+                        sessionDTO.getLoggedInTenantDomain());
             }
         } else {
             sendErrorResponseToOriginalIssuer(request, response, sessionDTO);
@@ -1340,9 +1340,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId(),
-                sessionDTO.getLoginTenantDomain()) == null) {
+                sessionDTO.getLoggedInTenantDomain()) == null) {
             // Remove tokenId Cookie when there is no session available.
-            removeTokenIdCookie(request, response, sessionDTO.getLoginTenantDomain());
+            removeTokenIdCookie(request, response, sessionDTO.getLoggedInTenantDomain());
         }
 
         if (validationResponseDTO.isIdPInitSLO()) {
@@ -1403,13 +1403,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
-     * @param sessionId
-     * @param req
-     * @param resp
-     * @param loginTenantDomain
+     * @param sessionId            Session Id.
+     * @param req                  HttpServlet Request.
+     * @param resp                 HttpServlet Response.
+     * @param loggedInTenantDomain Logged In Tenant Domain.
      */
     private void storeTokenIdCookie(String sessionId, HttpServletRequest req, HttpServletResponse resp,
-                                    String tenantDomain, String loginTenantDomain) {
+                                    String tenantDomain, String loggedInTenantDomain) {
 
         ServletCookie samlssoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
@@ -1421,20 +1421,23 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         boolean isTenantQualifiedCookie = false;
         if (IdentityTenantUtil.isTenantedSessionsEnabled() &&
                 sessionId.endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
-            if (loginTenantDomain != null) {
-                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/");
+            if (loggedInTenantDomain != null) {
+                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
+                        SAMLSSOConstants.COOKIE_ROOT_PATH);
             } else {
-                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/");
+                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                        SAMLSSOConstants.COOKIE_ROOT_PATH);
             }
             isTenantQualifiedCookie = true;
         } else {
-            samlssoTokenIdCookie.setPath("/");
+            samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
         }
 
         samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
         if (samlssoTokenIdCookieConfig != null) {
-            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, null, isTenantQualifiedCookie);
+            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, null,
+                    isTenantQualifiedCookie);
         }
         resp.addCookie(samlssoTokenIdCookie);
     }
@@ -1452,11 +1455,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * Remove Saml SSO Token Id Cookie.
      *
-     * @param req    HttpServlet Request.
-     * @param resp   HttpServlet Response.
-     * @param loginTenantDomain    Login Tenant Domain.
+     * @param req                  HttpServlet Request.
+     * @param resp                 HttpServlet Response.
+     * @param loggedInTenantDomain Logged in Tenant Domain.
      */
-    public void removeTokenIdCookie(HttpServletRequest req, HttpServletResponse resp, String loginTenantDomain) {
+    public void removeTokenIdCookie(HttpServletRequest req, HttpServletResponse resp, String loggedInTenantDomain) {
 
         Cookie[] cookies = req.getCookies();
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
@@ -1472,12 +1475,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     samlSsoTokenIdCookie.setSecure(true);
 
                     boolean isTenantQualifiedCookie = false;
-                    if (IdentityTenantUtil.isTenantedSessionsEnabled() &&
+                    if (IdentityTenantUtil.isTenantedSessionsEnabled() && cookie.getValue() != null &&
                             cookie.getValue().endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
-                        samlSsoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/");
+                        samlSsoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
+                                SAMLSSOConstants.COOKIE_ROOT_PATH);
                         isTenantQualifiedCookie = true;
                     } else {
-                        samlSsoTokenIdCookie.setPath("/");
+                        samlSsoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                     }
                     samlSsoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
 
@@ -1722,7 +1726,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             cookie.setDomain(samlSSOIdCookieConfig.getDomain());
         }
         if (samlSSOIdCookieConfig.getPath() != null && !isTenantQualifiedCookie) {
-                cookie.setPath(samlSSOIdCookieConfig.getPath());
+            cookie.setPath(samlSSOIdCookieConfig.getPath());
         }
         if (samlSSOIdCookieConfig.getComment() != null) {
             cookie.setComment(samlSSOIdCookieConfig.getComment());
@@ -1822,7 +1826,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authnReqDTO.setRequestedAttributes(sessionDTO.getRequestedAttributes());
         authnReqDTO.setRequestedAuthnContextComparison(sessionDTO.getRequestedAuthnContextComparison());
         authnReqDTO.setProperties(sessionDTO.getProperties());
-        authnReqDTO.setLoginTenantDomain(sessionDTO.getLoginTenantDomain());
+        authnReqDTO.setLoginTenantDomain(sessionDTO.getLoggedInTenantDomain());
     }
 
     private void populateAuthnReqDTOWithRequiredServiceProviderConfigs(SAMLSSOAuthnReqDTO authnReqDTO,
@@ -2121,22 +2125,22 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
-     * This method is used to retrieve login tenant domain.
+     * This method is used to retrieve logged in tenant domain.
      *
-     * @param req     HttpServletRequest.
-     * @return login tenant domain.
+     * @param req HttpServletRequest.
+     * @return logged in tenant domain.
      */
-    private String getLoginTenantDomain(HttpServletRequest req) {
+    private String getLoggedInTenantDomain(HttpServletRequest req) {
 
         if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
             return SAMLSSOUtil.getTenantDomainFromThreadLocal();
         }
 
-        String loginTenantDomain = req.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
-        if (StringUtils.isBlank(loginTenantDomain)) {
+        String loggedInTenantDomain = req.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        if (StringUtils.isBlank(loggedInTenantDomain)) {
             return IdentityTenantUtil.getTenantDomainFromContext();
         }
-        return loginTenantDomain;
+        return loggedInTenantDomain;
     }
 
 }
