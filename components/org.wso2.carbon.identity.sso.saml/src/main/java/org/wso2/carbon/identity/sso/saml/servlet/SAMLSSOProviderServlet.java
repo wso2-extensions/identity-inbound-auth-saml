@@ -1170,7 +1170,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             startTenantFlow(authnReqDTO.getTenantDomain());
 
             if (sessionId == null) {
-                sessionId = getSamlSSOTokenIdFromSessionContext(authResult, authnReqDTO.getLoginTenantDomain());
+                sessionId = getSamlSSOTokenIdFromSessionContext(authResult, authnReqDTO.getLoggedInTenantDomain());
             }
 
             SAMLSSOService samlSSOService = new SAMLSSOService();
@@ -1826,7 +1826,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         authnReqDTO.setRequestedAttributes(sessionDTO.getRequestedAttributes());
         authnReqDTO.setRequestedAuthnContextComparison(sessionDTO.getRequestedAuthnContextComparison());
         authnReqDTO.setProperties(sessionDTO.getProperties());
-        authnReqDTO.setLoginTenantDomain(sessionDTO.getLoggedInTenantDomain());
+        authnReqDTO.setLoggedInTenantDomain(sessionDTO.getLoggedInTenantDomain());
     }
 
     private void populateAuthnReqDTOWithRequiredServiceProviderConfigs(SAMLSSOAuthnReqDTO authnReqDTO,
