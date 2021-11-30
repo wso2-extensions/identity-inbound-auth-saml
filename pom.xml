@@ -454,8 +454,8 @@
         <identity.metadata.saml2.version>1.3.0</identity.metadata.saml2.version>
         <identity.metadata.saml2.imp.pkg.version.range>[1.3.0, 2.0.0)</identity.metadata.saml2.imp.pkg.version.range>
 
-        <httpcore.version>4.3.3.wso2v1</httpcore.version>
-        <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
+        <httpcore.version>4.4.14.wso2v1</httpcore.version>
+        <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
