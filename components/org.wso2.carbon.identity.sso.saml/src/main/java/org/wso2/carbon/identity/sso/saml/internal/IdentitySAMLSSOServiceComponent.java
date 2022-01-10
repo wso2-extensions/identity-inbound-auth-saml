@@ -60,6 +60,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import javax.servlet.Servlet;
 
@@ -161,7 +164,13 @@ public class IdentitySAMLSSOServiceComponent {
             }
 
             redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
-                    + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
+                    + File.separator + "deployment" + File.separator + "server" + File.separator + "webapps"
+                    + File.separator + "authenticationendpoint" + File.separator +"samlsso_response.html";
+            Path path = Paths.get(redirectHtmlPath);
+            if (Files.notExists(path)){
+                redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
+                        + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
+            };
             fis = new FileInputStream(new File(redirectHtmlPath));
             ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
             if (log.isDebugEnabled()) {
