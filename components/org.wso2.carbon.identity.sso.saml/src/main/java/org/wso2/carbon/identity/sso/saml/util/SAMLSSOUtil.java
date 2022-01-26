@@ -149,6 +149,8 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_REQUEST;
+
 public class SAMLSSOUtil {
 
     private static final Log log = LogFactory.getLog(SAMLSSOUtil.class);
@@ -1136,7 +1138,7 @@ public class SAMLSSOUtil {
 
         String issuer = logoutRequest.getIssuer().getValue();
 
-        if (queryString != null) {
+        if (queryString != null && queryString.contains(SAML_REQUEST)) {
             return validateDeflateSignature(queryString, issuer, certificate);
         } else {
             return validateXMLSignature(logoutRequest, certificate);
@@ -2577,7 +2579,7 @@ public class SAMLSSOUtil {
                                            java.security.cert.X509Certificate certificate) {
 
         try {
-            if (queryString != null) {
+            if (queryString != null && queryString.contains(SAML_REQUEST)) {
                 // DEFLATE signature in Redirect Binding.
                 return validateDeflateSignature(queryString, issuer, certificate);
             } else {
