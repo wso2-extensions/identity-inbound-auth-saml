@@ -60,6 +60,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import javax.servlet.Servlet;
 
@@ -78,10 +81,19 @@ public class IdentitySAMLSSOServiceComponent {
     private static long defaultSingleLogoutRetryInterval = 60000;
 
     private static String ssoRedirectPage = null;
+    private static Boolean useSamlSsoResponseJspPage = false;
 
     public static String getSsoRedirectHtml() {
 
         return ssoRedirectPage;
+    }
+
+    /**
+     * @return if the samlsso_response.jsp page is available or not.
+     */
+    public static Boolean isSAMLSSOResponseJspPageAvailable() {
+
+        return useSamlSsoResponseJspPage;
     }
 
     @Activate
@@ -160,12 +172,21 @@ public class IdentitySAMLSSOServiceComponent {
                         SAMLSSOUtil.getSingleLogoutRetryInterval() + " in seconds.");
             }
 
-            redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
-                    + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
-            fis = new FileInputStream(new File(redirectHtmlPath));
-            ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
-            if (log.isDebugEnabled()) {
-                log.debug("samlsso_response.html " + ssoRedirectPage);
+            String redirectJspPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
+                    + File.separator + "deployment" + File.separator + "server" + File.separator + "webapps"
+                    + File.separator + "authenticationendpoint" + File.separator + "samlsso_response.jsp";
+            Path jspFilePath = Paths.get(redirectJspPath);
+            if (Files.notExists(jspFilePath)) {
+                redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
+                        + File.separator + "resources" + File.separator + "identity" + File.separator + "pages"
+                        + File.separator + "samlsso_response.html";
+                fis = new FileInputStream(new File(redirectHtmlPath));
+                ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
+                if (log.isDebugEnabled()) {
+                    log.debug("samlsso_response.html " + ssoRedirectPage);
+                }
+            } else {
+                useSamlSsoResponseJspPage = true;
             }
 
             FileBasedConfigManager.getInstance().addServiceProviders();
