@@ -81,7 +81,7 @@ public class IdentitySAMLSSOServiceComponent {
     private static long defaultSingleLogoutRetryInterval = 60000;
 
     private static String ssoRedirectPage = null;
-    private static Boolean useSamlSsoResponseJspPage = false;
+    private static boolean useSamlSsoResponseJspPage = false;
 
     public static String getSsoRedirectHtml() {
 
@@ -91,7 +91,7 @@ public class IdentitySAMLSSOServiceComponent {
     /**
      * @return if the samlsso_response.jsp page is available or not.
      */
-    public static Boolean isSAMLSSOResponseJspPageAvailable() {
+    public static boolean isSAMLSSOResponseJspPageAvailable() {
 
         return useSamlSsoResponseJspPage;
     }
