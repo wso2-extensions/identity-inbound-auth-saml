@@ -1050,10 +1050,29 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                               String relayState, String authenticatedIdPs, String samlMessageType)
             throws IOException {
 
+        String issuer;
+        String tenantDomain;
         String finalPage;
+
+        issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
+        tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
         String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
-        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-        String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->",
+        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);;
+        String pageWithApp = pageWithAcs.replace("$app", acUrl);;
+
+        if (!issuer.isEmpty() && !tenantDomain.isEmpty()){
+            try {
+                String spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+                pageWithApp = pageWithAcs.replace("$app", spName);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
+        }
+
+        String pageWithAcsResponse = pageWithApp.replace("<!--$params-->",
                 buildPostPageInputs(samlMessageType, samlMessage));
         String pageWithAcsResponseRelay = pageWithAcsResponse;
 
