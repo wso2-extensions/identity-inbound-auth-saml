@@ -1057,10 +1057,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
         tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
         String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
-        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);;
-        String pageWithApp = pageWithAcs.replace("$app", acUrl);;
+        String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
+        String pageWithApp = pageWithAcs.replace("$app", acUrl);
 
-        if (!issuer.isEmpty() && !tenantDomain.isEmpty()){
+        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
             try {
                 String spName = ApplicationManagementService.getInstance()
                         .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
