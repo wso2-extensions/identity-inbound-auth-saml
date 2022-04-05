@@ -975,12 +975,25 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                               String tenantDomain)
             throws ServletException, IOException, IdentityException {
 
+        String spName = "";
         acUrl = getACSUrlWithTenantPartitioning(acUrl, tenantDomain);
+        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
 
         if (acUrl == null || acUrl.trim().length() == 0) {
             // if ACS is null. Send to error page
             log.error("ACS Url is Null");
             throw IdentityException.error("Unexpected error in sending message out");
+        }
+
+        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
+            try {
+                spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
         }
 
         if (response == null || response.trim().length() == 0) {
@@ -1012,22 +1025,29 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 out.print(soapResponse);
             } else {
                 generateSamlPostPageFromFile(resp, acUrl, response, relayState, authenticatedIdPs,
-                        SAMLSSOConstants.SAML_RESP);
+                        SAMLSSOConstants.SAML_RESP, spName);
             }
 
         } else {
             generateSamlPostPageFromTemplate(resp, acUrl, response, relayState, authenticatedIdPs,
-                    SAMLSSOConstants.SAML_RESP);
+                    SAMLSSOConstants.SAML_RESP, spName);
         }
     }
 
     private void generateSamlPostPageFromTemplate(HttpServletResponse resp, String acUrl, String samlMessage,
-                                                  String relayState, String authenticatedIdPs, String samlMessageType)
+                                                  String relayState, String authenticatedIdPs, String samlMessageType,
+                                                  String spName)
             throws IOException {
 
         PrintWriter out = resp.getWriter();
-        String finalPage = "<html><body><p>You are now redirected back to " + Encode.forHtmlContent(acUrl) +
-                " If the redirection fails, please click the post button.</p><form method='post' action='" +
+        String finalPage = "<html><body><p>You are now redirected back to ";
+        if (spName != null && !spName.isEmpty()) {
+            finalPage = finalPage + Encode.forHtmlContent(spName);
+        } else {
+            finalPage = finalPage + Encode.forHtmlContent(acUrl);
+        }
+
+        finalPage = finalPage + " If the redirection fails, please click the post button.</p><form method='post' action='" +
                 Encode.forHtmlAttribute(acUrl) + "'><p><input type='hidden' name='" + samlMessageType + "' value='"
                 + Encode.forHtmlAttribute(samlMessage) + "'/>";
 
@@ -1047,29 +1067,18 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void generateSamlPostPageFromFile(HttpServletResponse resp, String acUrl, String samlMessage,
-                                              String relayState, String authenticatedIdPs, String samlMessageType)
+                                              String relayState, String authenticatedIdPs, String samlMessageType,
+                                              String spName)
             throws IOException {
 
-        String issuer;
-        String tenantDomain;
         String finalPage;
 
-        issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
-        tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
         String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithApp = pageWithAcs.replace("$app", acUrl);
 
-        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
-            try {
-                String spName = ApplicationManagementService.getInstance()
-                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
-                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
-                pageWithApp = pageWithAcs.replace("$app", spName);
-            } catch (IdentityApplicationManagementException e) {
-                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
-                        tenantDomain, e);
-            }
+        if (spName != null && !spName.isEmpty()) {
+            pageWithApp = pageWithAcs.replace("$app", spName);
         }
 
         String pageWithAcsResponse = pageWithApp.replace("<!--$params-->",
@@ -1954,13 +1963,28 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
             throws IOException {
 
+        String spName = "";
+        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+
+        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
+            try {
+                spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
+        }
+
         response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
             generateSamlPostPageFromFile(response, acUrl, encodedRequestMessage, null, null,
-                    SAMLSSOConstants.SAML_REQUEST);
+                    SAMLSSOConstants.SAML_REQUEST, spName);
         } else {
             generateSamlPostPageFromTemplate(response, acUrl, encodedRequestMessage, null,
-                    null, SAMLSSOConstants.SAML_REQUEST);
+                    null, SAMLSSOConstants.SAML_REQUEST, spName);
         }
     }
 
