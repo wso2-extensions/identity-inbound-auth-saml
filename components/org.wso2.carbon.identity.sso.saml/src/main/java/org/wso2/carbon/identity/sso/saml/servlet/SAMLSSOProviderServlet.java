@@ -1072,7 +1072,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throws IOException {
 
         String finalPage;
-
         String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithApp = pageWithAcs.replace("$app", acUrl);
