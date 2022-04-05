@@ -985,7 +985,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             throw IdentityException.error("Unexpected error in sending message out");
         }
 
-        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
             try {
                 spName = ApplicationManagementService.getInstance()
                         .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
@@ -1041,7 +1041,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         PrintWriter out = resp.getWriter();
         String finalPage = "<html><body><p>You are now redirected back to ";
-        if (spName != null && !spName.isEmpty()) {
+        if (StringUtils.isNotBlank(spName)) {
             finalPage = finalPage + Encode.forHtmlContent(spName);
         } else {
             finalPage = finalPage + Encode.forHtmlContent(acUrl);
@@ -1076,7 +1076,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
         String pageWithApp = pageWithAcs.replace("$app", acUrl);
 
-        if (spName != null && !spName.isEmpty()) {
+        if (StringUtils.isNotBlank(spName)) {
             pageWithApp = pageWithAcs.replace("$app", spName);
         }
 
@@ -1966,7 +1966,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
         String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
 
-        if (issuer != null && tenantDomain != null && !issuer.isEmpty() && !tenantDomain.isEmpty()){
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
             try {
                 spName = ApplicationManagementService.getInstance()
                         .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
