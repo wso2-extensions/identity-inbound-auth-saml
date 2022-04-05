@@ -1944,13 +1944,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
-        printPostPage(response, acUrl, encodedRequestMessage);
+        String spName = resolveAppName();
+        printPostPage(response, acUrl, encodedRequestMessage, spName);
     }
 
-    private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
+    private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage, String spName)
             throws IOException {
-
-        String spName = resolveAppName();
 
         response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
