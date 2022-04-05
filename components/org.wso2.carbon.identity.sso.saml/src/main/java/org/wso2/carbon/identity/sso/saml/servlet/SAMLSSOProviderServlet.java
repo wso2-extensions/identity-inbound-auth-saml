@@ -434,7 +434,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                                       FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo)
             throws IOException, IdentityException, ServletException {
 
-        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId, getLoggedInTenantDomain(req)) == null) {
             // Remove tokenId Cookie when there is no session available.
             removeTokenIdCookie(req, resp, getLoggedInTenantDomain(req));
@@ -454,7 +453,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             sendResponse(req, resp, frontChannelSLOParticipantInfo.getRelayState(),
                     SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutResponse)),
                     logoutResponse.getDestination(), null, null,
-                    tenantDomain);
+                    SAMLSSOUtil.getTenantDomainFromThreadLocal());
         }
     }
 
@@ -2183,5 +2182,4 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
         return null;
     }
-
 }
