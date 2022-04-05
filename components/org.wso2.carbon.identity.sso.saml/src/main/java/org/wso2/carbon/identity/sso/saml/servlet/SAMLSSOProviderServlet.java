@@ -434,9 +434,23 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                                       FrontChannelSLOParticipantInfo frontChannelSLOParticipantInfo)
             throws IOException, IdentityException, ServletException {
 
+        String spName = "";
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionId, getLoggedInTenantDomain(req)) == null) {
             // Remove tokenId Cookie when there is no session available.
             removeTokenIdCookie(req, resp, getLoggedInTenantDomain(req));
+        }
+
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())){
+            try {
+                spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
         }
 
         if (frontChannelSLOParticipantInfo.isIdPInitSLO()) {
@@ -453,7 +467,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             sendResponse(req, resp, frontChannelSLOParticipantInfo.getRelayState(),
                     SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutResponse)),
                     logoutResponse.getDestination(), null, null,
-                    SAMLSSOUtil.getTenantDomainFromThreadLocal());
+                    tenantDomain, spName);
         }
     }
 
@@ -972,28 +986,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      */
     private void sendResponse(HttpServletRequest req, HttpServletResponse resp, String relayState,
                               String response, String acUrl, String subject, String authenticatedIdPs,
-                              String tenantDomain)
+                              String tenantDomain, String spName)
             throws ServletException, IOException, IdentityException {
 
-        String spName = "";
         acUrl = getACSUrlWithTenantPartitioning(acUrl, tenantDomain);
-        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
 
         if (acUrl == null || acUrl.trim().length() == 0) {
             // if ACS is null. Send to error page
             log.error("ACS Url is Null");
             throw IdentityException.error("Unexpected error in sending message out");
-        }
-
-        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
-            try {
-                spName = ApplicationManagementService.getInstance()
-                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
-                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
-            } catch (IdentityApplicationManagementException e) {
-                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
-                        tenantDomain, e);
-            }
         }
 
         if (response == null || response.trim().length() == 0) {
@@ -1124,6 +1125,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         String sessionDataKey = getSessionDataKey(req);
         AuthenticationResult authResult = getAuthenticationResult(req, sessionDataKey);
+        String spName = "";
 
         SAMLSSOAuthnReqDTO authnReqDTO = new SAMLSSOAuthnReqDTO();
         populateAuthnReqDTOWithCachedSessionEntry(authnReqDTO, sessionDTO);
@@ -1134,6 +1136,17 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String authenticationRequestId = authnReqDTO.getId();
         String assertionConsumerURL = authnReqDTO.getAssertionConsumerURL();
         authnReqDTO.setSamlECPEnabled(Boolean.valueOf(req.getParameter(SAMLECPConstants.IS_ECP_REQUEST)));
+
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
+            try {
+                spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
+        }
 
         //get sp configs
         SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
@@ -1163,7 +1176,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         "authenticate Subject in Passive Mode", assertionConsumerURL);
 
                 sendResponse(req, resp, sessionDTO.getRelayState(), errorResp, assertionConsumerURL, sessionDTO
-                        .getValidationRespDTO().getSubject(), null, sessionDTO.getTenantDomain());
+                        .getValidationRespDTO().getSubject(), null, sessionDTO.getTenantDomain(),
+                        spName);
                 return;
             } else { // if forceAuthn or normal flow
                 if (authResult != null && !authResult.isAuthenticated()) {
@@ -1216,7 +1230,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     sendResponse(req, resp, relayState, authRespDTO.getRespString(),
                             authRespDTO.getAssertionConsumerURL(),
                             authRespDTO.getSubject().getAuthenticatedSubjectIdentifier(),
-                            authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain());
+                            authResult.getAuthenticatedIdPs(), sessionDTO.getTenantDomain(), spName);
                 }
             } else { // authentication FAILURE
                 String errorResp = authRespDTO.getRespString();
@@ -1364,12 +1378,26 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                          SAMLSSOSessionDTO sessionDTO) throws ServletException, IOException,
             IdentityException {
 
+        String spName = "";
+        String tenantDomain = sessionDTO.getTenantDomain();
+        String issuer = sessionDTO.getIssuer();
         SAMLSSOReqValidationResponseDTO validationResponseDTO = sessionDTO.getValidationRespDTO();
 
         if (SSOSessionPersistenceManager.getSessionIndexFromCache(sessionDTO.getSessionId(),
                 sessionDTO.getLoggedInTenantDomain()) == null) {
             // Remove tokenId Cookie when there is no session available.
             removeTokenIdCookie(request, response, sessionDTO.getLoggedInTenantDomain());
+        }
+
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(SAMLSSOUtil.getTenantDomainFromThreadLocal())){
+            try {
+                spName = ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
         }
 
         if (validationResponseDTO.isIdPInitSLO()) {
@@ -1379,7 +1407,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             // Sending LogoutResponse back to the initiator.
             sendResponse(request, response, sessionDTO.getRelayState(), validationResponseDTO.getLogoutResponse(),
                     validationResponseDTO.getAssertionConsumerURL(), validationResponseDTO.getSubject(),
-                    null, sessionDTO.getTenantDomain());
+                    null, sessionDTO.getTenantDomain(), spName);
         }
     }
 
