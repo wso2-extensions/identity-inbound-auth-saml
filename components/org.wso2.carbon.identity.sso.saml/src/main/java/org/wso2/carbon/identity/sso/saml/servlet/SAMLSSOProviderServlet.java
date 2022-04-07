@@ -975,6 +975,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                               String tenantDomain)
             throws ServletException, IOException, IdentityException {
 
+        String spName = resolveAppName();
         acUrl = getACSUrlWithTenantPartitioning(acUrl, tenantDomain);
 
         if (acUrl == null || acUrl.trim().length() == 0) {
@@ -1012,22 +1013,29 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 out.print(soapResponse);
             } else {
                 generateSamlPostPageFromFile(resp, acUrl, response, relayState, authenticatedIdPs,
-                        SAMLSSOConstants.SAML_RESP);
+                        SAMLSSOConstants.SAML_RESP, spName);
             }
 
         } else {
             generateSamlPostPageFromTemplate(resp, acUrl, response, relayState, authenticatedIdPs,
-                    SAMLSSOConstants.SAML_RESP);
+                    SAMLSSOConstants.SAML_RESP, spName);
         }
     }
 
     private void generateSamlPostPageFromTemplate(HttpServletResponse resp, String acUrl, String samlMessage,
-                                                  String relayState, String authenticatedIdPs, String samlMessageType)
+                                                  String relayState, String authenticatedIdPs, String samlMessageType,
+                                                  String spName)
             throws IOException {
 
         PrintWriter out = resp.getWriter();
-        String finalPage = "<html><body><p>You are now redirected back to " + Encode.forHtmlContent(acUrl) +
-                " If the redirection fails, please click the post button.</p><form method='post' action='" +
+        String finalPage = "<html><body><p>You are now redirected back to ";
+        if (StringUtils.isNotBlank(spName)) {
+            finalPage = finalPage + Encode.forHtmlContent(spName);
+        } else {
+            finalPage = finalPage + Encode.forHtmlContent(acUrl);
+        }
+
+        finalPage = finalPage + " If the redirection fails, please click the post button.</p><form method='post' action='" +
                 Encode.forHtmlAttribute(acUrl) + "'><p><input type='hidden' name='" + samlMessageType + "' value='"
                 + Encode.forHtmlAttribute(samlMessage) + "'/>";
 
@@ -1047,13 +1055,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void generateSamlPostPageFromFile(HttpServletResponse resp, String acUrl, String samlMessage,
-                                              String relayState, String authenticatedIdPs, String samlMessageType)
+                                              String relayState, String authenticatedIdPs, String samlMessageType,
+                                              String spName)
             throws IOException {
 
         String finalPage;
         String htmlPage = IdentitySAMLSSOServiceComponent.getSsoRedirectHtml();
         String pageWithAcs = htmlPage.replace("$acUrl", acUrl);
-        String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->",
+        String pageWithApp = pageWithAcs.replace("$app", acUrl);
+
+        if (StringUtils.isNotBlank(spName)) {
+            pageWithApp = pageWithAcs.replace("$app", spName);
+        }
+
+        String pageWithAcsResponse = pageWithApp.replace("<!--$params-->",
                 buildPostPageInputs(samlMessageType, samlMessage));
         String pageWithAcsResponseRelay = pageWithAcsResponse;
 
@@ -1929,19 +1944,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
-        printPostPage(response, acUrl, encodedRequestMessage);
+        String spName = resolveAppName();
+        printPostPage(response, acUrl, encodedRequestMessage, spName);
     }
 
-    private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage)
+    private void printPostPage(HttpServletResponse response, String acUrl, String encodedRequestMessage, String spName)
             throws IOException {
 
         response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
             generateSamlPostPageFromFile(response, acUrl, encodedRequestMessage, null, null,
-                    SAMLSSOConstants.SAML_REQUEST);
+                    SAMLSSOConstants.SAML_REQUEST, spName);
         } else {
             generateSamlPostPageFromTemplate(response, acUrl, encodedRequestMessage, null,
-                    null, SAMLSSOConstants.SAML_REQUEST);
+                    null, SAMLSSOConstants.SAML_REQUEST, spName);
         }
     }
 
@@ -2143,4 +2159,26 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         return loggedInTenantDomain;
     }
 
+    /**
+     * This method is used to resolve application name.
+     *
+     * @return Application Name.
+     */
+    private String resolveAppName() {
+
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
+
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
+            try {
+                 return ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
+        }
+        return null;
+    }
 }
