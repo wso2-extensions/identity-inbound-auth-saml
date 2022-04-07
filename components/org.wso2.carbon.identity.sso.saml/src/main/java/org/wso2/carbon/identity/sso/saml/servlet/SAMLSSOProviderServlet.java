@@ -2175,7 +2175,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
                                 IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
             } catch (IdentityApplicationManagementException e) {
-                log.error("Error while getting Service provider name for issuer:" + issuer + " in tenant: " +
+                log.error("Error while getting service provider name for issuer:" + issuer + " in tenant: " +
                         tenantDomain, e);
             }
         }
