@@ -106,6 +106,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 import javax.xml.soap.SOAPException;
 import javax.xml.transform.TransformerException;
 
@@ -143,12 +144,17 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static final int DEFAULT_HTTPS_PORT = 443;
     private static final int DEFAULT_HTTP_PORT = 80;
 
-    private static final String formPostPageTemplate =
-            "<html><body><p>You are now redirected back to $acUrl \n" +
-            "If the redirection fails, please click the post button.</p> \n" +
-            "<form method='post' action='$acUrl'>" +
-            "<p> <!--$params--> <!--$additionalParams--> <button type='submit'>POST</button></p>" +
-            "</form><script type='text/javascript'>document.forms[0].submit();</script></body></html>";
+    private static final String formPostPageTemplate = "<html>\n" +
+            "<body onload=\"javascript:document.getElementById('samlsso-response-form').submit()\">\n" +
+            "<h2>Please wait while we take you back to $app</h2>\n" +
+            "<p><a href=\"javascript:document.getElementById('samlsso-response-form').submit()\">Click here</a>" +
+            " if you have been waiting for too long.</p>\n" +
+            "<form id=\"samlsso-response-form\" method=\"post\" action=\"$acUrl\">\n" +
+            "    <!--$params-->\n" +
+            "    <!--$additionalParams-->\n" +
+            "</form>\n" +
+            "</body>\n" +
+            "</html>";
 
     @Override
     protected void doGet(HttpServletRequest httpServletRequest,
@@ -988,22 +994,28 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             generateResponseForECPRequest(resp, response, acUrl);
         } else if (IdentitySAMLSSOServiceComponent.isSAMLSSOResponseJspPageAvailable()) {
             generateSamlPostPageFromJSP(req, resp, acUrl, response, relayState, authenticatedIdPs,
-                    SAMLSSOConstants.SAML_RESP);
-        } else if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
+                    SAMLSSOConstants.SAML_RESP, spName);
+        } else if (IdentitySAMLSSOServiceComponent.isSAMLSSOResponseHtmlPageAvailable()) {
             generateSamlPostPage(IdentitySAMLSSOServiceComponent.getSsoRedirectHtml(), resp, acUrl, response,
-                    relayState, authenticatedIdPs, SAMLSSOConstants.SAML_RESP);
+                    relayState, authenticatedIdPs, SAMLSSOConstants.SAML_RESP, spName);
         } else {
             generateSamlPostPage(formPostPageTemplate, resp, acUrl, response, relayState, authenticatedIdPs,
-                    SAMLSSOConstants.SAML_RESP);
+                    SAMLSSOConstants.SAML_RESP, spName);
         }
     }
 
     private void generateSamlPostPage(String formPostPage, HttpServletResponse resp, String acUrl, String samlMessage,
-                                      String relayState, String authenticatedIdPs, String samlMessageType)
-            throws IOException {
+                                      String relayState, String authenticatedIdPs, String samlMessageType,
+                                      String spName) throws IOException {
 
         String pageWithAcs = formPostPage.replace("$acUrl", acUrl);
-        String pageWithAcsResponse = pageWithAcs.replace("<!--$params-->",
+        String pageWithApp = pageWithAcs.replace("$app", acUrl);
+
+        if (StringUtils.isNotBlank(spName)) {
+            pageWithApp = pageWithAcs.replace("$app", spName);
+        }
+
+        String pageWithAcsResponse = pageWithApp.replace("<!--$params-->",
                 buildPostPageInputs(samlMessageType, samlMessage));
         String pageWithAcsResponseRelay = pageWithAcsResponse;
 
@@ -1015,9 +1027,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String finalPage = pageWithAcsResponseRelay;
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
             finalPage = pageWithAcsResponseRelay.replace(
-            "<!--$additionalParams-->",
-            "<input type='hidden' name='AuthenticatedIdPs' value='"
-                    + Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
+                    "<!--$additionalParams-->",
+                    "<input type='hidden' name='AuthenticatedIdPs' value='"
+                            + Encode.forHtmlAttribute(authenticatedIdPs) + "'/>");
         }
 
         PrintWriter out = resp.getWriter();
@@ -1029,46 +1041,32 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     private void generateSamlPostPage(String formPostPage, HttpServletResponse resp, String acUrl, String samlMessage,
-                                      String samlMessageType) throws IOException {
+                                      String samlMessageType, String spName) throws IOException {
 
-        String pageWithAcs = formPostPage.replace("$acUrl", acUrl);
-        String finalPage = pageWithAcs.replace("<!--$params-->",
-                buildPostPageInputs(samlMessageType, samlMessage));
-        PrintWriter out = resp.getWriter();
-        out.print(finalPage);
-
-        if (log.isDebugEnabled()) {
-            log.debug("samlsso_response.html " + finalPage);
-        }
+        generateSamlPostPage(formPostPage, resp, acUrl, samlMessage, null, null, samlMessageType, spName);
     }
 
     private void generateSamlPostPageFromJSP(HttpServletRequest req, HttpServletResponse resp, String acUrl,
                                              String samlMessage, String relayState, String authenticatedIdPs,
-                                             String samlMessageType)
+                                             String samlMessageType, String spName)
             throws ServletException, IOException {
 
-        req.setAttribute("acUrl", acUrl);
-        req.setAttribute("samlMessageType", samlMessageType);
-        req.setAttribute("samlMessage", samlMessage);
-        req.setAttribute("relayState", relayState);
-        req.setAttribute("authenticatedIdPs", authenticatedIdPs);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_AC_URL, acUrl);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_SP_NAME, spName);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_SAML_MESSAGE_TYPE, samlMessageType);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_SAML_MESSAGE, samlMessage);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_RELAY_STATE, relayState);
+        req.setAttribute(SAMLSSOConstants.ATTR_NAME_AUTHENTICATED_IDPS, authenticatedIdPs);
         ServletContext authEndpoint = getServletContext().getContext("/authenticationendpoint");
         RequestDispatcher requestDispatcher = authEndpoint.getRequestDispatcher("/samlsso_response.jsp");
         requestDispatcher.include(req, resp);
     }
 
     private void generateSamlPostPageFromJSP(HttpServletRequest req, HttpServletResponse resp, String acUrl,
-                                             String samlMessage, String samlMessageType)
+                                             String samlMessage, String samlMessageType, String spName)
             throws ServletException, IOException {
 
-        req.setAttribute("acUrl", acUrl);
-        req.setAttribute("samlMessageType", samlMessageType);
-        req.setAttribute("samlMessage", samlMessage);
-        req.setAttribute("relayState", null);
-        req.setAttribute("authenticatedIdPs", null);
-        ServletContext authEndpoint = getServletContext().getContext("/authenticationendpoint");
-        RequestDispatcher requestDispatcher = authEndpoint.getRequestDispatcher("/samlsso_response.jsp");
-        requestDispatcher.include(req, resp);
+        generateSamlPostPageFromJSP(req, resp, acUrl, samlMessage, null, null, samlMessageType, spName);
     }
 
     /**
@@ -1907,7 +1905,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     /**
      * This method is used to prepare and send a SAML request message with HTTP POST binding.
      *
-     * @param request                 HttpServlet Request.
+     * @param request                  HttpServlet Request.
      * @param response                 HttpServlet Response.
      * @param samlssoServiceProviderDO SAMLSSOServiceProviderDO.
      * @param logoutRequest            Logout Request.
@@ -1922,22 +1920,24 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
-        printPostPage(request, response, acUrl, encodedRequestMessage);
+        String spName = resolveAppName();
+        printPostPage(request, response, acUrl, encodedRequestMessage, spName);
     }
 
     private void printPostPage(HttpServletRequest request, HttpServletResponse response, String acUrl,
-                               String encodedRequestMessage)
+                               String encodedRequestMessage, String spName)
             throws IOException, ServletException {
 
         response.setContentType("text/html; charset=" + StandardCharsets.UTF_8.name());
         if (IdentitySAMLSSOServiceComponent.isSAMLSSOResponseJspPageAvailable()) {
-            generateSamlPostPageFromJSP(request, response, acUrl, encodedRequestMessage, SAMLSSOConstants.SAML_REQUEST);
-        } else if (IdentitySAMLSSOServiceComponent.getSsoRedirectHtml() != null) {
+            generateSamlPostPageFromJSP(request, response, acUrl, encodedRequestMessage,
+                    SAMLSSOConstants.SAML_REQUEST, spName);
+        } else if (IdentitySAMLSSOServiceComponent.isSAMLSSOResponseHtmlPageAvailable()) {
             generateSamlPostPage(IdentitySAMLSSOServiceComponent.getSsoRedirectHtml(), response, acUrl,
-                    encodedRequestMessage, SAMLSSOConstants.SAML_REQUEST);
+                    encodedRequestMessage, SAMLSSOConstants.SAML_REQUEST, spName);
         } else {
             generateSamlPostPage(formPostPageTemplate, response, acUrl, encodedRequestMessage,
-                    SAMLSSOConstants.SAML_REQUEST);
+                    SAMLSSOConstants.SAML_REQUEST, spName);
         }
     }
 
@@ -2149,7 +2149,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
         String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
 
-        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)) {
             try {
                  return ApplicationManagementService.getInstance()
                         .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
@@ -2161,6 +2161,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
         return null;
     }
+
     /**
      * This method is used to check if a request is a ECP request or not.
      *
@@ -2169,54 +2170,61 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      */
     private boolean isSAMLECPRequest(HttpServletRequest req) {
 
-        if (SAML_ECP_ENABLED && req.getParameter(SAMLECPConstants.IS_ECP_REQUEST) != null &&
-                req.getParameter(SAMLECPConstants.IS_ECP_REQUEST).equals(Boolean.toString(true))) {
-            return true;
-        }
-        return false;
+        return SAML_ECP_ENABLED && Boolean.parseBoolean(req.getParameter(SAMLECPConstants.IS_ECP_REQUEST));
     }
 
     /**
      * This method is used to generate the response for a ECP request.
      *
-     * @param resp HttpServletResponse.
-     * @throws IOException
+     * @param resp          HttpServletResponse.
+     * @param response      Response message.
+     * @param acUrl         Assertion Consumer URL.
+     * @throws IOException If sending response fails.
      */
     private void generateResponseForECPRequest(HttpServletResponse resp, String response, String acUrl)
             throws IOException {
 
         PrintWriter out = resp.getWriter();
-        resp.setContentType("text/xml");
-        resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+        resp.setContentType(MediaType.TEXT_XML);
+        resp.setHeader(SAMLSSOConstants.CACHE_CONTROL_PARAM_KEY, "no-store, no-cache, must-revalidate, private");
         String samlResponse = new String(Base64.getDecoder().decode(response))
-                .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-        String soapResponse = null;
+                .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", StringUtils.EMPTY);
         try {
-            soapResponse = SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl);
+            String soapResponse = SAMLSOAPUtils.createSOAPMessage(samlResponse, acUrl);
+            if (log.isDebugEnabled()) {
+                log.debug(soapResponse);
+            }
+            out.print(soapResponse);
         } catch (TransformerException | SOAPException e) {
             SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
             String message = "Error Generating the SOAP Response";
             log.error(message, e);
         }
-        if (log.isDebugEnabled()) {
-            log.debug(soapResponse);
-        }
-        out.print(soapResponse);
     }
 
+    /**
+     * This method is used to generate a error response for a ECP request.
+     *
+     * @param resp          HttpServletResponse.
+     * @param errorResp     Error response message.
+     * @param acUrl         Assertion Consumer URL.
+     * @throws IOException If sending response fails.
+     */
     private void sendNotificationForECPRequest(HttpServletResponse resp, String errorResp, String acUrl)
             throws IOException {
 
         PrintWriter out = resp.getWriter();
         try {
             String soapResp = SAMLSOAPUtils.createSOAPMessage(SAMLSSOUtil.decode(errorResp).
-                    replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ""), acUrl);
+                    replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", StringUtils.EMPTY), acUrl);
             if (log.isDebugEnabled()) {
                 log.debug(soapResp);
             }
             out.print(soapResp);
         } catch (IdentityException  e) {
             SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_CLIENT);
+            String err = "Error when decoding the error response.";
+            log.error(err, e);
         } catch (SOAPException | TransformerException e) {
             SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_SERVER);
             String err = "Error Generating the SOAP Response";

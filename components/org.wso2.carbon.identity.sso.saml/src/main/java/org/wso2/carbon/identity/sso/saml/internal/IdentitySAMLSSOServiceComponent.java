@@ -75,7 +75,8 @@ public class IdentitySAMLSSOServiceComponent {
     private static long defaultSingleLogoutRetryInterval = 60000;
 
     private static String ssoRedirectPage = null;
-    private static boolean useSamlSsoResponseJspPage = true;
+    private static boolean useSamlSsoResponseJspPage = false;
+    private static boolean useSamlSsoResponseHtmlPage = false;
 
     public static String getSsoRedirectHtml() {
 
@@ -83,11 +84,19 @@ public class IdentitySAMLSSOServiceComponent {
     }
 
     /**
-     * @return if the samlsso_response.jsp page is available or not.
+     * @return if the saml sso response JSP page is available or not.
      */
     public static boolean isSAMLSSOResponseJspPageAvailable() {
 
         return useSamlSsoResponseJspPage;
+    }
+
+    /**
+     * @return if the saml sso response HTML page is available or not.
+     */
+    public static boolean isSAMLSSOResponseHtmlPageAvailable() {
+
+        return useSamlSsoResponseHtmlPage;
     }
 
     @Activate
@@ -167,13 +176,20 @@ public class IdentitySAMLSSOServiceComponent {
 
             Path redirectJspFilePath = Paths.get(CarbonUtils.getCarbonHome(), "repository", "deployment",
                     "server", "webapps", "authenticationendpoint", "samlsso_response.jsp");
-            if (Files.notExists(redirectJspFilePath)) {
-                useSamlSsoResponseJspPage = false;
+            if (Files.exists(redirectJspFilePath)) {
+                useSamlSsoResponseJspPage = true;
+                if (log.isDebugEnabled()) {
+                    log.debug(" SAML SSO response JSP page is found at : " + redirectJspFilePath);
+                }
+            } else {
                 redirectHtmlPath = Paths.get(CarbonUtils.getCarbonHome(), "repository", "resources",
                         "identity", "pages", "samlsso_response.html");
-                ssoRedirectPage = new String(Files.readAllBytes(redirectHtmlPath), StandardCharsets.UTF_8);
-                if (log.isDebugEnabled()) {
-                    log.debug(" SAML SSO response page is found at : " + redirectHtmlPath);
+                if (Files.exists(redirectHtmlPath)) {
+                    useSamlSsoResponseHtmlPage = true;
+                    ssoRedirectPage = new String(Files.readAllBytes(redirectHtmlPath), StandardCharsets.UTF_8);
+                    if (log.isDebugEnabled()) {
+                        log.debug(" SAML SSO response HTML page is found at : " + redirectHtmlPath);
+                    }
                 }
             }
 
