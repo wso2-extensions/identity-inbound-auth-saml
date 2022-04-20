@@ -968,6 +968,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                               String tenantDomain)
             throws ServletException, IOException, IdentityException {
 
+        String spName = resolveAppName();
         acUrl = getACSUrlWithTenantPartitioning(acUrl, tenantDomain);
 
         if (acUrl == null || acUrl.trim().length() == 0) {
@@ -2138,6 +2139,28 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         return loggedInTenantDomain;
     }
 
+    /**
+     * This method is used to resolve application name.
+     *
+     * @return Application Name.
+     */
+    private String resolveAppName() {
+
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+        String issuer = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
+
+        if (StringUtils.isNotBlank(issuer) && StringUtils.isNotBlank(tenantDomain)){
+            try {
+                 return ApplicationManagementService.getInstance()
+                        .getServiceProviderNameByClientId(SAMLSSOUtil.splitAppendedTenantDomain(issuer),
+                                IdentityApplicationConstants.Authenticator.SAML2SSO.NAME, tenantDomain);
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error while getting service provider name for issuer:" + issuer + " in tenant: " +
+                        tenantDomain, e);
+            }
+        }
+        return null;
+    }
     /**
      * This method is used to check if a request is a ECP request or not.
      *
