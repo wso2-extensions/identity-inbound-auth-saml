@@ -35,13 +35,10 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
 import org.wso2.carbon.identity.sso.saml.SAMLInboundSessionContextMgtListener;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -49,7 +46,6 @@ import org.wso2.carbon.identity.sso.saml.admin.FileBasedConfigManager;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLArtifactResolveServlet;
-import org.wso2.carbon.identity.sso.saml.servlet.SAMLECPProviderServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -57,10 +53,11 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.servlet.Servlet;
 
 /**
@@ -78,10 +75,28 @@ public class IdentitySAMLSSOServiceComponent {
     private static long defaultSingleLogoutRetryInterval = 60000;
 
     private static String ssoRedirectPage = null;
+    private static boolean useSamlSsoResponseJspPage = false;
+    private static boolean useSamlSsoResponseHtmlPage = false;
 
     public static String getSsoRedirectHtml() {
 
         return ssoRedirectPage;
+    }
+
+    /**
+     * @return if the saml sso response JSP page is available or not.
+     */
+    public static boolean isSAMLSSOResponseJspPageAvailable() {
+
+        return useSamlSsoResponseJspPage;
+    }
+
+    /**
+     * @return if the saml sso response HTML page is available or not.
+     */
+    public static boolean isSAMLSSOResponseHtmlPageAvailable() {
+
+        return useSamlSsoResponseHtmlPage;
     }
 
     @Activate
@@ -126,8 +141,7 @@ public class IdentitySAMLSSOServiceComponent {
             log.error("SAMLSSOConfigService could not be registered.");
         }
 
-        String redirectHtmlPath = null;
-        FileInputStream fis = null;
+        Path redirectHtmlPath = null;
         try {
             IdentityUtil.populateProperties();
             SAMLSSOUtil.setSingleLogoutRetryCount(Integer.parseInt(
@@ -160,12 +174,23 @@ public class IdentitySAMLSSOServiceComponent {
                         SAMLSSOUtil.getSingleLogoutRetryInterval() + " in seconds.");
             }
 
-            redirectHtmlPath = CarbonUtils.getCarbonHome() + File.separator + "repository"
-                    + File.separator + "resources" + File.separator + "identity" + File.separator + "pages" + File.separator + "samlsso_response.html";
-            fis = new FileInputStream(new File(redirectHtmlPath));
-            ssoRedirectPage = new Scanner(fis, "UTF-8").useDelimiter("\\A").next();
-            if (log.isDebugEnabled()) {
-                log.debug("samlsso_response.html " + ssoRedirectPage);
+            Path redirectJspFilePath = Paths.get(CarbonUtils.getCarbonHome(), "repository", "deployment",
+                    "server", "webapps", "authenticationendpoint", "samlsso_response.jsp");
+            if (Files.exists(redirectJspFilePath)) {
+                useSamlSsoResponseJspPage = true;
+                if (log.isDebugEnabled()) {
+                    log.debug(" SAML SSO response JSP page is found at : " + redirectJspFilePath);
+                }
+            } else {
+                redirectHtmlPath = Paths.get(CarbonUtils.getCarbonHome(), "repository", "resources",
+                        "identity", "pages", "samlsso_response.html");
+                if (Files.exists(redirectHtmlPath)) {
+                    useSamlSsoResponseHtmlPage = true;
+                    ssoRedirectPage = new String(Files.readAllBytes(redirectHtmlPath), StandardCharsets.UTF_8);
+                    if (log.isDebugEnabled()) {
+                        log.debug(" SAML SSO response HTML page is found at : " + redirectHtmlPath);
+                    }
+                }
             }
 
             FileBasedConfigManager.getInstance().addServiceProviders();
@@ -192,7 +217,7 @@ public class IdentitySAMLSSOServiceComponent {
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");
             }
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to find SAML SSO response page in : " + redirectHtmlPath);
             }
@@ -204,10 +229,7 @@ public class IdentitySAMLSSOServiceComponent {
                         " Default values for retry count: " + defaultSingleLogoutRetryCount +
                         " and interval: " + defaultSingleLogoutRetryInterval + " will be used.", e);
             }
-        } finally {
-            IdentityIOStreamUtils.closeInputStream(fis);
         }
-
     }
 
     @Deactivate
