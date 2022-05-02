@@ -62,51 +62,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         return 900;
     }
 
-    @Override
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider,
-                                          String tenantDomain,
-                                          String userName) throws IdentityApplicationManagementException {
-
-        handleSAMLInboundAssociationRemoval(serviceProvider);
-        return true;
-    }
-
-    @Override
-    public boolean doPreDeleteApplication(String applicationName,
-                                          String tenantDomain,
-                                          String userName) throws IdentityApplicationManagementException {
-
-        ServiceProvider sp = SAMLSSOUtil.getApplicationMgtService()
-                .getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-
-        if (sp != null) {
-            // TODO remove after testing
-            if (log.isDebugEnabled()) {
-                log.debug("Initiating the deletion of SAML inbound data associated with service provider: "
-                        + applicationName);
-            }
-            String issuerToBeDeleted = getSAMLIssuer(sp);
-            if (StringUtils.isNotBlank(issuerToBeDeleted)) {
-                try {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Removing SAML inbound data for issuer: " + issuerToBeDeleted + " associated with " +
-                                "service provider: " + applicationName + " of tenantDomain: " + tenantDomain);
-                    }
-                    SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(issuerToBeDeleted);
-                    // TODO remove after testing
-                    SAMLSSOUtil.getSAMLSSOConfigService().getServiceProvider(issuerToBeDeleted);
-                } catch (IdentityException e) {
-                    String msg = "Error removing SAML inbound data for issuer: %s associated with " +
-                            "service provider: %s of tenantDomain: %s during application delete.";
-                    throw new IdentityApplicationManagementException(
-                            String.format(msg, issuerToBeDeleted, applicationName, tenantDomain), e);
-                }
-            }
-        }
-
-        return true;
-    }
-
     private void handleSAMLInboundAssociationRemoval(ServiceProvider sp) throws IdentityApplicationManagementException {
 
         // Get the stored app.
