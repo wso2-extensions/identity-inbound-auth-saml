@@ -87,6 +87,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private boolean samlECPEnabled;
     private long createdTimeStamp;
     private String loggedInTenantDomain;
+    private String idpSessionIdentifier;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -738,5 +739,23 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     public void setLoggedInTenantDomain(String loggedInTenantDomain) {
 
         this.loggedInTenantDomain = loggedInTenantDomain;
+    }
+
+    /**
+     * Get IDP session identifier value.
+     */
+    public String getIdpSessionIdentifier() {
+
+        return idpSessionIdentifier;
+    }
+
+    /**
+     * Set IDP session identifier value.
+     *
+     * @param idpSessionIdentifier IDP session identifier.
+     */
+    public void setIdpSessionIdentifier(String idpSessionIdentifier) {
+
+        this.idpSessionIdentifier = idpSessionIdentifier;
     }
 }

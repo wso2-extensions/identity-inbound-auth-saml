@@ -1856,6 +1856,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 authResult.getProperty(FrameworkConstants.CREATED_TIMESTAMP) instanceof Long) {
             authnReqDTO.setCreatedTimeStamp((long)authResult.getProperty(FrameworkConstants.CREATED_TIMESTAMP));
         }
+        authnReqDTO.setIdpSessionIdentifier((String)
+                authResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID));
 
         SAMLSSOUtil.setIsSaaSApplication(authResult.isSaaSApp());
         SAMLSSOUtil.setUserTenantDomain(authResult.getSubject().getTenantDomain());
