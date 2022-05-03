@@ -95,6 +95,7 @@ public class SAMLSSOConstants {
     public static final String INBOUND_ISSUER_QUALIFIER = "spQualifier";
     public static final String TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX = "-v2";
     public static final String COOKIE_ROOT_PATH = "/";
+    public static final String IDP_SESSION_KEY = "isk";
 
     public static final String ATTR_NAME_AC_URL = "acUrl";
     public static final String ATTR_NAME_SP_NAME = "spName";
