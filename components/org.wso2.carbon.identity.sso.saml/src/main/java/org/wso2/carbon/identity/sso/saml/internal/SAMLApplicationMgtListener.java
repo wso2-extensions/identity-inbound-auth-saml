@@ -209,6 +209,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         StringWriter sw = new StringWriter();
                         jaxbMarshaller.marshal(samlSP, sw);
                         authConfig.setInboundConfiguration(sw.toString());
+                        authConfig.setProperties(new Property[0]);
                         return;
                     }
                 }
