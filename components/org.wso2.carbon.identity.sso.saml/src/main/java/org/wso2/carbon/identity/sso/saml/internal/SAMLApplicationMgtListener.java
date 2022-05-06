@@ -92,6 +92,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
     private static final String DO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
     private static final String DO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     private static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
+    private static final String IS_UPDATE = "isUpdate";
 
     @Override
     public int getDefaultOrderId() {
@@ -172,7 +173,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         }
 
                         List<Property> propertyList = new ArrayList<>();
-                        addSAMLInboundProperties(propertyList, samlssoServiceProviderDTO);
+                        addSAMLInboundProperties(propertyList, samlssoServiceProviderDTO, isUpdate);
                         Property[] properties = propertyList.toArray(new Property[0]);
                         authConfig.setProperties(properties);
                     }
@@ -306,7 +307,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
     }
 
     private static void addSAMLInboundProperties(List<Property> propertyList,
-                                                 SAMLSSOServiceProviderDTO serviceProviderDTO) {
+                                                 SAMLSSOServiceProviderDTO serviceProviderDTO, boolean isUpdate) {
         addKeyValuePair(ISSUER, serviceProviderDTO.getIssuer(), propertyList);
         addKeyValuePair(ISSUER_QUALIFIER, serviceProviderDTO.getIssuerQualifier(), propertyList);
         for (String url : serviceProviderDTO.getAssertionConsumerUrls()) {
@@ -365,6 +366,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         addKeyValuePair(DO_VALIDATE_SIGNATURE_IN_REQUESTS,
                 serviceProviderDTO.isDoValidateSignatureInRequests() ? "true" : "false", propertyList);
         addKeyValuePair(IDP_ENTITY_ID_ALIAS, serviceProviderDTO.getIdpEntityIDAlias(), propertyList);
+        addKeyValuePair(IS_UPDATE, isUpdate ? "true" : "false", propertyList);
     }
 
     private static void addKeyValuePair(String key, String value, List<Property> propertyList) {
