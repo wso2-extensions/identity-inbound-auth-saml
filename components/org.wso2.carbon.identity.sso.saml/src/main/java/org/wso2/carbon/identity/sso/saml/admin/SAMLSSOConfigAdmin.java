@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.Error;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -58,9 +60,11 @@ public class SAMLSSOConfigAdmin {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
     private UserRegistry registry;
+    private String userName;
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {
         registry = (UserRegistry) userRegistry;
+        userName = registry.getUserName();
     }
 
     /**
@@ -73,8 +77,7 @@ public class SAMLSSOConfigAdmin {
     public boolean addRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
-                .getPersistanceManager();
+        SAMLSSOServiceProviderService samlssoServiceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
         try {
             String issuer = getIssuerWithQualifier(serviceProviderDO);
             SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
@@ -86,7 +89,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return persistenceManager.addServiceProvider(registry, serviceProviderDO);
+            return samlssoServiceProviderService.addServiceProvider(serviceProviderDO, getTenantDomain(), userName);
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -130,8 +133,9 @@ public class SAMLSSOConfigAdmin {
     private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO)
             throws IdentityException {
 
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
+        SAMLSSOServiceProviderService samlssoServiceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
+        boolean response = samlssoServiceProviderService.addServiceProvider(samlssoServiceProviderDO, getTenantDomain(),
+                userName);
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
