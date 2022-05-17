@@ -64,7 +64,7 @@ public class SAMLSSOConfigAdmin {
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {
         registry = (UserRegistry) userRegistry;
-        userName = registry.getUserName();
+        userName = CarbonContext.getThreadLocalCarbonContext().getUsername();
     }
 
     /**
