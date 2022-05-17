@@ -280,7 +280,6 @@
                 issuer = SAMLSSOUIUtil.getIssuerWithQualifier(serviceProviderDTO.getIssuer(),
                         serviceProviderDTO.getIssuerQualifier());
             }
-            attributeConsumingServiceIndex = client.getServiceProvider(issuer).getAttributeConsumingServiceIndex();
         }
         samlSsoServuceProviderConfigBean.clearBean();
         

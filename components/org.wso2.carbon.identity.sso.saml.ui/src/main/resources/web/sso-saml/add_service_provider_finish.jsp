@@ -221,7 +221,7 @@
         }else{
             status = client.addServiceProvider(serviceProviderDTO);
         }
-        attributeConsumingServiceIndex = client.getServiceProvider(serviceProviderDTO.getIssuer()).getAttributeConsumingServiceIndex();
+//        attributeConsumingServiceIndex = client.getServiceProvider(serviceProviderDTO.getIssuer()).getAttributeConsumingServiceIndex();
         samlSsoServuceProviderConfigBean.clearBean();
         String message;
         if (status) {
