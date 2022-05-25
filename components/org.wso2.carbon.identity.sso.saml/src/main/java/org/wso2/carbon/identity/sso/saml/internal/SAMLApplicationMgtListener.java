@@ -207,8 +207,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
 
                         SAMLSSOServiceProviderDTO samlSP = null;
                         if (authConfig.getProperties() != null) {
-                            samlSP = getServiceProviderDTO(authConfig.getProperties(),
-                                    serviceProvider.getOwner().getTenantDomain());
+                            samlSP = getServiceProviderDTO(authConfig.getProperties());
                         }
                         if (samlSP == null) {
                             throw new IdentityApplicationManagementException(String.format("There is no saml " +
@@ -485,19 +484,12 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         propertyList.add(property);
     }
 
-    private static SAMLSSOServiceProviderDTO getServiceProviderDTO(Property[] properties, String tenantDomain) {
+    private static SAMLSSOServiceProviderDTO getServiceProviderDTO(Property[] properties) {
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
         SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
-        if (map.containsKey(ISSUER)) {
-            serviceProviderDTO.setIssuer(map.get(ISSUER).get(0));
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("SAML SP not found for issuer: " + ISSUER + " in tenantDomain: " + tenantDomain);
-            }
-            return null;
-        }
+        serviceProviderDTO.setIssuer(getSingleValue(map, ISSUER));
         serviceProviderDTO.setIssuerQualifier(getSingleValue(map, ISSUER_QUALIFIER));
         if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
             serviceProviderDTO.setIssuer(SAMLSSOUtil.getIssuerWithoutQualifier(serviceProviderDTO.getIssuer()));

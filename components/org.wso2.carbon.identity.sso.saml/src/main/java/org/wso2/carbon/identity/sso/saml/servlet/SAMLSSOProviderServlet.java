@@ -25,7 +25,6 @@ import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.opensaml.core.xml.XMLObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -50,15 +49,9 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.sso.saml.FrontChannelSLOParticipantInfo;
-import org.wso2.carbon.identity.sso.saml.FrontChannelSLOParticipantStore;
-import org.wso2.carbon.identity.sso.saml.SAMLECPConstants;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOService;
-import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
+import org.wso2.carbon.identity.sso.saml.*;
 import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
@@ -80,8 +73,6 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -1797,10 +1788,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     privilegedCarbonContext.setTenantId(tenantId);
                     privilegedCarbonContext.setTenantDomain(tenantDomain);
 
-                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                            (RegistryType.SYSTEM_CONFIGURATION);
-                    serviceProviderConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                    SAMLSSOServiceProviderService samlssoServiceProviderService =
+                            SAMLSSOServiceProviderServiceImpl.getInstance();
+                    serviceProviderConfigs = samlssoServiceProviderService.getServiceProvider(issuer);
                     authnReqDTO.setStratosDeployment(false); // not stratos
                 } catch (IdentityException e) {
                     throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "

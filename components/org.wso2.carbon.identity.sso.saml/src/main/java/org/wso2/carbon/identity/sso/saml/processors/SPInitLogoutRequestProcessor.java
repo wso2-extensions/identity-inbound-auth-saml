@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
@@ -270,10 +272,9 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     privilegedCarbonContext.setTenantId(tenantId);
                     privilegedCarbonContext.setTenantDomain(tenantDomain);
                     IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                            (RegistryType.SYSTEM_CONFIGURATION);
-                    ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                    SAMLSSOServiceProviderService samlssoServiceProviderService =
+                            SAMLSSOServiceProviderServiceImpl.getInstance();
+                    ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(issuer);
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }

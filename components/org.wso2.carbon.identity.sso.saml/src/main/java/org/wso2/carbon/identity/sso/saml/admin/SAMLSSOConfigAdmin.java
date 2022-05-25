@@ -27,7 +27,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
@@ -60,11 +59,10 @@ public class SAMLSSOConfigAdmin {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
     private UserRegistry registry;
-    private String userName;
+
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {
         registry = (UserRegistry) userRegistry;
-        userName = CarbonContext.getThreadLocalCarbonContext().getUsername();
     }
 
     /**
@@ -89,7 +87,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return samlssoServiceProviderService.addServiceProvider(serviceProviderDO, getTenantDomain(), userName);
+            return samlssoServiceProviderService.addServiceProvider(serviceProviderDO);
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -134,8 +132,7 @@ public class SAMLSSOConfigAdmin {
             throws IdentityException {
 
         SAMLSSOServiceProviderService samlssoServiceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
-        boolean response = samlssoServiceProviderService.addServiceProvider(samlssoServiceProviderDO, getTenantDomain(),
-                userName);
+        boolean response = samlssoServiceProviderService.addServiceProvider(samlssoServiceProviderDO);
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
@@ -200,7 +197,6 @@ public class SAMLSSOConfigAdmin {
      */
     public SAMLSSOServiceProviderDTO uploadRelyingPartyServiceProvider(String metadata) throws IdentityException {
 
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
         Parser parser = new Parser(registry);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
 
@@ -415,9 +411,8 @@ public class SAMLSSOConfigAdmin {
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
         SAMLSSOServiceProviderDTO[] serviceProviders = null;
         try {
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
-                    .getPersistanceManager();
-            SAMLSSOServiceProviderDO[] providersSet = persistenceManager.getServiceProviders(registry);
+            SAMLSSOServiceProviderService serviceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
+            SAMLSSOServiceProviderDO[] providersSet = serviceProviderService.getServiceProviders();
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {
@@ -505,8 +500,8 @@ public class SAMLSSOConfigAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
         try {
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            return persistenceManager.removeServiceProvider(registry, issuer);
+            SAMLSSOServiceProviderService serviceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
+            return serviceProviderService.removeServiceProvider(issuer);
         } catch (IdentityException e) {
             throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }
@@ -515,6 +510,13 @@ public class SAMLSSOConfigAdmin {
     protected String getTenantDomain() {
 
         return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+    }
+
+    public SAMLSSOServiceProviderDTO getServiceProvider(String issuer) throws IdentityException {
+        SAMLSSOServiceProviderService samlssoServiceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
+        SAMLSSOServiceProviderDO serviceProviderDO =
+                samlssoServiceProviderService.getServiceProvider(issuer);
+        return createSAMLSSOServiceProviderDTO(serviceProviderDO);
     }
 
 }

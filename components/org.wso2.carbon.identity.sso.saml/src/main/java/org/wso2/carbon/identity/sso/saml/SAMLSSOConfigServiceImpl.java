@@ -241,20 +241,17 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            SAMLSSOServiceProviderInfoDTO serviceProviders = configAdmin.getServiceProviders();
-
-            for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
-                if (StringUtils.equals(sp.getIssuer(), issuer)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("SAML SP found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
-                    }
-                    return sp;
+            SAMLSSOServiceProviderDTO serviceProviderDTO = configAdmin.getServiceProvider(issuer);
+            if (serviceProviderDTO != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("SAML SP found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("SAML SP not found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
                 }
             }
-            if (log.isDebugEnabled()) {
-                log.debug("SAML SP not found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
-            }
-            return null;
+            return serviceProviderDTO;
         } catch (IdentityException ex) {
             String msg = "Error retrieving SAML SP for issuer: " + issuer + " of tenantDomain: " + getTenantDomain();
             throw handleException(msg, ex);
