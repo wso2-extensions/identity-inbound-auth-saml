@@ -301,7 +301,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
 
     private String generateApplicationName() {
         UUID uuid = UUID.randomUUID();
-        return uuid.toString() + "_SAML_SP";
+        return uuid.toString() + "_SAML-SP";
     }
 
     private SAMLSSOServiceProviderDTO getServiceProviderDTO(Property[] properties) {
