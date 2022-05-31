@@ -245,5 +245,53 @@ public class SAMLSSOConstants {
         }
     }
 
+    public static class Metadata {
+        public final static String PROP_SAML_SSO_ISSUER = "Issuer";
+        public final static String PROP_SAML_SSO_ISSUER_QUALIFIER = "SpQualifier";
+        public final static String PROP_SAML_SSO_ASSERTION_CONS_URL = "SAMLSSOAssertionConsumerURL";
+        public final static String PROP_SAML_SSO_ASSERTION_CONS_URLS = "SAMLSSOAssertionConsumerURLs";
+        public final static String PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL = "DefaultSAMLSSOAssertionConsumerURL";
+        public final static String PROP_SAML_SSO_ISSUER_CERT_ALIAS = "IssuerCertAlias";
+        public final static String PROP_SAML_SSO_USE_FULLY_QUALIFIED_USERNAME_AS_SUBJECT = "useFullyQualifiedUsername";
+        public final static String PROP_SAML_SSO_DO_SINGLE_LOGOUT = "doSingleLogout";
+        public final static String PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
+        public final static String PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
+        public final static String DEFAULT_FRONT_CHANNEL_LOGOUT_BINDING = "HTTPRedirectBinding";
+        public final static String PROP_SAML_SLO_RESPONSE_URL = "sloResponseURL";
+        public final static String PROP_SAML_SLO_REQUEST_URL = "sloRequestURL";
+        public final static String PROP_SAML_SSO_LOGIN_PAGE_URL = "loginPageURL";
+        public final static String PROP_SAML_SSO_DO_SIGN_RESPONSE = "doSignResponse";
+        public final static String PROP_SAML_SSO_DO_SIGN_ASSERTIONS = "doSignAssertions";
+        public static final String PROP_SAML_SSO_PUB_KEY_FILE_PATH = "pub-Key-file-path";
+        public final static String PROP_SAML_SSO_GEN_KEY_PASS = "private-key-password";
+        public static final String PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
+        public static final String PROP_SAML_SSO_REQUESTED_CLAIMS = "RequestedClaims";
+        public static final String PROP_SAML_SSO_REQUESTED_AUDIENCES = "RequestedAudiences";
+        public static final String PROP_SAML_SSO_REQUESTED_RECIPIENTS = "RequestedRecipients";
+        public static final String PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT = "EnableAttributesByDefault";
+        public static final String PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI = "EnableNameIDClaimUri";
+        public static final String PROP_SAML_SSO_NAMEID_CLAIMURI = "NameIDClaimUri";
+        public static final String PROP_SAML_SSO_NAMEID_FORMAT = "NameIDFormat";
+        public static final String PROP_SAML_SSO_IDP_INIT_SSO_ENABLED = "IdPInitSSOEnabled";
+        public static final String PROP_SAML_SLO_IDP_INIT_SLO_ENABLED = "IdPInitSLOEnabled";
+        public static final String PROP_SAML_IDP_INIT_SLO_RETURN_URLS = "IdPInitiatedSLOReturnToURLs";
+        public static final String PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
+        public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
+        public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE =
+                "doValidateSignatureInArtifactResolve";
+        public static final String PROP_SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
+        public static final String PROP_SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+        public static final String PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM = "assertionEncryptionAlgorithm";
+        public static final String PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM = "keyEncryptionAlgorithm";
+        public static final String PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED =
+                "AssertionQueryRequestProfileEnabled";
+        public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
+                "SupportedAssertionQueryRequestTypes";
+        public static final String PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
+        public static final String PROP_SAML_ENABLE_ECP = "EnableSAMLECP";
+        public static final String PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
+
+    }
+
 }
 

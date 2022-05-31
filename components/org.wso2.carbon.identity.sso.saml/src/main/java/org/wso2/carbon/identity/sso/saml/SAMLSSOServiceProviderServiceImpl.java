@@ -18,7 +18,6 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.CertificateRetriever;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
-import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -262,83 +261,83 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
 
     private void addSAMLInboundProperties(List<Property> propertyList,
                                     SAMLSSOServiceProviderDO serviceProviderDO) {
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ISSUER, serviceProviderDO.getIssuer(), propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER, serviceProviderDO.getIssuer(), propertyList);
         for (String url : serviceProviderDO.getAssertionConsumerUrls()) {
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS, url, propertyList);
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_CONS_URLS, url, propertyList);
         }
-        addKeyValuePair(IdentityRegistryResources.PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL,
                 serviceProviderDO.getDefaultAssertionConsumerUrl(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_CERT_ALIAS,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER_CERT_ALIAS,
                 serviceProviderDO.getCertAlias(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_LOGIN_PAGE_URL,
                 serviceProviderDO.getLoginPageURL(), propertyList);
         addKeyValuePair(
-                IdentityRegistryResources.PROP_SAML_SSO_NAMEID_FORMAT,
+                SAMLSSOConstants.Metadata.PROP_SAML_SSO_NAMEID_FORMAT,
                 serviceProviderDO.getNameIDFormat(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM, serviceProviderDO
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_SIGNING_ALGORITHM, serviceProviderDO
                 .getSigningAlgorithmUri(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM, serviceProviderDO
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_DIGEST_ALGORITHM, serviceProviderDO
                 .getDigestAlgorithmUri(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO
                 .getAssertionEncryptionAlgorithmUri(), propertyList);
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM, serviceProviderDO
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM, serviceProviderDO
                 .getKeyEncryptionAlgorithmUri(), propertyList);
         if (serviceProviderDO.getNameIdClaimUri() != null
                 && serviceProviderDO.getNameIdClaimUri().trim().length() > 0) {
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI, "true", propertyList);
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI,
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI, "true", propertyList);
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_NAMEID_CLAIMURI,
                     serviceProviderDO.getNameIdClaimUri(), propertyList);
         } else {
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI, "false", propertyList);
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI, "false", propertyList);
         }
 
         String doSingleLogout = String.valueOf(serviceProviderDO.isDoSingleLogout());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT, doSingleLogout, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SINGLE_LOGOUT, doSingleLogout, propertyList);
         if (serviceProviderDO.isDoSingleLogout()) {
             if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SLO_RESPONSE_URL,
                         serviceProviderDO.getSloResponseURL(), propertyList);
             }
             if (StringUtils.isNotBlank(serviceProviderDO.getSloRequestURL())) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SLO_REQUEST_URL,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SLO_REQUEST_URL,
                         serviceProviderDO.getSloRequestURL(), propertyList);
             }
             // Create doFrontChannelLogout property in the registry.
             String doFrontChannelLogout = String.valueOf(serviceProviderDO.isDoFrontChannelLogout());
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT, doFrontChannelLogout,
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT, doFrontChannelLogout,
                     propertyList);
             if (serviceProviderDO.isDoFrontChannelLogout()) {
                 // Create frontChannelLogoutMethod property in the registry.
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING,
                         serviceProviderDO.getFrontChannelLogoutBinding(), propertyList);
             }
         }
 
         String doSignResponse = String.valueOf(serviceProviderDO.isDoSignResponse());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE, doSignResponse, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_RESPONSE, doSignResponse, propertyList);
 
         String isAssertionQueryRequestProfileEnabled = String.valueOf(serviceProviderDO
                 .isAssertionQueryRequestProfileEnabled());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED,
                 isAssertionQueryRequestProfileEnabled, propertyList);
 
         String supportedAssertionQueryRequestTypes = serviceProviderDO.getSupportedAssertionQueryRequestTypes();
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
                 supportedAssertionQueryRequestTypes, propertyList);
 
         String isEnableSAML2ArtifactBinding = String.valueOf(serviceProviderDO.isEnableSAML2ArtifactBinding());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING,
                 isEnableSAML2ArtifactBinding, propertyList);
 
         String doSignAssertions = String.valueOf(serviceProviderDO.isDoSignAssertions());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS, doSignAssertions, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_ASSERTIONS, doSignAssertions, propertyList);
 
         String isSamlECP = String.valueOf(serviceProviderDO.isSamlECP());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_ENABLE_ECP, isSamlECP, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_ENABLE_ECP, isSamlECP, propertyList);
 
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedClaimsList())) {
             for (String requestedClaim : serviceProviderDO.getRequestedClaimsList()) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS, requestedClaim, propertyList);
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_CLAIMS, requestedClaim, propertyList);
             }
         }
 
@@ -347,52 +346,52 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
 
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedAudiencesList())) {
             for (String requestedAudience : serviceProviderDO.getRequestedAudiencesList()) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES, requestedAudience,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_AUDIENCES, requestedAudience,
                         propertyList);
             }
         }
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedRecipientsList())) {
             for (String requestedRecipient : serviceProviderDO.getRequestedRecipientsList()) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS, requestedRecipient,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_RECIPIENTS, requestedRecipient,
                         propertyList);
             }
         }
 
         String enableAttributesByDefault = String.valueOf(serviceProviderDO.isEnableAttributesByDefault());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT,
                 enableAttributesByDefault, propertyList);
 
         String idPInitSSOEnabled = String.valueOf(serviceProviderDO.isIdPInitSSOEnabled());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED, idPInitSSOEnabled, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED, idPInitSSOEnabled, propertyList);
 
         String idPInitSLOEnabled = String.valueOf(serviceProviderDO.isIdPInitSLOEnabled());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED, idPInitSLOEnabled, propertyList);
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED, idPInitSLOEnabled, propertyList);
 
         if (serviceProviderDO.isIdPInitSLOEnabled() && serviceProviderDO.getIdpInitSLOReturnToURLList().size() > 0) {
             for (String sloReturnUrl : serviceProviderDO.getIdpInitSLOReturnToURLList()) {
-                addKeyValuePair(IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS, sloReturnUrl,
+                addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_IDP_INIT_SLO_RETURN_URLS, sloReturnUrl,
                         propertyList);
             }
         }
         String enableEncryptedAssertion = String.valueOf(serviceProviderDO.isDoEnableEncryptedAssertion());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION,
                 enableEncryptedAssertion, propertyList);
 
         String validateSignatureInRequests = String.valueOf(serviceProviderDO.isDoValidateSignatureInRequests());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS,
                 validateSignatureInRequests, propertyList);
 
         String validateSignatureInArtifactResolve =
                 String.valueOf(serviceProviderDO.isDoValidateSignatureInArtifactResolve());
-        addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
+        addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE,
                 validateSignatureInArtifactResolve, propertyList);
 
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER, serviceProviderDO
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER_QUALIFIER, serviceProviderDO
                     .getIssuerQualifier(), propertyList);
         }
         if (StringUtils.isNotBlank(serviceProviderDO.getIdpEntityIDAlias())) {
-            addKeyValuePair(IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, serviceProviderDO
+            addKeyValuePair(SAMLSSOConstants.Metadata.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS, serviceProviderDO
                     .getIdpEntityIDAlias(), propertyList);
         }
 
@@ -419,96 +418,96 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
-        serviceProviderDO.setIssuer(getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        serviceProviderDO.setIssuer(getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER));
 
         serviceProviderDO.setAssertionConsumerUrls(getMultiValues(map,
-                IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS));
+                SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_CONS_URLS));
         serviceProviderDO.setDefaultAssertionConsumerUrl(getSingleValue(map,
-                IdentityRegistryResources.PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL));
-        serviceProviderDO.setCertAlias(getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ISSUER_CERT_ALIAS));
+                SAMLSSOConstants.Metadata.PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL));
+        serviceProviderDO.setCertAlias(getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER_CERT_ALIAS));
 
-        if (StringUtils.isNotEmpty(getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM))) {
-            serviceProviderDO.setSigningAlgorithmUri(getSingleValue(map, IdentityRegistryResources
+        if (StringUtils.isNotEmpty(getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_SIGNING_ALGORITHM))) {
+            serviceProviderDO.setSigningAlgorithmUri(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SSO_SIGNING_ALGORITHM));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED) !=
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED) !=
                 null) {
             serviceProviderDO.setAssertionQueryRequestProfileEnabled(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED).trim()));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) !=
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) !=
                 null) {
             serviceProviderDO.setSupportedAssertionQueryRequestTypes(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES).trim());
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES).trim());
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING) !=
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING) !=
                 null) {
             serviceProviderDO.setEnableSAML2ArtifactBinding(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING).trim()));
         }
 
-        if (StringUtils.isNotEmpty(getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM))) {
-            serviceProviderDO.setDigestAlgorithmUri(getSingleValue(map, IdentityRegistryResources
+        if (StringUtils.isNotEmpty(getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_DIGEST_ALGORITHM))) {
+            serviceProviderDO.setDigestAlgorithmUri(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SSO_DIGEST_ALGORITHM));
         }
 
-        if (StringUtils.isNotEmpty(getSingleValue(map, IdentityRegistryResources
+        if (StringUtils.isNotEmpty(getSingleValue(map, SAMLSSOConstants.Metadata
                 .PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM))) {
-            serviceProviderDO.setAssertionEncryptionAlgorithmUri(getSingleValue(map, IdentityRegistryResources
+            serviceProviderDO.setAssertionEncryptionAlgorithmUri(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SSO_ASSERTION_ENCRYPTION_ALGORITHM));
         }
 
-        if (StringUtils.isNotEmpty(getSingleValue(map, IdentityRegistryResources
+        if (StringUtils.isNotEmpty(getSingleValue(map, SAMLSSOConstants.Metadata
                 .PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM))) {
-            serviceProviderDO.setKeyEncryptionAlgorithmUri(getSingleValue(map, IdentityRegistryResources
+            serviceProviderDO.setKeyEncryptionAlgorithmUri(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SSO_KEY_ENCRYPTION_ALGORITHM));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SINGLE_LOGOUT) != null) {
             serviceProviderDO.setDoSingleLogout(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SINGLE_LOGOUT).trim()));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_NAMEID_FORMAT) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_NAMEID_FORMAT) != null) {
             serviceProviderDO.setNameIDFormat(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_NAMEID_FORMAT));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_NAMEID_FORMAT));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI) != null) {
             if (Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI).trim())) {
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_NAMEID_CLAIMURI).trim())) {
                 serviceProviderDO.setNameIdClaimUri(getSingleValue(map,
-                        IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI));
+                        SAMLSSOConstants.Metadata.PROP_SAML_SSO_NAMEID_CLAIMURI));
             }
         }
 
-        serviceProviderDO.setLoginPageURL(getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL));
+        serviceProviderDO.setLoginPageURL(getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_LOGIN_PAGE_URL));
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_RESPONSE) != null) {
             serviceProviderDO.setDoSignResponse(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_RESPONSE).trim()));
         }
 
         if (serviceProviderDO.isDoSingleLogout()) {
-            serviceProviderDO.setSloResponseURL(getSingleValue(map, IdentityRegistryResources
+            serviceProviderDO.setSloResponseURL(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SLO_RESPONSE_URL));
-            serviceProviderDO.setSloRequestURL(getSingleValue(map, IdentityRegistryResources
+            serviceProviderDO.setSloRequestURL(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SLO_REQUEST_URL));
             // Check front channel logout enable.
-            if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT) != null) {
+            if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT) != null) {
                 serviceProviderDO.setDoFrontChannelLogout(Boolean.parseBoolean(getSingleValue(map,
-                        IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT).trim()));
+                        SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT).trim()));
                 if (serviceProviderDO.isDoFrontChannelLogout()) {
-                    if (getSingleValue(map, IdentityRegistryResources.
+                    if (getSingleValue(map, SAMLSSOConstants.Metadata.
                             PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING) != null) {
                         serviceProviderDO.setFrontChannelLogoutBinding(getSingleValue(map,
-                                IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING));
+                                SAMLSSOConstants.Metadata.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING));
                     } else {
                         // Default is redirect-binding.
-                        serviceProviderDO.setFrontChannelLogoutBinding(IdentityRegistryResources
+                        serviceProviderDO.setFrontChannelLogoutBinding(SAMLSSOConstants.Metadata
                                 .DEFAULT_FRONT_CHANNEL_LOGOUT_BINDING);
                     }
 
@@ -516,14 +515,14 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             }
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_ASSERTIONS) != null) {
             serviceProviderDO.setDoSignAssertions(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_DO_SIGN_ASSERTIONS).trim()));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_ENABLE_ECP) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_ENABLE_ECP) != null) {
             serviceProviderDO.setSamlECP(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_ENABLE_ECP).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_ENABLE_ECP).trim()));
         }
 
         if (getSingleValue(map, ATTRIBUTE_CONSUMING_SERVICE_INDEX) != null) {
@@ -534,58 +533,58 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             serviceProviderDO.setAttributeConsumingServiceIndex("");
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_CLAIMS) != null) {
             serviceProviderDO.setRequestedClaims(getMultiValues(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_CLAIMS));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_AUDIENCES) != null) {
             serviceProviderDO.setRequestedAudiences(getMultiValues(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_AUDIENCES));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_RECIPIENTS) != null) {
             serviceProviderDO.setRequestedRecipients(getMultiValues(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_REQUESTED_RECIPIENTS));
         }
 
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT) != null) {
             String enableAttrByDefault = getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT);
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT);
             serviceProviderDO.setEnableAttributesByDefault(Boolean.parseBoolean(enableAttrByDefault));
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED) != null) {
             serviceProviderDO.setIdPInitSSOEnabled(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED).trim()));
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED) != null) {
             serviceProviderDO.setIdPInitSLOEnabled(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED).trim()));
             if (serviceProviderDO.isIdPInitSLOEnabled() && getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS) != null) {
+                    SAMLSSOConstants.Metadata.PROP_SAML_IDP_INIT_SLO_RETURN_URLS) != null) {
                 serviceProviderDO.setIdpInitSLOReturnToURLs(getMultiValues(map,
-                        IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS));
+                        SAMLSSOConstants.Metadata.PROP_SAML_IDP_INIT_SLO_RETURN_URLS));
             }
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION) != null) {
             serviceProviderDO.setDoEnableEncryptedAssertion(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION).trim()));
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS) != null) {
             serviceProviderDO.setDoValidateSignatureInRequests(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS).trim()));
         }
         if (getSingleValue(map,
-                IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE) != null) {
+                SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE) != null) {
             serviceProviderDO.setDoValidateSignatureInArtifactResolve(Boolean.parseBoolean(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE).trim()));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE).trim()));
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER) != null) {
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER_QUALIFIER) != null) {
             serviceProviderDO.setIssuerQualifier(getSingleValue(map,
-                    IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER));
+                    SAMLSSOConstants.Metadata.PROP_SAML_SSO_ISSUER_QUALIFIER));
         }
-        if (getSingleValue(map, IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS) != null) {
-            serviceProviderDO.setIdpEntityIDAlias(getSingleValue(map, IdentityRegistryResources
+        if (getSingleValue(map, SAMLSSOConstants.Metadata.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS) != null) {
+            serviceProviderDO.setIdpEntityIDAlias(getSingleValue(map, SAMLSSOConstants.Metadata
                     .PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS));
         }
         return serviceProviderDO;
