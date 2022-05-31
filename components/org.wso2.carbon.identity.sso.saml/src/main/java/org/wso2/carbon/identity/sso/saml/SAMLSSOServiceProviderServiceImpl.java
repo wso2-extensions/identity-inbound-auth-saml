@@ -5,6 +5,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -13,9 +14,14 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.CertificateRetriever;
+import org.wso2.carbon.identity.core.CertificateRetrievingException;
+import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
+import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.user.api.Tenant;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,6 +29,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +41,8 @@ import java.util.List;
 import java.util.UUID;
 
 import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -41,6 +54,15 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
     private static SAMLSSOServiceProviderServiceImpl samlssoServiceProviderService =
             new SAMLSSOServiceProviderServiceImpl();
     private ApplicationManagementService applicationManagementService;
+
+    private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
+    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
+            "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
+
+    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
+            "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
     private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
 
@@ -130,6 +152,12 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
 
     @Override
     public boolean removeServiceProvider(String issuer) throws IdentityException {
+        if (issuer == null || issuer.equals("default")) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Issuer name can't be : %s.",issuer));
+            }
+            return false;
+        }
         ServiceProvider serviceProvider = null;
         String userName = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -139,7 +167,10 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             throw new IdentityException(String.format("Error happened when retrieving Service" +
                     " Provider Information for the saml issuer: %s in tenantDomain: %s .", issuer, tenantDomain), e);
         }
-        if (serviceProvider == null) {
+        if (serviceProvider == null || serviceProvider.getApplicationName().equals("default")) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Couldn't find an application with the issuer name: %s.",issuer));
+            }
             return false;
         }
         ServiceProvider appToUpdate = null;
@@ -165,7 +196,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public SAMLSSOServiceProviderDO getServiceProvider(String issuer)
+    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId)
             throws IdentityException {
         ServiceProvider serviceProvider = null;
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -175,13 +206,43 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             throw new IdentityException(String.format("Error happened when retrieving Service" +
                     " Provider Information for the saml issuer: %s in tenantDomain: %s .", issuer, tenantDomain), e);
         }
-        if (serviceProvider != null && serviceProvider.getInboundAuthenticationConfig() != null &&
-                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+
+        if (serviceProvider == null || serviceProvider.getApplicationName().equals("default")) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Couldn't find an application with the issuer name: %s.",issuer));
+            }
+            return null;
+        }
+
+        if (serviceProvider.getInboundAuthenticationConfig() != null
+                && serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
             for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
                 if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
                     if (authConfig.getProperties() != null) {
-                        return getServiceProviderDO(authConfig.getProperties());
+                        SAMLSSOServiceProviderDO serviceProviderDO = getServiceProviderDO(authConfig.getProperties());
+
+                        // Load the certificate stored in the database, if signature validation is enabled..
+                        if (serviceProviderDO.isDoValidateSignatureInRequests() ||
+                                serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
+                                serviceProviderDO.isDoEnableEncryptedAssertion()) {
+                            Tenant tenant = new Tenant();
+                            tenant.setDomain(tenantDomain);
+                            tenant.setId(tenantId);
+                            try {
+                                serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
+                            } catch (SQLException e) {
+                                throw new IdentityException(String.format("An error occurred while getting the " +
+                                        "application certificate id for validating the requests from the issuer '%s'",
+                                        issuer), e);
+                            } catch (CertificateRetrievingException e) {
+                                throw new IdentityException(String.format("An error occurred while getting the " +
+                                        "application certificate for validating the requests from the issuer '%s'",
+                                        issuer), e);
+                            }
+                        }
+                        serviceProviderDO.setTenantDomain(tenantDomain);
+                        return serviceProviderDO;
                     }
                 }
             }
@@ -201,7 +262,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             throw new IdentityException(String.format("Error happened when retrieving Service" +
                     " Provider Name for the saml issuer: %s in tenantDomain: %s .", issuer, tenantDomain), e);
         }
-        return !serviceProviderName.equals("default");
+        return serviceProviderName != null && !serviceProviderName.equals("default");
     }
 
     private InboundAuthenticationConfig createInboundAuthenticationConfig(SAMLSSOServiceProviderDO serviceProviderDO) {
@@ -304,82 +365,6 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
         return uuid.toString() + "_SAML-SP";
     }
 
-    private SAMLSSOServiceProviderDTO getServiceProviderDTO(Property[] properties) {
-        HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
-                Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
-
-        SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
-        serviceProviderDTO.setIssuer(getSingleValue(map, ISSUER));
-        serviceProviderDTO.setIssuerQualifier(getSingleValue(map, ISSUER_QUALIFIER));
-        if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
-            serviceProviderDTO.setIssuer(SAMLSSOUtil.getIssuerWithoutQualifier(serviceProviderDTO.getIssuer()));
-        }
-        serviceProviderDTO.setAssertionConsumerUrls(getMultiValues(map, ASSERTION_CONSUMER_URLS));
-
-        serviceProviderDTO.setDefaultAssertionConsumerUrl(getSingleValue(map, DEFAULT_ASSERTION_CONSUMER_URL));
-        serviceProviderDTO.setSigningAlgorithmURI(getSingleValue(map, SIGNING_ALGORITHM_URI));
-        serviceProviderDTO.setDigestAlgorithmURI(getSingleValue(map, DIGEST_ALGORITHM_URI));
-        serviceProviderDTO.setAssertionEncryptionAlgorithmURI(getSingleValue(map, ASSERTION_ENCRYPTION_ALGORITHM_URI));
-        serviceProviderDTO.setKeyEncryptionAlgorithmURI(getSingleValue(map, KEY_ENCRYPTION_ALGORITHM_URI));
-        serviceProviderDTO.setCertAlias(getSingleValue(map, CERT_ALIAS));
-        serviceProviderDTO.setAttributeConsumingServiceIndex(getSingleValue(map, ATTRIBUTE_CONSUMING_SERVICE_INDEX));
-
-        if (map.containsKey(ATTRIBUTE_CONSUMING_SERVICE_INDEX)
-                && StringUtils.isNotBlank(map.get(ATTRIBUTE_CONSUMING_SERVICE_INDEX).get(0))) {
-            serviceProviderDTO.setEnableAttributeProfile(true);
-        }
-
-        serviceProviderDTO.setDoSignResponse(Boolean.parseBoolean(getSingleValue(map, DO_SIGN_RESPONSE)));
-                /*
-                According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we
-                should not reply on any property to decide this behaviour. Hence the property is set to sign by default.
-                */
-        serviceProviderDTO.setDoSignAssertions(true);
-        serviceProviderDTO.setDoSingleLogout(Boolean.parseBoolean(getSingleValue(map, DO_SINGLE_LOGOUT)));
-        serviceProviderDTO.setDoFrontChannelLogout(Boolean.parseBoolean(getSingleValue(map, DO_FRONT_CHANNEL_LOGOUT)));
-        serviceProviderDTO.setFrontChannelLogoutBinding(getSingleValue(map, FRONT_CHANNEL_LOGOUT_BINDING));
-        serviceProviderDTO.setAssertionQueryRequestProfileEnabled(Boolean.parseBoolean(
-                getSingleValue(map, IS_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED)));
-        serviceProviderDTO.setSupportedAssertionQueryRequestTypes(
-                getSingleValue(map, SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
-        serviceProviderDTO.setEnableSAML2ArtifactBinding(Boolean.parseBoolean(
-                getSingleValue(map, ENABLE_SAML2_ARTIFACT_BINDING)));
-        serviceProviderDTO.setDoValidateSignatureInArtifactResolve(
-                Boolean.parseBoolean(getSingleValue(map, DO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE)));
-
-        if (!map.containsKey(LOGIN_PAGE_URL) || map.get(LOGIN_PAGE_URL).get(0) == null
-                || "null".equals(map.get(LOGIN_PAGE_URL).get(0))) {
-            serviceProviderDTO.setLoginPageURL("");
-        } else {
-            serviceProviderDTO.setLoginPageURL(getSingleValue(map, LOGIN_PAGE_URL));
-        }
-
-        serviceProviderDTO.setSloResponseURL(getSingleValue(map, SLO_RESPONSE_URL));
-        serviceProviderDTO.setSloRequestURL(getSingleValue(map, SLO_REQUEST_URL));
-        serviceProviderDTO.setRequestedClaims(getMultiValues(map, REQUESTED_CLAIMS));
-        serviceProviderDTO.setRequestedAudiences(getMultiValues(map, REQUESTED_AUDIENCES));
-        serviceProviderDTO.setRequestedRecipients(getMultiValues(map, REQUESTED_RECIPIENTS));
-        serviceProviderDTO.setEnableAttributesByDefault(Boolean.parseBoolean(
-                getSingleValue(map, ENABLE_ATTRIBUTES_BY_DEFAULT)));
-        serviceProviderDTO.setNameIdClaimUri(getSingleValue(map, NAME_ID_CLAIM_URI));
-        serviceProviderDTO.setNameIDFormat(getSingleValue(map, NAME_ID_FORMAT));
-
-        if (serviceProviderDTO.getNameIDFormat() == null) {
-            serviceProviderDTO.setNameIDFormat(NameIdentifier.UNSPECIFIED);
-        }
-        serviceProviderDTO.setNameIDFormat(serviceProviderDTO.getNameIDFormat().replace(":", "/"));
-
-        serviceProviderDTO.setIdPInitSSOEnabled(Boolean.parseBoolean(getSingleValue(map, IDP_INIT_SSO_ENABLED)));
-        serviceProviderDTO.setIdPInitSLOEnabled(Boolean.parseBoolean(getSingleValue(map, IDP_INIT_SLO_ENABLED)));
-        serviceProviderDTO.setIdpInitSLOReturnToURLs(getMultiValues(map, IDP_INIT_SLO_RETURN_TO_URLS));
-        serviceProviderDTO.setDoEnableEncryptedAssertion(Boolean.parseBoolean(
-                getSingleValue(map, DO_ENABLE_ENCRYPTED_ASSERTION)));
-        serviceProviderDTO.setDoValidateSignatureInRequests(Boolean.parseBoolean(
-                getSingleValue(map, DO_VALIDATE_SIGNATURE_IN_REQUESTS)));
-        serviceProviderDTO.setIdpEntityIDAlias(getSingleValue(map, IDP_ENTITY_ID_ALIAS));
-        return serviceProviderDTO;
-    }
-
     private SAMLSSOServiceProviderDO getServiceProviderDO(Property[] properties) {
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
@@ -399,11 +384,6 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
         serviceProviderDO.setKeyEncryptionAlgorithmUri(getSingleValue(map, KEY_ENCRYPTION_ALGORITHM_URI));
         serviceProviderDO.setCertAlias(getSingleValue(map, CERT_ALIAS));
         serviceProviderDO.setAttributeConsumingServiceIndex(getSingleValue(map, ATTRIBUTE_CONSUMING_SERVICE_INDEX));
-
-//        if (map.containsKey(ATTRIBUTE_CONSUMING_SERVICE_INDEX)
-//                && StringUtils.isNotBlank(map.get(ATTRIBUTE_CONSUMING_SERVICE_INDEX).get(0))) {
-//            serviceProviderDO.setEnableAttributeProfile(true);
-//        }
 
         serviceProviderDO.setDoSignResponse(Boolean.parseBoolean(getSingleValue(map, DO_SIGN_RESPONSE)));
                 /*
@@ -488,5 +468,67 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             throw new IdentityApplicationManagementException("Error deep cloning Service Provider object.", e);
         }
         return newObject;
+    }
+
+    /**
+     * Returns the {@link java.security.cert.Certificate} which should used to validate the requests
+     * for the given service provider.
+     *
+     * @param serviceProviderDO
+     * @param tenant
+     * @return
+     * @throws SQLException
+     * @throws CertificateRetrievingException
+     */
+    private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
+            throws SQLException, CertificateRetrievingException {
+
+        // Check whether there is a certificate stored against the service provider (in the database)
+        int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer(), tenant.getId());
+
+        CertificateRetriever certificateRetriever;
+        String certificateIdentifier;
+        if (applicationCertificateId != -1) {
+            certificateRetriever = new DatabaseCertificateRetriever();
+            certificateIdentifier = Integer.toString(applicationCertificateId);
+        } else {
+            certificateRetriever = new KeyStoreCertificateRetriever();
+            certificateIdentifier = serviceProviderDO.getCertAlias();
+        }
+
+        return certificateRetriever.getCertificate(certificateIdentifier, tenant);
+    }
+
+    /**
+     * Returns the certificate reference ID for the given issuer (Service Provider) if there is one.
+     *
+     * @param issuer
+     * @return
+     * @throws SQLException
+     */
+    private int getApplicationCertificateId(String issuer, int tenantId) throws SQLException {
+
+        try {
+            String sqlStmt = isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 :
+                    QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+                 PreparedStatement statementToGetApplicationCertificate =
+                         connection.prepareStatement(sqlStmt)) {
+                statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
+                statementToGetApplicationCertificate.setString(2, issuer);
+                statementToGetApplicationCertificate.setInt(3, tenantId);
+
+                try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
+                    if (queryResults.next()) {
+                        return queryResults.getInt(1);
+                    }
+                }
+            }
+            return -1;
+        } catch (DataAccessException e) {
+            String errorMsg = "Error while retrieving application certificate data for issuer: " + issuer +
+                    " and tenant Id: " + tenantId;
+            throw new SQLException(errorMsg, e);
+        }
     }
 }

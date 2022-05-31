@@ -21,6 +21,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Response;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -34,6 +36,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.ArrayList;
@@ -230,8 +233,12 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
             SAMLSSOServiceProviderDO ssoIdpConfigs = stratosIdpConfigManager
                     .getServiceProvider(authnReqDTO.getIssuer());
             if (ssoIdpConfigs == null) {
-                SAMLSSOServiceProviderService samlssoServiceProviderService = SAMLSSOServiceProviderServiceImpl.getInstance();
-                ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(authnReqDTO.getIssuer());
+                SAMLSSOServiceProviderService samlssoServiceProviderService =
+                        SAMLSSOServiceProviderServiceImpl.getInstance();
+                UserRegistry registry = (UserRegistry) PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+                ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(authnReqDTO.getIssuer(),
+                        registry.getTenantId());
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {
                 authnReqDTO.setStratosDeployment(true); // stratos deployment

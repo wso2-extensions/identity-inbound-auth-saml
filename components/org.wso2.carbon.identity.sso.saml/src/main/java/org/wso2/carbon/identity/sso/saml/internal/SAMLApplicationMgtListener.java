@@ -17,38 +17,21 @@
  */
 package org.wso2.carbon.identity.sso.saml.internal;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml1.core.NameIdentifier;
-import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
-import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
-import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
-import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.session.UserRegistry;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,8 +41,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
-import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 
 /**
  * Application listener responsible for SAML inbound configurations.
@@ -109,54 +90,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         // Since we are deleting SAML data in pre delete operation, we want this listener to be executed as
         // late as possible allowing other listeners to execute and break the flow if required.
         return 900;
-    }
-
-    private void handleSAMLInboundAssociationRemoval(ServiceProvider sp) throws IdentityApplicationManagementException {
-
-        // Get the stored app.
-        int appId = sp.getApplicationID();
-
-        ServiceProvider storedSp = SAMLSSOUtil.getApplicationMgtService().getServiceProvider(appId);
-
-        String storedSAMLIssuer = getSAMLIssuer(storedSp);
-        String updatedSAMLIssuer = getSAMLIssuer(sp);
-
-        if (isSAMLInboundAssociationRemoved(storedSAMLIssuer, updatedSAMLIssuer)) {
-            // Remove SAML inbound data.
-            if (log.isDebugEnabled()) {
-                log.debug("SAML inbound with issuer: " + storedSAMLIssuer + " has been removed from " +
-                        "service provider with id: " + appId + ". Removing the stale SAML inbound data for " +
-                        "issuer: " + storedSAMLIssuer);
-            }
-            try {
-                SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(storedSAMLIssuer);
-            } catch (IdentityException e) {
-                String msg = "Error removing SAML inbound data for issuer: %s associated with " +
-                        "service provider with id: %s during application update.";
-                throw new IdentityApplicationManagementException(String.format(msg, storedSAMLIssuer, appId), e);
-            }
-        }
-    }
-
-    private boolean isSAMLInboundAssociationRemoved(String storeSAMLIssuer,
-                                                    String updatedSAMLIssuer) {
-
-        return storeSAMLIssuer != null && updatedSAMLIssuer == null;
-    }
-
-    private String getSAMLIssuer(ServiceProvider sp) {
-
-        if (sp != null && sp.getInboundAuthenticationConfig() != null) {
-            if (ArrayUtils.isNotEmpty(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())) {
-                return Arrays.stream(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())
-                        .filter(inbound -> StandardInboundProtocols.SAML2.equals(inbound.getInboundAuthType()))
-                        .findAny()
-                        .map(InboundAuthenticationRequestConfig::getInboundAuthKey)
-                        .orElse(null);
-            }
-        }
-
-        return null;
     }
 
     public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
@@ -230,69 +163,8 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         }
     }
 
-    private Registry getConfigSystemRegistry() {
-
-        return (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType
-                .SYSTEM_CONFIGURATION);
-    }
-
     /**
-     * Validate inbound auth SAML configurations.
-     *
-     * @param authConfig      saml auth config
-     * @param applicationName application name
-     * @param tenantDomain    tenant domain
-     * @param isUpdate        whether the application update or create
-     * @throws IdentityApplicationManagementValidationException throws if the config is not valid or already key exists.
-     */
-    private void validateSAMLSP(InboundAuthenticationRequestConfig authConfig, String applicationName, String
-            tenantDomain, boolean isUpdate) throws IdentityApplicationManagementValidationException {
-
-        List<String> validationMsg = new ArrayList<>();
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO;
-        try {
-            samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(authConfig.getInboundConfiguration(),
-                    applicationName, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            String errorMsg = String.format("SAML inbound configuration in the file is not valid for the " +
-                    "application %s", applicationName);
-            log.error(errorMsg, e);
-            validationMsg.add(errorMsg);
-            return;
-        }
-        String issuer = samlssoServiceProviderDTO.getIssuer();
-        if (StringUtils.isNotBlank(samlssoServiceProviderDTO.getIssuerQualifier())) {
-            issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer, samlssoServiceProviderDTO.getIssuerQualifier());
-        }
-        if (!authConfig.getInboundAuthKey().equals(issuer)) {
-            validationMsg.add(String.format("The Inbound Auth Key of the  application name %s " +
-                    "is not match with SAML issuer %s.", authConfig.getInboundAuthKey(), issuer));
-        }
-        SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
-
-        if (!isUpdate) {
-            try {
-                SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
-                if (serviceProviderInfoDTOs != null) {
-                    for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
-                        if (sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
-                            validationMsg.add(String.format("Already a SAML configuration available with %s",
-                                    authConfig.getInboundAuthKey()));
-                            break;
-                        }
-                    }
-                }
-            } catch (IdentityException e) {
-                // Do nothing, the issuer does exists.
-            }
-        }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
-    }
-
-    /**
-     * Unmarshel SAMLSSOServiceProvider DTO
+     * Unmarshel SAMLSSOServiceProvider DTO.
      *
      * @param authConfig          authentication config
      * @param serviceProviderName service provider name
@@ -313,98 +185,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             throw new IdentityApplicationManagementException(String.format("Error in unmarshelling SAML application " +
                     "%s@%s", serviceProviderName, tenantDomain), e);
         }
-    }
-
-    @Override
-    public boolean doPreCreateApplication(ServiceProvider application, String tenantDomain, String userPerformingAction)
-            throws IdentityApplicationManagementException {
-
-        if (application.getInboundAuthenticationConfig() != null &&
-                application.getInboundAuthenticationConfig()
-                        .getInboundAuthenticationRequestConfigs() != null) {
-
-            for (InboundAuthenticationRequestConfig authConfig : application.getInboundAuthenticationConfig()
-                    .getInboundAuthenticationRequestConfigs()) {
-                if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
-
-                    if (authConfig.getProperties() == null) {
-                        throw new IdentityApplicationManagementException(String.format("There is no saml " +
-                                "configured with %s", authConfig.getInboundAuthKey()));
-                    }
-                    for (Property property: authConfig.getProperties()) {
-                        if (property.getName().equals("metadata") && property.getValue() != null) {
-                            Registry registry = getConfigSystemRegistry();
-                            SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
-                            try {
-                                Parser parser = new Parser(registry);
-                                //pass metadata to samlSSOServiceProvider object
-                                samlssoServiceProviderDO = parser.parse(property.getValue(), samlssoServiceProviderDO);
-                            } catch (InvalidMetadataException e) {
-                                throw new IdentityApplicationManagementException(INVALID_REQUEST.getErrorCode(),
-                                        "Error parsing SAML SP metadata.", e);
-                            }
-                            if (samlssoServiceProviderDO.getX509Certificate() != null) {
-                                try {
-                                    //save certificate
-                                    saveCertificateToKeyStore(samlssoServiceProviderDO, (UserRegistry) registry);
-                                } catch (Exception e) {
-                                    throw new IdentityApplicationManagementException("Error occurred while setting " +
-                                            "certificate and alias", e);
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /*
-     * Save Certificate To Key Store
-     *
-     * @param serviceProviderDO Service provider data object
-     * @throws Exception exception
-     */
-    private static void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO, UserRegistry registry)
-            throws Exception {
-
-        KeyStoreManager manager = KeyStoreManager.getInstance(registry.getTenantId(), IdentitySAMLSSOServiceComponent
-                .getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
-
-        if (MultitenantConstants.SUPER_TENANT_ID == registry.getTenantId()) {
-
-            KeyStore keyStore = manager.getPrimaryKeyStore();
-
-            // Admin should manually add the service provider signing certificate to the keystore file.
-            // If the certificate is available we will set the alias of that certificate.
-            String alias = keyStore.getCertificateAlias(serviceProviderDO.getX509Certificate());
-            if (!StringUtils.isBlank(alias)) {
-                serviceProviderDO.setCertAlias(alias);
-            } else {
-                serviceProviderDO.setCertAlias(null);
-            }
-        } else {
-
-            String keyStoreName = getKeyStoreName(registry.getTenantId());
-            KeyStore keyStore = manager.getKeyStore(keyStoreName);
-
-            // Add new certificate
-            keyStore.setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());
-            manager.updateKeyStore(keyStoreName, keyStore);
-        }
-    }
-    /*
-     * This method returns the key store file name from the domain Name
-     *
-     * @return key store name
-     */
-    private static String getKeyStoreName(int tenantId) {
-
-        String ksName = IdentityTenantUtil.getTenantDomain(tenantId).replace(".", "-");
-        return (ksName + ".jks");
     }
 
     private static void addSAMLInboundProperties(List<Property> propertyList,

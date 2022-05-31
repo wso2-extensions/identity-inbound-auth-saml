@@ -212,7 +212,7 @@ public class SAMLQueryRequestUtil {
             if (ssoIdpConfigs == null) {
                 SAMLSSOServiceProviderService samlssoServiceProviderService =
                         SAMLSSOServiceProviderServiceImpl.getInstance();
-                ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(issuer);
+                ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(issuer, registry.getTenantId());
             }
             return ssoIdpConfigs;
         } catch (IdentityException e) {

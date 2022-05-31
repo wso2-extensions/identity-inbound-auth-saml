@@ -261,7 +261,7 @@
             serviceProviderDTO.setDoValidateSignatureInRequests(true);
             serviceProviderDTO.setCertAlias(SAMLSSOUIUtil.getSafeInput(request, "alias"));
         }
-    
+
         if (StringUtils.isNotBlank(request.getParameter(SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS))) {
             serviceProviderDTO.setIdpEntityIDAlias(SAMLSSOUIUtil.getSafeInput(request,
                     SAMLSSOUIConstants.IDP_ENTITY_ID_ALIAS));
@@ -280,9 +280,10 @@
                 issuer = SAMLSSOUIUtil.getIssuerWithQualifier(serviceProviderDTO.getIssuer(),
                         serviceProviderDTO.getIssuerQualifier());
             }
+            attributeConsumingServiceIndex = client.getServiceProvider(issuer).getAttributeConsumingServiceIndex();
         }
         samlSsoServuceProviderConfigBean.clearBean();
-        
+
         String message;
         if (status) {
             if (isEditingSP) {

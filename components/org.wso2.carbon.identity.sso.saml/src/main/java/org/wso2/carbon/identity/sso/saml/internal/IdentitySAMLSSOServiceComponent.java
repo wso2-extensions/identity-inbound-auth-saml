@@ -33,6 +33,7 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
@@ -52,6 +53,7 @@ import org.wso2.carbon.identity.sso.saml.servlet.SAMLArtifactResolveServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLECPProviderServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.sso.saml.validators.SAMLInboundConfigPreprocessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -188,6 +190,10 @@ public class IdentitySAMLSSOServiceComponent {
                     new SAMLLogoutHandler(), null);
             ctxt.getBundleContext().registerService(SessionContextMgtListener.class.getName(),
                     new SAMLInboundSessionContextMgtListener(), null);
+
+            //register SAMLInboundConfigPreprocessor as a OSGi Service
+            ctxt.getBundleContext().registerService(ApplicationValidator.class,
+                    new SAMLInboundConfigPreprocessor(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity SAML SSO bundle is activated");

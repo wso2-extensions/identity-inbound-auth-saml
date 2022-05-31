@@ -37,10 +37,11 @@ public interface SAMLSSOServiceProviderService {
     /**
      * Get SAML issuer properties from service provider by saml issuer name.
      * @param issuer SAML issuer name.
+     * @param tenantId
      * @return SAMLSSOServiceProviderDO
      * @throws IdentityException
      */
-    public SAMLSSOServiceProviderDO getServiceProvider(String issuer)
+    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId)
             throws IdentityException;
 
     /**
