@@ -272,20 +272,18 @@ public class SAMLSSOConstants {
         public static final String IDP_INIT_SLO_RETURN_URLS = "IdPInitiatedSLOReturnToURLs";
         public static final String ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
         public static final String VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
-        public static final String VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE =
-                "doValidateSignatureInArtifactResolve";
+        public static final String VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE = "doValidateSignatureInArtifactResolve";
         public static final String SIGNING_ALGORITHM = "signingAlgorithm";
         public static final String DIGEST_ALGORITHM = "digestAlgorithm";
         public static final String ASSERTION_ENCRYPTION_ALGORITHM = "assertionEncryptionAlgorithm";
         public static final String KEY_ENCRYPTION_ALGORITHM = "keyEncryptionAlgorithm";
-        public static final String ASSERTION_QUERY_REQUEST_PROFILE_ENABLED =
-                "AssertionQueryRequestProfileEnabled";
-        public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
-                "SupportedAssertionQueryRequestTypes";
+        public static final String ASSERTION_QUERY_REQUEST_PROFILE_ENABLED = "AssertionQueryRequestProfileEnabled";
+        public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "SupportedAssertionQueryRequestTypes";
         public static final String ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
         public static final String ENABLE_ECP = "EnableSAMLECP";
         public static final String IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
-        public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
+        public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
+
 
 
         public static final String IS_UPDATE = "isUpdate";
