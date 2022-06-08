@@ -191,7 +191,7 @@ public class IdentitySAMLSSOServiceComponent {
             ctxt.getBundleContext().registerService(SessionContextMgtListener.class.getName(),
                     new SAMLInboundSessionContextMgtListener(), null);
 
-            //register SAMLInboundConfigPreprocessor as a OSGi Service
+            // Register SAMLInboundConfigPreprocessor as an OSGi Service.
             ctxt.getBundleContext().registerService(ApplicationValidator.class,
                     new SAMLInboundConfigPreprocessor(), null);
 
