@@ -108,7 +108,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
                     tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityException(String.format("Error happened when retrieving SAML Service" +
-                    " Provider Information in tenantDomain: %s .", tenantDomain), e);
+                    " Provider Information in tenantDomain: %s.", tenantDomain), e);
         }
         SAMLSSOServiceProviderDO[] samlssoServiceProviderDOS = new SAMLSSOServiceProviderDO[propertyMap.size()];
         int index = 0;
