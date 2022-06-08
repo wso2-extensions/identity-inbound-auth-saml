@@ -91,7 +91,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             String resourceId = applicationManagementService.createApplication(application, tenantDomain, userName);
         } catch (IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while creating application: ", e);
+                log.debug("Error while creating application.", e);
             }
             throw new IdentityException("Error while creating application:", e);
         }
