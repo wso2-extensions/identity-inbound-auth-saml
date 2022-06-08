@@ -216,7 +216,7 @@ public class SAMLQueryRequestUtil {
             }
             return ssoIdpConfigs;
         } catch (IdentityException e) {
-            log.error("Unable to retrieve Service Provider SAML", e);
+            log.error("Unable to retrieve SAML Service Provider.", e);
             throw new IdentitySAML2QueryException("Unable to load Identity persistence service manager");
         }
     }
