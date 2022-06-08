@@ -93,7 +93,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
             if (log.isDebugEnabled()) {
                 log.debug("Error while creating application.", e);
             }
-            throw new IdentityException("Error while creating application:", e);
+            throw new IdentityException("Error while creating application.", e);
         }
         return true;
     }
