@@ -284,8 +284,6 @@ public class SAMLSSOConstants {
         public static final String IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
         public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
 
-
-
         public static final String IS_UPDATE = "isUpdate";
         public static final String CERTIFICATE = "certificate";
         public static final String METADATA_FILE = "metadataFile";
