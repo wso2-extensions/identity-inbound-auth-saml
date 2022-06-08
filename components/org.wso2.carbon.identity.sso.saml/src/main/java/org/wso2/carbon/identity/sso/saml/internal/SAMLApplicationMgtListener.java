@@ -145,9 +145,9 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         StringWriter sw = new StringWriter();
                         jaxbMarshaller.marshal(samlSP, sw);
                         authConfig.setInboundConfiguration(sw.toString());
-                        //Have to clear the the create properties to make the import xml equal to the exported xml
-                        //can't just clear properties because properties may have added elsewhere.
-                        //TODO : find a better property clear solution
+                        // TODO : find a better property clear solution
+                        // Have to clear the create properties to make the import xml equal to the exported XML,
+                        // not possible just clear properties because properties may have added elsewhere.
                         authConfig.setProperties(new Property[0]);
                         return;
                     }
