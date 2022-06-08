@@ -193,7 +193,7 @@ public class SAMLSSOServiceProviderServiceImpl implements SAMLSSOServiceProvider
                     if (authConfig.getProperties() != null) {
                         SAMLSSOServiceProviderDO serviceProviderDO = getServiceProviderDO(authConfig.getProperties());
 
-                        // Load the certificate stored in the database, if signature validation is enabled..
+                        // Load the certificate stored in the database, if signature validation is enabled.
                         if (serviceProviderDO.isDoValidateSignatureInRequests() ||
                                 serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
                                 serviceProviderDO.isDoEnableEncryptedAssertion()) {
