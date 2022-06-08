@@ -192,7 +192,7 @@ public class SAMLSSOConfigAdmin {
     }
 
     /**
-     * upload SAML SSO service provider metadata directly.
+     * Upload SAML SSO service provider metadata directly.
      *
      * @param metadata
      * @return
