@@ -94,10 +94,10 @@ public class SAMLInboundConfigPreprocessor implements ApplicationValidator {
         // Preprocess metadata file or metadata url if exists.
         preprocessMetadata(requestConfig);
 
-        // Validations.
+        // SAML metadata validation
         validateSAMLProperties(validationErrors, requestConfig, tenantDomain);
 
-        // Save the certificate if exists.
+        // Persist the certificate if exists.
         saveCertificate(validationErrors, requestConfig);
 
         // Remove unnecessary properties.
