@@ -211,6 +211,17 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
     protected void addAttributeStatements(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion) throws IdentityException{
         Map<String, String> claims = SAMLSSOUtil.getAttributes(authReqDTO);
+
+        // IDP session key is included in the AttributeStatement section of the SAML assertion.
+        try {
+            claims.put(SAMLSSOConstants.IDP_SESSION_KEY, authReqDTO.getIdpSessionIdentifier());
+            if (log.isDebugEnabled()) {
+                log.debug("IDP session key is added to user attributes");
+            }
+        } catch (UnsupportedOperationException e) {
+            // A unsupported exception can occur when attribute profile is not enabled for a SP.
+            // Exception is ignored without including the IDP session key in the AttributeStatement.
+        }
         if (claims != null && !claims.isEmpty()) {
             AttributeStatement attrStmt = buildAttributeStatement(claims);
             if (attrStmt != null) {
