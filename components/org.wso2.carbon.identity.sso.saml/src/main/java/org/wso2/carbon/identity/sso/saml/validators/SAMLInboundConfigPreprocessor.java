@@ -17,7 +17,6 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
-import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
@@ -537,7 +536,7 @@ public class SAMLInboundConfigPreprocessor implements ApplicationValidator {
     }
 
     private boolean isIssuerExists(String issuer, String tenantDomain) throws IdentityApplicationManagementException {
-        ApplicationDAO applicationDAO =new ApplicationDAOImpl();
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         try {
             if (applicationDAO.getServiceProviderNameByClientId(issuer, SAMLSSO, tenantDomain) != null) {
                 return true;

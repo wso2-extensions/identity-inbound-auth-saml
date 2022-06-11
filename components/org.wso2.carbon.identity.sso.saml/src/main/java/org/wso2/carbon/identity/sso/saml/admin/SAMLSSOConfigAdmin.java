@@ -236,10 +236,8 @@ public class SAMLSSOConfigAdmin {
             throws IdentityException {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
 
-        validateIssuer(serviceProviderDTO.getIssuer());
         serviceProviderDO.setIssuer(serviceProviderDTO.getIssuer());
 
-        validateIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
         serviceProviderDO.setIssuerQualifier(serviceProviderDTO.getIssuerQualifier());
 
         serviceProviderDO.setAssertionConsumerUrls(serviceProviderDTO.getAssertionConsumerUrls());
@@ -311,34 +309,12 @@ public class SAMLSSOConfigAdmin {
         return serviceProviderDO;
     }
 
-    private void validateIssuerQualifier(String issuerQualifier) throws IdentitySAML2ClientException {
-
-        if (StringUtils.isNotBlank(issuerQualifier) && issuerQualifier.contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
-            throw buildClientException(INVALID_REQUEST, message);
-        }
-    }
-
-    private void validateIssuer(String issuer) throws IdentitySAML2ClientException {
-
-        if (StringUtils.isBlank(issuer)) {
-            throw buildClientException(INVALID_REQUEST, "A value for the Issuer is mandatory.");
-        }
-
-        if (issuer.contains("@")) {
-            String message = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
-            throw buildClientException(INVALID_REQUEST, message);
-        }
-    }
-
     private SAMLSSOServiceProviderDTO createSAMLSSOServiceProviderDTO(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
         SAMLSSOServiceProviderDTO serviceProviderDTO = new SAMLSSOServiceProviderDTO();
 
-        validateIssuer(serviceProviderDO.getIssuer());
         serviceProviderDTO.setIssuer(serviceProviderDO.getIssuer());
 
-        validateIssuerQualifier(serviceProviderDO.getIssuerQualifier());
         serviceProviderDTO.setIssuerQualifier(serviceProviderDO.getIssuerQualifier());
 
         serviceProviderDTO.setAssertionConsumerUrls(serviceProviderDO.getAssertionConsumerUrls());
