@@ -95,6 +95,14 @@ public class SAMLSSOConstants {
     public static final String INBOUND_ISSUER_QUALIFIER = "spQualifier";
     public static final String TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX = "-v2";
     public static final String COOKIE_ROOT_PATH = "/";
+    public static final String IDP_SESSION_KEY = "isk";
+
+    public static final String ATTR_NAME_AC_URL = "acUrl";
+    public static final String ATTR_NAME_SP_NAME = "spName";
+    public static final String ATTR_NAME_SAML_MESSAGE_TYPE = "samlMessageType";
+    public static final String ATTR_NAME_SAML_MESSAGE = "samlMessage";
+    public static final String ATTR_NAME_RELAY_STATE = "relayState";
+    public static final String ATTR_NAME_AUTHENTICATED_IDPS = "authenticatedIdPs";
 
     // SAML2 Artifact Binding
     public static final byte[] SAML2_ARTIFACT_TYPE_CODE = { 0, 4 };

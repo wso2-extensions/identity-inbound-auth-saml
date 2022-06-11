@@ -146,8 +146,9 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
             if (issuerQualifier != null) {
                 issuer = SAMLSSOUtil.getIssuerWithQualifier(issuer, issuerQualifier);
-                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
             }
+
+            SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
 
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();

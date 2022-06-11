@@ -2495,13 +2495,15 @@ public class SAMLSSOUtil {
                             issuerWithQualifier;
                     log.debug(message);
                 }
-                SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuerWithQualifier);
             }
         }
 
         if (issuerWithQualifier != null){
             issuer = issuerWithQualifier;
         }
+
+        SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
+
         // Check for SaaS service providers available.
         SSOServiceProviderConfigManager saasServiceProviderConfigManager = SSOServiceProviderConfigManager
                 .getInstance();
