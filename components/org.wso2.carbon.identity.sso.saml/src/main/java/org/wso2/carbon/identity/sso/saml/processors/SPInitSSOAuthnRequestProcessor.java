@@ -25,10 +25,11 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.ErrorResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
@@ -37,7 +38,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.ArrayList;
@@ -201,7 +202,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
     /**
      * Returns the configured service provider configurations. The
-     * configurations are taken from the user registry or from the
+     * configurations are taken from the database or from the
      * sso-idp-config.xml configuration file. In Stratos deployment the
      * configurations are read from the sso-idp-config.xml file.
      *
@@ -219,10 +220,12 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             if (ssoIdpConfigs == null) {
                 IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
                         .getTenantId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-                IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                        (RegistryType.SYSTEM_CONFIGURATION);
-                ssoIdpConfigs =  persistenceManager.getServiceProvider(registry, authnReqDTO.getIssuer());
+                SAMLSSOServiceProviderService samlssoServiceProviderService =
+                        SAMLSSOServiceProviderServiceImpl.getInstance();
+                UserRegistry registry = (UserRegistry) PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+                ssoIdpConfigs =  samlssoServiceProviderService.getServiceProvider(authnReqDTO.getIssuer(),
+                        registry.getTenantId());
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {
                 authnReqDTO.setStratosDeployment(true); // stratos deployment

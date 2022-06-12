@@ -70,18 +70,16 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.query.saml.SignKeyDataHolder;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
-import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -212,21 +210,13 @@ public class SAMLQueryRequestUtil {
                     SSOServiceProviderConfigManager.getInstance();
             SAMLSSOServiceProviderDO ssoIdpConfigs = idPConfigManager.getServiceProvider(issuer);
             if (ssoIdpConfigs == null) {
-                IdentityPersistenceManager persistenceManager =
-                        IdentityPersistenceManager.getPersistanceManager();
-                int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-                UserRegistry registry =
-                        SAMLSSOUtil.getRegistryService()
-                                .getConfigSystemRegistry(tenantId);
-                ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                SAMLSSOServiceProviderService samlssoServiceProviderService =
+                        SAMLSSOServiceProviderServiceImpl.getInstance();
+                ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(issuer, registry.getTenantId());
             }
             return ssoIdpConfigs;
-        } catch (RegistryException e) {
-            log.error("Unable to load registry service", e);
-            throw new IdentitySAML2QueryException("Unable to load registry service");
-
         } catch (IdentityException e) {
-            log.error("Unable to load Identity persistence service manager", e);
+            log.error("Unable to retrieve SAML Service Provider.", e);
             throw new IdentitySAML2QueryException("Unable to load Identity persistence service manager");
         }
     }

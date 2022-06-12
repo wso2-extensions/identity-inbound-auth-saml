@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -99,27 +98,6 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            if (StringUtils.isBlank(spDto.getSigningAlgorithmURI())
-                    || !Arrays.asList(getSigningAlgorithmUris()).contains(spDto.getSigningAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Response Signing Algorithm: " + spDto.getSigningAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getDigestAlgorithmURI())
-                    || !Arrays.asList(getDigestAlgorithmURIs()).contains(spDto.getDigestAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Response Digest Algorithm: " + spDto.getDigestAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getAssertionEncryptionAlgorithmURI())
-                    || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
-                    (spDto.getAssertionEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Assertion Encryption Algorithm: " + spDto.getAssertionEncryptionAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getKeyEncryptionAlgorithmURI())
-                    || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(spDto.getKeyEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Key Encryption Algorithm: " + spDto.getKeyEncryptionAlgorithmURI());
-            }
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
@@ -168,7 +146,8 @@ public class SAMLSSOConfigServiceImpl {
             return uploadRPServiceProvider(metadata);
         } catch (IOException e) {
             String tenantDomain = getTenantDomain();
-            throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
+            throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in " +
+                    "tenantDomain: "
                     + tenantDomain, e);
         } finally {
             IOUtils.closeQuietly(in);
@@ -231,7 +210,7 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     /**
-     * Returns SAML Service provider information
+     * Returns SAML Service provider information.
      *
      * @param issuer unique identifier of SAML the service provider.
      * @return SAMLSSOServiceProviderDTO containing service provider configurations.
@@ -241,20 +220,17 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            SAMLSSOServiceProviderInfoDTO serviceProviders = configAdmin.getServiceProviders();
-
-            for (SAMLSSOServiceProviderDTO sp : serviceProviders.getServiceProviders()) {
-                if (StringUtils.equals(sp.getIssuer(), issuer)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("SAML SP found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
-                    }
-                    return sp;
+            SAMLSSOServiceProviderDTO serviceProviderDTO = configAdmin.getServiceProvider(issuer);
+            if (serviceProviderDTO != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("SAML SP found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("SAML SP not found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
                 }
             }
-            if (log.isDebugEnabled()) {
-                log.debug("SAML SP not found for issuer: " + issuer + " in tenantDomain: " + getTenantDomain());
-            }
-            return null;
+            return serviceProviderDTO;
         } catch (IdentityException ex) {
             String msg = "Error retrieving SAML SP for issuer: " + issuer + " of tenantDomain: " + getTenantDomain();
             throw handleException(msg, ex);
@@ -400,7 +376,8 @@ public class SAMLSSOConfigServiceImpl {
             }
 
         } catch (IdentityException e) {
-            String msg = "Error while getting realm for user: " + tenantAwareUsername + " of tenantDomain: " + tenantDomain;
+            String msg = "Error while getting realm for user: " + tenantAwareUsername + " of tenantDomain: " +
+                    tenantDomain;
             throw handleException(msg, e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             String msg = "Error getting all claim URIs for tenantDomain: " + tenantDomain;

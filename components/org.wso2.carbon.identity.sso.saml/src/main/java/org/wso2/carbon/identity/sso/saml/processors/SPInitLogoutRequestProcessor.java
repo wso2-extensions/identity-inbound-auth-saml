@@ -27,10 +27,11 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderService;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOServiceProviderServiceImpl;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.builders.SingleLogoutMessageBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
@@ -39,7 +40,7 @@ import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.ValidationResult;
-import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -271,10 +272,11 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     privilegedCarbonContext.setTenantId(tenantId);
                     privilegedCarbonContext.setTenantDomain(tenantDomain);
                     IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                            (RegistryType.SYSTEM_CONFIGURATION);
-                    ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                    SAMLSSOServiceProviderService samlssoServiceProviderService =
+                            SAMLSSOServiceProviderServiceImpl.getInstance();
+                    UserRegistry registry = (UserRegistry) PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .getRegistry(RegistryType.SYSTEM_CONFIGURATION);
+                    ssoIdpConfigs = samlssoServiceProviderService.getServiceProvider(issuer, registry.getTenantId());
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
