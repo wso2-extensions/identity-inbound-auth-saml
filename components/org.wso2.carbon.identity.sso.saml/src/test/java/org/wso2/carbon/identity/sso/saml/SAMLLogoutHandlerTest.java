@@ -56,7 +56,7 @@ import javax.net.ssl.TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;

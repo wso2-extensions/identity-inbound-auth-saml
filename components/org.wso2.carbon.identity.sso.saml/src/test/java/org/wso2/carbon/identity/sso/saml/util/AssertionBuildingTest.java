@@ -69,9 +69,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -364,7 +366,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setEnableAttributesByDefault(true);
         samlssoServiceProviderDO.setIssuer(issuer);
         samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
-        when(identityPersistenceManager.getServiceProvider(any(Registry.class), anyString()))
+        when(identityPersistenceManager.getServiceProvider(nullable(Registry.class), anyString()))
                 .thenReturn(samlssoServiceProviderDO);
         mockStatic(IdentityPersistenceManager.class);
         when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);

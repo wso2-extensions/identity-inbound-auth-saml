@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml.admin;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -39,8 +40,9 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -87,7 +89,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         mockStatic(SSOServiceProviderConfigManager.class);
         when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
-        when(identityPersistenceManager.addServiceProvider((Registry) any(), (SAMLSSOServiceProviderDO) any()))
+        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class)))
                 .thenReturn(true);
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
         samlssoServiceProviderDTO.setIssuer("testUser");
@@ -130,7 +132,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider() throws Exception {
 
         String metadata = "metadata";
-        when(identityPersistenceManager.addServiceProvider((Registry) any(), (SAMLSSOServiceProviderDO) any())).
+        when(identityPersistenceManager.addServiceProvider(nullable(Registry.class), nullable(SAMLSSOServiceProviderDO.class))).
                 thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
@@ -156,7 +158,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider2(String issuer) throws Exception {
 
         String metadata = "metadata";
-        when(identityPersistenceManager.addServiceProvider((Registry) any(), (SAMLSSOServiceProviderDO) any()))
+        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class)))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn(issuer);

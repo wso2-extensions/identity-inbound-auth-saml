@@ -47,9 +47,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -62,7 +63,6 @@ import static org.testng.Assert.assertNotNull;
 /**
  * Unit Tests for SAMLSSOService.
  */
-@PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, SAMLSSOUtil.class, SAMLSSOReqValidationResponseDTO.class,
     SSOSessionPersistenceManager.class})
 public class SAMLSSOServiceTest extends PowerMockTestCase {
@@ -131,12 +131,12 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         acsUrls.add(TestConstants.RETURN_TO_URL);
         mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
-        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class), any(String.class))).thenCallRealMethod();
-        when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
-        when(SAMLSSOUtil.getServiceProviderConfig(anyString(), anyString())).thenReturn(mockserviceProviderConfigs);
+        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(nullable(AuthnRequest.class), nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.unmarshall(nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.decodeForPost(nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.decode(nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), nullable(String.class))).thenReturn(true);
+        when(SAMLSSOUtil.getServiceProviderConfig(anyString(), nullable(String.class))).thenReturn(mockserviceProviderConfigs);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
@@ -157,13 +157,13 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOUtil.doBootstrap();
 
         SPInitLogoutRequestProcessor spInitLogoutRequestProcessor = mock(SPInitLogoutRequestProcessor.class);
-        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), anyString(), anyString())).thenReturn(
+        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), nullable(String.class), nullable(String.class))).thenReturn(
                 mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getSPInitLogoutRequestProcessor()).thenReturn(spInitLogoutRequestProcessor);
-        when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.unmarshall(nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.decodeForPost(nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.decode(nullable(String.class))).thenCallRealMethod();
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
@@ -202,9 +202,9 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
 
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
+        when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), nullable(String.class)))
                 .thenCallRealMethod();
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
+        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), nullable(String.class))).thenReturn(true);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
