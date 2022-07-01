@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.query.saml.validation;
 import org.mockito.Mock;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterClass;
@@ -59,6 +60,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
         SAMLQueryRequestUtil.class,
             OpenSAML3Util.class
         })
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SAMLAttributeQueryValidatorTest extends PowerMockTestCase {
 
     @Mock

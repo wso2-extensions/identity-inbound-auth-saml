@@ -38,7 +38,7 @@ public class SessionInfoDataTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        initMocks(this);
+        //initMocks(this);
         sessionInfoData = new SessionInfoData();
         samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         sessionInfoData.addServiceProvider("testUser", samlssoServiceProviderDO, null);

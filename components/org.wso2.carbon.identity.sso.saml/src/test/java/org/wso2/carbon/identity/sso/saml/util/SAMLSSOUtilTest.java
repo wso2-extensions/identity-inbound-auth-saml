@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.Status;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -83,6 +84,7 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
         KeyStoreManager.class, IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
         IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANTED_SAML_URL = "https://localhost:9443/t/wso2.com/samlsso";

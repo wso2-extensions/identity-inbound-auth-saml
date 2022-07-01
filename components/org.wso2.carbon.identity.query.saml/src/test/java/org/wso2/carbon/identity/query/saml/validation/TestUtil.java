@@ -46,7 +46,7 @@ public class TestUtil {
 
     public static void initPrivilegedCarbonContext(String tenantDomain, int tenantID, String userName) {
 
-        String carbonHome = Paths.get(System.getProperty("nuser.dir"), "target").toString();
+        String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);

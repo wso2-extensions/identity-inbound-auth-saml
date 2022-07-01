@@ -41,6 +41,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -54,7 +55,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
  * Test Class for the AbstractSAMLQueryValidator.
  */
 @PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"java.net.*", "org.opensaml.*"})
+@PowerMockIgnore({"java.net.*", "org.opensaml.*", "org.mockito.*", "javax.xml.*", "org.xml.*", "org.joda.time.*", "org.w3c.dom.*"})
 public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
 
     AbstractSAMLQueryValidator testclass = new AbstractSAMLQueryValidator();
@@ -158,9 +159,9 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         if (assertEn) {
             ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
         }
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString())).thenReturn(false);
+        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(false);
         if (value) {
-            when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
+            when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class)))
                     .thenReturn(true);
         }
         assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request), value);
@@ -171,10 +172,10 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
 
         setSAMLprovider();
         mockStatic(OpenSAML3Util.class);
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString())).thenReturn(true);
+        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(true);
         DummyRequest request = new DummyRequest();
         assertTrue(testclass.validateSignature(request));
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString())).thenReturn(false);
+        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(false);
         assertFalse(testclass.validateSignature(request));
     }
 

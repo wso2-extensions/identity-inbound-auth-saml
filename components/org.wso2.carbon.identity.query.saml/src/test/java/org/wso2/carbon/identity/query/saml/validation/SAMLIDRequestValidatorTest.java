@@ -59,7 +59,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
  * Test Class for the SAMLIDRequestValidator.
  */
 @PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"java.net.*", "org.opensaml.*"})
+@PowerMockIgnore({"java.net.*", "org.opensaml.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
 
     SAMLIDRequestValidator testclass = new SAMLIDRequestValidator();

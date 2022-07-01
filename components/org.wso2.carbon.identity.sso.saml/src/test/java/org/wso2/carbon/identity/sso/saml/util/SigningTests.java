@@ -59,7 +59,7 @@ import static org.testng.Assert.assertEquals;
 /**
  * Tests request signing functionality.
  */
-@PowerMockIgnore({"javax.net.*"})
+@PowerMockIgnore({"javax.net.*", "javax.security.*"})
 @PrepareForTest({IdentityUtil.class, IdentityProviderManager.class})
 
 public class SigningTests extends PowerMockTestCase {

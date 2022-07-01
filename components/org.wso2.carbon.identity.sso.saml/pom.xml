@@ -268,11 +268,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
@@ -312,14 +307,27 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- for Java 11 Compatibility -->
+        <!-- for Java 17 Compatibility -->
         <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-ri</artifactId>
-            <version>${jaxws.version}</version>
-            <type>pom</type>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <version>${jakarta-ws-api.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+            <version>${jakarta-soap-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jakarta-bind-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.parsers</groupId>
+            <artifactId>jaxp-ri</artifactId>
+            <version>${jaxp-ri.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -441,16 +449,26 @@
                     </suiteXmlFiles>
                     <argLine>
                         --add-opens=java.base/java.lang=ALL-UNNAMED
+                        --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+						--add-opens=java.base/java.util.zip=ALL-UNNAMED
+                        --add-opens=java.base/java.util.random=ALL-UNNAMED
                         --add-opens=java.base/java.security=ALL-UNNAMED
-                        --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
-                        --add-opens=java.base/java.io=ALL-UNNAMED
-                        --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
-                        --add-opens=java.base/jdk.internal.util=ALL-UNNAMED
-                        --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
-                        --add-opens=java.base/sun.security.util=ALL-UNNAMED
-                        --add-opens=java.base/sun.security.jca=ALL-UNNAMED
+						--add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/java.security.cert=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
+						--add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+						--add-opens=java.base/sun.security.util=ALL-UNNAMED
+						--add-opens=java.base/sun.security.jca=ALL-UNNAMED
+						--add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.validator=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.cert=ALL-UNNAMED
+                        --add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
+						--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>

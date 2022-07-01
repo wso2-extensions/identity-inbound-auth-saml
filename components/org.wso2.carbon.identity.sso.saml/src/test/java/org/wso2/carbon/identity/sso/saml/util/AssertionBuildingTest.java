@@ -85,11 +85,10 @@ import static org.testng.Assert.assertTrue;
 /**
  * Tests Assertion building functionality.
  */
-@PowerMockIgnore({"javax.net.*"})
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
         SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
 @WithCarbonHome
-
+@PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class AssertionBuildingTest extends PowerMockTestCase {
 
     @ObjectFactory

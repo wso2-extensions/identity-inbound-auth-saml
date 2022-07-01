@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.saml;
 
 import org.mockito.Mock;
 import org.opensaml.core.config.InitializationService;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -69,6 +70,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
         KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class })
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*", "javax.net.*", "javax.security.*"})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     private static String SESSION_INDEX_ONE = "theSessionIndex";

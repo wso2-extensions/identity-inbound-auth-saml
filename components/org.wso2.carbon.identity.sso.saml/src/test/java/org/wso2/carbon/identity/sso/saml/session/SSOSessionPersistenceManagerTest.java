@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.session;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -44,6 +45,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @PrepareForTest({IdentityTenantUtil.class})
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
 
     private SSOSessionPersistenceManager ssoSessionPersistenceManager;
