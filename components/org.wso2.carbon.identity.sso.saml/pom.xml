@@ -269,6 +269,12 @@
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito2</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
@@ -446,23 +452,23 @@
                         --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
-                        --add-opens=java.base/java.util.zip=ALL-UNNAMED
+						--add-opens=java.base/java.util.zip=ALL-UNNAMED
                         --add-opens=java.base/java.util.random=ALL-UNNAMED
                         --add-opens=java.base/java.security=ALL-UNNAMED
-                        --add-opens=java.base/java.io=ALL-UNNAMED
+						--add-opens=java.base/java.io=ALL-UNNAMED
                         --add-opens=java.base/java.security.cert=ALL-UNNAMED
-                        --add-opens=java.base/jdk.internal.util=ALL-UNNAMED
-                        --add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
-                        --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
                         --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
-                        --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
-                        --add-opens=java.base/sun.security.util=ALL-UNNAMED
-                        --add-opens=java.base/sun.security.jca=ALL-UNNAMED
-                        --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+						--add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+						--add-opens=java.base/sun.security.util=ALL-UNNAMED
+						--add-opens=java.base/sun.security.jca=ALL-UNNAMED
+						--add-opens=java.base/sun.security.x509=ALL-UNNAMED
                         --add-opens=java.base/sun.security.validator=ALL-UNNAMED
                         --add-opens=java.base/sun.security.cert=ALL-UNNAMED
                         --add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
-                        --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
+						--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>
