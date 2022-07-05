@@ -72,7 +72,6 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        //initMocks(this);
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoConfigAdmin = new SAMLSSOConfigAdmin(userRegistry);
         mockStatic(IdentityPersistenceManager.class);

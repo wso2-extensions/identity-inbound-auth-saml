@@ -50,7 +50,6 @@ public class EidasExtensionProcessorTest {
     @BeforeMethod
     public void init() throws Exception {
 
-        //initMocks(this);
         eidasExtensionProcessor = new EidasExtensionProcessor();
         String requestFile = "src/test/resources/sample_eidas_request.xml";
         request = (AuthnRequest) TestUtils.unmarshallElement(requestFile);
