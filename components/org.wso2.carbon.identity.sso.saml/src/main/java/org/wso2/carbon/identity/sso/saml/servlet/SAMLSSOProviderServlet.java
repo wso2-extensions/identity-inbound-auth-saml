@@ -107,7 +107,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
-import jakarta.xml.soap.SOAPException;
+import javax.xml.soap.SOAPException;
 import javax.xml.transform.TransformerException;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;

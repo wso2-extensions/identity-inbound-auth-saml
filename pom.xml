@@ -351,20 +351,11 @@
             </dependency>
 
             <!-- for Java 17 Compatibility -->
-            <dependency>
-                <groupId>jakarta.xml.ws</groupId>
-                <artifactId>jakarta.xml.ws-api</artifactId>
-                <version>${jakarta-ws-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.soap</groupId>
-                <artifactId>jakarta.xml.soap-api</artifactId>
-                <version>${jakarta-soap-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.bind</groupId>
-                <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>${jakarta-bind-api.version}</version>
+           <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-ri</artifactId>
+                <version>${jaxws-ri.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.parsers</groupId>
@@ -520,9 +511,7 @@
         <slf4j.api.version>1.7.21</slf4j.api.version>
         <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
         <mockito.version>2.23.4</mockito.version>
-        <jakarta-ws-api.version>4.0.0</jakarta-ws-api.version>
-        <jakarta-soap-api.version>3.0.0</jakarta-soap-api.version>
-        <jakarta-bind-api.version>3.0.0</jakarta-bind-api.version>
+        <jaxws-ri.version>2.3.2</jaxws-ri.version>
         <jaxp-ri.version>1.4.5</jaxp-ri.version>
 
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
