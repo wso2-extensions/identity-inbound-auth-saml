@@ -270,13 +270,11 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -305,13 +303,21 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-ri</artifactId>
-            <version>${jaxws-ri.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.parsers</groupId>
             <artifactId>jaxp-ri</artifactId>
-            <version>${jaxp-ri.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -443,6 +449,7 @@
                         --add-opens=java.base/java.security=ALL-UNNAMED
 						--add-opens=java.base/java.io=ALL-UNNAMED
                         --add-opens=java.base/java.security.cert=ALL-UNNAMED
+                        --add-opens=java.base/java.util.regex=ALL-UNNAMED
 						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
 						--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
 						--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED

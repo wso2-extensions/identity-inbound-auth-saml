@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
+import org.custommonkey.xmlunit.Diff;
 import org.opensaml.core.xml.XMLObject;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 
+import static junit.framework.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -50,9 +52,9 @@ public class SAMLSSOUtilMarshallTest {
     @Test
     public void testMarshall() throws Exception {
 
-        assertEquals(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST)),
-                TestConstants.DECODED_POST_LOGOUT_REQUEST,
-                "Marshaled Post Authentication Request is not as expected.");
+        Diff diff = new Diff(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST)),
+                TestConstants.DECODED_POST_LOGOUT_REQUEST);
+        assertTrue("Marshaled Post Authentication Request is not as expected.", diff.similar());
     }
 
     @Test(expectedExceptions = IdentityException.class)

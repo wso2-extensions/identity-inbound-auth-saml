@@ -25,6 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -105,10 +106,15 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
 
+    @BeforeTest
+    public void startTenantFlow() {
+
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
 
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_ID);

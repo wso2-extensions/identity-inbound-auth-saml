@@ -48,7 +48,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 @PrepareForTest({IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
         SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class})
-@PowerMockIgnore({"org.mockito.*", "javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @InjectMocks

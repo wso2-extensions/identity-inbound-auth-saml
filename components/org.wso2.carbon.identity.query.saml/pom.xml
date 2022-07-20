@@ -209,13 +209,11 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
 		<dependency>
@@ -234,7 +232,6 @@
 		<dependency>
             <groupId>com.sun.xml.parsers</groupId>
             <artifactId>jaxp-ri</artifactId>
-            <version>${jaxp-ri.version}</version>
 			<scope>test</scope>
         </dependency>
 	</dependencies>

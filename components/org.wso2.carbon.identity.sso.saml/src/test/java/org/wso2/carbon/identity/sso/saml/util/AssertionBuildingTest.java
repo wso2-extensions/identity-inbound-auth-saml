@@ -34,6 +34,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
@@ -88,7 +89,8 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
         SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
 @WithCarbonHome
-@PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
+@PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
+        "javax.security.*", "org.mockito.*"})
 public class AssertionBuildingTest extends PowerMockTestCase {
 
     @ObjectFactory
@@ -123,6 +125,12 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
+    @BeforeTest
+    public void setUp() throws Exception {
+
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+    
     @Test
     public void testBuildAssertion() throws Exception {
 

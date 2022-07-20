@@ -29,6 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
@@ -59,9 +60,9 @@ import static org.testng.Assert.assertEquals;
 /**
  * Tests request signing functionality.
  */
-@PowerMockIgnore({"javax.net.*", "javax.security.*"})
 @PrepareForTest({IdentityUtil.class, IdentityProviderManager.class})
-
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.xml.*", "org.xml.*",
+        "org.w3c.dom.*", "org.apache.xerces.*", "org.mockito.*"})
 public class SigningTests extends PowerMockTestCase {
 
     @ObjectFactory
@@ -94,6 +95,11 @@ public class SigningTests extends PowerMockTestCase {
             "org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner";
     private final String REDIRECT_SIGNATURE_VALIDATOR_PROPERTY = "SSOService.SAML2HTTPRedirectSignatureValidator";
 
+    @BeforeTest
+    public void setUp() throws Exception {
+
+        TestUtils.startTenantFlow(org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
 
     @DataProvider
     public Object[][] getSignatureParams() {
