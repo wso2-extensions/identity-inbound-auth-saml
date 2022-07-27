@@ -80,6 +80,7 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -1168,9 +1169,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     authResult.getAuthenticatedAuthenticators(), SAMLSSOConstants.AuthnModes.USERNAME_PASSWORD);
 
             if (authRespDTO.isSessionEstablished()) { // authenticated
-
+                String sessionIdentifier =
+                        (String) authResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
                 storeTokenIdCookie(sessionId, req, resp, authnReqDTO.getTenantDomain(),
-                        sessionDTO.getLoggedInTenantDomain());
+                        sessionDTO.getLoggedInTenantDomain(), sessionIdentifier);
                 removeSessionDataFromCache(req.getParameter(SAMLSSOConstants.SESSION_DATA_KEY));
 
                 if (authnReqDTO.isSAML2ArtifactBindingEnabled()) {
@@ -1202,8 +1204,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String sessionIdentifier =
                 (String) authenticationResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID);
         if (StringUtils.isNotBlank(sessionIdentifier)) {
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionIdentifier,
-                    loginTenantDomain);
+            SessionContext sessionContext = getSessionContext(sessionIdentifier, loginTenantDomain);
             if (sessionContext != null) {
                 if (authenticationResult.getSubject() != null) {
                     Object samlssoTokenId = sessionContext.getProperty(SAMLSSOConstants.SAML_SSO_TOKEN_ID_COOKIE);
@@ -1396,14 +1397,23 @@ public class SAMLSSOProviderServlet extends HttpServlet {
      * @param sessionId            Session Id.
      * @param req                  HttpServlet Request.
      * @param resp                 HttpServlet Response.
+     * @param tenantDomain         Tenant Domain
      * @param loggedInTenantDomain Logged In Tenant Domain.
+     * @param sessionIdentifier    Session Identifier
      */
     private void storeTokenIdCookie(String sessionId, HttpServletRequest req, HttpServletResponse resp,
-                                    String tenantDomain, String loggedInTenantDomain) {
+                                    String tenantDomain, String loggedInTenantDomain, String sessionIdentifier) {
 
         ServletCookie samlssoTokenIdCookie = new ServletCookie(SAML_SSO_TOKEN_ID_COOKIE, sessionId);
         IdentityCookieConfig samlssoTokenIdCookieConfig = IdentityUtil
                 .getIdentityCookieConfig(SAML_SSO_TOKEN_ID_COOKIE);
+
+        // Get age of the samlssoTokenId cookie.
+        SessionContext sessionContext = getSessionContext(sessionIdentifier, loggedInTenantDomain);
+        Integer cookieAge = null;
+        if (sessionContext != null && sessionContext.isRememberMe()) {
+            cookieAge = IdPManagementUtil.getRememberMeTimeout(loggedInTenantDomain);
+        }
 
         samlssoTokenIdCookie.setSecure(true);
         samlssoTokenIdCookie.setHttpOnly(true);
@@ -1424,9 +1434,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
 
         samlssoTokenIdCookie.setSameSite(SameSiteCookie.NONE);
-
+        if (cookieAge != null) {
+            samlssoTokenIdCookie.setMaxAge(cookieAge);
+        }
         if (samlssoTokenIdCookieConfig != null) {
-            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, null,
+            updateSAMLSSOIdCookieConfig(samlssoTokenIdCookie, samlssoTokenIdCookieConfig, cookieAge,
                     isTenantQualifiedCookie);
         }
         resp.addCookie(samlssoTokenIdCookie);
@@ -2223,7 +2235,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.debug(soapResp);
             }
             out.print(soapResp);
-        } catch (IdentityException  e) {
+        } catch (IdentityException e) {
             SAMLSOAPUtils.sendSOAPFault(resp, e.getMessage(), SAMLECPConstants.FaultCodes.SOAP_FAULT_CODE_CLIENT);
             String err = "Error when decoding the error response.";
             log.error(err, e);
@@ -2234,4 +2246,18 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         }
     }
 
+    /**
+     * To retrieve session context of the given session identifier.
+     *
+     * @param sessionIdentifier Session identifier.
+     * @param loginTenantDomain Login tenant domain.
+     * @return Session context for the given session identifier.
+     */
+    private SessionContext getSessionContext(String sessionIdentifier, String loginTenantDomain) {
+
+        if (StringUtils.isNotBlank(sessionIdentifier) && StringUtils.isNotBlank(loginTenantDomain)) {
+            return FrameworkUtils.getSessionContextFromCache(sessionIdentifier, loginTenantDomain);
+        }
+        return null;
+    }
 }
