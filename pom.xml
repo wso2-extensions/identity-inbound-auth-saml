@@ -477,7 +477,7 @@
         <httpcore.version>4.4.14.wso2v1</httpcore.version>
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
-        <axis2.wso2.version>1.6.1-wso2v80</axis2.wso2.version>
+        <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
 
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
@@ -507,7 +507,7 @@
         <opensaml.version>3.3.1</opensaml.version>
         <opensaml3.wso2.version>3.3.1.wso2v6</opensaml3.wso2.version>
         <shibboleth.version>7.3.0</shibboleth.version>
-        <axiom.osgi.version.range>[1.2.13, 2.0.0)</axiom.osgi.version.range>
+        <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <opensaml3.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml3.wso2.osgi.version.range>
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
