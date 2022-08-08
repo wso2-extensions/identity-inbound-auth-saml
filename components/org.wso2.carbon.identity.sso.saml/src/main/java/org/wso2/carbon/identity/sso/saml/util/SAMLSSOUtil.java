@@ -157,6 +157,7 @@ public class SAMLSSOUtil {
     private static final Set<Character> UNRESERVED_CHARACTERS = new HashSet<>();
     private static final ThreadLocal<Boolean> isSaaSApplication = new ThreadLocal<>();
     private static final ThreadLocal<String> userTenantDomainThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<String> spTenantDomainThreadLocal = new ThreadLocal<>();
     private static final String DefaultAssertionBuilder = "org.wso2.carbon.identity.sso.saml.builders.assertion.DefaultSAMLAssertionBuilder";
 
     static {
@@ -2689,5 +2690,38 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    /**
+     * To get the Service provider tenant domain from thread local.
+     *
+     * @return Service Provider tenant domain.
+     */
+    public static String getSpTenantDomainFromThreadLocal() {
+
+        return spTenantDomainThreadLocal.get();
+    }
+
+    /**
+     * To set the service provider tenant domain to thread local.
+     *
+     * @param tenantDomain Service providers tenant domain.
+     * @throws UserStoreException If and error occurs when validating the tenant domain.
+     * @throws IdentityException  If and error occurs when validating the tenant domain.
+     */
+    public static void setSpTenantDomainToThreadLocal(String tenantDomain) throws UserStoreException, IdentityException {
+
+        tenantDomain = validateTenantDomain(tenantDomain);
+        if (tenantDomain != null) {
+            spTenantDomainThreadLocal.set(tenantDomain);
+        }
+    }
+
+    /**
+     * To remove the service provider tenant domain from the thread local.
+     */
+    public static void removeSpTenantDomainThreadLocal() {
+
+        spTenantDomainThreadLocal.remove();
     }
 }

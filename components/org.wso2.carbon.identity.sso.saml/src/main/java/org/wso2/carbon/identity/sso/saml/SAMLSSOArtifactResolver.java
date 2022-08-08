@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -86,6 +87,10 @@ public class SAMLSSOArtifactResolver {
 
             if (artifactInfo != null) {
                 if (validateArtifactResolve(artifactResolve, artifactInfo)) {
+                    // Setting service provider tenant domain to use when signing.
+                    String spTenantDomain = resolveSpTenantDomain(artifactInfo.getAuthnReqDTO().getTenantDomain(),
+                            artifactResolve.getIssuer().getValue());
+                    SAMLSSOUtil.setSpTenantDomainToThreadLocal(spTenantDomain);
                     // Building Response.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
                     if (respBuilder != null) {
@@ -108,6 +113,10 @@ public class SAMLSSOArtifactResolver {
         }
         catch (Base64DecodingException e) {
             throw new ArtifactBindingException("Error while Base64 decoding SAML2 artifact: " + artifact, e);
+        } catch (UserStoreException e) {
+        throw new ArtifactBindingException("Error while setting the service provider tenant: " + artifact, e);
+        } finally {
+            SAMLSSOUtil.removeSpTenantDomainThreadLocal();
         }
 
         return artifactResponse;
@@ -239,5 +248,23 @@ public class SAMLSSOArtifactResolver {
         }
 
         return artifactResponse;
+    }
+
+    /**
+     * To get the service provider tenant domain.
+     *
+     * @param tenantDomain User Tenant domain.
+     * @param issuer       Issuer Name.
+     * @return Service provider tenant domain.
+     * @throws IdentityException If an error when getting service provider.
+     */
+    private String resolveSpTenantDomain(String tenantDomain, String issuer) throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(
+                tenantDomain, SAMLSSOUtil.splitAppendedTenantDomain(issuer));
+        if (serviceProviderDO != null) {
+            return serviceProviderDO.getTenantDomain();
+        }
+        return null;
     }
 }
