@@ -91,9 +91,6 @@ public class SignKeyDataHolder implements X509Credential {
                 // if userTenantDomain is null that means, there is no local authenticator or
                 // the assert with local ID is set. In that case, this should be coming from
                 // federated authentication. In that case, we treat SP domain is equal to user domain.
-                if (SAMLSSOUtil.getSpTenantDomainFromThreadLocal() != null) {
-                    spTenantDomain = SAMLSSOUtil.getSpTenantDomainFromThreadLocal();
-                }
                 userTenantDomain = spTenantDomain;
             }
 
@@ -104,13 +101,12 @@ public class SignKeyDataHolder implements X509Credential {
 
             String signWithValue = IdentityUtil.getProperty(
                     SAMLSSOConstants.FileBasedSPConfig.USE_AUTHENTICATED_USER_DOMAIN_CRYPTO);
-            tenantDomain = spTenantDomain;
             if (signWithValue != null && "true".equalsIgnoreCase(signWithValue.trim())) {
                 tenantDomain = userTenantDomain;
-            }
-            tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-            if (SAMLSSOUtil.getRealmService() != null) {
                 tenantID = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            } else {
+                tenantDomain = spTenantDomain;
+                tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             }
 
             IdentityTenantUtil.initializeRegistry(tenantID, tenantDomain);
