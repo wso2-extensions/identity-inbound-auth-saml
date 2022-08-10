@@ -246,24 +246,6 @@ public class SAMLSSOArtifactResolver {
         return artifactResponse;
     }
 
-    /**
-     * To get the service provider tenant domain.
-     *
-     * @param tenantDomain User Tenant domain.
-     * @param issuer       Issuer Name.
-     * @return Service provider tenant domain.
-     * @throws IdentityException If an error when getting service provider.
-     */
-    private String resolveSpTenantDomain(String tenantDomain, String issuer) throws IdentityException {
-
-        SAMLSSOServiceProviderDO serviceProviderDO = SAMLSSOUtil.getSPConfig(
-                tenantDomain, SAMLSSOUtil.splitAppendedTenantDomain(issuer));
-        if (serviceProviderDO != null) {
-            return serviceProviderDO.getTenantDomain();
-        }
-        return null;
-    }
-
     private void startTenantFlow(String tenantDomain) throws IdentityException {
 
         if (tenantDomain == null) {
