@@ -265,7 +265,6 @@ public class SAMLSSOArtifactResolver {
             }
         } catch (UserStoreException e) {
             String message = "Error occurred while getting tenant ID from tenantDomain " + tenantDomain;
-            log.error(message, e);
             throw IdentityException.error(message, e);
         }
 
