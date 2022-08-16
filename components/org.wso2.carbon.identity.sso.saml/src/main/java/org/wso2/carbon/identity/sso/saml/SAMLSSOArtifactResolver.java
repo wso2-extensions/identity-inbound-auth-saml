@@ -248,7 +248,7 @@ public class SAMLSSOArtifactResolver {
 
     private void startTenantFlow(String tenantDomain) throws IdentityException {
 
-        if (tenantDomain == null) {
+        if (StringUtils.isBlank(tenantDomain)) {
             return;
         }
 
