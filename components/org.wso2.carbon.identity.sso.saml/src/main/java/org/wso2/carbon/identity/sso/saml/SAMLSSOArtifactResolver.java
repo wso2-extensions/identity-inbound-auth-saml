@@ -37,6 +37,7 @@ import org.opensaml.security.x509.BasicX509Credential;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.impl.SignatureImpl;
 import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
@@ -47,6 +48,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAML2ArtifactInfo;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -84,7 +86,8 @@ public class SAMLSSOArtifactResolver {
             SAML2ArtifactInfo artifactInfo = saml2ArtifactInfoDAO.getSAMLArtifactInfo(sourceIdString,
                     messageHandlerString);
 
-            if (artifactInfo != null) {
+            if (artifactInfo != null && artifactInfo.getAuthnReqDTO() != null) {
+                startTenantFlow(artifactInfo.getAuthnReqDTO().getTenantDomain());
                 if (validateArtifactResolve(artifactResolve, artifactInfo)) {
                     // Building Response.
                     ResponseBuilder respBuilder = SAMLSSOUtil.getResponseBuilder();
@@ -108,6 +111,8 @@ public class SAMLSSOArtifactResolver {
         }
         catch (Base64DecodingException e) {
             throw new ArtifactBindingException("Error while Base64 decoding SAML2 artifact: " + artifact, e);
+        } finally {
+            endTenantFlow();
         }
 
         return artifactResponse;
@@ -239,5 +244,38 @@ public class SAMLSSOArtifactResolver {
         }
 
         return artifactResponse;
+    }
+
+    private void startTenantFlow(String tenantDomain) throws IdentityException {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            return;
+        }
+
+        int tenantId;
+        try {
+            tenantId = SAMLSSOUtil.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            if (tenantId == -1) {
+                // invalid tenantId, hence throw exception to avoid setting invalid tenant info.
+                String message = "Invalid Tenant Domain : " + tenantDomain;
+                if (log.isDebugEnabled()) {
+                    log.debug(message);
+                }
+                throw IdentityException.error(message);
+            }
+        } catch (UserStoreException e) {
+            String message = "Error occurred while getting tenant ID from tenantDomain " + tenantDomain;
+            throw IdentityException.error(message, e);
+        }
+
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+        carbonContext.setTenantId(tenantId);
+        carbonContext.setTenantDomain(tenantDomain);
+    }
+
+    private void endTenantFlow() {
+
+        PrivilegedCarbonContext.endTenantFlow();
     }
 }
