@@ -199,7 +199,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         acsUrls.add(TestConstants.RETURN_TO_URL);
         mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
-        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
         when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIssuer()).thenReturn(new IssuerBuilder().buildObject());

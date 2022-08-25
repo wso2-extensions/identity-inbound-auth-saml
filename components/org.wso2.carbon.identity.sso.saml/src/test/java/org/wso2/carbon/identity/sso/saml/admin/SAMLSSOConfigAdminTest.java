@@ -42,7 +42,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -132,7 +131,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider() throws Exception {
 
         String metadata = "metadata";
-        when(identityPersistenceManager.addServiceProvider(nullable(Registry.class), nullable(SAMLSSOServiceProviderDO.class))).
+        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class))).
                 thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");

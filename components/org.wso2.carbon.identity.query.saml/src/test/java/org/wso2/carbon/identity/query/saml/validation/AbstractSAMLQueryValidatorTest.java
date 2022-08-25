@@ -41,7 +41,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -159,9 +158,9 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
         if (assertEn) {
             ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
         }
-        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(false);
+        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(false);
         if (value) {
-            when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class)))
+            when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString()))
                     .thenReturn(true);
         }
         assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request), value);
@@ -172,10 +171,10 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
 
         setSAMLprovider();
         mockStatic(OpenSAML3Util.class);
-        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(true);
+        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(true);
         DummyRequest request = new DummyRequest();
         assertTrue(testclass.validateSignature(request));
-        when(OpenSAML3Util.validateXMLSignature(nullable(RequestAbstractType.class), nullable(String.class), nullable(String.class))).thenReturn(false);
+        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(false);
         assertFalse(testclass.validateSignature(request));
     }
 

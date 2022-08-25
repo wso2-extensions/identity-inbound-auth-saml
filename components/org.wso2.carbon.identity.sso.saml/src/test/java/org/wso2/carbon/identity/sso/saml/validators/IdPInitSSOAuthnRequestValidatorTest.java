@@ -109,7 +109,7 @@ public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
         when(mockTenantManager.getTenantId(anyString())).thenReturn(4567);
 
-        when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
                 .thenCallRealMethod();
 
