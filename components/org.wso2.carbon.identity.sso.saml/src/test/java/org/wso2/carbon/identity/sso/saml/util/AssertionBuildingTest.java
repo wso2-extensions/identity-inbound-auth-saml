@@ -73,7 +73,6 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -199,9 +198,11 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void validateACSWithoutIssuer() throws Exception {
 
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        SAMLSSOUtil.setRealmService(realmService);
+        SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
                 Collections.emptyList());
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
                 .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
         assertFalse(isACSValied, "Expected to ACS to be validated. But failed");
@@ -212,8 +213,10 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
         List<String> acs = new ArrayList();
         acs.add(TestConstants.ACS_URL);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        SAMLSSOUtil.setRealmService(realmService);
+        SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER, acs);
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
                 .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
         assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");

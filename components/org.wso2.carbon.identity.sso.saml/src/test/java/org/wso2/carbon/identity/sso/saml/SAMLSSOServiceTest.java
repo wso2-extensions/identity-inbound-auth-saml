@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.sso.saml;
 
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.LogoutRequest;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -126,17 +125,19 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         mockserviceProviderConfigs.setIssuer(TestConstants.SP_ENTITY_ID);
         mockserviceProviderConfigs.setAssertionConsumerUrl(TestConstants.ACS_URL);
         mockserviceProviderConfigs.setDoValidateSignatureInRequests(false);
+        mockserviceProviderConfigs.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         List<String> acsUrls = new ArrayList<>();
         acsUrls.add(TestConstants.ACS_URL);
         acsUrls.add(TestConstants.RETURN_TO_URL);
         mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class), nullable(String.class))).thenCallRealMethod();
         when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), nullable(String.class))).thenReturn(true);
-        when(SAMLSSOUtil.getServiceProviderConfig(anyString(), nullable(String.class))).thenReturn(mockserviceProviderConfigs);
+        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
+        when(SAMLSSOUtil.getServiceProviderConfig(anyString(), anyString())).thenReturn(mockserviceProviderConfigs);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateSPInitSSORequest(
@@ -157,9 +158,10 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOUtil.doBootstrap();
 
         SPInitLogoutRequestProcessor spInitLogoutRequestProcessor = mock(SPInitLogoutRequestProcessor.class);
-        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), nullable(String.class), anyString())).thenReturn(
-                mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
+        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), nullable(String.class),
+                anyString())).thenReturn(mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.getSPInitLogoutRequestProcessor()).thenReturn(spInitLogoutRequestProcessor);
         when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
@@ -201,10 +203,11 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         boolean isLogout = false;
 
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), nullable(String.class)))
                 .thenCallRealMethod();
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), nullable(String.class))).thenReturn(true);
+        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
