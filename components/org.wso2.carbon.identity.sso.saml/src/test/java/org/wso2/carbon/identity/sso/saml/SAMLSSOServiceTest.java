@@ -49,7 +49,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -132,7 +132,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class), nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.getSPInitSSOAuthnRequestValidator(any(AuthnRequest.class), eq(queryString))).thenCallRealMethod();
         when(SAMLSSOUtil.unmarshall(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decodeForPost(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.decode(anyString())).thenCallRealMethod();
@@ -158,7 +158,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOUtil.doBootstrap();
 
         SPInitLogoutRequestProcessor spInitLogoutRequestProcessor = mock(SPInitLogoutRequestProcessor.class);
-        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), nullable(String.class),
+        when(spInitLogoutRequestProcessor.process(any(LogoutRequest.class), anyString(), eq(queryString),
                 anyString())).thenReturn(mockValidSPInitLogoutRequestProcessing(TestConstants.ACS_URL));
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
@@ -205,7 +205,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         mockStatic(SAMLSSOUtil.class);
         when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), nullable(String.class)))
+        when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), eq(relayState)))
                 .thenCallRealMethod();
         when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(true);
 

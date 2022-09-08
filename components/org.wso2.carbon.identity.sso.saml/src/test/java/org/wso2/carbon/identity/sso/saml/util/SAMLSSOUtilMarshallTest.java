@@ -52,9 +52,9 @@ public class SAMLSSOUtilMarshallTest {
     @Test
     public void testMarshall() throws Exception {
 
-        Diff diff = new Diff(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST)),
-                TestConstants.DECODED_POST_LOGOUT_REQUEST);
-        assertTrue("Marshaled Post Authentication Request is not as expected.", diff.similar());
+        assertEquals(SAMLSSOUtil.marshall(SAMLSSOUtil.unmarshall(TestConstants.DECODED_POST_LOGOUT_REQUEST)),
+                TestConstants.DECODED_POST_LOGOUT_REQUEST,
+                "Marshaled Post Authentication Request is not as expected.");
     }
 
     @Test(expectedExceptions = IdentityException.class)
