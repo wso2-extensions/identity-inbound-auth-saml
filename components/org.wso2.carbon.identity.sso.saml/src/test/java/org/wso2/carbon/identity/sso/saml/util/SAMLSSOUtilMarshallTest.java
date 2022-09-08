@@ -18,13 +18,11 @@
 
 package org.wso2.carbon.identity.sso.saml.util;
 
-import org.custommonkey.xmlunit.Diff;
 import org.opensaml.core.xml.XMLObject;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 
-import static junit.framework.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 
 /**
