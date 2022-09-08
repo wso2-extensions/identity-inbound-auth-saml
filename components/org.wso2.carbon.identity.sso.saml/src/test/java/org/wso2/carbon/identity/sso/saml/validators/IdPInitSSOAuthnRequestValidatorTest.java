@@ -40,7 +40,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNotNull;
@@ -118,7 +118,7 @@ public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         SSOAuthnRequestValidator authnRequestValidator =
                 SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(queryParamDTOS, "relayString");
 
-        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), nullable(String.class))).thenCallRealMethod();
+        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), isNull())).thenCallRealMethod();
         when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
         when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIssuer()).thenReturn(new IssuerBuilder().buildObject());
