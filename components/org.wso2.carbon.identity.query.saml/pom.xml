@@ -206,16 +206,16 @@
 			<artifactId>slf4j-api</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		        <groupId>org.powermock</groupId>
+		        <artifactId>powermock-module-testng</artifactId>
+		        <scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
@@ -230,10 +230,10 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-            <groupId>com.sun.xml.parsers</groupId>
-            <artifactId>jaxp-ri</artifactId>
-			<scope>test</scope>
-        </dependency>
+		        <groupId>com.sun.xml.parsers</groupId>
+		        <artifactId>jaxp-ri</artifactId>
+		        <scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -271,13 +271,13 @@
 						<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
 					</systemPropertyVariables>
 					<argLine>
-                        --add-opens=java.base/java.lang=ALL-UNNAMED
+                        			--add-opens=java.base/java.lang=ALL-UNNAMED
 						--add-opens=java.base/java.lang.invoke=ALL-UNNAMED
-                        --add-opens=java.base/java.util=ALL-UNNAMED
-                        --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+                        			--add-opens=java.base/java.util=ALL-UNNAMED
+                        			--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
 						--add-opens=java.base/java.util.zip=ALL-UNNAMED
 						--add-opens=java.base/java.util.random=ALL-UNNAMED
-                        --add-opens=java.base/java.security=ALL-UNNAMED
+                        			--add-opens=java.base/java.security=ALL-UNNAMED
 						--add-opens=java.base/java.io=ALL-UNNAMED
 						--add-opens=java.base/java.security.cert=ALL-UNNAMED
 						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
@@ -291,7 +291,7 @@
 						--add-opens=java.base/sun.security.validator=ALL-UNNAMED
 						--add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
 						--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
-                    </argLine>
+                    			</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
