@@ -26,7 +26,7 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.AssertJUnit.assertEquals;

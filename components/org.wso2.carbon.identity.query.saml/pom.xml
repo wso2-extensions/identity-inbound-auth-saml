@@ -21,7 +21,7 @@
 		<groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
 		<artifactId>identity-inbound-auth-saml</artifactId>
 		<relativePath>../../pom.xml</relativePath>
-		<version>5.10.3-SNAPSHOT</version>
+		<version>5.11.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
@@ -208,13 +208,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-testng</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<scope>test</scope>
+		        <groupId>org.powermock</groupId>
+		        <artifactId>powermock-module-testng</artifactId>
+		        <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -228,6 +228,11 @@
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.scr.ds-annotations</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		        <groupId>com.sun.xml.parsers</groupId>
+		        <artifactId>jaxp-ri</artifactId>
+		        <scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -265,6 +270,28 @@
 					<systemPropertyVariables>
 						<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
 					</systemPropertyVariables>
+					<argLine>
+                        			--add-opens=java.base/java.lang=ALL-UNNAMED
+						--add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+                        			--add-opens=java.base/java.util=ALL-UNNAMED
+                        			--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+						--add-opens=java.base/java.util.zip=ALL-UNNAMED
+						--add-opens=java.base/java.util.random=ALL-UNNAMED
+                        			--add-opens=java.base/java.security=ALL-UNNAMED
+						--add-opens=java.base/java.io=ALL-UNNAMED
+						--add-opens=java.base/java.security.cert=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+						--add-opens=java.base/jdk.internal.access=ALL-UNNAMED
+						--add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+						--add-opens=java.base/sun.security.util=ALL-UNNAMED
+						--add-opens=java.base/sun.security.jca=ALL-UNNAMED
+						--add-opens=java.base/sun.security.x509=ALL-UNNAMED
+						--add-opens=java.base/sun.security.validator=ALL-UNNAMED
+						--add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
+						--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
+                    			</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

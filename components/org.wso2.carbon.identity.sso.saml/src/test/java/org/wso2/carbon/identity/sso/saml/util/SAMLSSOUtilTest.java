@@ -21,10 +21,12 @@ package org.wso2.carbon.identity.sso.saml.util;
 import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.Status;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
@@ -64,10 +66,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -83,6 +85,7 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
         KeyStoreManager.class, IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
         IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*", "org.apache.xerces.*"})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANTED_SAML_URL = "https://localhost:9443/t/wso2.com/samlsso";
@@ -121,6 +124,12 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
         return new PowerMockObjectFactory();
+    }
+
+    @BeforeTest
+    public void setUp() throws Exception {
+
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void prepareForGetIssuer() throws Exception {

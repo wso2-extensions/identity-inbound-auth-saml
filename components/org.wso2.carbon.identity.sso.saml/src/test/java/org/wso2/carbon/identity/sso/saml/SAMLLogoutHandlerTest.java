@@ -20,10 +20,12 @@ package org.wso2.carbon.identity.sso.saml;
 
 import org.mockito.Mock;
 import org.opensaml.core.config.InitializationService;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -56,7 +58,7 @@ import javax.net.ssl.TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -69,6 +71,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
         KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class })
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*", "javax.net.*", "javax.security.*"})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     private static String SESSION_INDEX_ONE = "theSessionIndex";
@@ -103,10 +106,15 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
 
+    @BeforeTest
+    public void startTenantFlow() {
+
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
 
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_ID);

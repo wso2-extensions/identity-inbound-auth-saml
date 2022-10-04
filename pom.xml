@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-auth-saml</artifactId>
-    <version>5.10.3-SNAPSHOT</version>
+    <version>5.11.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon SAML SSO</name>
     <description>
@@ -261,50 +261,26 @@
                 <artifactId>org.wso2.carbon.identity.sp.metadata.saml2</artifactId>
                 <version>${identity.metadata.saml2.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <classifier>runtime</classifier>
-                <version>${jacoco.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.api.version}</version>
-            </dependency>
             <!--test setup-->
             <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <classifier>runtime</classifier>
-                <version>${jacoco.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
                 <scope>test</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <version>${jacoco.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -313,14 +289,7 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
+                <artifactId>powermock-api-mockito2</artifactId>
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -356,7 +325,33 @@
                 <artifactId>pax-logging-api</artifactId>
                 <version>${pax.logging.api.version}</version>
             </dependency>
+
+            <!-- for Java 17 Compatibility -->
+           <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-ri</artifactId>
+                <version>${jaxws-ri.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.parsers</groupId>
+                <artifactId>jaxp-ri</artifactId>
+                <version>${jaxp-ri.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+                <scope>test</scope>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>${xercesImpl.version}</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
     <build>
@@ -439,11 +434,10 @@
     </modules>
 
     <properties>
-
-        <carbon.kernel.version>4.7.0</carbon.kernel.version>
-        <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>5.20.127</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.15.0, 6.0.0)
+        <carbon.kernel.version>4.7.1</carbon.kernel.version>
+        <carbon.kernel.feature.version>4.7.1</carbon.kernel.feature.version>
+        <carbon.identity.framework.version>5.23.14</carbon.identity.framework.version>
+        <carbon.identity.framework.imp.pkg.version.range>[5.15.0, 7.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
@@ -498,19 +492,15 @@
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
 
-        <testng.version>6.9.10</testng.version>
-        <jacoco.version>0.7.9</jacoco.version>
-        <powermock.version>1.7.3</powermock.version>
-        <slf4j.api.version>1.7.12</slf4j.api.version>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
-
-        <testng.version>6.9.10</testng.version>
-        <jacoco.version>0.7.9</jacoco.version>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
-
-        <slf4j.api.version>1.7.12</slf4j.api.version>
-        <mockito.version>1.10.19</mockito.version>
-        <powermock.version>1.6.6</powermock.version>
+        <testng.version>7.0.0</testng.version>
+        <jacoco.version>0.8.4</jacoco.version>
+        <powermock.version>2.0.2</powermock.version>
+        <slf4j.api.version>1.7.21</slf4j.api.version>
+        <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
+        <mockito.version>2.23.4</mockito.version>
+        <jaxws-ri.version>2.3.2</jaxws-ri.version>
+        <jaxp-ri.version>1.4.5</jaxp-ri.version>
+        <xercesImpl.version>2.12.2</xercesImpl.version>
 
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
 

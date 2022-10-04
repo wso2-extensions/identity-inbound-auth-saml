@@ -27,6 +27,7 @@ import org.opensaml.saml.saml2.core.impl.IssuerImpl;
 import org.opensaml.saml.saml2.core.impl.NameIDImpl;
 import org.opensaml.saml.saml2.core.impl.SubjectImpl;
 import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterClass;
@@ -49,9 +50,9 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -64,6 +65,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
  * Test Class for the SAMLSubjectQueryValidator.
  */
 @PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class, SAMLQueryRequestUtil.class, OpenSAML3Util.class})
+@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SAMLSubjectQueryValidatorTest extends PowerMockTestCase {
 
     @Mock

@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -34,7 +35,7 @@ import org.wso2.carbon.identity.sso.saml.extension.eidas.model.RequestedAttribut
 import org.wso2.carbon.identity.sso.saml.extension.eidas.util.EidasConstants;
 
 import static org.mockito.MockitoAnnotations.initMocks;
-
+@PowerMockIgnore({"org.mockito.*", "javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class EidasExtensionProcessorTest {
 
     @InjectMocks
@@ -49,7 +50,6 @@ public class EidasExtensionProcessorTest {
     @BeforeMethod
     public void init() throws Exception {
 
-        initMocks(this);
         eidasExtensionProcessor = new EidasExtensionProcessor();
         String requestFile = "src/test/resources/sample_eidas_request.xml";
         request = (AuthnRequest) TestUtils.unmarshallElement(requestFile);
