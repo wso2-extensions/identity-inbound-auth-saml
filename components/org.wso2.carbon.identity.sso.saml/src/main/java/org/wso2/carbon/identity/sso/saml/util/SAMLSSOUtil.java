@@ -2484,8 +2484,8 @@ public class SAMLSSOUtil {
             throws IdentityException {
 
         String issuerQualifier = SAMLSSOUtil.getIssuerQualifier();
-        String issuerWithQualifier = null;
-        if (issuerQualifier != null) {
+        String issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifierInThreadLocal();
+        if (StringUtils.isBlank(issuerWithQualifier) && StringUtils.isNotBlank(issuerQualifier)) {
             issuerWithQualifier = SAMLSSOUtil.getIssuerWithQualifier(issuer, issuerQualifier);
             if (SAMLSSOUtil.isValidSAMLIssuer(issuer, issuerWithQualifier,
                                 SAMLSSOUtil.getTenantDomainFromThreadLocal())) {
