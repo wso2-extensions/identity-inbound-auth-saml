@@ -39,12 +39,13 @@ import org.wso2.carbon.identity.sso.saml.SAMLTestRequestBuilder;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
@@ -198,6 +199,7 @@ public class SPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         acsUrls.add(TestConstants.RETURN_TO_URL);
         mockserviceProviderConfigs.setAssertionConsumerUrls(acsUrls);
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
         when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();

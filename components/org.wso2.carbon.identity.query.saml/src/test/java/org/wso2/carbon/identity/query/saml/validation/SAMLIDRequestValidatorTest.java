@@ -45,8 +45,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.AssertJUnit.assertFalse;
@@ -59,7 +59,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
  * Test Class for the SAMLIDRequestValidator.
  */
 @PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"java.net.*", "org.opensaml.*"})
+@PowerMockIgnore({"java.net.*", "org.opensaml.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
 
     SAMLIDRequestValidator testclass = new SAMLIDRequestValidator();

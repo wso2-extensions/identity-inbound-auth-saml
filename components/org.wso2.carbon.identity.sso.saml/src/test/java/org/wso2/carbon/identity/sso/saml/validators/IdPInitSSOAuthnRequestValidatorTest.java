@@ -36,9 +36,11 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNotNull;
@@ -108,6 +110,7 @@ public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
         when(mockTenantManager.getTenantId(anyString())).thenReturn(4567);
 
+        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
                 .thenCallRealMethod();
@@ -115,7 +118,7 @@ public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
         SSOAuthnRequestValidator authnRequestValidator =
                 SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(queryParamDTOS, "relayString");
 
-        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), anyString())).thenCallRealMethod();
+        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), isNull())).thenCallRealMethod();
         when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
         when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
         when(SAMLSSOUtil.getIssuer()).thenReturn(new IssuerBuilder().buildObject());

@@ -34,9 +34,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -58,6 +60,10 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.session.UserRegistry;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -69,9 +75,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -83,11 +90,11 @@ import static org.testng.Assert.assertTrue;
 /**
  * Tests Assertion building functionality.
  */
-@PowerMockIgnore({"javax.net.*"})
-@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
+@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class, OSGiDataHolder.class,
         SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
 @WithCarbonHome
-
+@PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
+        "javax.security.*", "org.mockito.*"})
 public class AssertionBuildingTest extends PowerMockTestCase {
 
     @ObjectFactory
@@ -122,6 +129,20 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
+    @Mock
+    private UserRegistry registry;
+
+    @Mock
+    private RegistryService registryService;
+
+    private static OSGiDataHolder dataHolder = OSGiDataHolder.getInstance();
+
+    @BeforeTest
+    public void setUp() throws Exception {
+
+        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+    
     @Test
     public void testBuildAssertion() throws Exception {
 
@@ -190,9 +211,9 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void validateACSWithoutIssuer() throws Exception {
 
+        setRegistryAndTenantDomain();
         prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
                 Collections.emptyList());
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
                 .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
         assertFalse(isACSValied, "Expected to ACS to be validated. But failed");
@@ -203,8 +224,8 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
         List<String> acs = new ArrayList();
         acs.add(TestConstants.ACS_URL);
+        setRegistryAndTenantDomain();
         prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER, acs);
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
                 .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
         assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
@@ -364,10 +385,21 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setEnableAttributesByDefault(true);
         samlssoServiceProviderDO.setIssuer(issuer);
         samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
-        when(identityPersistenceManager.getServiceProvider(any(Registry.class), anyString()))
+        when(identityPersistenceManager.getServiceProvider(any(Registry.class), eq(issuer)))
                 .thenReturn(samlssoServiceProviderDO);
         mockStatic(IdentityPersistenceManager.class);
         when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+    }
+
+    private void setRegistryAndTenantDomain() throws UserStoreException, IdentityException, RegistryException {
+
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        SAMLSSOUtil.setRealmService(realmService);
+        SAMLSSOUtil.setTenantDomainInThreadLocal(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+        mockStatic(OSGiDataHolder.class);
+        dataHolder.setRegistryService(registryService);
+        when(registryService.getConfigSystemRegistry(eq(0))).thenReturn(registry);
     }
 
     @Test
