@@ -298,6 +298,11 @@
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- for Java 17 Compatibility -->
         <dependency>
