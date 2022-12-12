@@ -222,6 +222,11 @@
                 <version>${joda.wso2.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.santuario</groupId>
+                <artifactId>xmlsec</artifactId>
+                <version>${xmlsec.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.axis2.wso2</groupId>
                 <artifactId>axis2</artifactId>
                 <version>${axis2.wso2.version}</version>
@@ -438,6 +443,7 @@
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
+        <xmlsec.version>2.3.0</xmlsec.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
 
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
