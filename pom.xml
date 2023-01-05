@@ -227,11 +227,6 @@
                 <version>${xmlsec.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.orbit.jsr105</groupId>
-                <artifactId>jsr105</artifactId>
-                <version>${jsr105.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.axis2.wso2</groupId>
                 <artifactId>axis2</artifactId>
                 <version>${axis2.wso2.version}</version>
@@ -449,7 +444,6 @@
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <xmlsec.version>2.3.0</xmlsec.version>
-        <jsr105.version>1.0.1.wso2v1</jsr105.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
 
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
