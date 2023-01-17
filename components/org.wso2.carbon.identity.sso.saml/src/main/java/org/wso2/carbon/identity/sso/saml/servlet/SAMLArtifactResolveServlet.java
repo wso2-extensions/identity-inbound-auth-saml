@@ -33,6 +33,7 @@ import org.opensaml.soap.soap11.Envelope;
 import org.opensaml.core.xml.XMLObjectBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.exception.ArtifactBindingException;
@@ -123,7 +124,7 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
 
                         DOMSource source = new DOMSource(artifactResolveElement);
                         StringWriter stringResult = new StringWriter();
-                        TransformerFactory.newInstance().newTransformer().transform(
+                        IdentityUtil.getSecuredTransformerFactory().newTransformer().transform(
                                 source, new StreamResult(stringResult));
                         artifactResolve = (ArtifactResolve) SAMLSSOUtil.unmarshall(stringResult.toString());
                     }
