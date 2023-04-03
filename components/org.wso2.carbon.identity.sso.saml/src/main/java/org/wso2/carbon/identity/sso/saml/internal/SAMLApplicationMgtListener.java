@@ -164,8 +164,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
                 if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
-                    String inboundConfiguration = authConfig.getInboundConfiguration();
-                    if (inboundConfiguration != null) {
+                    if (authConfig.getInboundConfigurationProtocol() != null) {
                         validateSAMLSP(authConfig, serviceProvider.getApplicationName(),
                                 serviceProvider.getOwner().getTenantDomain(), isUpdate);
                     }
@@ -186,16 +185,16 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         .getInboundAuthenticationRequestConfigs()) {
                     if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
 
-                        String inboundConfiguration = authConfig.getInboundConfiguration();
-                        if (StringUtils.isEmpty(inboundConfiguration)) {
-                            String errorMsg = String.format("No inbound configurations found for oauth in the" +
+                        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO =
+                                (SAMLSSOServiceProviderDTO) authConfig.getInboundConfigurationProtocol();
+
+                        if (samlssoServiceProviderDTO == null) {
+                            String errorMsg = String.format("No inbound configurations found for smal in the" +
                                             " imported %s", serviceProvider.getApplicationName());
                             throw new IdentityApplicationManagementException(errorMsg);
                         }
+
                         String inboundAuthKey = authConfig.getInboundAuthKey();
-                        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(
-                                inboundConfiguration, serviceProvider.getApplicationName(),
-                                serviceProvider.getOwner().getTenantDomain());
 
                         SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
 
@@ -266,6 +265,8 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         StringWriter sw = new StringWriter();
                         jaxbMarshaller.marshal(samlSP, sw);
                         authConfig.setInboundConfiguration(sw.toString());
+
+                        authConfig.setInboundConfigurationProtocol(samlSP);
                         return;
                     }
                 }
@@ -298,15 +299,10 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
 
         List<String> validationMsg = new ArrayList<>();
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO;
-        try {
-            samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(authConfig.getInboundConfiguration(),
-                    applicationName, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            String errorMsg = String.format("SAML inbound configuration in the file is not valid for the " +
-                    "application %s", applicationName);
-            log.error(errorMsg, e);
-            validationMsg.add(errorMsg);
-            return;
+        samlssoServiceProviderDTO = (SAMLSSOServiceProviderDTO) authConfig.getInboundConfigurationProtocol();
+        if (samlssoServiceProviderDTO == null) {
+            validationMsg.add(String.format("No inbound configurations found for smal in the application name %s.",
+                    applicationName));
         }
         String issuer = samlssoServiceProviderDTO.getIssuer();
         if (StringUtils.isNotBlank(samlssoServiceProviderDTO.getIssuerQualifier())) {
@@ -340,7 +336,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
     }
 
     /**
-     * Unmarshel SAMLSSOServiceProvider DTO
+     * Unmarshel SAMLSSOServiceProvider DTO.
      *
      * @param authConfig          authentication config
      * @param serviceProviderName service provider name

@@ -17,8 +17,10 @@
  */
 package org.wso2.carbon.identity.sso.saml.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.common.model.InboundConfigurationProtocol;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
@@ -28,15 +30,20 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
+/**
+ * This class is used to store the SAML SSO Service Provider related information.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SAMLSSOServiceProviderDTO implements Serializable {
+@XmlRootElement(name = "samlssoServiceProviderDTO")
+@JsonTypeName("samlssoServiceProviderDTO")
+public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol implements Serializable {
+
 
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
     private String issuerQualifier;
-    @XmlElementWrapper(name="assertionConsumerUrls")
+    @XmlElementWrapper(name = "assertionConsumerUrls")
     @XmlElement(name = "assertionConsumerUrl")
     private String[] assertionConsumerUrls;
     private String defaultAssertionConsumerUrl;
@@ -52,13 +59,13 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private boolean doSignAssertions;
     private boolean doSignResponse;
     private boolean doFrontChannelLogout;
-    @XmlElementWrapper(name="requestedClaims")
+    @XmlElementWrapper(name = "requestedClaims")
     @XmlElement(name = "requestedClaim")
     private String[] requestedClaims;
-    @XmlElementWrapper(name="requestedAudiences")
+    @XmlElementWrapper(name = "requestedAudiences")
     @XmlElement(name = "requestedAudience")
     private String[] requestedAudiences;
-    @XmlElementWrapper(name="requestedRecipients")
+    @XmlElementWrapper(name = "requestedRecipients")
     @XmlElement(name = "requestedRecipient")
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
@@ -69,7 +76,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     private String nameIDFormat;
     private boolean idPInitSSOEnabled;
     private boolean idPInitSLOEnabled;
-    @XmlElementWrapper(name="idpInitSLOReturnToURLs")
+    @XmlElementWrapper(name = "idpInitSLOReturnToURLs")
     @XmlElement(name = "idpInitSLOReturnToURL")
     private String[] idpInitSLOReturnToURLs;
     private boolean doEnableEncryptedAssertion;
@@ -439,7 +446,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
 
     public void setIdpInitSLOReturnToURLs(String[] idpInitSLOReturnToURLs) {
 
-        if(idpInitSLOReturnToURLs != null) {
+        if (idpInitSLOReturnToURLs != null) {
             this.idpInitSLOReturnToURLs = idpInitSLOReturnToURLs.clone();
         } else {
             this.idpInitSLOReturnToURLs = null;
@@ -486,7 +493,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     }
 
     /**
-     * Get idp entity id alias value
+     * Get idp entity id alias value.
      *
      * @return
      */
@@ -496,7 +503,7 @@ public class SAMLSSOServiceProviderDTO implements Serializable {
     }
 
     /**
-     * Set idp entity id alias value
+     * Set idp entity id alias value.
      *
      * @param idpEntityIDAlias
      */
