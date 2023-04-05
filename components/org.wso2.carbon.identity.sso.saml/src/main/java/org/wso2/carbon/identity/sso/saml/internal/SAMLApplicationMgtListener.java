@@ -37,14 +37,12 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 
 import java.io.ByteArrayInputStream;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 /**
@@ -189,7 +187,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                                 (SAMLSSOServiceProviderDTO) authConfig.getInboundConfigurationProtocol();
 
                         if (samlssoServiceProviderDTO == null) {
-                            String errorMsg = String.format("No inbound configurations found for smal in the" +
+                            String errorMsg = String.format("No inbound configurations found for saml in the" +
                                             " imported %s", serviceProvider.getApplicationName());
                             throw new IdentityApplicationManagementException(errorMsg);
                         }
@@ -259,12 +257,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                             throw new IdentityApplicationManagementException(String.format("There is no saml " +
                                     "configured with %s", authConfig.getInboundAuthKey()));
                         }
-                        JAXBContext jaxbContext = JAXBContext.newInstance(SAMLSSOServiceProviderDTO.class);
-                        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-                        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                        StringWriter sw = new StringWriter();
-                        jaxbMarshaller.marshal(samlSP, sw);
-                        authConfig.setInboundConfiguration(sw.toString());
 
                         authConfig.setInboundConfigurationProtocol(samlSP);
                         return;
@@ -273,9 +265,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             }
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error occurred when retrieving SAML application ", e);
-        } catch (JAXBException e) {
-            throw new IdentityApplicationManagementException(String.format("Error in exporting SAML application " +
-                    "%s@%s", serviceProvider.getApplicationName(), serviceProvider.getOwner().getTenantDomain()), e);
         }
     }
 
