@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.sso.saml;
 
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang.StringUtils;
@@ -35,7 +36,12 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
+import org.wso2.carbon.identity.sso.saml.model.SAMLXDSWrapper;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
+import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.security.SecurityConfigException;
@@ -81,6 +87,14 @@ public class SAMLSSOConfigServiceImpl {
     public boolean addRPServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
         try {
+            if (isControlPlane()) {
+                SAMLXDSWrapper applicationXDSWrapper = new SAMLXDSWrapper.SAMLXDSWrapperBuilder()
+                        .setSsoServiceProviderDTO(spDto)
+                        .build();
+                publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                        applicationXDSWrapper, XDSConstants.EventType.SAML,
+                        XDSConstants.SAMLOperationType.ADD_RP_SERVICE_PROVIDER);
+            }
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             return configAdmin.addRelyingPartyServiceProvider(spDto);
         } catch (IdentityException ex) {
@@ -120,6 +134,16 @@ public class SAMLSSOConfigServiceImpl {
                 throw buildClientException(INVALID_REQUEST,
                         "Invalid Key Encryption Algorithm: " + spDto.getKeyEncryptionAlgorithmURI());
             }
+
+            if (isControlPlane()) {
+                SAMLXDSWrapper applicationXDSWrapper = new SAMLXDSWrapper.SAMLXDSWrapperBuilder()
+                        .setSsoServiceProviderDTO(spDto)
+                        .build();
+                publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                        applicationXDSWrapper, XDSConstants.EventType.SAML,
+                        XDSConstants.SAMLOperationType.CREATE_SERVICE_PROVIDER);
+            }
+
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
@@ -138,6 +162,14 @@ public class SAMLSSOConfigServiceImpl {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             if (log.isDebugEnabled()) {
                 log.debug("Creating SAML Service Provider with metadata: " + metadata);
+            }
+            if (isControlPlane()) {
+                SAMLXDSWrapper applicationXDSWrapper = new SAMLXDSWrapper.SAMLXDSWrapperBuilder()
+                        .setMetadata(metadata)
+                        .build();
+                publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                        applicationXDSWrapper, XDSConstants.EventType.SAML,
+                        XDSConstants.SAMLOperationType.UPLOAD_RP_SERVICE_PROVIDER);
             }
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
         } catch (IdentityException e) {
@@ -165,6 +197,14 @@ public class SAMLSSOConfigServiceImpl {
             in = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes());
 
             String metadata = IOUtils.toString(in);
+            if (isControlPlane()) {
+                SAMLXDSWrapper applicationXDSWrapper = new SAMLXDSWrapper.SAMLXDSWrapperBuilder()
+                        .setMetadata(metadata)
+                        .build();
+                publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                        applicationXDSWrapper, XDSConstants.EventType.SAML,
+                        XDSConstants.SAMLOperationType.CREATE_SERVICE_PROVIDER_WITH_METADATA_URL);
+            }
             return uploadRPServiceProvider(metadata);
         } catch (IOException e) {
             String tenantDomain = getTenantDomain();
@@ -371,6 +411,14 @@ public class SAMLSSOConfigServiceImpl {
 
         try {
             SAMLSSOConfigAdmin ssoConfigAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            if (isControlPlane()) {
+                SAMLXDSWrapper applicationXDSWrapper = new SAMLXDSWrapper.SAMLXDSWrapperBuilder()
+                        .setIssuer(issuer)
+                        .build();
+                publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                        applicationXDSWrapper, XDSConstants.EventType.SAML,
+                        XDSConstants.SAMLOperationType.REMOVE_SERVICE_PROVIDER);
+            }
             return ssoConfigAdmin.removeServiceProvider(issuer);
         } catch (IdentityException ex) {
             String msg = "Error removing SAML SP with issuer: " + issuer + " in tenantDomain: " + getTenantDomain();
@@ -503,6 +551,25 @@ public class SAMLSSOConfigServiceImpl {
     private IdentitySAML2ClientException buildClientException(Error error, String message) {
 
         return new IdentitySAML2ClientException(error.getErrorCode(), message);
+    }
+
+    private String buildJson(SAMLXDSWrapper samlxdsWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(samlxdsWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(String tenantDomain, XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
+                             OperationType operationType) {
+
+        String json = buildJson((SAMLXDSWrapper) xdsWrapper);
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
     }
 }
 

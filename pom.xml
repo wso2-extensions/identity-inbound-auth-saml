@@ -366,6 +366,21 @@
                 <scope>test</scope>
                 <version>${carbon.identity.organization.management.core.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.xds.client.mgt</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.xds.common</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${com.google.code.gson.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -453,6 +468,7 @@
         <carbon.kernel.version>4.9.0</carbon.kernel.version>
         <carbon.kernel.feature.version>4.9.0</carbon.kernel.feature.version>
         <carbon.identity.framework.version>5.25.157</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.25.130</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.15.0, 7.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
         <carbon.identity.organization.management.core.version>1.0.0</carbon.identity.organization.management.core.version>
@@ -525,6 +541,8 @@
 
         <!-- Pax Logging Version -->
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
+
+        <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
     </properties>
 
 </project>
