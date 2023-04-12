@@ -236,11 +236,10 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                                         serviceProvider.getOwner().getTenantDomain());
             authConfig.setInboundConfigurationProtocol(samlssoServiceProviderDTO);
             return samlssoServiceProviderDTO;
-        } else {
-            String errorMsg = String.format("No inbound configurations found for saml in the" +
-                    " imported %s", serviceProvider.getApplicationName());
-            throw new IdentityApplicationManagementException(errorMsg);
         }
+        String errorMsg = String.format("No inbound configurations found for saml in the imported %s",
+                                        serviceProvider.getApplicationName());
+        throw new IdentityApplicationManagementException(errorMsg);
     }
 
     public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
