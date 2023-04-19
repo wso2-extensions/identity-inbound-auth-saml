@@ -164,8 +164,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
             for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
                 if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
-                    String inboundConfiguration = authConfig.getInboundConfiguration();
-                    if (inboundConfiguration != null) {
+                    if (authConfig.getInboundConfigurationProtocol() != null) {
                         validateSAMLSP(authConfig, serviceProvider.getApplicationName(),
                                 serviceProvider.getOwner().getTenantDomain(), isUpdate);
                     }
@@ -186,17 +185,9 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         .getInboundAuthenticationRequestConfigs()) {
                     if (StringUtils.equals(authConfig.getInboundAuthType(), SAMLSSO)) {
 
-                        String inboundConfiguration = authConfig.getInboundConfiguration();
-                        if (StringUtils.isEmpty(inboundConfiguration)) {
-                            String errorMsg = String.format("No inbound configurations found for oauth in the" +
-                                            " imported %s", serviceProvider.getApplicationName());
-                            throw new IdentityApplicationManagementException(errorMsg);
-                        }
+                        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = getSAMLSSOServiceProviderDTO(authConfig,
+                                                                                                    serviceProvider);
                         String inboundAuthKey = authConfig.getInboundAuthKey();
-                        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(
-                                inboundConfiguration, serviceProvider.getApplicationName(),
-                                serviceProvider.getOwner().getTenantDomain());
-
                         SAMLSSOConfigService configAdmin = new SAMLSSOConfigService();
 
                         try {
@@ -230,6 +221,27 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         }
     }
 
+    private SAMLSSOServiceProviderDTO getSAMLSSOServiceProviderDTO(InboundAuthenticationRequestConfig authConfig,
+                ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+
+        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = (SAMLSSOServiceProviderDTO)
+                                                                authConfig.getInboundConfigurationProtocol();
+        String inboundConfiguration = authConfig.getInboundConfiguration();
+
+        if (samlssoServiceProviderDTO != null) {
+            return samlssoServiceProviderDTO;
+        } else if (StringUtils.isNotBlank(inboundConfiguration)) {
+            samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(inboundConfiguration,
+                                        serviceProvider.getApplicationName(),
+                                        serviceProvider.getOwner().getTenantDomain());
+            authConfig.setInboundConfigurationProtocol(samlssoServiceProviderDTO);
+            return samlssoServiceProviderDTO;
+        }
+        String errorMsg = String.format("No inbound configurations found for saml in the imported %s",
+                                        serviceProvider.getApplicationName());
+        throw new IdentityApplicationManagementException(errorMsg);
+    }
+
     public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
             throws IdentityApplicationManagementException {
 
@@ -260,21 +272,15 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                             throw new IdentityApplicationManagementException(String.format("There is no saml " +
                                     "configured with %s", authConfig.getInboundAuthKey()));
                         }
-                        JAXBContext jaxbContext = JAXBContext.newInstance(SAMLSSOServiceProviderDTO.class);
-                        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-                        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                        StringWriter sw = new StringWriter();
-                        jaxbMarshaller.marshal(samlSP, sw);
-                        authConfig.setInboundConfiguration(sw.toString());
+                        authConfig.setInboundConfiguration(marshallSAMLSSOServiceProviderDTO(samlSP,
+                                serviceProvider.getApplicationName(), serviceProvider.getOwner().getTenantDomain()));
+                        authConfig.setInboundConfigurationProtocol(samlSP);
                         return;
                     }
                 }
             }
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error occurred when retrieving SAML application ", e);
-        } catch (JAXBException e) {
-            throw new IdentityApplicationManagementException(String.format("Error in exporting SAML application " +
-                    "%s@%s", serviceProvider.getApplicationName(), serviceProvider.getOwner().getTenantDomain()), e);
         }
     }
 
@@ -298,15 +304,10 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
 
         List<String> validationMsg = new ArrayList<>();
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO;
-        try {
-            samlssoServiceProviderDTO = unmarshelSAMLSSOServiceProviderDTO(authConfig.getInboundConfiguration(),
-                    applicationName, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            String errorMsg = String.format("SAML inbound configuration in the file is not valid for the " +
-                    "application %s", applicationName);
-            log.error(errorMsg, e);
-            validationMsg.add(errorMsg);
-            return;
+        samlssoServiceProviderDTO = (SAMLSSOServiceProviderDTO) authConfig.getInboundConfigurationProtocol();
+        if (samlssoServiceProviderDTO == null) {
+            validationMsg.add(String.format("No inbound configurations found for smal in the application name %s.",
+                    applicationName));
         }
         String issuer = samlssoServiceProviderDTO.getIssuer();
         if (StringUtils.isNotBlank(samlssoServiceProviderDTO.getIssuerQualifier())) {
@@ -340,7 +341,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
     }
 
     /**
-     * Unmarshel SAMLSSOServiceProvider DTO
+     * Unmarshel SAMLSSOServiceProvider DTO.
      *
      * @param authConfig          authentication config
      * @param serviceProviderName service provider name
@@ -359,6 +360,22 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                     authConfig.getBytes(StandardCharsets.UTF_8)));
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException(String.format("Error in unmarshelling SAML application " +
+                    "%s@%s", serviceProviderName, tenantDomain), e);
+        }
+    }
+
+    private String marshallSAMLSSOServiceProviderDTO(SAMLSSOServiceProviderDTO samlSP, String serviceProviderName,
+                             String tenantDomain) throws IdentityApplicationManagementException {
+
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(SAMLSSOServiceProviderDTO.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            StringWriter sw = new StringWriter();
+            jaxbMarshaller.marshal(samlSP, sw);
+            return sw.toString();
+        } catch (JAXBException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in marshalling SAML application " +
                     "%s@%s", serviceProviderName, tenantDomain), e);
         }
     }
