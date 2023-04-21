@@ -8,12 +8,14 @@ public class SAMLXDSWrapper implements XDSWrapper {
     private String metadataUrl;
     private SAMLSSOServiceProviderDTO ssoServiceProviderDTO;
     private String issuer;
+    private String timestamp;
 
     public SAMLXDSWrapper(SAMLXDSWrapperBuilder builder) {
         this.metadata = builder.metadata;
         this.metadataUrl = builder.metadataUrl;
         this.ssoServiceProviderDTO = builder.ssoServiceProviderDTO;
         this.issuer = builder.issuer;
+        this.timestamp = builder.timestamp;
     }
 
     public String getMetadata() {
@@ -37,6 +39,7 @@ public class SAMLXDSWrapper implements XDSWrapper {
         private String metadataUrl;
         private SAMLSSOServiceProviderDTO ssoServiceProviderDTO;
         private String issuer;
+        private String timestamp;
 
         public SAMLXDSWrapperBuilder() {
         }
@@ -62,6 +65,8 @@ public class SAMLXDSWrapper implements XDSWrapper {
         }
 
         public SAMLXDSWrapper build() {
+
+            this.timestamp = String.valueOf(System.currentTimeMillis());
             return new SAMLXDSWrapper(this);
         }
     }

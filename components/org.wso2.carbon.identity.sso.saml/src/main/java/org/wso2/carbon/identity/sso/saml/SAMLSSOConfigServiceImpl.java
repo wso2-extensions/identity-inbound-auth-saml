@@ -38,9 +38,9 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.model.SAMLXDSWrapper;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -93,7 +93,7 @@ public class SAMLSSOConfigServiceImpl {
                         .build();
                 publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
                         applicationXDSWrapper, XDSConstants.EventType.SAML,
-                        XDSConstants.SAMLOperationType.ADD_RP_SERVICE_PROVIDER);
+                        SAMLXDSOperationType.ADD_RP_SERVICE_PROVIDER);
             }
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             return configAdmin.addRelyingPartyServiceProvider(spDto);
@@ -141,7 +141,7 @@ public class SAMLSSOConfigServiceImpl {
                         .build();
                 publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
                         applicationXDSWrapper, XDSConstants.EventType.SAML,
-                        XDSConstants.SAMLOperationType.CREATE_SERVICE_PROVIDER);
+                        SAMLXDSOperationType.CREATE_SERVICE_PROVIDER);
             }
 
             return configAdmin.addSAMLServiceProvider(spDto);
@@ -169,7 +169,7 @@ public class SAMLSSOConfigServiceImpl {
                         .build();
                 publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
                         applicationXDSWrapper, XDSConstants.EventType.SAML,
-                        XDSConstants.SAMLOperationType.UPLOAD_RP_SERVICE_PROVIDER);
+                        SAMLXDSOperationType.UPLOAD_RP_SERVICE_PROVIDER);
             }
             return configAdmin.uploadRelyingPartyServiceProvider(metadata);
         } catch (IdentityException e) {
@@ -203,7 +203,7 @@ public class SAMLSSOConfigServiceImpl {
                         .build();
                 publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
                         applicationXDSWrapper, XDSConstants.EventType.SAML,
-                        XDSConstants.SAMLOperationType.CREATE_SERVICE_PROVIDER_WITH_METADATA_URL);
+                        SAMLXDSOperationType.CREATE_SERVICE_PROVIDER_WITH_METADATA_URL);
             }
             return uploadRPServiceProvider(metadata);
         } catch (IOException e) {
@@ -417,7 +417,7 @@ public class SAMLSSOConfigServiceImpl {
                         .build();
                 publishData(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
                         applicationXDSWrapper, XDSConstants.EventType.SAML,
-                        XDSConstants.SAMLOperationType.REMOVE_SERVICE_PROVIDER);
+                        SAMLXDSOperationType.REMOVE_SERVICE_PROVIDER);
             }
             return ssoConfigAdmin.removeServiceProvider(issuer);
         } catch (IdentityException ex) {
@@ -565,11 +565,11 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     private void publishData(String tenantDomain, XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
-                             OperationType operationType) {
+                             XDSOperationType operationType) {
 
         String json = buildJson((SAMLXDSWrapper) xdsWrapper);
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
+        XDSUtils.publishData(tenantDomain, username, json, eventType, operationType);
     }
 }
 
