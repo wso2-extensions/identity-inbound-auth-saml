@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
+import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
@@ -318,6 +319,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 errorResp = SAMLSSOUtil.buildErrorResponse(
                         SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR,
                         "Error occurred while handling SAML2 SSO request", null);
+            } catch (IdentityException e1) {
+                log.error("Error while building SAML response", e1);
+            }
+            sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
+                    SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, null, req, resp);
+        } catch (IdentitySAML2ClientException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred due to an invalid SAML2 SSO request.", e);
+            }
+            String errorResp = null;
+            try {
+                errorResp = SAMLSSOUtil.buildErrorResponse(
+                        SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR,
+                        "Error occurred due to an invalid SAML2 SSO request.", null);
             } catch (IdentityException e1) {
                 log.error("Error while building SAML response", e1);
             }
