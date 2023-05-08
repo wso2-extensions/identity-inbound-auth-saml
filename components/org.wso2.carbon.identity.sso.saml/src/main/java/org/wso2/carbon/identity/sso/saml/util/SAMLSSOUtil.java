@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import net.shibboleth.utilities.java.support.codec.Base64Support;
 import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
+import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -407,6 +408,8 @@ public class SAMLSSOUtil {
             inputStream = new ByteArrayInputStream(authReqStr.trim().getBytes(StandardCharsets.UTF_8));
             return XMLObjectSupport.unmarshallFromInputStream(
                     XMLObjectProviderRegistrySupport.getParserPool(), inputStream);
+        } catch (XMLParserException e) {
+            throw new IdentitySAML2ClientException("Error in constructing AuthRequest from the encoded String ", e);
         } catch (Exception e) {
             log.error("Error in constructing AuthRequest from the encoded String", e);
             throw IdentityException.error(
@@ -524,6 +527,9 @@ public class SAMLSSOUtil {
                 }
                 return decodedStr;
             }
+        } catch (IllegalArgumentException e) {
+            throw new IdentitySAML2ClientException("Error when decoding the SAML Request. " +
+                    "Invalid arguments provided.", e);
         } catch (IOException e) {
             throw IdentityException.error("Error when decoding the SAML Request.", e);
         }
