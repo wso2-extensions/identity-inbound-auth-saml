@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLArtifactResolveServlet;
 import org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServlet;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -457,5 +458,27 @@ public class IdentitySAMLSSOServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Unset the ApplicationManagementService");
         }
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = org.wso2.carbon.identity.xds.client.mgt.XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService")
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("XDS Client Service is set in the SAML SSO bundle");
+        }
+        SAMLSSOUtil.setXDSClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("XDS Client Service is set in the SAML SSO bundle");
+        }
+        SAMLSSOUtil.setXDSClientService(null);
     }
 }
