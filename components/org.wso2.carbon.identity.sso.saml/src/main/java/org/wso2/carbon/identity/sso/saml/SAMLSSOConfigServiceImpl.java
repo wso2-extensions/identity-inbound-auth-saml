@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.model.SAMLXDSWrapper;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
@@ -569,7 +568,7 @@ public class SAMLSSOConfigServiceImpl {
 
         String json = buildJson((SAMLXDSWrapper) xdsWrapper);
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, operationType);
+        SAMLSSOUtil.getXDSClientService().publishData(tenantDomain, username, json, eventType, operationType);
     }
 }
 

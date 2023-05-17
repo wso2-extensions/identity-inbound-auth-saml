@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.sso.saml.validators.IdPInitSSOAuthnRequestValida
 import org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectSignatureValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidator;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Registry;
@@ -202,6 +203,7 @@ public class SAMLSSOUtil {
     private static ApplicationManagementService applicationMgtService;
     private static SAMLSSOConfigServiceImpl samlssoConfigService;
     private static volatile List<SAMLExtensionProcessor> extensionProcessors;
+    private static XDSClientService xdsClientService;
 
     private SAMLSSOUtil() {
     }
@@ -2689,5 +2691,13 @@ public class SAMLSSOUtil {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    public static XDSClientService getXDSClientService() {
+        return xdsClientService;
+    }
+
+    public static void setXDSClientService(XDSClientService xdsClientService) {
+        SAMLSSOUtil.xdsClientService = xdsClientService;
     }
 }
