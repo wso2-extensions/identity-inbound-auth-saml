@@ -259,7 +259,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
                         if (serviceProviderInfoDTOs != null) {
                             for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
-                                if (sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
+                                if (StringUtils.isNotBlank(sp.getIssuer()) && sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
                                     if (sp.getIssuerQualifier() != null) {
                                         sp.setIssuer(SAMLSSOUtil.getIssuerWithoutQualifier(sp.getIssuer()));
                                     }
@@ -324,7 +324,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                 SAMLSSOServiceProviderInfoDTO serviceProviderInfoDTOs = configAdmin.getServiceProviders();
                 if (serviceProviderInfoDTOs != null) {
                     for (SAMLSSOServiceProviderDTO sp : serviceProviderInfoDTOs.getServiceProviders()) {
-                        if (sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
+                        if (StringUtils.isNotBlank(sp.getIssuer()) && sp.getIssuer().equals(authConfig.getInboundAuthKey())) {
                             validationMsg.add(String.format("Already a SAML configuration available with %s",
                                     authConfig.getInboundAuthKey()));
                             break;
