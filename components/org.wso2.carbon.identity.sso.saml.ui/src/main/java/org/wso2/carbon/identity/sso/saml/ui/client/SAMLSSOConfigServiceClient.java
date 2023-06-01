@@ -22,6 +22,7 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -109,7 +110,7 @@ public class SAMLSSOConfigServiceClient {
             SAMLSSOServiceProviderDTO[] sps = dto.getServiceProviders();
             if (sps != null) {
                 for (SAMLSSOServiceProviderDTO sp : sps) {
-                    if (sp.getIssuer().equals(issuer)) {
+                    if (StringUtils.isNotBlank(sp.getIssuer()) && sp.getIssuer().equals(issuer)) {
                         return sp;
                     }
                 }
