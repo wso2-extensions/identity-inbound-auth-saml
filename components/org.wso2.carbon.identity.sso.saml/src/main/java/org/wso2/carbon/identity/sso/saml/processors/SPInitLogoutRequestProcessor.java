@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2010-2023), WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -23,11 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.LogoutRequest;
 import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -39,7 +38,6 @@ import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.ValidationResult;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -271,10 +269,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     privilegedCarbonContext.setTenantId(tenantId);
                     privilegedCarbonContext.setTenantDomain(tenantDomain);
                     IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-                    IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-                    Registry registry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry
-                            (RegistryType.SYSTEM_CONFIGURATION);
-                    ssoIdpConfigs = persistenceManager.getServiceProvider(registry, issuer);
+                    ssoIdpConfigs = SAMLSSOServiceProviderManager.getInstance().getServiceProvider(issuer, tenantId);
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2017-2023), WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -39,11 +39,11 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
@@ -57,7 +57,6 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -67,7 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -83,7 +82,7 @@ import static org.testng.Assert.assertTrue;
  * Unit test cases for SAMLSSOUtil.
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class, IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
+        KeyStoreManager.class, SAMLSSOServiceProviderManager.class, SSOServiceProviderConfigManager.class,
         IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*", "org.apache.xerces.*"})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
@@ -111,7 +110,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     private SessionInfoData sessionInfoData;
 
     @Mock
-    private IdentityPersistenceManager identityPersistenceManager;
+    private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
 
     @Mock
     private SSOServiceProviderConfigManager ssoServiceProviderConfigManager;
@@ -154,11 +153,11 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setIssuerQualifier(TestConstants.ISSUER_QUALIFIER);
         samlssoServiceProviderDO.setIdpEntityIDAlias(TestConstants.IDP_ENTITY_ID_ALIAS);
 
-        when(identityPersistenceManager.getServiceProvider(any(Registry.class), anyString()))
+        when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(IdentityPersistenceManager.class);
-        when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
-        when(identityPersistenceManager.isServiceProviderExists(any(Registry.class), anyString())).thenReturn(true);
+        mockStatic(SAMLSSOServiceProviderManager.class);
+        when(SAMLSSOServiceProviderManager.getInstance()).thenReturn(samlSSOServiceProviderManager);
+        when(samlSSOServiceProviderManager.isServiceProviderExists(anyString(), anyInt())).thenReturn(true);
 
         mockStatic(SSOServiceProviderConfigManager.class);
         when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);

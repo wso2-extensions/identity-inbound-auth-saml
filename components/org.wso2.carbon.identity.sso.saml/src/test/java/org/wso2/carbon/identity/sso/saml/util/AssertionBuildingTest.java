@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2017-2023), WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -46,8 +46,8 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
@@ -59,7 +59,6 @@ import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
@@ -75,8 +74,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -91,7 +90,7 @@ import static org.testng.Assert.assertTrue;
  * Tests Assertion building functionality.
  */
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class, OSGiDataHolder.class,
-        SSOServiceProviderConfigManager.class, IdentityPersistenceManager.class})
+        SSOServiceProviderConfigManager.class, SAMLSSOServiceProviderManager.class})
 @WithCarbonHome
 @PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
         "javax.security.*", "org.mockito.*"})
@@ -106,7 +105,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     private RealmService realmService;
 
     @Mock
-    private IdentityPersistenceManager identityPersistenceManager;
+    private SAMLSSOServiceProviderManager samlssoServiceProviderManager;
 
     @Mock
     private TenantManager tenantManager;
@@ -385,10 +384,10 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setEnableAttributesByDefault(true);
         samlssoServiceProviderDO.setIssuer(issuer);
         samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
-        when(identityPersistenceManager.getServiceProvider(any(Registry.class), eq(issuer)))
+        when(samlssoServiceProviderManager.getServiceProvider(eq(issuer), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(IdentityPersistenceManager.class);
-        when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+        mockStatic(SAMLSSOServiceProviderManager.class);
+        when(SAMLSSOServiceProviderManager.getInstance()).thenReturn(samlssoServiceProviderManager);
     }
 
     private void setRegistryAndTenantDomain() throws UserStoreException, IdentityException, RegistryException {

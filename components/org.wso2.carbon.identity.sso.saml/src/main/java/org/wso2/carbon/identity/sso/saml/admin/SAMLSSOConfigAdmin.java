@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2007, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2007-2023), WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -26,8 +26,8 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
@@ -58,9 +58,11 @@ public class SAMLSSOConfigAdmin {
 
     private static final Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
     private UserRegistry registry;
+    private final int tenantId;
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {
         registry = (UserRegistry) userRegistry;
+        tenantId = ((UserRegistry) userRegistry).getTenantId();
     }
 
     /**
@@ -73,8 +75,6 @@ public class SAMLSSOConfigAdmin {
     public boolean addRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
-                .getPersistanceManager();
         try {
             String issuer = getIssuerWithQualifier(serviceProviderDO);
             SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
@@ -86,7 +86,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return persistenceManager.addServiceProvider(registry, serviceProviderDO);
+            return SAMLSSOServiceProviderManager.getInstance().addServiceProvider(serviceProviderDO, tenantId);
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -130,8 +130,8 @@ public class SAMLSSOConfigAdmin {
     private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO)
             throws IdentityException {
 
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-        boolean response = persistenceManager.addServiceProvider(registry, samlssoServiceProviderDO);
+        boolean response = SAMLSSOServiceProviderManager.getInstance()
+                .addServiceProvider(samlssoServiceProviderDO, tenantId);
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
@@ -150,10 +150,10 @@ public class SAMLSSOConfigAdmin {
      */
     private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws Exception {
 
-        KeyStoreManager manager = KeyStoreManager.getInstance(registry.getTenantId(), IdentitySAMLSSOServiceComponent
+        KeyStoreManager manager = KeyStoreManager.getInstance(tenantId, IdentitySAMLSSOServiceComponent
                 .getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
 
-        if (MultitenantConstants.SUPER_TENANT_ID == registry.getTenantId()) {
+        if (MultitenantConstants.SUPER_TENANT_ID == tenantId) {
 
             KeyStore keyStore = manager.getPrimaryKeyStore();
 
@@ -167,7 +167,7 @@ public class SAMLSSOConfigAdmin {
             }
         } else {
 
-            String keyStoreName = getKeyStoreName(registry.getTenantId());
+            String keyStoreName = getKeyStoreName(tenantId);
             KeyStore keyStore = manager.getKeyStore(keyStoreName);
 
             // Add new certificate
@@ -196,7 +196,6 @@ public class SAMLSSOConfigAdmin {
      */
     public SAMLSSOServiceProviderDTO uploadRelyingPartyServiceProvider(String metadata) throws IdentityException {
 
-        IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
         Parser parser = new Parser(registry);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
 
@@ -411,9 +410,8 @@ public class SAMLSSOConfigAdmin {
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
         SAMLSSOServiceProviderDTO[] serviceProviders = null;
         try {
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager
-                    .getPersistanceManager();
-            SAMLSSOServiceProviderDO[] providersSet = persistenceManager.getServiceProviders(registry);
+            SAMLSSOServiceProviderDO[] providersSet = SAMLSSOServiceProviderManager.getInstance()
+                    .getServiceProviders(tenantId);
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {
@@ -486,7 +484,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderInfoDTO.setServiceProviders(serviceProviders);
 
         //if it is tenant zero
-        if (registry.getTenantId() == 0) {
+        if (tenantId == 0) {
             serviceProviderInfoDTO.setTenantZero(true);
         }
         return serviceProviderInfoDTO;
@@ -501,8 +499,7 @@ public class SAMLSSOConfigAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
         try {
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            return persistenceManager.removeServiceProvider(registry, issuer);
+            return SAMLSSOServiceProviderManager.getInstance().removeServiceProvider(issuer, tenantId);
         } catch (IdentityException e) {
             throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }
