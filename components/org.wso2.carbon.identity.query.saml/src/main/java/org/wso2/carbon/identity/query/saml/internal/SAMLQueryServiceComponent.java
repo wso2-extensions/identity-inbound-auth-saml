@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -40,6 +41,8 @@ public class SAMLQueryServiceComponent {
     private static final Log log = LogFactory.getLog(SAMLQueryServiceComponent.class);
 
     private static RealmService realmservice = null;
+
+    private static SAMLSSOServiceProviderManager samlSSOServiceProviderManager = null;
 
     /**
      * This method is used to get created realm service
@@ -105,5 +108,47 @@ public class SAMLQueryServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("DefaultUserRealm unset in to bundle");
         }
+    }
+
+    /**
+     * This method is used to set SAMLSSOServiceProviderManager instance
+     *
+     * @param samlSSOServiceProviderManager SAMLSSOServiceProviderManager instance
+     */
+    @Reference(
+            name = "saml.sso.service.provider.manager",
+            service = SAMLSSOServiceProviderManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSAMLSSOServiceProviderManager")
+    protected void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        this.samlSSOServiceProviderManager = samlSSOServiceProviderManager;
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager set in to bundle");
+        }
+    }
+
+    /**
+     * This method is used to un-set SAMLSSOServiceProviderManager instance
+     *
+     * @param samlSSOServiceProviderManager SAMLSSOServiceProviderManager instance
+     */
+    protected void unsetSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        this.samlSSOServiceProviderManager = null;
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager unset in to bundle");
+        }
+    }
+
+    /**
+     * This method is used to get SAMLSSOServiceProviderManager instance
+     *
+     * @return SAMLSSOServiceProviderManager instance
+     */
+    public static SAMLSSOServiceProviderManager getSAMLSSOServiceProviderManager() {
+
+        return samlSSOServiceProviderManager;
     }
 }

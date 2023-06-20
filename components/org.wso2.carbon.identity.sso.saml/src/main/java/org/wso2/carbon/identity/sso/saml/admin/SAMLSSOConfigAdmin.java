@@ -26,7 +26,6 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -38,6 +37,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
@@ -86,7 +86,7 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return SAMLSSOServiceProviderManager.getInstance().addServiceProvider(serviceProviderDO, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager().addServiceProvider(serviceProviderDO, tenantId);
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -130,7 +130,7 @@ public class SAMLSSOConfigAdmin {
     private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO)
             throws IdentityException {
 
-        boolean response = SAMLSSOServiceProviderManager.getInstance()
+        boolean response = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                 .addServiceProvider(samlssoServiceProviderDO, tenantId);
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
@@ -410,7 +410,7 @@ public class SAMLSSOConfigAdmin {
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
         SAMLSSOServiceProviderDTO[] serviceProviders = null;
         try {
-            SAMLSSOServiceProviderDO[] providersSet = SAMLSSOServiceProviderManager.getInstance()
+            SAMLSSOServiceProviderDO[] providersSet = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                     .getServiceProviders(tenantId);
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
@@ -499,7 +499,7 @@ public class SAMLSSOConfigAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
         try {
-            return SAMLSSOServiceProviderManager.getInstance().removeServiceProvider(issuer, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
         } catch (IdentityException e) {
             throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }

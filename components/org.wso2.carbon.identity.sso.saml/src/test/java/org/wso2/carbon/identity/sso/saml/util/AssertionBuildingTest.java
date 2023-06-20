@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -84,7 +85,7 @@ import static org.testng.Assert.assertTrue;
  * Tests Assertion building functionality.
  */
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
-        SSOServiceProviderConfigManager.class, SAMLSSOServiceProviderManager.class})
+        SSOServiceProviderConfigManager.class, IdentitySAMLSSOServiceComponentHolder.class})
 @WithCarbonHome
 @PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
         "javax.security.*", "org.mockito.*"})
@@ -97,6 +98,9 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Mock
     private RealmService realmService;
+
+    @Mock
+    private IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
     @Mock
     private SAMLSSOServiceProviderManager samlssoServiceProviderManager;
@@ -364,8 +368,11 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
         when(samlssoServiceProviderManager.getServiceProvider(eq(issuer), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(SAMLSSOServiceProviderManager.class);
-        when(SAMLSSOServiceProviderManager.getInstance()).thenReturn(samlssoServiceProviderManager);
+        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
+        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+                .thenReturn(identitySAMLSSOServiceComponentHolder);
+        when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
+                .thenReturn(samlssoServiceProviderManager);
     }
 
     @Test

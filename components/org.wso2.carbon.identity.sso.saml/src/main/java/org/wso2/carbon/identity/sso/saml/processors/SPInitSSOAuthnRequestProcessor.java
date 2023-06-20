@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -35,6 +34,7 @@ import org.wso2.carbon.identity.sso.saml.builders.ResponseBuilder;
 import org.wso2.carbon.identity.sso.saml.builders.SAMLArtifactBuilder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -219,7 +219,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 IdentityTenantUtil.initializeRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext()
                         .getTenantId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
                 int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-                ssoIdpConfigs = SAMLSSOServiceProviderManager.getInstance()
+                ssoIdpConfigs = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                         .getServiceProvider(authnReqDTO.getIssuer(), tenantId);
                 authnReqDTO.setStratosDeployment(false); // not stratos
             } else {

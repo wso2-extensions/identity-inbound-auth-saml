@@ -98,6 +98,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SingleLogoutRequestDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.extension.SAMLExtensionProcessor;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitLogoutRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.IdPInitSSOAuthnRequestProcessor;
 import org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessor;
@@ -1842,7 +1843,8 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
             IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-            return SAMLSSOServiceProviderManager.getInstance().isServiceProviderExists(issuerName, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .isServiceProviderExists(issuerName, tenantId);
         } catch (IdentityException e) {
             throw new IdentitySAML2SSOException("Error occurred while validating existence of SAML service provider " +
                     "'" + issuerName + "' in the tenant domain '" + tenantDomain + "'");
@@ -1897,7 +1899,8 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantId(tenantId);
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
-            SAMLSSOServiceProviderDO spDO = SAMLSSOServiceProviderManager.getInstance().getServiceProvider(issuerName,
+            SAMLSSOServiceProviderDO spDO = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getSAMLSSOServiceProviderManager().getServiceProvider(issuerName,
                     tenantId);
             if (StringUtils.isBlank(requestedACSUrl) || !spDO.getAssertionConsumerUrlList().contains
                     (requestedACSUrl)) {
@@ -2679,7 +2682,8 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
             IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
-            return SAMLSSOServiceProviderManager.getInstance().getServiceProvider(issuer, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .getServiceProvider(issuer, tenantId);
 
         } catch (IdentityException | RegistryException e) {
             throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "

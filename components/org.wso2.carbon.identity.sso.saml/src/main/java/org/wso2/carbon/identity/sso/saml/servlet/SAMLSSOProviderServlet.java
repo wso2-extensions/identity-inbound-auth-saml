@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -77,6 +76,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOSessionDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponent;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
@@ -1798,8 +1798,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     privilegedCarbonContext.setTenantId(tenantId);
                     privilegedCarbonContext.setTenantDomain(tenantDomain);
 
-                    serviceProviderConfigs = SAMLSSOServiceProviderManager.getInstance()
-                            .getServiceProvider(issuer, tenantId);
+                    serviceProviderConfigs = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                            .getSAMLSSOServiceProviderManager().getServiceProvider(issuer, tenantId);
                     authnReqDTO.setStratosDeployment(false); // not stratos
                 } catch (IdentityException e) {
                     throw new IdentitySAML2SSOException("Error occurred while retrieving SAML service provider for "

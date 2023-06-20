@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Se
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
@@ -456,6 +457,29 @@ public class IdentitySAMLSSOServiceComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Unset the ApplicationManagementService");
+        }
+    }
+
+
+    @Reference(
+            name = "saml.sso.service.provider.manager",
+            service = org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSAMLSSOServiceProviderManager")
+    protected void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setSAMLSSOServiceProviderManager(samlSSOServiceProviderManager);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager set in to bundle");
+        }
+    }
+
+    protected void unsetSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setSAMLSSOServiceProviderManager(null);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
     }
 }

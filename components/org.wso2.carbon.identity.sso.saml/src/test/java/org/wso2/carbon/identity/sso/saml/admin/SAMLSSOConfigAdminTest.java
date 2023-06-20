@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -44,7 +45,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.*;
 
-@PrepareForTest({SAMLSSOServiceProviderManager.class, SSOServiceProviderConfigManager.class,
+@PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
         SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
@@ -57,6 +58,8 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @Mock
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
+
+    @Mock IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
     @Mock
     SAMLSSOServiceProviderDO samlssoServiceProvDO;
@@ -72,8 +75,11 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoConfigAdmin = new SAMLSSOConfigAdmin(userRegistry);
-        mockStatic(SAMLSSOServiceProviderManager.class);
-        when(SAMLSSOServiceProviderManager.getInstance()).thenReturn(samlSSOServiceProviderManager);
+        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
+        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+                .thenReturn(identitySAMLSSOServiceComponentHolder);
+        when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
+                .thenReturn(samlSSOServiceProviderManager);
         mockStatic(SAMLSSOServiceProviderDO.class);
     }
 

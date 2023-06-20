@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessor;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -82,7 +83,7 @@ import static org.testng.Assert.assertTrue;
  * Unit test cases for SAMLSSOUtil.
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class, SAMLSSOServiceProviderManager.class, SSOServiceProviderConfigManager.class,
+        KeyStoreManager.class, IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
         IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*", "org.apache.xerces.*"})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
@@ -111,6 +112,9 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Mock
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
+
+    @Mock
+    private IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
     @Mock
     private SSOServiceProviderConfigManager ssoServiceProviderConfigManager;
@@ -155,8 +159,11 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(SAMLSSOServiceProviderManager.class);
-        when(SAMLSSOServiceProviderManager.getInstance()).thenReturn(samlSSOServiceProviderManager);
+        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
+        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+                .thenReturn(identitySAMLSSOServiceComponentHolder);
+        when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
+                .thenReturn(samlSSOServiceProviderManager);
         when(samlSSOServiceProviderManager.isServiceProviderExists(anyString(), anyInt())).thenReturn(true);
 
         mockStatic(SSOServiceProviderConfigManager.class);

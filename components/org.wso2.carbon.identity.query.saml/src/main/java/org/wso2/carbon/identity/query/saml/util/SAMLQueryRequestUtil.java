@@ -72,10 +72,10 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.SignKeyDataHolder;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
+import org.wso2.carbon.identity.query.saml.internal.SAMLQueryServiceComponent;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -211,7 +211,8 @@ public class SAMLQueryRequestUtil {
             SAMLSSOServiceProviderDO ssoIdpConfigs = idPConfigManager.getServiceProvider(issuer);
             if (ssoIdpConfigs == null) {
                 int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-                ssoIdpConfigs = SAMLSSOServiceProviderManager.getInstance().getServiceProvider(issuer, tenantId);
+                ssoIdpConfigs = SAMLQueryServiceComponent.getSAMLSSOServiceProviderManager()
+                        .getServiceProvider(issuer, tenantId);
             }
             return ssoIdpConfigs;
         } catch (IdentityException e) {
