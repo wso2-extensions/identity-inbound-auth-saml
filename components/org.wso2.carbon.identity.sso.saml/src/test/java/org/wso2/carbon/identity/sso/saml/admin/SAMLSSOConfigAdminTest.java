@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2017-2023), WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -29,23 +29,23 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
-import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.*;
 
-@PrepareForTest({IdentityPersistenceManager.class, SSOServiceProviderConfigManager.class,
+@PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
         SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
@@ -57,7 +57,9 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     UserRegistry userRegistry;
 
     @Mock
-    private IdentityPersistenceManager identityPersistenceManager;
+    private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
+
+    @Mock IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
     @Mock
     SAMLSSOServiceProviderDO samlssoServiceProvDO;
@@ -73,8 +75,11 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoConfigAdmin = new SAMLSSOConfigAdmin(userRegistry);
-        mockStatic(IdentityPersistenceManager.class);
-        when(IdentityPersistenceManager.getPersistanceManager()).thenReturn(identityPersistenceManager);
+        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
+        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+                .thenReturn(identitySAMLSSOServiceComponentHolder);
+        when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
+                .thenReturn(samlSSOServiceProviderManager);
         mockStatic(SAMLSSOServiceProviderDO.class);
     }
 
@@ -88,7 +93,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         mockStatic(SSOServiceProviderConfigManager.class);
         when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
-        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class)))
+        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
                 .thenReturn(true);
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
         samlssoServiceProviderDTO.setIssuer("testUser");
@@ -131,8 +136,8 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider() throws Exception {
 
         String metadata = "metadata";
-        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class))).
-                thenReturn(true);
+        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
         whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
@@ -147,7 +152,8 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
         String metadata = "metadata";
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        when(identityPersistenceManager.addServiceProvider(userRegistry, samlssoServiceProvDO)).thenReturn(false);
+        when(samlSSOServiceProviderManager.addServiceProvider(samlssoServiceProvDO, userRegistry.getTenantId()))
+                .thenReturn(false);
         whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
         when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
         samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata);
@@ -157,7 +163,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider2(String issuer) throws Exception {
 
         String metadata = "metadata";
-        when(identityPersistenceManager.addServiceProvider(any(Registry.class), any(SAMLSSOServiceProviderDO.class)))
+        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn(issuer);
@@ -172,7 +178,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
         mockStatic(UserRegistry.class);
         SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[3];
         when(userRegistry.getTenantId()).thenReturn(0);
-        when(identityPersistenceManager.getServiceProviders(any(UserRegistry.class))).thenReturn(serviceProvidersList);
+        when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
 
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer("issuer");
