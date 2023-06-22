@@ -200,6 +200,15 @@ public class SAMLSSOConstants {
         }
     }
 
+    /**
+     * Group the constants related to logs.
+     */
+    public static class LogConstants {
+
+        public static final String CREATE_SAML_APPLICATION = "CREATE SAML APPLICATION";
+        public static final String DELETE_SAML_APPLICATION = "DELETE SAML APPLICATION";
+    }
+
     public static class SingleLogoutCodes {
         public static final String LOGOUT_USER = "urn:oasis:names:tc:SAML:2.0:logout:user";
         public static final String LOGOUT_ADMIN = "urn:oasis:names:tc:SAML:2.0:logout:admin";

@@ -262,6 +262,11 @@
                 <version>${axis2.wso2.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${com.fasterxml.jackson.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
                 <artifactId>org.wso2.carbon.identity.sso.saml.common</artifactId>
                 <version>${project.version}</version>
@@ -450,9 +455,9 @@
     </modules>
 
     <properties>
-        <carbon.kernel.version>4.9.0</carbon.kernel.version>
+        <carbon.kernel.version>4.9.10</carbon.kernel.version>
         <carbon.kernel.feature.version>4.9.0</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>5.25.247</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.25.258</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.25.234, 7.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
         <carbon.identity.organization.management.core.version>1.0.0</carbon.identity.organization.management.core.version>
@@ -470,6 +475,7 @@
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
+        <com.fasterxml.jackson.version>2.13.2</com.fasterxml.jackson.version>
 
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
