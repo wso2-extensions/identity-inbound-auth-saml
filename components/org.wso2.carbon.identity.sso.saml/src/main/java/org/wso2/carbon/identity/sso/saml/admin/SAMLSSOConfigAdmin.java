@@ -86,7 +86,8 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager().addServiceProvider(serviceProviderDO, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .addServiceProvider(serviceProviderDO, tenantId);
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -410,8 +411,8 @@ public class SAMLSSOConfigAdmin {
     public SAMLSSOServiceProviderInfoDTO getServiceProviders() throws IdentityException {
         SAMLSSOServiceProviderDTO[] serviceProviders = null;
         try {
-            SAMLSSOServiceProviderDO[] providersSet = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
-                    .getServiceProviders(tenantId);
+            SAMLSSOServiceProviderDO[] providersSet = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getSAMLSSOServiceProviderManager().getServiceProviders(tenantId);
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {
@@ -499,7 +500,8 @@ public class SAMLSSOConfigAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
         try {
-            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
+            return IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
         } catch (IdentityException e) {
             throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }

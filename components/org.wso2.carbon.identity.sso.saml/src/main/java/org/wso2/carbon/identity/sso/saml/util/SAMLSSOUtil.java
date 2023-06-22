@@ -1900,8 +1900,7 @@ public class SAMLSSOUtil {
             privilegedCarbonContext.setTenantDomain(tenantDomain);
 
             SAMLSSOServiceProviderDO spDO = IdentitySAMLSSOServiceComponentHolder.getInstance()
-                    .getSAMLSSOServiceProviderManager().getServiceProvider(issuerName,
-                    tenantId);
+                    .getSAMLSSOServiceProviderManager().getServiceProvider(issuerName, tenantId);
             if (StringUtils.isBlank(requestedACSUrl) || !spDO.getAssertionConsumerUrlList().contains
                     (requestedACSUrl)) {
                 String msg = "ALERT: Invalid Assertion Consumer URL value '" + requestedACSUrl + "' in the " +

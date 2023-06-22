@@ -44,6 +44,7 @@ public class IdentitySAMLSSOServiceComponentHolder {
      * @param samlSSOServiceProviderManager SAMLSSOServiceProviderManager.
      */
     public void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
         this.samlSSOServiceProviderManager = samlSSOServiceProviderManager;
     }
 
@@ -53,6 +54,7 @@ public class IdentitySAMLSSOServiceComponentHolder {
      * @return SAMLSSOServiceProviderManager.
      */
     public SAMLSSOServiceProviderManager getSAMLSSOServiceProviderManager() {
+
         return samlSSOServiceProviderManager;
     }
 
