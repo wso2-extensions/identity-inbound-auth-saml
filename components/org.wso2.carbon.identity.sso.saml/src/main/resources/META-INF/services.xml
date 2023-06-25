@@ -45,6 +45,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/create
             </parameter>
         </operation>
+        <operation name="updateRPServiceProvider">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/create
+            </parameter>
+        </operation>
         <operation name="uploadRPServiceProvider">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/create
             </parameter>

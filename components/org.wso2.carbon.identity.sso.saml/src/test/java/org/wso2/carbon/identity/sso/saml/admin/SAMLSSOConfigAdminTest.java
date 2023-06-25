@@ -104,6 +104,22 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
         Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
     }
 
+    @Test
+    public void testUpdateRelyingPartyServiceProvider() throws IdentityException {
+
+        mockStatic(SSOServiceProviderConfigManager.class);
+        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
+        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                .thenReturn(true);
+        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+        samlssoServiceProviderDTO.setIssuer("testUser");
+
+        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
+        samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
+        when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
+        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
+    }
+
     @DataProvider(name = "dataProviders")
     public Object[][] values() {
 

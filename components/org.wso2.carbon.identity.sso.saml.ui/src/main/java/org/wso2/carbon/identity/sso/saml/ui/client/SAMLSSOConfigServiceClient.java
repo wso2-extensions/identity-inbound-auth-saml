@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,23 @@ public class SAMLSSOConfigServiceClient {
         boolean status  ;
         try {
             status = stub.addRPServiceProvider(serviceProviderDTO);
+        } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
+            throw new IdentitySAML2SSOUiException("Error while uploading the service provider", e);
+        }
+        return status;
+    }
+
+    /**
+     * Update the service provider if exists
+     *
+     * @param serviceProviderDTO service provider DTO
+     * @return true if the update is successful
+     * @throws IdentitySAML2SSOUiException if an error occurs while updating the service provider
+     */
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentitySAML2SSOUiException {
+        boolean status  ;
+        try {
+            status = stub.updateRPServiceProvider(serviceProviderDTO);
         } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
             throw new IdentitySAML2SSOUiException("Error while uploading the service provider", e);
         }

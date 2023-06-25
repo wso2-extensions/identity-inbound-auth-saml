@@ -95,6 +95,36 @@ public class SAMLSSOConfigAdmin {
     }
 
     /**
+     * Update a service provider
+     *
+     * @param serviceProviderDTO service Provider DTO
+     * @return true if successful, false otherwise
+     * @throws IdentityException if fails to load the identity persistence manager
+     */
+    public boolean updateRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
+        try {
+            String issuer = getIssuerWithQualifier(serviceProviderDO);
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                    getServiceProvider(issuer);
+
+            if (samlssoServiceProviderDO == null) {
+                String message = "A Service Provider with the name " + issuer + " does not exist.";
+                log.error(message);
+                return false;
+            }
+            log.info("Updating Service Provider with the name " + issuer + " in the file system.");
+            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .updateServiceProvider(serviceProviderDO, tenantId);
+        } catch (IdentityException e) {
+            String message = "Error obtaining a registry for updating a new service provider";
+            throw new IdentityException(message, e);
+        }
+    }
+
+    /**
      * Add a new service provider
      *
      * @param serviceProviderDTO service Provider DTO
@@ -115,6 +145,37 @@ public class SAMLSSOConfigAdmin {
                 throw buildClientException(CONFLICTING_SAML_ISSUER, message);
             }
             return persistSAMLServiceProvider(serviceProviderDO);
+        } catch (IdentitySAML2ClientException e){
+            throw e;
+        } catch (IdentityException e) {
+            String message = "Error obtaining a registry for adding a new service provider";
+            throw new IdentityException(message, e);
+        }
+    }
+
+    /**
+     * Update a service provider if it exists.
+     *
+     * @param serviceProviderDTO service Provider DTO
+     * @return SAMLSSOServiceProviderDTO if successful, null otherwise
+     * @throws IdentityException if fails to load the identity persistence manager
+     */
+    public SAMLSSOServiceProviderDTO updateSAMLServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
+        try {
+            // Issuer value of the created SAML SP.
+            String issuer = getIssuerWithQualifier(serviceProviderDO);
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                    getServiceProvider(issuer);
+            if (samlssoServiceProviderDO == null) {
+                String message = "Service Provider with the name: " + issuer + " does not exist.";
+                throw buildClientException(CONFLICTING_SAML_ISSUER, message);
+            }
+            IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .updateServiceProvider(serviceProviderDO, tenantId);
+            return createSAMLSSOServiceProviderDTO(serviceProviderDO);
         } catch (IdentitySAML2ClientException e){
             throw e;
         } catch (IdentityException e) {
@@ -217,6 +278,41 @@ public class SAMLSSOConfigAdmin {
         }
 
         return persistSAMLServiceProvider(samlssoServiceProviderDO);
+    }
+
+
+    /**
+     * Update SAML SSO service provider from metadata directly.
+     *
+     * @param metadata metadata
+     * @return SAMLSSOServiceProviderDTO
+     * @throws IdentityException If an error occurs while updating the service provider.
+     */
+    public SAMLSSOServiceProviderDTO updateRelyingPartyServiceProvider(String metadata) throws IdentityException {
+
+        Parser parser = new Parser(registry);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+
+        try {
+            //pass metadata to samlSSOServiceProvider object
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException e) {
+            throw buildClientException(INVALID_REQUEST, "Error parsing SAML SP metadata.", e);
+        }
+
+        if (samlssoServiceProviderDO.getX509Certificate() != null) {
+            try {
+                //save certificate
+                this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+            } catch (Exception e) {
+                throw new IdentityException("Error occurred while setting certificate and alias", e);
+            }
+        }
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                .updateServiceProvider(samlssoServiceProviderDO, tenantId);
+        return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
+
     }
 
     private IdentitySAML2ClientException buildClientException(Error error, String message) {

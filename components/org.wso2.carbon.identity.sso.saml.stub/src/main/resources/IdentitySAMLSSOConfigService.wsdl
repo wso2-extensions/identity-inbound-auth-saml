@@ -50,6 +50,20 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="updateRPServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="spDto" nillable="true" type="ax2443:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRPServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="IdentitySAMLSSOConfigServiceIdentitySAML2SSOException">
                 <xs:complexType>
                     <xs:sequence>
@@ -299,6 +313,12 @@
     <wsdl:message name="addRPServiceProviderResponse">
         <wsdl:part name="parameters" element="ns1:addRPServiceProviderResponse"/>
     </wsdl:message>
+    <wsdl:message name="updateRPServiceProviderRequest">
+        <wsdl:part name="parameters" element="ns1:updateRPServiceProvider"/>
+    </wsdl:message>
+    <wsdl:message name="updateRPServiceProviderResponse">
+        <wsdl:part name="parameters" element="ns1:updateRPServiceProviderResponse"/>
+    </wsdl:message>
     <wsdl:message name="IdentitySAMLSSOConfigServiceIdentityException">
         <wsdl:part name="parameters" element="ns1:IdentitySAMLSSOConfigServiceIdentityException"/>
     </wsdl:message>
@@ -378,6 +398,11 @@
             <wsdl:input message="tns:addRPServiceProviderRequest" wsaw:Action="urn:addRPServiceProvider"/>
             <wsdl:output message="tns:addRPServiceProviderResponse" wsaw:Action="urn:addRPServiceProviderResponse"/>
             <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:addRPServiceProviderIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateRPServiceProvider">
+            <wsdl:input message="tns:updateRPServiceProviderRequest" wsaw:Action="urn:updateRPServiceProvider"/>
+            <wsdl:output message="tns:updateRPServiceProviderResponse" wsaw:Action="urn:updateRPServiceProviderResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:updateRPServiceProviderIdentitySAMLSSOConfigServiceIdentityException"/>
         </wsdl:operation>
         <wsdl:operation name="getServiceProviders">
             <wsdl:input message="tns:getServiceProvidersRequest" wsaw:Action="urn:getServiceProviders"/>
@@ -466,6 +491,18 @@
         </wsdl:operation>
         <wsdl:operation name="addRPServiceProvider">
             <soap:operation soapAction="urn:addRPServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRPServiceProvider">
+            <soap:operation soapAction="urn:updateRPServiceProvider" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -623,6 +660,18 @@
                 <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="updateRPServiceProvider">
+            <soap12:operation soapAction="urn:updateRPServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getServiceProviders">
             <soap12:operation soapAction="urn:getServiceProviders" style="document"/>
             <wsdl:input>
@@ -760,6 +809,15 @@
         </wsdl:operation>
         <wsdl:operation name="addRPServiceProvider">
             <http:operation location="addRPServiceProvider"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateRPServiceProvider">
+            <http:operation location="updateRPServiceProvider"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
