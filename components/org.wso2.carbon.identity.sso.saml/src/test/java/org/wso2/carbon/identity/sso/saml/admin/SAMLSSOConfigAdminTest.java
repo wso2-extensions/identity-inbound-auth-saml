@@ -43,6 +43,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
@@ -107,16 +108,15 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     @Test
     public void testUpdateRelyingPartyServiceProvider() throws IdentityException {
 
-        mockStatic(SSOServiceProviderConfigManager.class);
-        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
         when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
                 .thenReturn(true);
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
         samlssoServiceProviderDTO.setIssuer("testUser");
 
+        when(samlSSOServiceProviderManager.isServiceProviderExists(anyString(), anyInt())).thenReturn(false);
         Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
         samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
-        when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
+        when(samlSSOServiceProviderManager.isServiceProviderExists(eq("testUser"), anyInt())).thenReturn(true);
         Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
     }
 

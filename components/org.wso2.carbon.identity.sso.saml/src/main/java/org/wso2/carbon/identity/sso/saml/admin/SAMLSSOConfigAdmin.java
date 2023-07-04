@@ -107,10 +107,10 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
         try {
             String issuer = getIssuerWithQualifier(serviceProviderDO);
-            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(issuer);
+            boolean isServiceProviderExists = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getSAMLSSOServiceProviderManager().isServiceProviderExists(issuer, tenantId);
 
-            if (samlssoServiceProviderDO == null) {
+            if (!isServiceProviderExists) {
                 String message = "A Service Provider with the name " + issuer + " does not exist.";
                 log.error(message);
                 return false;
