@@ -202,14 +202,15 @@ public class SAMLSSOConfigServiceImpl {
         }
     }
 
-    public SAMLSSOServiceProviderDTO updateRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
+    public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata)
+            throws IdentitySAML2SSOException {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
             if (log.isDebugEnabled()) {
                 log.debug("Updating SAML Service Provider with metadata: " + metadata);
             }
-            return configAdmin.updateRelyingPartyServiceProvider(metadata);
+            return configAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata);
         } catch (IdentityException e) {
             String tenantDomain = getTenantDomain();
             throw handleException("Error while uploading SAML SP metadata in tenantDomain: " + tenantDomain, e);
@@ -264,7 +265,7 @@ public class SAMLSSOConfigServiceImpl {
             in = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes());
 
             String metadata = IOUtils.toString(in);
-            return updateRPServiceProvider(metadata);
+            return updateRPServiceProviderWithMetadata(metadata);
         } catch (IOException e) {
             String tenantDomain = getTenantDomain();
             throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
