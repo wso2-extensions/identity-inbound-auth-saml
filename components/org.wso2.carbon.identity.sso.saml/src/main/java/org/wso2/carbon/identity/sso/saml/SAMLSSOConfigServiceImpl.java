@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2019, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -202,6 +202,13 @@ public class SAMLSSOConfigServiceImpl {
         }
     }
 
+    /**
+     * Update a SAML service provider with metadata.
+     *
+     * @param metadata  Metadata of the SAML SP.
+     * @return SAMLSSOServiceProviderDTO with the information on the SAML SP.
+     * @throws IdentitySAML2SSOException if an error occurs while updating the SAML SP.
+     */
     public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata)
             throws IdentitySAML2SSOException {
 
