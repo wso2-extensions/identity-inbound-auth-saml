@@ -94,7 +94,7 @@ public class SAMLSSOConfigAdmin {
      *
      * @param serviceProviderDTO Service Provider DTO.
      * @return True if successful, false otherwise.
-     * @throws IdentityException If fails to load the identity persistence manager
+     * @throws IdentityException If fails to load the identity persistence manager.
      */
     public boolean updateRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
             throws IdentityException {
@@ -282,7 +282,7 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
 
         try {
-            //pass metadata to samlSSOServiceProvider object
+            // Pass metadata to samlSSOServiceProvider object.
             samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
         } catch (InvalidMetadataException e) {
             throw buildClientException(INVALID_REQUEST, "Error parsing SAML SP metadata.", e);
@@ -290,15 +290,13 @@ public class SAMLSSOConfigAdmin {
 
         if (samlssoServiceProviderDO.getX509Certificate() != null) {
             try {
-                //save certificate
+                // Save certificate.
                 this.saveCertificateToKeyStore(samlssoServiceProviderDO);
             } catch (Exception e) {
                 throw new IdentityException("Error occurred while setting certificate and alias", e);
             }
         }
-
         return persistSAMLServiceProvider(true, samlssoServiceProviderDO);
-
     }
 
     private IdentitySAML2ClientException buildClientException(Error error, String message) {
