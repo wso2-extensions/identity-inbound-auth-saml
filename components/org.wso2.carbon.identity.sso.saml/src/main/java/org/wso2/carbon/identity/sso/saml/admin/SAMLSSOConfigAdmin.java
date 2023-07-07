@@ -75,53 +75,43 @@ public class SAMLSSOConfigAdmin {
     public boolean addRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        try {
-            String issuer = getIssuerWithQualifier(serviceProviderDO);
-            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(issuer);
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
 
-            if (samlssoServiceProviderDO != null) {
-                String message = "A Service Provider with the name " + issuer + " is already loaded" +
-                        " from the file system.";
-                log.error(message);
-                return false;
-            }
-            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
-                    .addServiceProvider(serviceProviderDO, tenantId);
-        } catch (IdentityException e) {
-            String message = "Error obtaining a registry for adding a new service provider";
-            throw new IdentityException(message, e);
+        if (samlssoServiceProviderDO != null) {
+            String message = "A Service Provider with the name " + issuer + " is already loaded" +
+                    " from the file system.";
+            log.error(message);
+            return false;
         }
+        return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                .addServiceProvider(serviceProviderDO, tenantId);
     }
 
     /**
-     * Update a service provider
+     * Update a service provider.
      *
-     * @param serviceProviderDTO service Provider DTO
-     * @return true if successful, false otherwise
-     * @throws IdentityException if fails to load the identity persistence manager
+     * @param serviceProviderDTO Service Provider DTO.
+     * @return True if successful, false otherwise.
+     * @throws IdentityException If fails to load the identity persistence manager
      */
     public boolean updateRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
             throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        try {
-            String issuer = getIssuerWithQualifier(serviceProviderDO);
-            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(issuer);
-            if (samlssoServiceProviderDO == null && !IdentitySAMLSSOServiceComponentHolder.getInstance()
-                    .getSAMLSSOServiceProviderManager().isServiceProviderExists(issuer, tenantId)) {
-                String message = "A Service Provider with the name " + issuer + " does not exist.";
-                log.error(message);
-                return false;
-            }
-            log.info("Updating Service Provider with the name " + issuer + " in the file system.");
-            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
-                    .updateServiceProvider(serviceProviderDO, tenantId);
-        } catch (IdentityException e) {
-            String message = "Error obtaining a registry for updating a new service provider";
-            throw new IdentityException(message, e);
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
+        if (samlssoServiceProviderDO == null && !IdentitySAMLSSOServiceComponentHolder.getInstance()
+                .getSAMLSSOServiceProviderManager().isServiceProviderExists(issuer, tenantId)) {
+            String message = "A Service Provider with the name " + issuer + " does not exist.";
+            log.error(message);
+            return false;
         }
+        log.info("Updating Service Provider with the name " + issuer + " in the file system.");
+        return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                .updateServiceProvider(serviceProviderDO, tenantId);
     }
 
     /**
@@ -135,22 +125,15 @@ public class SAMLSSOConfigAdmin {
             throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        try {
-            // Issuer value of the created SAML SP.
-            String issuer = getIssuerWithQualifier(serviceProviderDO);
-            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(issuer);
-            if (samlssoServiceProviderDO != null) {
-                String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
-                throw buildClientException(CONFLICTING_SAML_ISSUER, message);
-            }
-            return persistSAMLServiceProvider(serviceProviderDO, false);
-        } catch (IdentitySAML2ClientException e){
-            throw e;
-        } catch (IdentityException e) {
-            String message = "Error obtaining a registry for adding a new service provider";
-            throw new IdentityException(message, e);
+        // Issuer value of the created SAML SP.
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
+        if (samlssoServiceProviderDO != null) {
+            String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
+            throw buildClientException(CONFLICTING_SAML_ISSUER, message);
         }
+        return persistSAMLServiceProvider(false, serviceProviderDO);
     }
 
     /**
@@ -164,23 +147,16 @@ public class SAMLSSOConfigAdmin {
             throws IdentityException {
 
         SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
-        try {
-            // Issuer value of the created SAML SP.
-            String issuer = getIssuerWithQualifier(serviceProviderDO);
-            SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
-                    getServiceProvider(issuer);
-            if (samlssoServiceProviderDO == null && !IdentitySAMLSSOServiceComponentHolder.getInstance()
-                    .getSAMLSSOServiceProviderManager().isServiceProviderExists(issuer, tenantId)) {
-                String message = "Service Provider with the name: " + issuer + " does not exist.";
-                throw buildClientException(CONFLICTING_SAML_ISSUER, message);
-            }
-            return persistSAMLServiceProvider(serviceProviderDO, true);
-        } catch (IdentitySAML2ClientException e){
-            throw e;
-        } catch (IdentityException e) {
-            String message = "Error obtaining a registry for adding a new service provider";
-            throw new IdentityException(message, e);
+        // Issuer value of the created SAML SP.
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
+        if (samlssoServiceProviderDO == null && !IdentitySAMLSSOServiceComponentHolder.getInstance()
+                .getSAMLSSOServiceProviderManager().isServiceProviderExists(issuer, tenantId)) {
+            String message = "Service Provider with the name: " + issuer + " does not exist.";
+            throw buildClientException(CONFLICTING_SAML_ISSUER, message);
         }
+        return persistSAMLServiceProvider(true, serviceProviderDO);
     }
 
     private String getIssuerWithQualifier(SAMLSSOServiceProviderDO serviceProviderDO) {
@@ -188,11 +164,12 @@ public class SAMLSSOConfigAdmin {
         return SAMLSSOUtil.getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier());
     }
 
-    private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO,
-                                                                 boolean isEditingSP) throws IdentityException {
+    private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(boolean isUpdateOperation,
+                                                                 SAMLSSOServiceProviderDO samlssoServiceProviderDO)
+            throws IdentityException {
 
         boolean response;
-        if (isEditingSP) {
+        if (isUpdateOperation) {
             response = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                     .updateServiceProvider(samlssoServiceProviderDO, tenantId);
         } else {
@@ -203,8 +180,14 @@ public class SAMLSSOConfigAdmin {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
             String issuer = samlssoServiceProviderDO.getIssuer();
-            String msg = "An application with the SAML issuer: " + issuer + " already exists in tenantDomain: " +
-                    getTenantDomain();
+            String msg;
+            if (isUpdateOperation) {
+                msg = "Application with the SAML issuer: " + issuer + " does not exist in tenantDomain: " +
+                        getTenantDomain();
+            } else {
+                msg = "An application with the SAML issuer: " + issuer + " already exists in tenantDomain: " +
+                        getTenantDomain();
+            }
             throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
         }
     }
@@ -282,9 +265,8 @@ public class SAMLSSOConfigAdmin {
             }
         }
 
-        return persistSAMLServiceProvider(samlssoServiceProviderDO, false);
+        return persistSAMLServiceProvider(false, samlssoServiceProviderDO);
     }
-
 
     /**
      * Update SAML SSO service provider from metadata directly.
@@ -315,7 +297,7 @@ public class SAMLSSOConfigAdmin {
             }
         }
 
-        return persistSAMLServiceProvider(samlssoServiceProviderDO, true);
+        return persistSAMLServiceProvider(true, samlssoServiceProviderDO);
 
     }
 
