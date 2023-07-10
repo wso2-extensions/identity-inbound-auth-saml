@@ -1,7 +1,7 @@
 <!--
-~ Copyright (c) (2010-2023), WSO2 LLC. (https://www.wso2.com).
+~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
-~ WSO2 LLC. licenses this file to you under the Apache License,
+~ WSO2 Inc. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
 ~ in compliance with the License.
 ~ You may obtain a copy of the License at
@@ -268,10 +268,11 @@
         }
 
         if (isEditingSP) {
+            String currentIssuer = serviceProviderDTO.getIssuer();
             if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
-                serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getIssuerWithoutQualifier(serviceProviderDTO.getIssuer()));
+                serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getIssuerWithoutQualifier(currentIssuer));
             }
-            status = client.updateServiceProvider(serviceProviderDTO);
+            status = client.updateServiceProvider(serviceProviderDTO, currentIssuer);
         } else {
             status = client.addServiceProvider(serviceProviderDTO);
         }

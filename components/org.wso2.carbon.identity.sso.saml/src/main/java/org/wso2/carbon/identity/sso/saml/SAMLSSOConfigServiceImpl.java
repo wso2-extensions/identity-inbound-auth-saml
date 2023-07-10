@@ -92,15 +92,17 @@ public class SAMLSSOConfigServiceImpl {
     /**
      * Updates a SAML service provider.
      *
-     * @param serviceProviderDTO DTO containing the SAML SP configuration.
+     * @param serviceProviderDTO    DTO containing the SAML SP configuration.
+     * @param currentIssuer         Issuer of the service provider before the update.
      * @return True if the SAML SP is updated successfully.
-     * @throws IdentityException if an error occurs while updating the SAML SP.
+     * @throws IdentityException If an error occurs while updating the SAML SP.
      */
-    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
+    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
 
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            return configAdmin.updateRelyingPartyServiceProvider(serviceProviderDTO);
+            return configAdmin.updateRelyingPartyServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (IdentityException ex) {
             throw handleException("Error while updating SAML SP in tenantDomain: " + getTenantDomain(), ex);
         }
@@ -109,17 +111,16 @@ public class SAMLSSOConfigServiceImpl {
     /**
      * Creates a SAML service provider.
      *
-     * @param serviceProviderDTO DTO containing the SAML SP configuration.
+     * @param spDto DTO containing the SAML SP configuration.
      * @return SAMLSSOServiceProviderDTO with the information on the created SAML SP.
      * @throws IdentityException
      */
-    public SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
-            throws IdentityException {
+    public SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
-        validateSAMLSSOServiceProviderDTO(serviceProviderDTO);
+        validateSAMLSSOServiceProviderDTO(spDto);
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
-            return configAdmin.addSAMLServiceProvider(serviceProviderDTO);
+            return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
         }
@@ -129,16 +130,17 @@ public class SAMLSSOConfigServiceImpl {
      * Update a SAML service provider.
      *
      * @param serviceProviderDTO DTO containing the SAML SP configuration.
+     * @param currentIssuer      Issuer of the service provider before the update.
      * @return SAMLSSOServiceProviderDTO with the information on the SAML SP.
      * @throws IdentityException If an error occurs while updating the SAML SP.
      */
-    public SAMLSSOServiceProviderDTO updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
+    public SAMLSSOServiceProviderDTO updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
             throws IdentityException {
 
         validateSAMLSSOServiceProviderDTO(serviceProviderDTO);
         SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
-            return configAdmin.updateSAMLServiceProvider(serviceProviderDTO);
+            return configAdmin.updateSAMLServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (IdentityException ex) {
             throw handleException("Error while updating SAML SP in tenantDomain: " + getTenantDomain(), ex);
         }
@@ -192,11 +194,12 @@ public class SAMLSSOConfigServiceImpl {
     /**
      * Update a SAML service provider with metadata.
      *
-     * @param metadata  Metadata of the SAML SP.
+     * @param metadata      Metadata of the SAML SP.
+     * @param currentIssuer Issuer of the service provider before the update.
      * @return SAMLSSOServiceProviderDTO with the information on the SAML SP.
      * @throws IdentitySAML2SSOException If an error occurs while updating the SAML SP.
      */
-    public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata)
+    public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata, String currentIssuer)
             throws IdentitySAML2SSOException {
 
         try {
@@ -204,7 +207,7 @@ public class SAMLSSOConfigServiceImpl {
             if (log.isDebugEnabled()) {
                 log.debug("Updating SAML Service Provider with metadata: " + metadata);
             }
-            return configAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata);
+            return configAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, currentIssuer);
         } catch (IdentityException e) {
             throw handleException("Error while updating SAML SP metadata in tenantDomain: " + getTenantDomain(), e);
         }
@@ -238,11 +241,12 @@ public class SAMLSSOConfigServiceImpl {
     /**
      * Update a service provider with configurations provided via a metadata URL.
      *
-     * @param metadataUrl URL to fetch the SAML SP metadata file.
+     * @param metadataUrl   URL to fetch the SAML SP metadata file.
+     * @param currentIssuer Issuer of the service provider before the update.
      * @return SAMLSSOServiceProviderDTO with the information on the created SAML SP.
      * @throws IdentitySAML2SSOException
      */
-    public SAMLSSOServiceProviderDTO updateServiceProviderWithMetadataURL(String metadataUrl)
+    public SAMLSSOServiceProviderDTO updateServiceProviderWithMetadataURL(String metadataUrl, String currentIssuer)
             throws IdentitySAML2SSOException {
 
         try {
@@ -252,7 +256,7 @@ public class SAMLSSOConfigServiceImpl {
             connection.setReadTimeout(getReadTimeoutInMillis());
             try (InputStream inputStream = new BoundedInputStream(connection.getInputStream(), getMaxSizeInBytes())) {
                 String metadata = IOUtils.toString(inputStream);
-                return updateRPServiceProviderWithMetadata(metadata);
+                return updateRPServiceProviderWithMetadata(metadata, currentIssuer);
             }
         } catch (IOException e) {
             throw handleIOException(URL_NOT_FOUND,

@@ -43,7 +43,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
@@ -108,16 +107,17 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     @Test
     public void testUpdateRelyingPartyServiceProvider() throws IdentityException {
 
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+        mockStatic(SSOServiceProviderConfigManager.class);
+        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
+        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
                 .thenReturn(true);
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
         samlssoServiceProviderDTO.setIssuer("testUser");
 
-        when(samlSSOServiceProviderManager.isServiceProviderExists(anyString(), anyInt())).thenReturn(false);
-        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
+        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), true);
         samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
-        when(samlSSOServiceProviderManager.isServiceProviderExists(eq("testUser"), anyInt())).thenReturn(true);
-        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
+        when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
+        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), false);
     }
 
     @DataProvider(name = "dataProviders")
@@ -192,13 +192,13 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUpdateRelyingPartyServiceProviderWithMetadata() throws Exception {
 
         String metadata = "metadata";
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
         whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
         when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata));
+        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer"));
 
     }
 
@@ -208,24 +208,24 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
         String metadata = "metadata";
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        when(samlSSOServiceProviderManager.updateServiceProvider(samlssoServiceProvDO, userRegistry.getTenantId()))
+        when(samlSSOServiceProviderManager.updateServiceProvider(samlssoServiceProvDO, "testUser", userRegistry.getTenantId()))
                 .thenReturn(false);
         whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
         when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata);
+        samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer");
     }
 
     @Test(expectedExceptions = IdentityException.class, dataProvider = "dataProviders")
     public void testUpdateRelyingPartyServiceProviderWithMetadata2(String issuer) throws Exception {
 
         String metadata = "metadata";
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
         when(samlssoServiceProvDO.getIssuer()).thenReturn(issuer);
         whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
         when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata));
+        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "testUser"));
     }
 
     @Test

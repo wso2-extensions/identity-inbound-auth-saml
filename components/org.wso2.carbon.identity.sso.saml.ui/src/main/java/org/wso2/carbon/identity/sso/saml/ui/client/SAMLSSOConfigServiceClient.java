@@ -64,25 +64,28 @@ public class SAMLSSOConfigServiceClient {
     // TODO : This method must return the added service provider data instead
     public boolean addServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentitySAML2SSOUiException {
 
+        boolean status;
         try {
-            return stub.addRPServiceProvider(serviceProviderDTO);
+            status = stub.addRPServiceProvider(serviceProviderDTO);
         } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
             throw new IdentitySAML2SSOUiException("Error while uploading the service provider", e);
         }
+        return status;
     }
 
     /**
      * Update the service provider if exists.
      *
      * @param serviceProviderDTO Service provider DTO.
+     * @param currentIssuer      Issuer of the service provider.
      * @return True if the service provider is updated successfully.
      * @throws IdentitySAML2SSOUiException If an error occurs while updating the service provider.
      */
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO)
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
             throws IdentitySAML2SSOUiException {
 
         try {
-            return stub.updateRPServiceProvider(serviceProviderDTO);
+            return stub.updateRPServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
             throw new IdentitySAML2SSOUiException("Error while updating the service provider", e);
         }

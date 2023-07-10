@@ -49,14 +49,16 @@ public class SAMLSSOConfigService extends AbstractAdmin {
     /**
      * Updates SAML Service provider information.
      *
-     * @param serviceProviderDTO SAMLSSOServiceProviderDTO containing service provider configurations.
+     * @param serviceProviderDTO    SAMLSSOServiceProviderDTO containing service provider configurations.
+     * @param currentIssuer         Issuer of the service provider before the update.
      * @return True if the service provider is updated successfully.
-     * @throws IdentityException if an error occurs while updating the service provider.
+     * @throws IdentityException If an error occurs while updating the service provider.
      */
-    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
+    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
 
         try {
-            return samlSSOConfigServiceImpl.updateRPServiceProvider(serviceProviderDTO);
+            return samlSSOConfigServiceImpl.updateRPServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (IdentityException ex) {
             throw handleException(ex);
         }
