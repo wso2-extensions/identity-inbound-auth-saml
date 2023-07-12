@@ -114,6 +114,7 @@ public class SAMLSSOConstants {
     public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
 
     public static final String IS_POST = "isPost";
+    public static final String SAML_INBOUND_SERVICE = "saml-inbound-service";
 
     private SAMLSSOConstants() {
     }

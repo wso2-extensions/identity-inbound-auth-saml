@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -84,6 +85,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -112,6 +114,7 @@ import javax.xml.soap.SOAPException;
 import javax.xml.transform.TransformerException;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_INBOUND_SERVICE;
 
 /**
  * This is the entry point for authentication process in an SSO scenario. This servlet is registered
@@ -627,6 +630,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   boolean isPost, boolean isLogout) throws UserStoreException, IdentityException,
                                                                       IOException, ServletException {
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "saml-request-handle");
+            diagnosticLogBuilder.resultMessage("Handling IdP Initiated SSO request.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .inputParam("queryString", queryString);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
@@ -747,6 +759,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  String samlRequest, String sessionId, boolean isPost)
             throws UserStoreException, IdentityException, IOException, ServletException {
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "saml-request-handle");
+            diagnosticLogBuilder.resultMessage("Handling SP Initiated SSO request.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .inputParam("queryString", queryString);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
@@ -1100,6 +1121,17 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                                           String sessionId, SAMLSSOSessionDTO sessionDTO)
             throws UserStoreException, IdentityException, IOException, ServletException {
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "receive-authn-response");
+            diagnosticLogBuilder.resultMessage("Received authentication response from framework")
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM)
+                    .inputParam("SAMLIssuer", sessionDTO.getIssuer())
+                    .inputParam("authenticatedUser", LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                            sessionDTO.getSubject()) : sessionDTO.getSubject());
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         String sessionDataKey = getSessionDataKey(req);
         AuthenticationResult authResult = getAuthenticationResult(req, sessionDataKey);
 
@@ -1670,6 +1702,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         CommonAuthResponseWrapper responseWrapper = new CommonAuthResponseWrapper(response);
         commonAuthenticationHandler.doGet(request, responseWrapper);
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "hand-over-to-framework");
+            diagnosticLogBuilder.resultMessage("Forward SAML request to framework for user authentication.")
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         Object object = request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
         if (object != null) {
             AuthenticatorFlowStatus status = (AuthenticatorFlowStatus) object;
