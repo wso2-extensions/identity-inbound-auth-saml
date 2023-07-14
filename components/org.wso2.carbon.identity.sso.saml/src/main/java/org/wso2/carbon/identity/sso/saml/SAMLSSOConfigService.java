@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2007, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2007-2023), WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,24 @@ public class SAMLSSOConfigService extends AbstractAdmin {
 
         try {
             return samlSSOConfigServiceImpl.addRPServiceProvider(spDto);
+        } catch (IdentityException ex) {
+            throw handleException(ex);
+        }
+    }
+
+    /**
+     * Updates SAML Service provider information.
+     *
+     * @param serviceProviderDTO    SAMLSSOServiceProviderDTO containing service provider configurations.
+     * @param currentIssuer         Issuer of the service provider before the update.
+     * @return True if the service provider is updated successfully.
+     * @throws IdentityException If an error occurs while updating the service provider.
+     */
+    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
+
+        try {
+            return samlSSOConfigServiceImpl.updateRPServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (IdentityException ex) {
             throw handleException(ex);
         }

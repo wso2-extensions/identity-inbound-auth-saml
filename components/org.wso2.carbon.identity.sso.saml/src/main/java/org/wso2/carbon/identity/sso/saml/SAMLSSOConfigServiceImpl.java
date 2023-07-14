@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2019-2023), WSO2 LLC. (https://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -89,6 +90,25 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     /**
+     * Updates a SAML service provider.
+     *
+     * @param serviceProviderDTO    DTO containing the SAML SP configuration.
+     * @param currentIssuer         Issuer of the service provider before the update.
+     * @return True if the SAML SP is updated successfully.
+     * @throws IdentityException If an error occurs while updating the SAML SP.
+     */
+    public boolean updateRPServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
+
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            return configAdmin.updateRelyingPartyServiceProvider(serviceProviderDTO, currentIssuer);
+        } catch (IdentityException ex) {
+            throw handleException("Error while updating SAML SP in tenantDomain: " + getTenantDomain(), ex);
+        }
+    }
+
+    /**
      * Creates a SAML service provider.
      *
      * @param spDto DTO containing the SAML SP configuration.
@@ -97,32 +117,57 @@ public class SAMLSSOConfigServiceImpl {
      */
     public SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
 
+        validateSAMLSSOServiceProviderDTO(spDto);
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
         try {
-            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
-            if (StringUtils.isBlank(spDto.getSigningAlgorithmURI())
-                    || !Arrays.asList(getSigningAlgorithmUris()).contains(spDto.getSigningAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Response Signing Algorithm: " + spDto.getSigningAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getDigestAlgorithmURI())
-                    || !Arrays.asList(getDigestAlgorithmURIs()).contains(spDto.getDigestAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Response Digest Algorithm: " + spDto.getDigestAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getAssertionEncryptionAlgorithmURI())
-                    || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
-                    (spDto.getAssertionEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Assertion Encryption Algorithm: " + spDto.getAssertionEncryptionAlgorithmURI());
-            }
-            if (StringUtils.isBlank(spDto.getKeyEncryptionAlgorithmURI())
-                    || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(spDto.getKeyEncryptionAlgorithmURI())) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Invalid Key Encryption Algorithm: " + spDto.getKeyEncryptionAlgorithmURI());
-            }
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
             throw handleException("Error while creating SAML SP in tenantDomain: " + getTenantDomain(), ex);
+        }
+    }
+
+    /**
+     * Update a SAML service provider.
+     *
+     * @param serviceProviderDTO DTO containing the SAML SP configuration.
+     * @param currentIssuer      Issuer of the service provider before the update.
+     * @return SAMLSSOServiceProviderDTO with the information on the SAML SP.
+     * @throws IdentityException If an error occurs while updating the SAML SP.
+     */
+    public SAMLSSOServiceProviderDTO updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
+
+        validateSAMLSSOServiceProviderDTO(serviceProviderDTO);
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+        try {
+            return configAdmin.updateSAMLServiceProvider(serviceProviderDTO, currentIssuer);
+        } catch (IdentityException ex) {
+            throw handleException("Error while updating SAML SP in tenantDomain: " + getTenantDomain(), ex);
+        }
+    }
+
+    private void validateSAMLSSOServiceProviderDTO(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentityException {
+
+        if (StringUtils.isBlank(serviceProviderDTO.getSigningAlgorithmURI())
+                || !Arrays.asList(getSigningAlgorithmUris()).contains(serviceProviderDTO.getSigningAlgorithmURI())) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Invalid Response Signing Algorithm: " + serviceProviderDTO.getSigningAlgorithmURI());
+        }
+        if (StringUtils.isBlank(serviceProviderDTO.getDigestAlgorithmURI())
+                || !Arrays.asList(getDigestAlgorithmURIs()).contains(serviceProviderDTO.getDigestAlgorithmURI())) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Invalid Response Digest Algorithm: " + serviceProviderDTO.getDigestAlgorithmURI());
+        }
+        if (StringUtils.isBlank(serviceProviderDTO.getAssertionEncryptionAlgorithmURI())
+                || !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains
+                (serviceProviderDTO.getAssertionEncryptionAlgorithmURI())) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Invalid Assertion Encryption Algorithm: " + serviceProviderDTO.getAssertionEncryptionAlgorithmURI());
+        }
+        if (StringUtils.isBlank(serviceProviderDTO.getKeyEncryptionAlgorithmURI())
+                || !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(serviceProviderDTO.getKeyEncryptionAlgorithmURI())) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Invalid Key Encryption Algorithm: " + serviceProviderDTO.getKeyEncryptionAlgorithmURI());
         }
     }
 
@@ -147,6 +192,28 @@ public class SAMLSSOConfigServiceImpl {
     }
 
     /**
+     * Update a SAML service provider with metadata.
+     *
+     * @param metadata      Metadata of the SAML SP.
+     * @param currentIssuer Issuer of the service provider before the update.
+     * @return SAMLSSOServiceProviderDTO with the information on the SAML SP.
+     * @throws IdentitySAML2SSOException If an error occurs while updating the SAML SP.
+     */
+    public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata, String currentIssuer)
+            throws IdentitySAML2SSOException {
+
+        try {
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            if (log.isDebugEnabled()) {
+                log.debug("Updating SAML Service Provider with metadata: " + metadata);
+            }
+            return configAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, currentIssuer);
+        } catch (IdentityException e) {
+            throw handleException("Error while updating SAML SP metadata in tenantDomain: " + getTenantDomain(), e);
+        }
+    }
+
+    /**
      * Create a service provider with configurations provided via a metadata URL.
      *
      * @param metadataUrl URL to fetch the SAML SP metadata file.
@@ -156,22 +223,45 @@ public class SAMLSSOConfigServiceImpl {
     public SAMLSSOServiceProviderDTO createServiceProviderWithMetadataURL(String metadataUrl)
             throws IdentitySAML2SSOException {
 
-        InputStream in = null;
         try {
             URL url = new URL(metadataUrl);
             URLConnection con = url.openConnection();
             con.setConnectTimeout(getConnectionTimeoutInMillis());
             con.setReadTimeout(getReadTimeoutInMillis());
-            in = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes());
-
-            String metadata = IOUtils.toString(in);
-            return uploadRPServiceProvider(metadata);
+            try (InputStream inputStream = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes())) {
+                String metadata = IOUtils.toString(inputStream);
+                return uploadRPServiceProvider(metadata);
+            }
         } catch (IOException e) {
-            String tenantDomain = getTenantDomain();
             throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
-                    + tenantDomain, e);
-        } finally {
-            IOUtils.closeQuietly(in);
+                    + getTenantDomain(), e);
+        }
+    }
+
+    /**
+     * Update a service provider with configurations provided via a metadata URL.
+     *
+     * @param metadataUrl   URL to fetch the SAML SP metadata file.
+     * @param currentIssuer Issuer of the service provider before the update.
+     * @return SAMLSSOServiceProviderDTO with the information on the created SAML SP.
+     * @throws IdentitySAML2SSOException
+     */
+    public SAMLSSOServiceProviderDTO updateServiceProviderWithMetadataURL(String metadataUrl, String currentIssuer)
+            throws IdentitySAML2SSOException {
+
+        try {
+            URL url = new URL(metadataUrl);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(getConnectionTimeoutInMillis());
+            connection.setReadTimeout(getReadTimeoutInMillis());
+            try (InputStream inputStream = new BoundedInputStream(connection.getInputStream(), getMaxSizeInBytes())) {
+                String metadata = IOUtils.toString(inputStream);
+                return updateRPServiceProviderWithMetadata(metadata, currentIssuer);
+            }
+        } catch (IOException e) {
+            throw handleIOException(URL_NOT_FOUND,
+                    "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
+                    + getTenantDomain(), e);
         }
     }
 

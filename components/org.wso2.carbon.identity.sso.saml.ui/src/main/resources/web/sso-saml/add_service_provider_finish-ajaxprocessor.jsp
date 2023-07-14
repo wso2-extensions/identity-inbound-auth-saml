@@ -268,12 +268,14 @@
         }
 
         if (isEditingSP) {
-            client.removeServiceProvier(serviceProviderDTO.getIssuer());
+            String currentIssuer = serviceProviderDTO.getIssuer();
             if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
-                serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getIssuerWithoutQualifier(serviceProviderDTO.getIssuer()));
+                serviceProviderDTO.setIssuer(SAMLSSOUIUtil.getIssuerWithoutQualifier(currentIssuer));
             }
+            status = client.updateServiceProvider(serviceProviderDTO, currentIssuer);
+        } else {
+            status = client.addServiceProvider(serviceProviderDTO);
         }
-        status = client.addServiceProvider(serviceProviderDTO);
         if (status) {
             String issuer = serviceProviderDTO.getIssuer();
             if (StringUtils.isNotBlank(serviceProviderDTO.getIssuerQualifier())) {
