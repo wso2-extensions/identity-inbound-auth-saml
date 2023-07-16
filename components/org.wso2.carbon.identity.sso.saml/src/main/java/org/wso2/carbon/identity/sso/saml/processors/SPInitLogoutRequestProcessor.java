@@ -130,8 +130,8 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     diagnosticLogBuilder.resultMessage("Validating logout request.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM)
                             .inputParam("issuer", logoutRequest.getIssuer().getValue())
-                            .inputParam("validatorName", validator.getClass().getName())
-                            .inputParam("validationResult", validationResult.getValidationStatus());
+                            .inputParam("validator name", validator.getClass().getName())
+                            .inputParam("validation result", validationResult.getValidationStatus());
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 if (!validationResult.getValidationStatus()) {
@@ -220,7 +220,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                         .inputParam("issuer", reqValidationResponseDTO.getIssuer())
-                        .inputParam("consumerURL", reqValidationResponseDTO.getAssertionConsumerURL());
+                        .inputParam("consumer uRL", reqValidationResponseDTO.getAssertionConsumerURL());
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             return reqValidationResponseDTO;

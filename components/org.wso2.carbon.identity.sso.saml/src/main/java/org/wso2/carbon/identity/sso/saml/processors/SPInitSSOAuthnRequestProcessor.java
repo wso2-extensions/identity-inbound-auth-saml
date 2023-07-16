@@ -56,9 +56,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, "saml-request-validation");
-            diagnosticLogBuilder.resultMessage("Validating SAML Authn Request.")
-                    .inputParam("SAMLRequest", authnReqDTO.getRequestMessageString())
-                    .inputParam("authMode", authMode)
+            diagnosticLogBuilder.resultMessage("Validating SP initiated SAML Authentication Request.")
+                    .inputParam("saml request", authnReqDTO.getRequestMessageString())
+                    .inputParam("auth mode", authMode)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -197,8 +197,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         SAML_INBOUND_SERVICE, "saml-request-validation");
                 diagnosticLogBuilder.resultMessage("SAML Request validation successful.")
-                        .inputParam("consumerURL", samlssoRespDTO.getAssertionConsumerURL())
-                        .inputParam("userId", samlssoRespDTO.getSubject().getUserId())
+                        .inputParam("consumer url", samlssoRespDTO.getAssertionConsumerURL())
+                        .inputParam("user id", samlssoRespDTO.getSubject().getUserId())
                         .inputParam("issuer", authnReqDTO.getIssuer())
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
@@ -315,9 +315,9 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, "saml-request-validation");
             diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .inputParam("SAMLRequest", id)
-                    .inputParam("errorStatesCode", status)
-                    .inputParam("errorStatesMessage", statMsg)
+                    .inputParam("saml request", id)
+                    .inputParam("error states code", status)
+                    .inputParam("error states message", statMsg)
                     .inputParam("destination", destination)
                     .resultMessage("An error occurred while processing the SAML request.")
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED);
@@ -340,8 +340,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, "saml-request-validation");
             diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .inputParam("SAMLRequest", id)
-                    .inputParam("errorSAMLResponse", encodedResponse)
+                    .inputParam("saml request", id)
+                    .inputParam("error saml response", encodedResponse)
                     .resultMessage("An error occurred while processing the SAML request.")
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
