@@ -572,56 +572,74 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   String acUrl, HttpServletRequest req,
                                   HttpServletResponse resp) throws ServletException, IOException {
 
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                SAML_INBOUND_SERVICE, "saml-request-send-notification");
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder.resultMessage("An error occurred while processing the SAML request. Prompts user " +
+                            "a notification.")
+            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+            .inputParam(SAMLSSOConstants.ASSRTN_CONSUMER_URL, acUrl)
+            .inputParam(SAMLSSOConstants.STATUS, status)
+            .inputParam(SAMLSSOConstants.STATUS_MSG, message)
+            .inputParam(SAMLSSOConstants.SAML_RESP, errorResp);
+        }
         if (isSAMLECPRequest(req)) {
             sendNotificationForECPRequest(resp, errorResp, acUrl);
         } else {
             String redirectURL = SAMLSSOUtil.getNotificationEndpoint();
 
-        //TODO Send status codes rather than full messages in the GET request
-        String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.encode(status, "UTF-8") +
-                "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode(message, "UTF-8");
+            //TODO Send status codes rather than full messages in the GET request
+            String queryParams = "?" + SAMLSSOConstants.STATUS + "=" + URLEncoder.encode(status, "UTF-8") +
+                    "&" + SAMLSSOConstants.STATUS_MSG + "=" + URLEncoder.encode(message, "UTF-8");
 
-        if (errorResp != null) {
-            queryParams += "&" + SAMLSSOConstants.SAML_RESP + "=" + URLEncoder.encode(errorResp, "UTF-8");
-        }
-
-        // If the assertion consumer url is null, get it from the session.
-        if (StringUtils.isBlank(acUrl)) {
-            String sessionDataKey = getSessionDataKey(req);
-            SAMLSSOSessionDTO sessionDTO = null;
-            if (StringUtils.isNotBlank(sessionDataKey)) {
-                sessionDTO = getSessionDataFromCache(sessionDataKey);
+            if (errorResp != null) {
+                queryParams += "&" + SAMLSSOConstants.SAML_RESP + "=" + URLEncoder.encode(errorResp, "UTF-8");
             }
-            if (sessionDTO != null) {
-                acUrl = sessionDTO.getAssertionConsumerURL();
+
+            // If the assertion consumer url is null, get it from the session.
+            if (StringUtils.isBlank(acUrl)) {
+                String sessionDataKey = getSessionDataKey(req);
+                SAMLSSOSessionDTO sessionDTO = null;
+                if (StringUtils.isNotBlank(sessionDataKey)) {
+                    sessionDTO = getSessionDataFromCache(sessionDataKey);
+                }
+                if (sessionDTO != null) {
+                    acUrl = sessionDTO.getAssertionConsumerURL();
+                }
+            }
+
+            if (StringUtils.isNotBlank(acUrl)) {
+                queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" +
+                        URLEncoder.encode(acUrl, SAMLSSOConstants.ENCODING_FORMAT);
+            }
+
+            String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
+            // If the request doesn't have a relay state, get it from the session.
+            if (StringUtils.isEmpty(relayState)) {
+                String sessionDataKey = getSessionDataKey(req);
+                SAMLSSOSessionDTO sessionDTO = null;
+                if (StringUtils.isNotEmpty(sessionDataKey)) {
+                    sessionDTO = getSessionDataFromCache(sessionDataKey);
+                }
+                if (sessionDTO != null) {
+                    relayState = sessionDTO.getRelayState();
+                }
+            }
+
+            if (StringUtils.isNotEmpty(relayState)) {
+                queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" +
+                        URLEncoder.encode(relayState, SAMLSSOConstants.ENCODING_FORMAT);
+            }
+
+            String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
+            resp.sendRedirect(FrameworkUtils.getRedirectURL(queryAppendedUrl, req));
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                diagnosticLogBuilder.inputParam("redirectURL", redirectURL);
             }
         }
-
-        if (StringUtils.isNotBlank(acUrl)) {
-            queryParams += "&" + SAMLSSOConstants.ASSRTN_CONSUMER_URL + "=" +
-                    URLEncoder.encode(acUrl, SAMLSSOConstants.ENCODING_FORMAT);
-        }
-
-        String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
-        // If the request doesn't have a relay state, get it from the session.
-        if (StringUtils.isEmpty(relayState)) {
-            String sessionDataKey = getSessionDataKey(req);
-            SAMLSSOSessionDTO sessionDTO = null;
-            if (StringUtils.isNotEmpty(sessionDataKey)) {
-                sessionDTO = getSessionDataFromCache(sessionDataKey);
-            }
-            if (sessionDTO != null) {
-                relayState = sessionDTO.getRelayState();
-            }
-        }
-
-        if (StringUtils.isNotEmpty(relayState)) {
-            queryParams += "&" + SAMLSSOConstants.RELAY_STATE + "=" +
-                    URLEncoder.encode(relayState, SAMLSSOConstants.ENCODING_FORMAT);
-        }
-
-        String queryAppendedUrl = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParams);
-        resp.sendRedirect(FrameworkUtils.getRedirectURL(queryAppendedUrl, req));
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
     }
 

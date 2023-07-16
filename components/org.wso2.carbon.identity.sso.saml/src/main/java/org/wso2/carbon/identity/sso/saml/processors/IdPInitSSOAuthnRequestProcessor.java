@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
@@ -35,9 +36,12 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_INBOUND_SERVICE;
 
 public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
@@ -45,6 +49,17 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
+
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "saml-request-validation");
+            diagnosticLogBuilder.resultMessage("Validating SP initiated SAML Authentication Request.")
+                    .inputParam("saml request", authnReqDTO.getRequestMessageString())
+                    .inputParam("auth mode", authMode)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = getServiceProviderConfig(authnReqDTO);
 
@@ -193,6 +208,17 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     log.debug(samlssoRespDTO.getRespString());
                 }
             }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, "saml-request-validation");
+                diagnosticLogBuilder.resultMessage("SAML Request validation successful.")
+                        .inputParam("consumer url", samlssoRespDTO.getAssertionConsumerURL())
+                        .inputParam("user id", samlssoRespDTO.getSubject().getUserId())
+                        .inputParam("issuer", authnReqDTO.getIssuer())
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             return samlssoRespDTO;
         } catch (Exception e) {
             log.error("Error processing the authentication request", e);
@@ -309,6 +335,16 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
 
         samlSSORespDTO.setRespString(encodedResponse);
         samlSSORespDTO.setSessionEstablished(false);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, "saml-request-validation");
+            diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .inputParam("saml request", id)
+                    .inputParam("error saml response", encodedResponse)
+                    .resultMessage("An error occurred while processing the SAML request.")
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         return samlSSORespDTO;
     }
 }
