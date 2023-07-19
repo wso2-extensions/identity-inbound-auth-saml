@@ -82,7 +82,6 @@ import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -99,6 +98,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -827,7 +827,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         sessionDTO.setProperties(signInRespDTO.getProperties());
         sessionDTO.setLoggedInTenantDomain(getLoggedInTenantDomain(req));
 
-        String sessionDataKey = UUIDGenerator.generateUUID();
+        String sessionDataKey = UUID.randomUUID().toString();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
         String selfPath = ServiceURLBuilder.create().addPath(req.getContextPath()).build().getRelativeInternalURL();
@@ -910,7 +910,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             sessionDTO.setValidationRespDTO(signInRespDTO);
         }
 
-        String sessionDataKey = UUIDGenerator.generateUUID();
+        String sessionDataKey = UUID.randomUUID().toString();
         addSessionDataToCache(sessionDataKey, sessionDTO);
 
         String selfPath = ServiceURLBuilder.create().addPath(request.getContextPath()).build().getRelativeInternalURL();
@@ -1240,7 +1240,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 log.debug("Session context identifier is not found in the authentication result.");
             }
         }
-        return UUIDGenerator.generateUUID();
+        return UUID.randomUUID().toString();
     }
 
     private void handleLogoutResponseFromFramework(HttpServletRequest request, HttpServletResponse response,
