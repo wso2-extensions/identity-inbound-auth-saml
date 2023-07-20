@@ -34,10 +34,10 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor {
 
@@ -116,7 +116,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId,
                             authnReqDTO.getLoggedInTenantDomain());
                 } else {
-                    sessionIndexId = UUIDGenerator.generateUUID();
+                    sessionIndexId = UUID.randomUUID().toString();
                     sessionPersistenceManager.persistSession(sessionId, sessionIndexId,
                             authnReqDTO.getLoggedInTenantDomain());
                 }

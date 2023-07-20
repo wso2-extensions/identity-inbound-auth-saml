@@ -21,8 +21,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
@@ -34,7 +32,6 @@ import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigService;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.core.Registry;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -282,12 +279,6 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error occurred when retrieving SAML application ", e);
         }
-    }
-
-    private Registry getConfigSystemRegistry() {
-
-        return (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType
-                .SYSTEM_CONFIGURATION);
     }
 
     /**
