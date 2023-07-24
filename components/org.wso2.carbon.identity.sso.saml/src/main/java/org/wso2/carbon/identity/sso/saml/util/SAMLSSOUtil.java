@@ -59,8 +59,9 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -73,7 +74,6 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -111,7 +111,6 @@ import org.wso2.carbon.identity.sso.saml.validators.SPInitSSOAuthnRequestValidat
 import org.wso2.carbon.identity.sso.saml.validators.SSOAuthnRequestValidator;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
@@ -144,6 +143,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -2615,6 +2615,27 @@ public class SAMLSSOUtil {
         } else {
             return issuer;
         }
+    }
+
+    /**
+     * Get the user id from the authenticated user.
+     *
+     * @param authenticatedUser AuthenticationContext.
+     * @return User id.
+     */
+    public static Optional<String> getUserId(AuthenticatedUser authenticatedUser) {
+
+        if (authenticatedUser == null) {
+            return Optional.empty();
+        }
+        try {
+            if (authenticatedUser.getUserId() != null) {
+                return Optional.ofNullable(authenticatedUser.getUserId());
+            }
+        } catch (UserIdNotFoundException e) {
+            log.debug("Error while getting the user id from the authenticated user.", e);
+        }
+        return Optional.empty();
     }
 
     private static String getSPQualifier(QueryParamDTO[] queryParamDTOs) {

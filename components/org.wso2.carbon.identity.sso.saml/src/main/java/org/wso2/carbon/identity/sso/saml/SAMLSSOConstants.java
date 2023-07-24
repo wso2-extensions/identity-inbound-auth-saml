@@ -114,9 +114,41 @@ public class SAMLSSOConstants {
     public static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
 
     public static final String IS_POST = "isPost";
-    public static final String SAML_INBOUND_SERVICE = "saml-inbound-service";
 
     private SAMLSSOConstants() {
+    }
+
+    /**
+     * Constants related to log management.
+     */
+    public static class LogConstants {
+
+        public static final String SAML_INBOUND_SERVICE = "saml-inbound-service";
+
+        /**
+         * Define action IDs for diagnostic logs.
+         */
+        public static class ActionIDs {
+
+            public static final String PROCESS_SAML_LOGOUT = "process-saml-logout";
+            public static final String SAML_REQUEST_VALIDATION = "saml-request-validation";
+            public static final String SAML_LOGOUT_PROCESSING = "saml-logout-processing";
+            public static final String PROCESS_SAML_REQUEST = "process-saml-request";
+            public static final String HAND_OVER_TO_FRAMEWORK = "hand-over-to-framework";
+        }
+
+        /**
+         * Define common and reusable Input keys for diagnostic logs.
+         */
+        public static class InputKeys {
+
+            public static final String SAML_REQUEST = "saml request";
+            public static final String ISSUER = "issuer";
+            public static final String CONSUMER_URL = "consumer url";
+            public static final String AUTH_MODE = "auth mode";
+            public static final String ASSERTION_URL = "assertion url";
+            public static final String QUERY_STRING = "query string";
+        }
     }
 
 
