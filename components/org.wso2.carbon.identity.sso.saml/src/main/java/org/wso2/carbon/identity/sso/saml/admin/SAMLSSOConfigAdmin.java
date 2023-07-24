@@ -1,5 +1,5 @@
 /*
- * Copyright (c) (2007-2023), WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) (2007-2023), WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -95,6 +95,32 @@ public class SAMLSSOConfigAdmin {
     }
 
     /**
+     * Update a service provider.
+     *
+     * @param serviceProviderDTO Service Provider DTO.
+     * @param currentIssuer      Current issuer.
+     * @return True if successful, false otherwise.
+     * @throws IdentityException If fails to load the identity persistence manager.
+     */
+    public boolean updateRelyingPartyServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
+        if (samlssoServiceProviderDO != null) {
+            String message = "A Service Provider with the name " + issuer + " is already loaded" +
+                    " from the file system.";
+            log.error(message);
+            return false;
+        }
+        return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                .updateServiceProvider(serviceProviderDO, currentIssuer, tenantId);
+
+    }
+
+    /**
      * Add a new service provider
      *
      * @param serviceProviderDTO service Provider DTO
@@ -123,6 +149,29 @@ public class SAMLSSOConfigAdmin {
         }
     }
 
+    /**
+     * Update a service provider if it exists.
+     *
+     * @param serviceProviderDTO service Provider DTO
+     * @return SAMLSSOServiceProviderDTO if successful, null otherwise
+     * @throws IdentityException if fails to load the identity persistence manager
+     */
+    public SAMLSSOServiceProviderDTO updateSAMLServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO,
+                                                               String currentIssuer)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = createSAMLSSOServiceProviderDO(serviceProviderDTO);
+        // Issuer value of the created SAML SP.
+        String issuer = getIssuerWithQualifier(serviceProviderDO);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = SSOServiceProviderConfigManager.getInstance().
+                getServiceProvider(issuer);
+        if (samlssoServiceProviderDO != null) {
+            String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
+            throw buildClientException(CONFLICTING_SAML_ISSUER, message);
+        }
+        return persistSAMLServiceProvider(serviceProviderDO, currentIssuer);
+    }
+
     private String getIssuerWithQualifier(SAMLSSOServiceProviderDO serviceProviderDO) {
 
         return SAMLSSOUtil.getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier());
@@ -133,6 +182,25 @@ public class SAMLSSOConfigAdmin {
 
         boolean response = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                 .addServiceProvider(samlssoServiceProviderDO, tenantId);
+        if (response) {
+            return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
+        } else {
+            String issuer = samlssoServiceProviderDO.getIssuer();
+            String msg = "An application with the SAML issuer: " + issuer + " already exists in tenantDomain: " +
+                    getTenantDomain();
+            throw buildClientException(CONFLICTING_SAML_ISSUER, msg);
+        }
+    }
+
+    private SAMLSSOServiceProviderDTO persistSAMLServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO,
+                                                                 String currentIssuer)
+            throws IdentityException {
+
+        if (StringUtils.isBlank(currentIssuer)) {
+            return null;
+        }
+        boolean response = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .updateServiceProvider(samlssoServiceProviderDO, currentIssuer, tenantId);
         if (response) {
             return createSAMLSSOServiceProviderDTO(samlssoServiceProviderDO);
         } else {
@@ -217,6 +285,37 @@ public class SAMLSSOConfigAdmin {
         }
 
         return persistSAMLServiceProvider(samlssoServiceProviderDO);
+    }
+
+    /**
+     * Update SAML SSO service provider from metadata directly.
+     *
+     * @param metadata      SAML metadata.
+     * @return SAMLSSOServiceProviderDTO
+     * @throws IdentityException If an error occurs while updating the service provider.
+     */
+    public SAMLSSOServiceProviderDTO updateRelyingPartyServiceProviderWithMetadata(String metadata, String currentIssuer)
+            throws IdentityException {
+
+        Parser parser = new Parser(registry);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+
+        try {
+            // Pass metadata to samlSSOServiceProvider object.
+            samlssoServiceProviderDO = parser.parse(metadata, samlssoServiceProviderDO);
+        } catch (InvalidMetadataException e) {
+            throw buildClientException(INVALID_REQUEST, "Error parsing SAML SP metadata.", e);
+        }
+
+        if (samlssoServiceProviderDO.getX509Certificate() != null) {
+            try {
+                // Save certificate.
+                this.saveCertificateToKeyStore(samlssoServiceProviderDO);
+            } catch (Exception e) {
+                throw new IdentityException("Error occurred while setting certificate and alias", e);
+            }
+        }
+        return persistSAMLServiceProvider(samlssoServiceProviderDO, currentIssuer);
     }
 
     private IdentitySAML2ClientException buildClientException(Error error, String message) {

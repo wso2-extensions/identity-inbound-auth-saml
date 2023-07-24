@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) (2010-2023), WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,13 +63,32 @@ public class SAMLSSOConfigServiceClient {
 
     // TODO : This method must return the added service provider data instead
     public boolean addServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO) throws IdentitySAML2SSOUiException {
-        boolean status  ;
+
+        boolean status;
         try {
             status = stub.addRPServiceProvider(serviceProviderDTO);
         } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
             throw new IdentitySAML2SSOUiException("Error while uploading the service provider", e);
         }
         return status;
+    }
+
+    /**
+     * Update the service provider if exists.
+     *
+     * @param serviceProviderDTO Service provider DTO.
+     * @param currentIssuer      Issuer of the service provider.
+     * @return True if the service provider is updated successfully.
+     * @throws IdentitySAML2SSOUiException If an error occurs while updating the service provider.
+     */
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
+            throws IdentitySAML2SSOUiException {
+
+        try {
+            return stub.updateRPServiceProvider(serviceProviderDTO, currentIssuer);
+        } catch (RemoteException | IdentitySAMLSSOConfigServiceIdentityException e) {
+            throw new IdentitySAML2SSOUiException("Error while updating the service provider", e);
+        }
     }
 
     public SAMLSSOServiceProviderDTO uploadServiceProviderFromUrl(String url) throws

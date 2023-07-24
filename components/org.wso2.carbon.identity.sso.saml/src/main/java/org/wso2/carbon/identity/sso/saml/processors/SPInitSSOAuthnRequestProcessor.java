@@ -43,6 +43,7 @@ import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_INBOUND_SERVICE;
 
@@ -117,7 +118,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     sessionIndexId = sessionPersistenceManager.getSessionIndexFromTokenId(sessionId,
                             authnReqDTO.getLoggedInTenantDomain());
                 } else {
-                    sessionIndexId = UUIDGenerator.generateUUID();
+                    sessionIndexId = UUID.randomUUID().toString();
                     sessionPersistenceManager.persistSession(sessionId, sessionIndexId,
                             authnReqDTO.getLoggedInTenantDomain());
                 }
