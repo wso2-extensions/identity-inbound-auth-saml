@@ -715,7 +715,7 @@ public class SAMLSSOConfigAdmin {
         }
     }
 
-    private Optional<String> getInitiatorId(){
+    private Optional<String> getInitiatorId() {
 
         return Optional.ofNullable(CarbonContext.getThreadLocalCarbonContext().getUserId())
                 .filter(StringUtils::isNotBlank)
