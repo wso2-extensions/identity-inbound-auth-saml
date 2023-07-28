@@ -142,6 +142,9 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                     spDO.setEnableSAML2ArtifactBinding(authnReqDTO.isSAML2ArtifactBindingEnabled());
                     spDO.setDoValidateSignatureInRequests(authnReqDTO.isDoValidateSignatureInRequests());
                     spDO.setDoValidateSignatureInArtifactResolve(authnReqDTO.isDoValidateSignatureInArtifactResolve());
+                    if (SAMLSSOUtil.isSAMLIdpInitLogoutResponseSigningEnabled()) {
+                        spDO.setDoSignResponse(authnReqDTO.isDoSignResponse());
+                    }
                     sessionPersistenceManager.persistSession(sessionIndexId,
                             authnReqDTO.getUser().getAuthenticatedSubjectIdentifier(), spDO,
                             authnReqDTO.getRpSessionId(), authnReqDTO.getIssuer(),
