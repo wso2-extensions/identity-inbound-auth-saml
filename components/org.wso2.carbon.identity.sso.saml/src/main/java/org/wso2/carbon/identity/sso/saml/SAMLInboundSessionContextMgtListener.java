@@ -23,11 +23,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -66,9 +66,9 @@ public class SAMLInboundSessionContextMgtListener implements SessionContextMgtLi
             }
             if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
                 // Add suffix to the session id for identify saml sso token id cookies which has a tenanted path.
-                sessionId = UUIDGenerator.generateUUID() + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX;
+                sessionId = UUID.randomUUID() + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX;
             } else {
-                sessionId = UUIDGenerator.generateUUID();
+                sessionId = UUID.randomUUID().toString();
             }
         }
         Map<String, String> map = new HashMap<>();
