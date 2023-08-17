@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml.admin;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +27,8 @@ import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -32,6 +36,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.Error;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -41,10 +46,18 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.AuditLog;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.USER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.TARGET_APPLICATION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
 import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
 
@@ -86,8 +99,22 @@ public class SAMLSSOConfigAdmin {
                 log.error(message);
                 return false;
             }
-            return IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+            boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                     .addServiceProvider(serviceProviderDO, tenantId);
+            if (isSuccess && ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+                Optional<String> initiatorId = getInitiatorId();
+                if (initiatorId.isPresent()) {
+                    AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                            initiatorId.get(), USER,
+                            issuer, TARGET_APPLICATION,
+                            SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                            .data(buildSPData(serviceProviderDO));
+                    triggerAuditLogEvent(auditLogBuilder, true);
+                } else {
+                    log.error("Error getting the logged in userId");
+                }
+            }
+            return isSuccess;
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
@@ -140,13 +167,68 @@ public class SAMLSSOConfigAdmin {
                 String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
                 throw buildClientException(CONFLICTING_SAML_ISSUER, message);
             }
-            return persistSAMLServiceProvider(serviceProviderDO);
+            SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(serviceProviderDO);
+            if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+                Optional<String> initiatorId = getInitiatorId();
+                if (initiatorId.isPresent()) {
+                    AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                            initiatorId.get(), USER,
+                            issuer, TARGET_APPLICATION,
+                            SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                            .data(buildSPData(serviceProviderDO));
+                    triggerAuditLogEvent(auditLogBuilder, true);
+                } else {
+                    log.error("Error getting the logged in userId");
+                }
+            }
+            return samlssoServiceProviderDTO;
         } catch (IdentitySAML2ClientException e){
             throw e;
         } catch (IdentityException e) {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
         }
+    }
+
+    private static Map<String, Object> buildSPData(SAMLSSOServiceProviderDO app) {
+
+        if (app == null) {
+            return new HashMap<>();
+        }
+
+        Gson gson = new Gson();
+        String json = gson.toJson(app);
+        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
+    /**
+     * This method is used to retrieve logged in tenant domain.
+     * @return logged in tenant domain.
+     */
+    private String getLoggedInTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return getTenantDomain();
+        }
+        return IdentityTenantUtil.getTenantDomainFromContext();
+    }
+
+    private Optional<AuthenticatedUser> getLoggedInUser(String tenantDomain) {
+
+        String tenantAwareLoggedInUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        return Optional.ofNullable(tenantAwareLoggedInUsername)
+                .filter(StringUtils::isNotEmpty)
+                .map(username -> buildAuthenticatedUser(username, tenantDomain));
+    }
+
+    private AuthenticatedUser buildAuthenticatedUser(String tenantAwareUser, String tenantDomain) {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserName(UserCoreUtil.removeDomainFromName(tenantAwareUser));
+        user.setTenantDomain(tenantDomain);
+        user.setUserStoreDomain(IdentityUtil.extractDomainFromName(tenantAwareUser));
+        return user;
     }
 
     /**
@@ -283,8 +365,21 @@ public class SAMLSSOConfigAdmin {
                 throw new IdentityException("Error occurred while setting certificate and alias", e);
             }
         }
-
-        return persistSAMLServiceProvider(samlssoServiceProviderDO);
+        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(samlssoServiceProviderDO);
+        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+            Optional<String> initiatorId = getInitiatorId();
+            if (initiatorId.isPresent()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                        initiatorId.get(), USER,
+                        samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
+                        SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                        .data(buildSPData(samlssoServiceProviderDO));
+                triggerAuditLogEvent(auditLogBuilder, true);
+            } else {
+                log.error("Error getting the logged in userId");
+            }
+        }
+        return samlssoServiceProviderDTO;
     }
 
     /**
@@ -599,11 +694,34 @@ public class SAMLSSOConfigAdmin {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
         try {
-            return IdentitySAMLSSOServiceComponentHolder.getInstance()
+            boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance()
                     .getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
+            if (isSuccess) {
+                if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+                    Optional<String> initiatorId = getInitiatorId();
+                    if (initiatorId.isPresent()) {
+                        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
+                                USER, issuer, TARGET_APPLICATION,
+                                SAMLSSOConstants.LogConstants.DELETE_SAML_APPLICATION);
+                        triggerAuditLogEvent(auditLogBuilder, true);
+                    } else {
+                        log.error("Error getting the logged in userId");
+                    }
+                }
+            }
+            return isSuccess;
         } catch (IdentityException e) {
             throw new IdentityException("Error removing a Service Provider with issuer: " + issuer, e);
         }
+    }
+
+    private Optional<String> getInitiatorId() {
+
+        return Optional.ofNullable(CarbonContext.getThreadLocalCarbonContext().getUserId())
+                .filter(StringUtils::isNotBlank)
+                .or(() -> getLoggedInUser(getLoggedInTenantDomain())
+                        .map(loggedInUser -> IdentityUtil.getInitiatorId(loggedInUser.getUserName(),
+                                getLoggedInTenantDomain())));
     }
 
     protected String getTenantDomain() {

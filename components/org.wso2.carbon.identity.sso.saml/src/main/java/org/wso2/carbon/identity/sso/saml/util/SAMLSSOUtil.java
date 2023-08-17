@@ -2712,4 +2712,14 @@ public class SAMLSSOUtil {
             PrivilegedCarbonContext.endTenantFlow();
         }
     }
+
+    /**
+     * Check whether SAML logout response signing is enabled for IDP initiated SSO.
+     * @return true if enabled.
+     */
+    public static boolean isSAMLIdpInitLogoutResponseSigningEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML_IDP_INIT_LOGOUT_RESPONSE_SIGNING_ENABLED));
+    }
 }

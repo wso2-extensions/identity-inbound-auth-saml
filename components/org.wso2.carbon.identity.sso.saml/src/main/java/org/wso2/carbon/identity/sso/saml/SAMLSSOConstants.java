@@ -68,6 +68,7 @@ public class SAMLSSOConstants {
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD_ENABLED = "SSOService.SAML2AuthenticationRequestValidityPeriodEnabled";
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD = "SSOService.SAML2AuthenticationRequestValidityPeriod";
     public static final String SAML_SP_CERTIFICATE_EXPIRY_VALIDATION_ENABLED = "SSOService.SAMLSPCertificateExpiryValidationEnable";
+    public static final String SAML_IDP_INIT_LOGOUT_RESPONSE_SIGNING_ENABLED = "SSOService.SAMLIdpInitLogoutResponseSigningEnabled";
     public static final String SAML_ASSERTION_ENCRYPT_WITH_APP_CERT = "SSOService.SAMLAssertionEncyptWithAppCert";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
             "<SOAP-ENV:Body>";
@@ -231,6 +232,15 @@ public class SAMLSSOConstants {
 
         private StatusCodes() {
         }
+    }
+
+    /**
+     * Group the constants related to logs.
+     */
+    public static class LogConstants {
+
+        public static final String CREATE_SAML_APPLICATION = "CREATE SAML APPLICATION";
+        public static final String DELETE_SAML_APPLICATION = "DELETE SAML APPLICATION";
     }
 
     public static class SingleLogoutCodes {
