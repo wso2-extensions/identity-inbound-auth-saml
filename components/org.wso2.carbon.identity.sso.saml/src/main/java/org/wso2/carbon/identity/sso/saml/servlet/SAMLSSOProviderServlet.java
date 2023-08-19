@@ -652,13 +652,17 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   boolean isPost, boolean isLogout) throws UserStoreException, IdentityException,
                                                                       IOException, ServletException {
 
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, PROCESS_SAML_REQUEST);
-            diagnosticLogBuilder.resultMessage("Handling IdP Initiated SSO request.")
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(SAML_INBOUND_SERVICE, PROCESS_SAML_REQUEST);
+            diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .inputParam(SAMLSSOConstants.LogConstants.InputKeys.QUERY_STRING, queryString);
+            if (isLogout) {
+                diagnosticLogBuilder.resultMessage("Handling IdP Initiated SLO request.");
+            } else {
+                diagnosticLogBuilder.resultMessage("Handling IdP Initiated SSO request.");
+            }
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
@@ -781,14 +785,13 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  String samlRequest, String sessionId, boolean isPost)
             throws UserStoreException, IdentityException, IOException, ServletException {
 
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, PROCESS_SAML_REQUEST);
-            diagnosticLogBuilder.resultMessage("Handling SP Initiated SSO request.")
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+            diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .inputParam(SAMLSSOConstants.LogConstants.InputKeys.QUERY_STRING, queryString);
-            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         String rpSessionId = req.getParameter(MultitenantConstants.SSO_AUTH_SESSION_ID);
         SAMLSSOService samlSSOService = new SAMLSSOService();
@@ -799,6 +802,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) { // an <AuthnRequest> received
+            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                diagnosticLogBuilder.resultMessage("Handling SP Initiated SSO request.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             if (signInRespDTO.isValid()) {
                 sendToFrameworkForAuthentication(req, resp, signInRespDTO, relayState, isPost);
             } else {
@@ -813,6 +820,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         signInRespDTO.getAssertionConsumerURL(), req, resp);
             }
         } else { // a <LogoutRequest> received
+            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                diagnosticLogBuilder.resultMessage("Handling SP Initiated SLO request.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             if (signInRespDTO.isValid()) {
                 sendToFrameworkForLogout(req, resp, signInRespDTO, relayState, sessionId, false, isPost);
             } else {
@@ -1150,10 +1161,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM)
                     .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, sessionDTO.getIssuer())
-                    .inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
-                            LoggerUtils.getMaskedContent(sessionDTO.getSubject()) : sessionDTO.getSubject())
                     .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
-                            sessionDTO.getAssertionConsumerURL());
+                            sessionDTO.getAssertionConsumerURL())
+                    .inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
+                            LoggerUtils.getMaskedContent(sessionDTO.getSubject()) : sessionDTO.getSubject());
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         String sessionDataKey = getSessionDataKey(req);
@@ -1721,11 +1732,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private void sendRequestToFramework(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
-
-        CommonAuthResponseWrapper responseWrapper = new CommonAuthResponseWrapper(response);
-        commonAuthenticationHandler.doGet(request, responseWrapper);
-
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, HAND_OVER_TO_FRAMEWORK);
@@ -1734,6 +1740,11 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
+        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
+
+        CommonAuthResponseWrapper responseWrapper = new CommonAuthResponseWrapper(response);
+        commonAuthenticationHandler.doGet(request, responseWrapper);
+
         Object object = request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
         if (object != null) {
             AuthenticatorFlowStatus status = (AuthenticatorFlowStatus) object;
@@ -1770,6 +1781,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
             String type)
             throws ServletException, IOException {
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, HAND_OVER_TO_FRAMEWORK);
+            diagnosticLogBuilder.resultMessage("Call authentication framework directly via API.")
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
 
         CommonAuthRequestWrapper requestWrapper = new CommonAuthRequestWrapper(request);

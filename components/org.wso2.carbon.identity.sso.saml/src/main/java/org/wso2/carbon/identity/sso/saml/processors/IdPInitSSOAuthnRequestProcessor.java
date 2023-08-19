@@ -57,7 +57,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
-            diagnosticLogBuilder.resultMessage("Validating SP initiated SAML Authentication Request.")
+            diagnosticLogBuilder.resultMessage("Validating IDP initiated SAML Authentication Request.")
                     .inputParam(SAML_REQUEST, authnReqDTO.getRequestMessageString())
                     .inputParam("auth mode", authMode)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
@@ -219,8 +219,8 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
                 diagnosticLogBuilder.resultMessage("SAML Request validation successful.")
-                        .inputParam("consumer url", samlssoRespDTO.getAssertionConsumerURL())
-                        .inputParam(LogConstants.InputKeys.USER_ID, samlssoRespDTO.getSubject().getUserId())
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
+                                samlssoRespDTO.getAssertionConsumerURL())
                         .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, authnReqDTO.getIssuer())
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
