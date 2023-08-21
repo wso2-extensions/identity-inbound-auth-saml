@@ -258,6 +258,16 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     "certificate for file based SAML service provider with the issuer name '%s'. " +
                     "The service provider will NOT be loaded.", issuer);
             log.error(errorMessage, e);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING)
+                        .resultMessage("An error occurred while retrieving the application certificate for file " +
+                                "based SAML service provider. The service provider will NOT be loaded.")
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, issuer)
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+            }
         }
     }
 
@@ -293,10 +303,28 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 destination, false, null, responseSigningAlgorithmUri, responseDigestAlgorithmUri);
         reqValidationResponseDTO.setLogOutReq(true);
         reqValidationResponseDTO.setValid(false);
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING)
+                    .inputParam("status code", status)
+                    .inputParam("destination", destination)
+                    .resultMessage(statMsg)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+        }
         try {
             reqValidationResponseDTO.setResponse(SAMLSSOUtil.compressResponse(SAMLSSOUtil.marshall(logoutResp)));
         } catch (IOException e) {
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null when LoggerUtils.isDiagnosticLogsEnabled() is false.
+                diagnosticLogBuilder.resultMessage("Error while creating logout response.")
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage());
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             throw IdentityException.error("Error while creating logout response", e);
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         return reqValidationResponseDTO;
     }
@@ -357,7 +385,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, "saml-logout-processing");
+                    SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
             diagnosticLogBuilder.resultMessage("Error while processing the SAML logout request.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED)
