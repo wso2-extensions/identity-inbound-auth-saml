@@ -53,7 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.SAML_LOGOUT_PROCESSING;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.PROCESS_SAML_LOGOUT;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 
 /**
@@ -101,7 +101,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         reqValidationResponseDTO.setLogOutReq(true);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
+                    SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
             diagnosticLogBuilder.resultMessage("Processing SP initiated logout request.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
@@ -135,7 +135,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
                 diagnosticLogBuilder.resultMessage("Logout request validation successful.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
                 Optional.ofNullable(logoutRequest).flatMap(request -> Optional.ofNullable(request.getIssuer()))
@@ -220,7 +220,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
                 diagnosticLogBuilder.resultMessage("Successfully processed SP initiated logout request.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
@@ -234,7 +234,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         } catch (UserStoreException | IdentityException | IOException e) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
                 diagnosticLogBuilder.resultMessage("Error processing SP initiated logout request.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED)
@@ -260,7 +260,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             log.error(errorMessage, e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING)
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT)
                         .resultMessage("An error occurred while retrieving the application certificate for file " +
                                 "based SAML service provider. The service provider will NOT be loaded.")
                         .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, issuer)
@@ -305,7 +305,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         reqValidationResponseDTO.setValid(false);
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING)
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT)
                     .inputParam("status code", status)
                     .inputParam("destination", destination)
                     .resultMessage(statMsg)
@@ -385,7 +385,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, SAML_LOGOUT_PROCESSING);
+                    SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
             diagnosticLogBuilder.resultMessage("Error while processing the SAML logout request.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED)

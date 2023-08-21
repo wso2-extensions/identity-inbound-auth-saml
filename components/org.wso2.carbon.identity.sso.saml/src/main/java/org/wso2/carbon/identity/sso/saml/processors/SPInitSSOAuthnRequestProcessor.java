@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.SAML_REQUEST_VALIDATION;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.VALIDATE_SAML_REQUEST;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 
 public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
@@ -58,7 +58,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
+                    SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
             diagnosticLogBuilder.resultMessage("Validating SP initiated SAML Authentication Request.")
                     .inputParam(SAMLSSOConstants.LogConstants.InputKeys.SAML_REQUEST,
                             authnReqDTO.getRequestMessageString())
@@ -199,7 +199,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
             }
             if (LoggerUtils.isDiagnosticLogsEnabled() && samlssoRespDTO != null) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
+                        SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
                 diagnosticLogBuilder.resultMessage("SAML Request validation successful.")
                         .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
                                 samlssoRespDTO.getAssertionConsumerURL())
@@ -339,7 +339,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         samlSSORespDTO.setSessionEstablished(false);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
+                    SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
             diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .inputParam("saml request", requestMessageString)
                     .inputParam("error saml response", encodedResponse)

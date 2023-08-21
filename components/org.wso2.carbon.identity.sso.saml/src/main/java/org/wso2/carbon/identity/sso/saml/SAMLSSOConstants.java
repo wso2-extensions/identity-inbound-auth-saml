@@ -216,8 +216,7 @@ public class SAMLSSOConstants {
         public static class ActionIDs {
 
             public static final String PROCESS_SAML_LOGOUT = "process-saml-logout";
-            public static final String SAML_REQUEST_VALIDATION = "saml-request-validation";
-            public static final String SAML_LOGOUT_PROCESSING = "saml-logout-processing";
+            public static final String VALIDATE_SAML_REQUEST = "validate-saml-request";
             public static final String PROCESS_SAML_REQUEST = "process-saml-request";
             public static final String HAND_OVER_TO_FRAMEWORK = "hand-over-to-framework";
         }

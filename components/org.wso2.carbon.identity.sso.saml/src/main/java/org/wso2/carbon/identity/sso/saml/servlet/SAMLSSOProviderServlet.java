@@ -117,7 +117,7 @@ import javax.xml.transform.TransformerException;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.HAND_OVER_TO_FRAMEWORK;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.PROCESS_SAML_REQUEST;
-import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.SAML_REQUEST_VALIDATION;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.VALIDATE_SAML_REQUEST;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 
 /**
@@ -577,7 +577,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                   HttpServletResponse resp) throws ServletException, IOException {
 
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                SAML_INBOUND_SERVICE, SAML_REQUEST_VALIDATION);
+                SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             diagnosticLogBuilder.resultMessage("An error occurred while processing the SAML request. Prompts user " +
                             "a notification.")
