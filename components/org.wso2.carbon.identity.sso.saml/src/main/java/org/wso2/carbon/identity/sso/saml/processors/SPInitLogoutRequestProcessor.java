@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.sso.saml.processors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.LogoutRequest;
 import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -40,13 +43,18 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.identity.sso.saml.validators.ValidationResult;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.PROCESS_SAML_LOGOUT;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 
 /**
  * Handles validation of SP initiated logout requests.
@@ -91,7 +99,17 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
         SAMLSSOReqValidationResponseDTO reqValidationResponseDTO = new SAMLSSOReqValidationResponseDTO();
         reqValidationResponseDTO.setLogOutReq(true);
-
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
+            diagnosticLogBuilder.resultMessage("Processing SP initiated logout request.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            Optional.ofNullable(logoutRequest).map(LogoutRequest::getIssuer).map(Issuer::getValue)
+                    .ifPresent(issuerValue -> diagnosticLogBuilder.inputParam(
+                            SAMLSSOConstants.LogConstants.InputKeys.ISSUER, issuerValue));
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         try {
 
             // List of validators that we need to run before processing the logout.
@@ -114,6 +132,16 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 if (!validationResult.getValidationStatus()) {
                     return validationResult.getValue();
                 }
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
+                diagnosticLogBuilder.resultMessage("Logout request validation successful.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
+                Optional.ofNullable(logoutRequest).flatMap(request -> Optional.ofNullable(request.getIssuer()))
+                        .ifPresent(issuer -> diagnosticLogBuilder.inputParam(
+                                SAMLSSOConstants.LogConstants.InputKeys.ISSUER, issuer.getValue()));
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
 
             // Validate whether we have principle session.
@@ -190,8 +218,29 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
             reqValidationResponseDTO.setLogoutResponse(SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutResponse)));
             reqValidationResponseDTO.setValid(true);
 
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
+                diagnosticLogBuilder.resultMessage("Successfully processed SP initiated logout request.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER,
+                                reqValidationResponseDTO.getIssuer())
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
+                                reqValidationResponseDTO.getAssertionConsumerURL());
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             return reqValidationResponseDTO;
         } catch (UserStoreException | IdentityException | IOException e) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
+                diagnosticLogBuilder.resultMessage("Error processing SP initiated logout request.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage());
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             throw IdentityException.error("Error Processing the Logout Request", e);
         }
     }
@@ -209,6 +258,16 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                     "certificate for file based SAML service provider with the issuer name '%s'. " +
                     "The service provider will NOT be loaded.", issuer);
             log.error(errorMessage, e);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT)
+                        .resultMessage("An error occurred while retrieving the application certificate for file " +
+                                "based SAML service provider. The service provider will NOT be loaded.")
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, issuer)
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+            }
         }
     }
 
@@ -244,10 +303,28 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 destination, false, null, responseSigningAlgorithmUri, responseDigestAlgorithmUri);
         reqValidationResponseDTO.setLogOutReq(true);
         reqValidationResponseDTO.setValid(false);
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT)
+                    .inputParam("status code", status)
+                    .inputParam("destination", destination)
+                    .resultMessage(statMsg)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+        }
         try {
             reqValidationResponseDTO.setResponse(SAMLSSOUtil.compressResponse(SAMLSSOUtil.marshall(logoutResp)));
         } catch (IOException e) {
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null when LoggerUtils.isDiagnosticLogsEnabled() is false.
+                diagnosticLogBuilder.resultMessage("Error while creating logout response.")
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage());
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             throw IdentityException.error("Error while creating logout response", e);
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         return reqValidationResponseDTO;
     }
@@ -305,6 +382,19 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 reqValidationResponseDTO.setAssertionConsumerURL(providerDO.getDefaultAssertionConsumerUrl());
             }
             reqValidationResponseDTO.setIssuer(issuer);
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, PROCESS_SAML_LOGOUT);
+            diagnosticLogBuilder.resultMessage("Error while processing the SAML logout request.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                    .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, reqValidationResponseDTO.getIssuer())
+                    .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
+                            reqValidationResponseDTO.getAssertionConsumerURL())
+                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, statMsg)
+                    .inputParam("status code", status);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         return reqValidationResponseDTO;
     }

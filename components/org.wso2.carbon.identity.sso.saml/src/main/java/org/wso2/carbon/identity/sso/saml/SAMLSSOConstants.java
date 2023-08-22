@@ -208,6 +208,31 @@ public class SAMLSSOConstants {
 
         public static final String CREATE_SAML_APPLICATION = "CREATE SAML APPLICATION";
         public static final String DELETE_SAML_APPLICATION = "DELETE SAML APPLICATION";
+        public static final String SAML_INBOUND_SERVICE = "saml-inbound-service";
+
+        /**
+         * Define action IDs for diagnostic logs.
+         */
+        public static class ActionIDs {
+
+            public static final String PROCESS_SAML_LOGOUT = "process-saml-logout";
+            public static final String VALIDATE_SAML_REQUEST = "validate-saml-request";
+            public static final String PROCESS_SAML_REQUEST = "process-saml-request";
+            public static final String HAND_OVER_TO_FRAMEWORK = "hand-over-to-framework";
+        }
+
+        /**
+         * Define common and reusable Input keys for diagnostic logs.
+         */
+        public static class InputKeys {
+
+            public static final String SAML_REQUEST = "saml request";
+            public static final String ISSUER = "issuer";
+            public static final String CONSUMER_URL = "consumer url";
+            public static final String AUTH_MODE = "auth mode";
+            public static final String ASSERTION_URL = "assertion url";
+            public static final String QUERY_STRING = "query string";
+        }
     }
 
     public static class SingleLogoutCodes {

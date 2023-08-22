@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -37,10 +39,15 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSORespDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.ActionIDs.VALIDATE_SAML_REQUEST;
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 
 public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
@@ -49,6 +56,17 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
     public SAMLSSORespDTO process(SAMLSSOAuthnReqDTO authnReqDTO, String sessionId,
                                   boolean isAuthenticated, String authenticators, String authMode) throws Exception {
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
+            diagnosticLogBuilder.resultMessage("Validating SP initiated SAML Authentication Request.")
+                    .inputParam(SAMLSSOConstants.LogConstants.InputKeys.SAML_REQUEST,
+                            authnReqDTO.getRequestMessageString())
+                    .inputParam(SAMLSSOConstants.LogConstants.InputKeys.AUTH_MODE, authMode)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         try {
             SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(authnReqDTO
                     .getIssuer(), authnReqDTO.getTenantDomain());
@@ -59,7 +77,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                                 " Service Provider should be registered in advance.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
+                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null, authnReqDTO.getRequestMessageString());
             }
 
             if (isECPReqfromECPEnabledSP(authnReqDTO, serviceProviderConfigs)) {
@@ -67,7 +85,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                                 "' is not ECP enabled.";
                 log.warn(msg);
                 return buildErrorResponse(authnReqDTO.getId(),
-                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null);
+                        SAMLSSOConstants.StatusCodes.REQUESTOR_ERROR, msg, null, authnReqDTO.getRequestMessageString());
             }
 
             // reading the service provider configs
@@ -87,7 +105,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                     statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
 
                     return buildErrorResponse(authnReqDTO.getId(), statusCodes, msg, authnReqDTO
-                            .getAssertionConsumerURL());
+                            .getAssertionConsumerURL(), authnReqDTO.getRequestMessageString());
                 }
             }
 
@@ -179,7 +197,25 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
                 samlssoRespDTO.setLoginPageURL(authnReqDTO.getLoginPageURL());
                 samlssoRespDTO.setSubject(authnReqDTO.getUser());
             }
-
+            if (LoggerUtils.isDiagnosticLogsEnabled() && samlssoRespDTO != null) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
+                diagnosticLogBuilder.resultMessage("SAML Request validation successful.")
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.CONSUMER_URL,
+                                samlssoRespDTO.getAssertionConsumerURL())
+                        .inputParam(SAMLSSOConstants.LogConstants.InputKeys.ISSUER, authnReqDTO.getIssuer())
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                // Add user details to the diagnostic log.
+                Optional.ofNullable(samlssoRespDTO.getSubject()).ifPresent(subject -> {
+                    String userName = LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                            subject.getUserName()) : subject.getUserName();
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER_ID,
+                                    SAMLSSOUtil.getUserId(subject))
+                            .inputParam(LogConstants.InputKeys.USER, userName);
+                });
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             return samlssoRespDTO;
         } catch (Exception e) {
             log.error("Error processing the authentication request", e);
@@ -190,7 +226,8 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
             SAMLSSORespDTO errorResp =
                     buildErrorResponse(authnReqDTO.getId(), statusCodes,
-                            "Error processing the authentication request.", null);
+                            "Error processing the authentication request.", null,
+                            authnReqDTO.getRequestMessageString());
             errorResp.setLoginPageURL(authnReqDTO.getLoginPageURL());
             errorResp.setAssertionConsumerURL(authnReqDTO.getAssertionConsumerURL());
             return errorResp;
@@ -282,16 +319,16 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
      * @return
      * @throws Exception
      */
-    private SAMLSSORespDTO buildErrorResponse(String id, String status,
-                                              String statMsg, String destination) throws Exception {
+    private SAMLSSORespDTO buildErrorResponse(String id, String status, String statMsg, String destination,
+                                              String requestMessageString) throws Exception {
 
         List<String> statusCodeList = new ArrayList<String>();
         statusCodeList.add(status);
-        return buildErrorResponse(id, statusCodeList, statMsg, destination);
+        return buildErrorResponse(id, statusCodeList, statMsg, destination, requestMessageString);
     }
 
-    private SAMLSSORespDTO buildErrorResponse(String id, List<String> statusCodeList,
-                                              String statMsg, String destination) throws Exception {
+    private SAMLSSORespDTO buildErrorResponse(String id, List<String> statusCodeList, String statMsg,
+                                              String destination, String requestMessageString) throws Exception {
 
         SAMLSSORespDTO samlSSORespDTO = new SAMLSSORespDTO();
         ErrorResponseBuilder errRespBuilder = new ErrorResponseBuilder();
@@ -300,6 +337,16 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
 
         samlSSORespDTO.setRespString(encodedResponse);
         samlSSORespDTO.setSessionEstablished(false);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, VALIDATE_SAML_REQUEST);
+            diagnosticLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .inputParam("saml request", requestMessageString)
+                    .inputParam("error saml response", encodedResponse)
+                    .resultMessage("An error occurred while processing the SAML request.")
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        }
         return samlSSORespDTO;
     }
 

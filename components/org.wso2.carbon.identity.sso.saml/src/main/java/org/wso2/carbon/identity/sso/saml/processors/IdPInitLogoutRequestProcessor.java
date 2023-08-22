@@ -21,6 +21,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
@@ -29,10 +31,12 @@ import org.wso2.carbon.identity.sso.saml.session.SSOSessionPersistenceManager;
 import org.wso2.carbon.identity.sso.saml.session.SessionInfoData;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Map;
 
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SAML_INBOUND_SERVICE;
 import static org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil.splitAppendedTenantDomain;
 
 public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestProcessor{
@@ -70,6 +74,26 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
 
         init(queryParamDTOs);
 
+        // This finalizeDiagLogBuilder is used to log the final status of the logout flow.
+        DiagnosticLog.DiagnosticLogBuilder finalizeDiagLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            // Initialize finalizeDiagLogBuilder here to avoid initializing it in every if condition.
+            finalizeDiagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, SAMLSSOConstants.LogConstants.ActionIDs.PROCESS_SAML_LOGOUT);
+            DiagnosticLog.DiagnosticLogBuilder initializeDiagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    SAML_INBOUND_SERVICE, SAMLSSOConstants.LogConstants.ActionIDs.PROCESS_SAML_LOGOUT);
+            initializeDiagLogBuilder.resultMessage("Processing IDP initiated logout request.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .inputParam("server url", serverURL);
+            if (StringUtils.isNotBlank(returnTo)) {
+                initializeDiagLogBuilder.inputParam("return to", returnTo);
+            }
+            if (StringUtils.isNotBlank(spEntityID)) {
+                initializeDiagLogBuilder.inputParam("sp entity id", spEntityID);
+            }
+            LoggerUtils.triggerDiagnosticLogEvent(initializeDiagLogBuilder);
+        }
         SAMLSSOReqValidationResponseDTO validationResponseDTO = new SAMLSSOReqValidationResponseDTO();
 
         try {
@@ -80,6 +104,10 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 log.error(SAMLSSOConstants.Notification.INVALID_SESSION);
                 validationResponseDTO.setValid(false);
                 validationResponseDTO.setLogoutFromAuthFramework(true);
+                if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                    finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .resultMessage(SAMLSSOConstants.Notification.INVALID_SESSION);
+                }
                 return validationResponseDTO;
             }
 
@@ -93,6 +121,10 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 log.error(SAMLSSOConstants.Notification.INVALID_SESSION);
                 validationResponseDTO.setValid(false);
                 validationResponseDTO.setLogoutFromAuthFramework(true);
+                if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                    finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .resultMessage(SAMLSSOConstants.Notification.INVALID_SESSION);
+                }
                 return validationResponseDTO;
             }
             validationResponseDTO.setSessionIndex(sessionIndex);
@@ -103,6 +135,10 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 if (StringUtils.isNotBlank(returnTo)) {
                     log.error(SAMLSSOConstants.Notification.NO_SP_ENTITY_PARAM);
                     validationResponseDTO.setValid(false);
+                    if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                        finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                .resultMessage(SAMLSSOConstants.Notification.NO_SP_ENTITY_PARAM);
+                    }
                     return validationResponseDTO;
                 }
 
@@ -114,12 +150,21 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 if (logoutReqIssuer == null) {
                     log.error(String.format(SAMLSSOConstants.Notification.INVALID_SP_ENTITY_ID, spEntityID));
                     validationResponseDTO.setValid(false);
+                    if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                        finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                .resultMessage(SAMLSSOConstants.Notification.INVALID_SP_ENTITY_ID);
+                    }
                     return validationResponseDTO;
                 }
 
                 if (!logoutReqIssuer.isIdPInitSLOEnabled()) {
-                    log.error(String.format(SAMLSSOConstants.Notification.IDP_SLO_NOT_ENABLED, spEntityID));
+                    String errorMsg = String.format(SAMLSSOConstants.Notification.IDP_SLO_NOT_ENABLED, spEntityID);
+                    log.error(errorMsg);
                     validationResponseDTO.setValid(false);
+                    if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                        finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                .resultMessage(errorMsg);
+                    }
                     return validationResponseDTO;
                 }
 
@@ -128,6 +173,10 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                             .getAssertionConsumerUrlList().contains(returnTo)) {
                         log.error(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
                         validationResponseDTO.setValid(false);
+                        if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                            finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .resultMessage(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
+                        }
                         return validationResponseDTO;
                     }
                     validationResponseDTO.setReturnToURL(returnTo);
@@ -138,9 +187,24 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 SAMLSSOUtil.setTenantDomainInThreadLocal(logoutReqIssuer.getTenantDomain());
             }
             validationResponseDTO.setValid(true);
+            if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                finalizeDiagLogBuilder.resultMessage("Successfully processed IDP initiated logout request.")
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+
+            }
 
         } catch (UserStoreException | IdentityException e) {
+            if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                        .resultMessage("Error while processing IDP initiated logout request.")
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage());
+            }
             throw IdentityException.error(SAMLSSOConstants.Notification.IDP_SLO_VALIDATE_ERROR, e);
+        } finally {
+            if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
+                finalizeDiagLogBuilder.logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                LoggerUtils.triggerDiagnosticLogEvent(finalizeDiagLogBuilder);
+            }
         }
         return validationResponseDTO;
     }

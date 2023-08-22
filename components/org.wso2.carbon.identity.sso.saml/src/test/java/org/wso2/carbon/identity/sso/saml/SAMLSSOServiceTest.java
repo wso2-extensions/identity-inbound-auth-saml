@@ -29,6 +29,7 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.dto.QueryParamDTO;
@@ -63,7 +64,7 @@ import static org.testng.Assert.assertNotNull;
  * Unit Tests for SAMLSSOService.
  */
 @PrepareForTest({IdentityUtil.class, SAMLSSOUtil.class, SAMLSSOReqValidationResponseDTO.class,
-    SSOSessionPersistenceManager.class})
+    SSOSessionPersistenceManager.class, LoggerUtils.class})
 public class SAMLSSOServiceTest extends PowerMockTestCase {
 
     @DataProvider(name = "testAuthenticate")
@@ -330,6 +331,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         mockStatic(SSOSessionPersistenceManager.class);
         when(SSOSessionPersistenceManager.getPersistenceManager()).thenReturn(ssoSessionPersistenceManager);
         when(ssoSessionPersistenceManager.getSessionIndexFromTokenId(anyString(), anyString())).thenReturn("theSessionIndex");
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         SAMLSSOService samlssoService = new SAMLSSOService();
         assertTrue(samlssoService.doSingleLogout("aSeesionID").isLogOutReq(), " Should return" +
