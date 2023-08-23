@@ -532,7 +532,7 @@ public class SAMLSSOUtil {
             throw new IdentitySAML2ClientException("Error when decoding the SAML Request. " +
                     "Invalid arguments provided.", e);
         } catch (IOException e) {
-            throw IdentityException.error("Error when decoding the SAML Request.", e);
+            throw new IdentitySAML2ClientException("Error when decoding the SAML Request.", e);
         }
 
     }
