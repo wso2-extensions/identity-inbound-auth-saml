@@ -457,7 +457,7 @@
     <properties>
         <carbon.kernel.version>4.9.10</carbon.kernel.version>
         <carbon.kernel.feature.version>4.9.0</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>5.25.260</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.25.305</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.25.260, 7.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
         <carbon.identity.organization.management.core.version>1.0.0</carbon.identity.organization.management.core.version>
@@ -486,7 +486,6 @@
         <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
         <carbon.identity.package.import.version.range>[5.0.0, 7.0.0)</carbon.identity.package.import.version.range>
-        <carbon.security.keystore.service.version.range>[1.0.0, 2.0.0)</carbon.security.keystore.service.version.range>
 
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
