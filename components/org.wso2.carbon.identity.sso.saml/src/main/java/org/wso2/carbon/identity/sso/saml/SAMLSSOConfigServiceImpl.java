@@ -25,6 +25,9 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.core.keystore.KeyStoreAdmin;
+import org.wso2.carbon.core.keystore.KeyStoreManagementException;
+import org.wso2.carbon.core.keystore.service.KeyStoreData;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -39,9 +42,6 @@ import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
-import org.wso2.carbon.security.SecurityConfigException;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
-import org.wso2.carbon.security.keystore.service.KeyStoreData;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.core.UserRealm;
@@ -358,9 +358,9 @@ public class SAMLSSOConfigServiceImpl {
     private KeyStoreData[] getKeyStores(int tenantId) throws IdentityException {
 
         try {
-            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId, getGovernanceRegistry());
+            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId);
             return admin.getKeyStores(isSuperTenant(tenantId));
-        } catch (SecurityConfigException e) {
+        } catch (KeyStoreManagementException e) {
             throw new IdentityException("Error when loading the key stores from registry", e);
         }
     }
@@ -518,10 +518,9 @@ public class SAMLSSOConfigServiceImpl {
 
         KeyStoreAdmin admin;
         try {
-            admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
-                    getGovernanceRegistry());
+            admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId());
             return admin.getStoreEntries(keyStoreName);
-        } catch (SecurityConfigException e) {
+        } catch (KeyStoreManagementException e) {
             String message = "Error reading entries from the key store: " + keyStoreName;
             throw new IdentityException(message, e);
         }

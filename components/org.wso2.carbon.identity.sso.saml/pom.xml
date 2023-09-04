@@ -303,6 +303,10 @@
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.equinox</groupId>
+            <artifactId>org.eclipse.equinox.http.helper</artifactId>
+        </dependency>
 
         <!-- for Java 17 Compatibility -->
         <dependency>
@@ -422,9 +426,6 @@
                             org.wso2.carbon.identity.core.dao; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.persistence; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.security; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.security.keystore; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.security.keystore.service; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.claim,
                             org.wso2.carbon.user.core.service,
@@ -434,6 +435,10 @@
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.handler; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.core.keystore;
+                            version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.core.keystore.service;
+                            version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,
