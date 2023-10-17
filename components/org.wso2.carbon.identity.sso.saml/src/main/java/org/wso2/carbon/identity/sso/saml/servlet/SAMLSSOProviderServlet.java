@@ -241,7 +241,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
             String tenantDomain = null;
             if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+                tenantDomain = IdentityTenantUtil.resolveTenantDomain();
                 if (log.isDebugEnabled()) {
                     log.debug("Tenant domain from context: " + tenantDomain);
                 }
@@ -2243,7 +2243,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         String loggedInTenantDomain = req.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
         if (StringUtils.isBlank(loggedInTenantDomain)) {
-            return IdentityTenantUtil.getTenantDomainFromContext();
+            return IdentityTenantUtil.resolveTenantDomain();
         }
         return loggedInTenantDomain;
     }

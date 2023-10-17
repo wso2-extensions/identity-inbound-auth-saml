@@ -137,7 +137,7 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         }
 
         if (StringUtils.isBlank(loggedInTenantDomain)) {
-            loggedInTenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            loggedInTenantDomain = IdentityTenantUtil.resolveTenantDomain();
         }
         return loggedInTenantDomain;
     }

@@ -211,7 +211,7 @@ public class SAMLSSOConfigAdmin {
         if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
             return getTenantDomain();
         }
-        return IdentityTenantUtil.getTenantDomainFromContext();
+        return IdentityTenantUtil.resolveTenantDomain();
     }
 
     private Optional<AuthenticatedUser> getLoggedInUser(String tenantDomain) {
