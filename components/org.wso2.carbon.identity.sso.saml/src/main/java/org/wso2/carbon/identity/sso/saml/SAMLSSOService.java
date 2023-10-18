@@ -276,7 +276,7 @@ public class SAMLSSOService {
 
         String loginTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            loginTenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            loginTenantDomain = IdentityTenantUtil.resolveTenantDomain();
         }
         SPInitLogoutRequestProcessor logoutReqProcessor = SAMLSSOUtil.getSPInitLogoutRequestProcessor();
         return logoutReqProcessor.process(null, sessionId, null, loginTenantDomain);
