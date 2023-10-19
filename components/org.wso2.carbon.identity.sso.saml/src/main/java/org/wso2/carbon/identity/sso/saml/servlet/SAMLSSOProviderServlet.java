@@ -2240,12 +2240,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
             return SAMLSSOUtil.getTenantDomainFromThreadLocal();
         }
-
-        String loggedInTenantDomain = req.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
-        if (StringUtils.isBlank(loggedInTenantDomain)) {
-            return IdentityTenantUtil.resolveTenantDomain();
-        }
-        return loggedInTenantDomain;
+        return IdentityTenantUtil.resolveTenantDomain();
     }
 
     /**
