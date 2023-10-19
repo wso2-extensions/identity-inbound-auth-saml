@@ -1503,11 +1503,21 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (IdentityTenantUtil.isTenantedSessionsEnabled() &&
                 sessionId.endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
             if (loggedInTenantDomain != null) {
-                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
-                        SAMLSSOConstants.COOKIE_ROOT_PATH);
+                if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
+                    samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
+                } else {
+                    samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
+                            SAMLSSOConstants.COOKIE_ROOT_PATH);
+                }
             } else {
-                samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
-                        SAMLSSOConstants.COOKIE_ROOT_PATH);
+                if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                    samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
+                } else {
+                    samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                            SAMLSSOConstants.COOKIE_ROOT_PATH);
+                }
             }
             isTenantQualifiedCookie = true;
         } else {
@@ -1560,8 +1570,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     boolean isTenantQualifiedCookie = false;
                     if (IdentityTenantUtil.isTenantedSessionsEnabled() && cookie.getValue() != null &&
                             cookie.getValue().endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
-                        samlSsoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
-                                SAMLSSOConstants.COOKIE_ROOT_PATH);
+
+                        if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
+                            samlSsoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
+                        } else {
+                            samlSsoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain
+                                    + SAMLSSOConstants.COOKIE_ROOT_PATH);
+                        }
                         isTenantQualifiedCookie = true;
                     } else {
                         samlSsoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
