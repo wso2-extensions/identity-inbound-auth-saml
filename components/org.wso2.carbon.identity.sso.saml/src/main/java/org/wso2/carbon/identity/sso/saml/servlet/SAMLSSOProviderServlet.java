@@ -1503,7 +1503,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         if (IdentityTenantUtil.isTenantedSessionsEnabled() &&
                 sessionId.endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
             if (loggedInTenantDomain != null) {
-                if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
                     samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                 } else {
@@ -1511,7 +1511,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                             SAMLSSOConstants.COOKIE_ROOT_PATH);
                 }
             } else {
-                if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                 } else {
@@ -1571,7 +1571,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     if (IdentityTenantUtil.isTenantedSessionsEnabled() && cookie.getValue() != null &&
                             cookie.getValue().endsWith(SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX)) {
 
-                        if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                        if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
                             samlSsoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                         } else {
