@@ -178,11 +178,11 @@ public class SAMLSSOService {
                                                                      QueryParamDTO[] queryParamDTOs,
                                                                      String serverURL, String sessionId,
                                                                      String rpSessionId, String authnMode,
-                                                                     boolean isLogout) throws IdentityException {
+                                                                     boolean isLogout, String isPassive) throws IdentityException {
 
         // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
         return validateIdPInitSSORequest(relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId,
-                authnMode, isLogout, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                authnMode, isLogout, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, isPassive);
     }
 
     /**
@@ -206,7 +206,8 @@ public class SAMLSSOService {
                                                                      QueryParamDTO[] queryParamDTOs,
                                                                      String serverURL, String sessionId,
                                                                      String rpSessionId, String authnMode,
-                                                                     boolean isLogout, String loginTenantDomain)
+                                                                     boolean isLogout, String loginTenantDomain,
+                                                                     String isPassive)
             throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = null;
@@ -224,6 +225,7 @@ public class SAMLSSOService {
         }
         validationResponseDTO.setQueryString(queryString);
         validationResponseDTO.setRpSessionId(rpSessionId);
+        validationResponseDTO.setPassive(Boolean.valueOf(isPassive));
         return validationResponseDTO;
     }
 

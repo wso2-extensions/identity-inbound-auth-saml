@@ -126,7 +126,8 @@ public class SAMLSSOConstants {
         SLO("slo"),
         RETURN_TO("returnTo"),
         SP_ENTITY_ID("spEntityID"),
-        SP_QUALIFIER("spQualifier");
+        SP_QUALIFIER("spQualifier"),
+        IS_PASSIVE("IsPassive");
 
         private final String parameterName;
 

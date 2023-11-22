@@ -213,7 +213,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
                 relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,"false");
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML authentication request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSSO(), "Should be an IDP initiated SAML SSO request.");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
@@ -249,7 +249,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
                 relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, "false");
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML SLO request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSLO(), "Should be an IDP initiated SLO request");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
