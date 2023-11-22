@@ -224,8 +224,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
         String spEntityID = req.getParameter(SAMLSSOConstants.QueryParameter
                 .SP_ENTITY_ID.toString());
-        String isPassive = req.getParameter(SAMLSSOConstants.QueryParameter
-                .IS_PASSIVE.toString());
+        boolean isPassive = Boolean.valueOf(req.getParameter(SAMLSSOConstants.QueryParameter
+                .IS_PASSIVE.toString()));
         String samlRequest = req.getParameter(SAMLSSOConstants.SAML_REQUEST);
         String samlResponse = req.getParameter(SAMLSSOConstants.SAML_RESP);
         String sessionDataKey = getSessionDataKey(req);
@@ -652,7 +652,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private void handleIdPInitSSO(HttpServletRequest req, HttpServletResponse resp, String relayState,
                                   String queryString, String authMode, String sessionId,
-                                  boolean isPost, boolean isLogout, String isPassive) throws UserStoreException, IdentityException,
+                                  boolean isPost, boolean isLogout, boolean isPassive) throws UserStoreException, IdentityException,
                                                                       IOException, ServletException {
 
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;

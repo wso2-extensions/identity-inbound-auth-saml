@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,6 +88,16 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
                 {TestConstants.ENCODED_REDIRECT_AUTHN_REQUEST,
                         TestConstants.ENCODED_QUERY_STRING_FOR_AUTHN_REQUEST, false}
         };
+    }
+
+    @DataProvider(name = "testValidateIdPInitSSORequestAuthentication")
+    public static Object[][] idpInitAuthRequests() {
+        return new Object[][]{{true}, {false}};
+    }
+
+    @DataProvider(name = "testValidateIdPInitSSORequestLogout")
+    public static Object[][] idpInitLogoutRequests() {
+        return new Object[][]{{true}, {false}};
     }
 
     @ObjectFactory
@@ -185,8 +195,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         return samlssoReqValidationResponseDTO;
     }
 
-    @Test
-    public void testValidateIdPInitSSORequestAuthentication() throws Exception {
+    @Test(dataProvider = "testValidateIdPInitSSORequestAuthentication")
+    public void testValidateIdPInitSSORequestAuthentication(boolean isPassive) throws Exception {
 
         // Inputs for SAMLSSOService's validateIdPInitSSORequest method.
         String relayState = null;
@@ -213,7 +223,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
                 relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,"false");
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,isPassive);
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML authentication request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSSO(), "Should be an IDP initiated SAML SSO request.");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
@@ -222,8 +232,8 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
                 "the given input RpSessionId.");
     }
 
-    @Test
-    public void testValidateIdPInitSSORequestLogout() throws Exception {
+    @Test(dataProvider = "testValidateIdPInitSSORequestLogout")
+    public void testValidateIdPInitSSORequestLogout(boolean isPassive) throws Exception {
 
         // Inputs for SAMLSSOService's validateIdPInitSSORequest method.
         String relayState = null;
@@ -249,7 +259,7 @@ public class SAMLSSOServiceTest extends PowerMockTestCase {
         SAMLSSOService samlssoService = new SAMLSSOService();
         SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = samlssoService.validateIdPInitSSORequest(
                 relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId, authnMode, isLogout,
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, "false");
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, isPassive);
         assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML SLO request.");
         assertTrue(samlssoReqValidationResponseDTO.isIdPInitSLO(), "Should be an IDP initiated SLO request");
         assertEquals(samlssoReqValidationResponseDTO.getQueryString(), queryString, "Query String should be same as " +
