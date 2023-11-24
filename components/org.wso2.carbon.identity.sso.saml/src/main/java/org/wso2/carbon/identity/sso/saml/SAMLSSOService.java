@@ -178,11 +178,43 @@ public class SAMLSSOService {
                                                                      QueryParamDTO[] queryParamDTOs,
                                                                      String serverURL, String sessionId,
                                                                      String rpSessionId, String authnMode,
-                                                                     boolean isLogout, boolean isPassive) throws IdentityException {
+                                                                     boolean isLogout) throws IdentityException {
 
         // For backward compatibility, SUPER_TENANT_DOMAIN was used as the cache maintaining tenant.
         return validateIdPInitSSORequest(relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId,
-                authnMode, isLogout, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, isPassive);
+                authnMode, isLogout, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * validates the IdP Initiated SSO/SLO request.
+     * If the user already have a SSO session then the Response
+     * will be returned if not only the validation results will be returned.
+     *
+     * @param relayState
+     * @param queryString
+     * @param queryParamDTOs
+     * @param serverURL
+     * @param sessionId
+     * @param rpSessionId
+     * @param authnMode
+     * @param isLogout
+     * @return
+     * @throws IdentityException
+     *
+     * @deprecated This method was deprecated to support IsPassive.
+     * Use {@link #validateIdPInitSSORequest(String,String,QueryParamDTO[],
+     * String,String,String,String,boolean,String,boolean)} instead.
+     */
+    public SAMLSSOReqValidationResponseDTO validateIdPInitSSORequest(String relayState, String queryString,
+                                                                     QueryParamDTO[] queryParamDTOs,
+                                                                     String serverURL, String sessionId,
+                                                                     String rpSessionId, String authnMode,
+                                                                     boolean isLogout, String loginTenantDomain)
+            throws IdentityException {
+
+        // For backward compatibility, the IsPassive param is set to false by default.
+        return validateIdPInitSSORequest(relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId,
+                authnMode, isLogout, loginTenantDomain, false);
     }
 
     /**
@@ -199,6 +231,7 @@ public class SAMLSSOService {
      * @param authnMode             Authn Mode
      * @param isLogout              Is Logout
      * @param loginTenantDomain     Login tenant Domain
+     * @param isPassive             Is Passive
      * @return      validationResponseDTO
      * @throws IdentityException
      */

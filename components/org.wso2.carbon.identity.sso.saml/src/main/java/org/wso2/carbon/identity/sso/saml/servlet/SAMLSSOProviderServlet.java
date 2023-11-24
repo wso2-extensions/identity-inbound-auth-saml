@@ -224,8 +224,6 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String relayState = req.getParameter(SAMLSSOConstants.RELAY_STATE);
         String spEntityID = req.getParameter(SAMLSSOConstants.QueryParameter
                 .SP_ENTITY_ID.toString());
-        boolean isPassive = Boolean.valueOf(req.getParameter(SAMLSSOConstants.QueryParameter
-                .IS_PASSIVE.toString()));
         String samlRequest = req.getParameter(SAMLSSOConstants.SAML_REQUEST);
         String samlResponse = req.getParameter(SAMLSSOConstants.SAML_RESP);
         String sessionDataKey = getSessionDataKey(req);
@@ -310,8 +308,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     return;
                 }
             } else if (spEntityID != null || slo != null) { // idp initiated SSO/SLO
-                handleIdPInitSSO(req, resp, relayState, queryString, authMode, sessionId, isPost,
-                        (slo != null), isPassive);
+                handleIdPInitSSO(req, resp, relayState, queryString, authMode, sessionId, isPost, (slo != null));
             } else if (samlRequest != null) {// SAMLRequest received. SP initiated SSO
                 handleSPInitSSO(req, resp, queryString, relayState, authMode, samlRequest, sessionId, isPost);
             } else if (samlResponse != null) {// SAMLResponse received.
@@ -652,7 +649,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
     private void handleIdPInitSSO(HttpServletRequest req, HttpServletResponse resp, String relayState,
                                   String queryString, String authMode, String sessionId,
-                                  boolean isPost, boolean isLogout, boolean isPassive) throws UserStoreException, IdentityException,
+                                  boolean isPost, boolean isLogout) throws UserStoreException, IdentityException,
                                                                       IOException, ServletException {
 
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
@@ -674,7 +671,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String defaultLogoutLocation = FrameworkUtils.getRedirectURL(SAMLSSOUtil.getDefaultLogoutEndpoint(), req);
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateIdPInitSSORequest(
                 relayState, queryString, getQueryParams(req), defaultLogoutLocation, sessionId, rpSessionId,
-                authMode, isLogout, getLoggedInTenantDomain(req), isPassive);
+                authMode, isLogout, getLoggedInTenantDomain(req), Boolean.valueOf(req.getParameter
+                        (SAMLSSOConstants.QueryParameter.IS_PASSIVE.toString())));
         setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) {
