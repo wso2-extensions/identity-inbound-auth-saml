@@ -190,14 +190,15 @@ public class SAMLSSOService {
      * If the user already have a SSO session then the Response
      * will be returned if not only the validation results will be returned.
      *
-     * @param relayState
-     * @param queryString
-     * @param queryParamDTOs
-     * @param serverURL
-     * @param sessionId
-     * @param rpSessionId
-     * @param authnMode
-     * @param isLogout
+     * @param relayState            Relay State
+     * @param queryString           Query String
+     * @param queryParamDTOs        Query Param DTOs
+     * @param serverURL             Server url
+     * @param sessionId             Session id
+     * @param rpSessionId           Rp Session id
+     * @param authnMode             Authentication Mode
+     * @param isLogout              Is Logout
+     * @param loginTenantDomain     Login tenant Domain
      * @return
      * @throws IdentityException
      *
