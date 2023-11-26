@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.InboundConfigurationPro
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -89,6 +90,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     private boolean doValidateSignatureInArtifactResolve;
     private boolean samlECP;
     private  String idpEntityIDAlias;
+    private Map<String, Object> auditLogData;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -510,5 +512,23 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
 
         this.idpEntityIDAlias = idpEntityIDAlias;
+    }
+    
+    /**
+     * Get audit log data.
+     * @return A map of audit log data.
+     */
+    public Map<String, Object> getAuditLogData() {
+        
+        return auditLogData;
+    }
+    
+    /**
+     * Set audit log data.
+     * @param auditLogData A map of audit log data.
+     */
+    public void setAuditLogData(Map<String, Object> auditLogData) {
+        
+        this.auditLogData = auditLogData;
     }
 }

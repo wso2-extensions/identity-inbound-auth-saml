@@ -116,9 +116,14 @@ public class SAMLSSOConfigServiceImpl {
      * @throws IdentityException
      */
     public SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO spDto) throws IdentityException {
-
+        
+        return createServiceProvider(spDto, true);
+    }
+    
+    SAMLSSOServiceProviderDTO createServiceProvider(SAMLSSOServiceProviderDTO spDto, boolean enableAuditing) throws IdentityException {
+        
         validateSAMLSSOServiceProviderDTO(spDto);
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);
         try {
             return configAdmin.addSAMLServiceProvider(spDto);
         } catch (IdentityException ex) {
@@ -137,8 +142,15 @@ public class SAMLSSOConfigServiceImpl {
     public SAMLSSOServiceProviderDTO updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer)
             throws IdentityException {
 
+        return updateServiceProvider(serviceProviderDTO, currentIssuer, true);
+    }
+    
+    SAMLSSOServiceProviderDTO updateServiceProvider(SAMLSSOServiceProviderDTO serviceProviderDTO, String currentIssuer,
+                                                    boolean enableAuditing)
+            throws IdentityException {
+        
         validateSAMLSSOServiceProviderDTO(serviceProviderDTO);
-        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+        SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);
         try {
             return configAdmin.updateSAMLServiceProvider(serviceProviderDTO, currentIssuer);
         } catch (IdentityException ex) {
@@ -179,8 +191,13 @@ public class SAMLSSOConfigServiceImpl {
 
     public SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata) throws IdentitySAML2SSOException {
 
+        return uploadRPServiceProvider(metadata, true);
+    }
+    
+    SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata, boolean enableAuditing) throws IdentitySAML2SSOException {
+        
         try {
-            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);
             if (log.isDebugEnabled()) {
                 log.debug("Creating SAML Service Provider with metadata: " + metadata);
             }
@@ -202,8 +219,15 @@ public class SAMLSSOConfigServiceImpl {
     public SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata, String currentIssuer)
             throws IdentitySAML2SSOException {
 
+        return updateRPServiceProviderWithMetadata(metadata, currentIssuer, true);
+    }
+    
+    SAMLSSOServiceProviderDTO updateRPServiceProviderWithMetadata(String metadata, String currentIssuer,
+                                                                  boolean enableAuditing)
+            throws IdentitySAML2SSOException {
+        
         try {
-            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);
             if (log.isDebugEnabled()) {
                 log.debug("Updating SAML Service Provider with metadata: " + metadata);
             }
@@ -222,7 +246,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public SAMLSSOServiceProviderDTO createServiceProviderWithMetadataURL(String metadataUrl)
             throws IdentitySAML2SSOException {
-
+        
+        return createServiceProviderWithMetadataURL(metadataUrl, true);
+    }
+    
+    SAMLSSOServiceProviderDTO createServiceProviderWithMetadataURL(String metadataUrl, boolean enableAuditing)
+            throws IdentitySAML2SSOException {
+        
         try {
             URL url = new URL(metadataUrl);
             URLConnection con = url.openConnection();
@@ -230,7 +260,7 @@ public class SAMLSSOConfigServiceImpl {
             con.setReadTimeout(getReadTimeoutInMillis());
             try (InputStream inputStream = new BoundedInputStream(con.getInputStream(), getMaxSizeInBytes())) {
                 String metadata = IOUtils.toString(inputStream);
-                return uploadRPServiceProvider(metadata);
+                return uploadRPServiceProvider(metadata, enableAuditing);
             }
         } catch (IOException e) {
             throw handleIOException(URL_NOT_FOUND, "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
@@ -249,6 +279,13 @@ public class SAMLSSOConfigServiceImpl {
     public SAMLSSOServiceProviderDTO updateServiceProviderWithMetadataURL(String metadataUrl, String currentIssuer)
             throws IdentitySAML2SSOException {
 
+        return updateServiceProviderWithMetadataURL(metadataUrl, currentIssuer, true);
+    }
+    
+    SAMLSSOServiceProviderDTO updateServiceProviderWithMetadataURL(String metadataUrl, String currentIssuer,
+                                                                   boolean enableAuditing)
+            throws IdentitySAML2SSOException {
+        
         try {
             URL url = new URL(metadataUrl);
             URLConnection connection = url.openConnection();
@@ -256,12 +293,12 @@ public class SAMLSSOConfigServiceImpl {
             connection.setReadTimeout(getReadTimeoutInMillis());
             try (InputStream inputStream = new BoundedInputStream(connection.getInputStream(), getMaxSizeInBytes())) {
                 String metadata = IOUtils.toString(inputStream);
-                return updateRPServiceProviderWithMetadata(metadata, currentIssuer);
+                return updateRPServiceProviderWithMetadata(metadata, currentIssuer, enableAuditing);
             }
         } catch (IOException e) {
             throw handleIOException(URL_NOT_FOUND,
                     "Non-existing metadata URL for SAML service provider creation in tenantDomain: "
-                    + getTenantDomain(), e);
+                            + getTenantDomain(), e);
         }
     }
 
@@ -459,8 +496,13 @@ public class SAMLSSOConfigServiceImpl {
      */
     public boolean removeServiceProvider(String issuer) throws IdentityException {
 
+        return removeServiceProvider(issuer, true);
+    }
+    
+    boolean removeServiceProvider(String issuer, boolean enableAuditing) throws IdentityException {
+        
         try {
-            SAMLSSOConfigAdmin ssoConfigAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry());
+            SAMLSSOConfigAdmin ssoConfigAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);
             return ssoConfigAdmin.removeServiceProvider(issuer);
         } catch (IdentityException ex) {
             String msg = "Error removing SAML SP with issuer: " + issuer + " in tenantDomain: " + getTenantDomain();
@@ -557,9 +599,12 @@ public class SAMLSSOConfigServiceImpl {
     private IdentitySAML2SSOException handleException(String message, IdentityException ex) {
 
         setErrorCodeIfNotDefined(ex);
-        if (ex instanceof IdentitySAML2SSOException) {
+        if (ex instanceof IdentitySAML2ClientException) {
+            return (IdentitySAML2ClientException) ex;
+        } else if (ex instanceof IdentitySAML2SSOException) {
             return (IdentitySAML2SSOException) ex;
-        } else {
+        }
+        else {
             return new IdentitySAML2SSOException(ex.getErrorCode(), message, ex);
         }
     }

@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.sso.saml.util;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import net.shibboleth.utilities.java.support.codec.Base64Support;
 import net.shibboleth.utilities.java.support.security.SecureRandomIdentifierGenerationStrategy;
 import net.shibboleth.utilities.java.support.xml.XMLParserException;
@@ -2636,6 +2638,24 @@ public class SAMLSSOUtil {
             log.debug("Error while getting the user id from the authenticated user.", e);
         }
         return Optional.empty();
+    }
+    
+    /**
+     * Build the JSON object of the SAMLSSOServiceProviderDO and return it as a Map.
+     *
+     * @param app SAMLSSOServiceProviderDO object.
+     * @return Map of <String, Object> of the SAMLSSOServiceProviderDO.
+     */
+    public static Map<String, Object> buildSPData(SAMLSSOServiceProviderDO app) {
+        
+        if (app == null) {
+            return new HashMap<>();
+        }
+        
+        Gson gson = new Gson();
+        String json = gson.toJson(app);
+        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 
     private static String getSPQualifier(QueryParamDTO[] queryParamDTOs) {
