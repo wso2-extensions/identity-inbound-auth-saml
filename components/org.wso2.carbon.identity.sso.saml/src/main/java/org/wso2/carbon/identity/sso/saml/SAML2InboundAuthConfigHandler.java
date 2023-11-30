@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,26 +39,50 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols.SAML2;
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.getInboundAuthKey;
 
+/**
+ * SAML2 inbound authentication configuration handler.
+ */
 public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConfigHandler {
     
     private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
     
+    /**
+     * Checks whether this handler can handle the inbound authentication request.
+     *
+     * @param inboundProtocolsDTO Inbound protocols DTO.
+     * @return True if InboundProtocolDTO contains SAML inbound auth configs.
+     */
     @Override
     public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
         
         return inboundProtocolsDTO.getInboundProtocolConfigurationMap().containsKey(SAML2);
     }
     
+    /**
+     * Checks whether this handler can handle the inbound authentication request.
+     *
+     * @param protocolName Name of the protocol.
+     * @return True if the protocolName is "samlsso".
+     */
     @Override
     public boolean canHandle(String protocolName) {
         
         return StringUtils.containsIgnoreCase(ApplicationConstants.StandardInboundProtocols.SAML2, protocolName);
     }
     
+    /**
+     * Creates the inbound authentication request config from InboundProtocolConfigurationDTO.
+     *
+     * @param serviceProvider     Service provider.
+     * @param inboundProtocolsDTO Inbound protocols DTO.
+     * @return InboundAuthenticationRequestConfig.
+     * @throws IdentityApplicationManagementException If an error occurs while creating the config.
+     */
     @Override
     public InboundAuthenticationRequestConfig handleConfigCreation(ServiceProvider serviceProvider,
                                                                    InboundProtocolsDTO inboundProtocolsDTO)
@@ -56,6 +98,14 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
         }
     }
     
+    /**
+     * Updates the inbound authentication request config from InboundProtocolConfigurationDTO.
+     *
+     * @param serviceProvider                 Service provider.
+     * @param inboundProtocolConfigurationDTO Inbound protocol configuration DTO.
+     * @return InboundAuthenticationRequestConfig.
+     * @throws IdentityApplicationManagementException If an error occurs while updating the config.
+     */
     @Override
     public InboundAuthenticationRequestConfig handleConfigUpdate(
             ServiceProvider serviceProvider, InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO)
@@ -71,6 +121,12 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
         }
     }
     
+    /**
+     * Deletes the inbound authentication request config.
+     *
+     * @param issuer Issuer of the SAMl2 application.
+     * @throws IdentityApplicationManagementException If an error occurs while deleting the config.
+     */
     @Override
     public void handleConfigDeletion(String issuer) throws IdentityApplicationManagementException {
         
@@ -82,6 +138,13 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
         }
     }
     
+    /**
+     * Retrieves the inbound authentication request config.
+     *
+     * @param issuer Issuer of the SAMl2 application.
+     * @return InboundProtocolConfigurationDTO.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the config.
+     */
     @Override
     public InboundProtocolConfigurationDTO handleConfigRetrieval(String issuer)
             throws IdentityApplicationManagementException {
@@ -135,7 +198,6 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
         }
     }
     
-    
     private static SAMLSSOServiceProviderDTO createSAMLSpWithMetadataFile(String encodedMetaFileContent)
             throws IdentitySAML2SSOException {
         
@@ -175,12 +237,12 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
             throws IdentitySAML2SSOException {
         
         // First we identify whether this is a insert or update.
-        String currentIssuer = getInboundAuthKey(application, FrameworkConstants.StandardInboundProtocols.SAML2);
+        Optional<String> optionalInboundAuthKey = getInboundAuthKey(application, SAML2);
         InboundAuthenticationRequestConfig updatedInbound;
-        if (currentIssuer != null) {
+        if (optionalInboundAuthKey.isPresent()) {
             // This is an update.
             SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = updateSamlSSoServiceProviderDTO(
-                    saml2ProtocolConfigDTO, currentIssuer);
+                    saml2ProtocolConfigDTO, optionalInboundAuthKey.get());
             
             // Set certificate if available.
             if (samlssoServiceProviderDTO.getCertificateContent() != null) {

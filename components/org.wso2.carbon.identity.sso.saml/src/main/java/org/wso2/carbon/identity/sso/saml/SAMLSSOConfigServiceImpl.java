@@ -194,7 +194,8 @@ public class SAMLSSOConfigServiceImpl {
         return uploadRPServiceProvider(metadata, true);
     }
     
-    SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata, boolean enableAuditing) throws IdentitySAML2SSOException {
+    SAMLSSOServiceProviderDTO uploadRPServiceProvider(String metadata, boolean enableAuditing)
+            throws IdentitySAML2SSOException {
         
         try {
             SAMLSSOConfigAdmin configAdmin = new SAMLSSOConfigAdmin(getConfigSystemRegistry(), enableAuditing);

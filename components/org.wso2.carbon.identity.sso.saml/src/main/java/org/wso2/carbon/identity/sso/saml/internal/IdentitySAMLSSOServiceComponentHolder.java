@@ -65,6 +65,7 @@ public class IdentitySAMLSSOServiceComponentHolder {
     
     /**
      * Get SAMLSSOConfigService.
+     *
      * @return SAMLSSOConfigService.
      */
     public SAMLSSOConfigServiceImpl getSamlSSOConfigService() {
@@ -74,6 +75,7 @@ public class IdentitySAMLSSOServiceComponentHolder {
     
     /**
      * Set SAMLSSOConfigService.
+     *
      * @param samlSSOConfigService SAMLSSOConfigService.
      */
     public void setSamlSSOConfigService(SAMLSSOConfigServiceImpl samlSSOConfigService) {
@@ -81,11 +83,21 @@ public class IdentitySAMLSSOServiceComponentHolder {
         this.samlSSOConfigService = samlSSOConfigService;
     }
     
+    /**
+     * Get SAML2InboundAuthConfigHandler.
+     *
+     * @return SAML2InboundAuthConfigHandler.
+     */
     public SAML2InboundAuthConfigHandler getSaml2InboundAuthConfigHandler() {
         
         return saml2InboundAuthConfigHandler;
     }
     
+    /**
+     * Set SAML2InboundAuthConfigHandler.
+     *
+     * @param saml2InboundAuthConfigHandler SAML2InboundAuthConfigHandler.
+     */
     public void setSaml2InboundAuthConfigHandler(SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler) {
         
         this.saml2InboundAuthConfigHandler = saml2InboundAuthConfigHandler;

@@ -444,30 +444,6 @@ public class IdentitySAMLSSOServiceComponent {
         SAMLSSOUtil.removeExtensionProcessors(extensionProcessor);
     }
 
-//    /**
-//     * Add dependency to the ApplicationManagementService.
-//     */
-//    @Reference(
-//            name = "identity.application.management.service",
-//            service = ApplicationManagementService.class,
-//            cardinality = ReferenceCardinality.MANDATORY,
-//            policy = ReferencePolicy.DYNAMIC,
-//            unbind = "unsetApplicationManagementService"
-//    )
-//    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
-//
-//        log.debug("ApplicationManagementService is available");
-//        IdentitySAMLSSOServiceComponentHolder.getInstance().setApplicationManagementService(
-//                applicationManagementService);
-//    }
-//
-//    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
-//
-//        log.debug("Unset the ApplicationManagementService");
-//        IdentitySAMLSSOServiceComponentHolder.getInstance().setApplicationManagementService(null);
-//    }
-
-
     @Reference(
             name = "saml.sso.service.provider.manager",
             service = org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager.class,
