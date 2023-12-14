@@ -171,7 +171,9 @@ public class IdPInitLogoutRequestProcessor implements IdpInitSSOLogoutRequestPro
                 if (StringUtils.isNotBlank(returnTo)) {
                     if (!logoutReqIssuer.getIdpInitSLOReturnToURLList().contains(returnTo) && !logoutReqIssuer
                             .getAssertionConsumerUrlList().contains(returnTo)) {
-                        log.error(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
+                        if (log.isDebugEnabled()) {
+                            log.debug(SAMLSSOConstants.Notification.INVALID_RETURN_TO_URL);
+                        }
                         validationResponseDTO.setValid(false);
                         if (LoggerUtils.isDiagnosticLogsEnabled() && finalizeDiagLogBuilder != null) {
                             finalizeDiagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
