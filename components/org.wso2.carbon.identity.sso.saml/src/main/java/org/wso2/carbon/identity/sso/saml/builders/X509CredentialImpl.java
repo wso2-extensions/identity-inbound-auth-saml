@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -205,9 +206,7 @@ public class X509CredentialImpl implements X509Credential {
 
         try {
             // Derive key store name.
-            String ksName = tenantDomain.trim().replace(".", "-");
-            // Derive JKS name.
-            String jksName = ksName + ".jks";
+            String jksName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
             privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
             signingCert = (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);
         // This Exception is thrown from the KeyStoreManager.

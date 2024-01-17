@@ -62,6 +62,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +85,8 @@ import static org.testng.Assert.assertTrue;
  */
 @PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
         KeyStoreManager.class, IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
-        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class})
+        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class,
+        KeystoreUtils.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*", "org.apache.xerces.*"})
 public class SAMLSSOUtilTest extends PowerMockTestCase {
 
@@ -133,6 +135,12 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    private void prepareForGetKeyStorePath() throws Exception {
+        mockStatic(KeystoreUtils.class);
+        when(KeystoreUtils.getKeyStoreFileLocation(TestConstants.WSO2_TENANT_DOMAIN)).thenReturn(TestConstants
+                .WSO2_TENANT_DOMAIN.replace(".", "-") + TestUtils.getFilePath(TestConstants.KEY_STORE_NAME));
     }
 
     private void prepareForGetIssuer() throws Exception {
@@ -412,6 +420,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetX509CredentialImplForTenant() throws Exception {
 
         prepareForGetIssuer();
+        prepareForGetKeyStorePath();
         mockStatic(FrameworkServiceComponent.class);
         when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
@@ -430,6 +439,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetX509CredentialImplException() throws Exception {
 
         prepareForGetIssuer();
+        prepareForGetKeyStorePath();
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
