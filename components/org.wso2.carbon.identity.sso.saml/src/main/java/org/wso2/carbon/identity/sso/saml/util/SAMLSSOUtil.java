@@ -119,6 +119,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -924,8 +925,8 @@ public class SAMLSSOUtil {
      * @return key store file name
      */
     public static String generateKSNameFromDomainName(String tenantDomain) {
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return ksName + ".jks";
+
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
     /**
