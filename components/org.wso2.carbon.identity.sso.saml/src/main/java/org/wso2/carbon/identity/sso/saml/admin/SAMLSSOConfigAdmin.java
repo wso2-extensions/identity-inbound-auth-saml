@@ -45,6 +45,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
@@ -347,8 +348,7 @@ public class SAMLSSOConfigAdmin {
      */
     private String getKeyStoreName(int tenantId) {
 
-        String ksName = IdentityTenantUtil.getTenantDomain(tenantId).replace(".", "-");
-        return (ksName + ".jks");
+        return KeystoreUtils.getKeyStoreFileLocation(IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
     /**

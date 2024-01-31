@@ -669,9 +669,10 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         SAMLSSOService samlSSOService = new SAMLSSOService();
 
         String defaultLogoutLocation = FrameworkUtils.getRedirectURL(SAMLSSOUtil.getDefaultLogoutEndpoint(), req);
+        boolean isPassive = Boolean.valueOf(req.getParameter(SAMLSSOConstants.QueryParameter.IS_PASSIVE.toString()));
         SAMLSSOReqValidationResponseDTO signInRespDTO = samlSSOService.validateIdPInitSSORequest(
                 relayState, queryString, getQueryParams(req), defaultLogoutLocation, sessionId, rpSessionId,
-                authMode, isLogout, getLoggedInTenantDomain(req));
+                authMode, isLogout, getLoggedInTenantDomain(req), isPassive);
         setSPAttributeToRequest(req, signInRespDTO.getIssuer(), SAMLSSOUtil.getTenantDomainFromThreadLocal());
 
         if (!signInRespDTO.isLogOutReq()) {

@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.11.29-SNAPSHOT</version>
+        <version>5.11.35-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -90,7 +90,7 @@
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.identity.saml.common.util:${saml.common.util.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${carbon.identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core:greaterOrEqual:${carbon.identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

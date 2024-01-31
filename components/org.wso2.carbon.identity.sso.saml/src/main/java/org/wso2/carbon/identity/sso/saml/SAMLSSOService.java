@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010, WSO2 LLC. (http://www.wso2.org).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -187,26 +187,61 @@ public class SAMLSSOService {
 
     /**
      * validates the IdP Initiated SSO/SLO request.
-     * If the user already having a SSO session then the Response
+     * If the user already have a SSO session then the Response
      * will be returned if not only the validation results will be returned.
      *
-     * @param relayState            Relay State
-     * @param queryString           Query String
-     * @param queryParamDTOs        Query Param DTOs
-     * @param serverURL             Server url
-     * @param sessionId             Session id
-     * @param rpSessionId           Rp Session id
-     * @param authnMode             Authn Mode
-     * @param isLogout              Is Logout
-     * @param loginTenantDomain     Login tenant Domain
-     * @return      validationResponseDTO
-     * @throws IdentityException
+     * @param relayState            The relay state value used in SSO/SLO process, typically a unique identifier.
+     * @param queryString           The complete query string from the SSO/SLO request.
+     * @param queryParamDTOs        An array of QueryParamDTO objects representing the query parameters.
+     * @param serverURL             The URL of the server where SSO/SLO request is processed.
+     * @param sessionId             The session identifier for the user's current session.
+     * @param rpSessionId           The session identifier for the relying party's session.
+     * @param authnMode             The authentication mode used in the SSO/SLO process.
+     * @param isLogout              Boolean flag indicating whether the request is for logout.
+     * @param loginTenantDomain     The domain of the tenant in which the user is attempting to log in.
+     * @return
+     * @throws IdentityException    If any error occurs during the validation of the IdP Initiated SSO/SLO request.
+     *
+     * @deprecated This method was deprecated to support IsPassive.
+     * Use {@link #validateIdPInitSSORequest(String,String,QueryParamDTO[],
+     * String,String,String,String,boolean,String,boolean)} instead.
      */
     public SAMLSSOReqValidationResponseDTO validateIdPInitSSORequest(String relayState, String queryString,
                                                                      QueryParamDTO[] queryParamDTOs,
                                                                      String serverURL, String sessionId,
                                                                      String rpSessionId, String authnMode,
                                                                      boolean isLogout, String loginTenantDomain)
+            throws IdentityException {
+
+        // For backward compatibility, the IsPassive param is set to false by default.
+        return validateIdPInitSSORequest(relayState, queryString, queryParamDTOs, serverURL, sessionId, rpSessionId,
+                authnMode, isLogout, loginTenantDomain, false);
+    }
+
+    /**
+     * validates the IdP Initiated SSO/SLO request.
+     * If the user already having a SSO session then the Response
+     * will be returned if not only the validation results will be returned.
+     *
+     * @param relayState            The relay state value used in SSO/SLO process, typically a unique identifier.
+     * @param queryString           The complete query string from the SSO/SLO request.
+     * @param queryParamDTOs        An array of QueryParamDTO objects representing the query parameters.
+     * @param serverURL             The URL of the server where SSO/SLO request is processed.
+     * @param sessionId             The session identifier for the user's current session.
+     * @param rpSessionId           The session identifier for the relying party's session.
+     * @param authnMode             The authentication mode used in the SSO/SLO process.
+     * @param isLogout              Boolean flag indicating whether the request is for logout.
+     * @param loginTenantDomain     The domain of the tenant in which the user is attempting to log in.
+     * @param isPassive             A boolean indicating whether the request is passive.
+     * @return validationResponseDTO
+     * @throws IdentityException    If any error occurs during the validation of the IdP Initiated SSO/SLO request.
+     */
+    public SAMLSSOReqValidationResponseDTO validateIdPInitSSORequest(String relayState, String queryString,
+                                                                     QueryParamDTO[] queryParamDTOs,
+                                                                     String serverURL, String sessionId,
+                                                                     String rpSessionId, String authnMode,
+                                                                     boolean isLogout, String loginTenantDomain,
+                                                                     boolean isPassive)
             throws IdentityException {
 
         SAMLSSOReqValidationResponseDTO validationResponseDTO = null;
@@ -224,6 +259,7 @@ public class SAMLSSOService {
         }
         validationResponseDTO.setQueryString(queryString);
         validationResponseDTO.setRpSessionId(rpSessionId);
+        validationResponseDTO.setPassive(isPassive);
         return validationResponseDTO;
     }
 
