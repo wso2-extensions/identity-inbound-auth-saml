@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.sso.saml.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,11 +26,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 
 import java.io.Serializable;
 import java.util.Map;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 /**
  * This class is used to store the SAML SSO Service Provider related information.
@@ -90,6 +87,9 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     private boolean doValidateSignatureInArtifactResolve;
     private boolean samlECP;
     private  String idpEntityIDAlias;
+
+    @XmlTransient
+    @JsonIgnore
     private Map<String, Object> auditLogData;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
