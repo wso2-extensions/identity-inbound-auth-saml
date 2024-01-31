@@ -114,7 +114,7 @@ public class SAML2ProtocolConfigDTO implements InboundProtocolConfigurationDTO {
      * @return Protocol name.
      */
     @Override
-    public String getProtocolName() {
+    public String fetchProtocolName() {
         
         return ApplicationConstants.StandardInboundProtocols.SAML2;
     }
