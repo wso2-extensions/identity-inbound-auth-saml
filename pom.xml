@@ -475,7 +475,7 @@
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <axis2.wso2.version>1.6.1-wso2v38</axis2.wso2.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
-        <com.fasterxml.jackson.version>2.13.2</com.fasterxml.jackson.version>
+        <com.fasterxml.jackson.version>2.15.2</com.fasterxml.jackson.version>
 
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
