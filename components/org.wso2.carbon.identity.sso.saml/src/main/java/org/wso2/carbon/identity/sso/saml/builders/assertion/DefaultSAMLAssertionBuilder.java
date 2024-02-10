@@ -55,6 +55,7 @@ import org.opensaml.saml.saml2.core.impl.SubjectConfirmationDataBuilder;
 import org.opensaml.core.xml.schema.XSString;
 import org.opensaml.core.xml.schema.impl.XSStringBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -342,6 +343,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             userAttributeSeparator = claimSeparator;
         }
         claims.remove(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        claims.remove(FrameworkConstants.IDP_MAPPED_USER_ROLES);
 
         AttributeStatement attStmt = new AttributeStatementBuilder().buildObject();
         Iterator<Map.Entry<String, String>> iterator = claims.entrySet().iterator();
