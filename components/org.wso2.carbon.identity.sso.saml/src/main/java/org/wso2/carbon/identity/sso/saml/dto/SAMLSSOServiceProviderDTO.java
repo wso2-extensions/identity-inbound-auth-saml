@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.sso.saml.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.InboundConfigurationProtocol;
@@ -93,6 +94,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     private boolean samlECP;
     private  String idpEntityIDAlias;
 
+    @IgnoreNullElement
     @XmlTransient
     @JsonIgnore
     private Map<String, Object> auditLogData;
