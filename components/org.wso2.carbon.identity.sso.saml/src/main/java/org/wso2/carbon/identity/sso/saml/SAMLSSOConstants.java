@@ -209,7 +209,6 @@ public class SAMLSSOConstants {
 
         public static final String CREATE_SAML_APPLICATION = "CREATE SAML APPLICATION";
         public static final String DELETE_SAML_APPLICATION = "DELETE SAML APPLICATION";
-        public static final String UPDATE_SAML_APPLICATION = "UPDATE SAML APPLICATION";
         public static final String SAML_INBOUND_SERVICE = "saml-inbound-service";
 
         /**

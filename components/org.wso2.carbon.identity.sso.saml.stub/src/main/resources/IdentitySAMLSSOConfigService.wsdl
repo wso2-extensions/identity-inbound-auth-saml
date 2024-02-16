@@ -237,17 +237,6 @@
                     <xs:element minOccurs="0" name="tenantZero" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="AuditLogDataType">
-                <xs:sequence>
-                    <xs:element name="entry" type="ax2380:MapEntry" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="MapEntry">
-                <xs:sequence>
-                    <xs:element name="key" type="xs:string"/>
-                    <xs:element name="value" type="xs:anyType"/>
-                </xs:sequence>
-            </xs:complexType>
             <xs:complexType name="SAMLSSOServiceProviderDTO">
 <!--                <xs:complexContent>-->
 <!--                    <xs:extension base="ax2381:InboundConfigurationProtocol">-->
@@ -257,7 +246,6 @@
                             <xs:element minOccurs="0" name="assertionEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="auditLogData" nillable="true" type="ax2380:AuditLogDataType"/>
                             <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>

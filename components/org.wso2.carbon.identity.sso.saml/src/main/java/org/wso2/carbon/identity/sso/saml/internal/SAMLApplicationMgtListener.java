@@ -77,6 +77,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                 .getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
 
         if (sp != null) {
+            // TODO remove after testing
             if (log.isDebugEnabled()) {
                 log.debug("Initiating the deletion of SAML inbound data associated with service provider: "
                         + applicationName);
@@ -88,9 +89,10 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         log.debug("Removing SAML inbound data for issuer: " + issuerToBeDeleted + " associated with " +
                                 "service provider: " + applicationName + " of tenantDomain: " + tenantDomain);
                     }
-                    IdentitySAMLSSOServiceComponentHolder.getInstance().getSaml2InboundAuthConfigHandler()
-                            .handleConfigDeletion(issuerToBeDeleted);
-                } catch (IdentityApplicationManagementException e) {
+                    SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(issuerToBeDeleted);
+                    // TODO remove after testing
+                    SAMLSSOUtil.getSAMLSSOConfigService().getServiceProvider(issuerToBeDeleted);
+                } catch (IdentityException e) {
                     String msg = "Error removing SAML inbound data for issuer: %s associated with " +
                             "service provider: %s of tenantDomain: %s during application delete.";
                     throw new IdentityApplicationManagementException(
@@ -98,6 +100,7 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                 }
             }
         }
+
         return true;
     }
 
@@ -119,13 +122,11 @@ public class SAMLApplicationMgtListener extends AbstractApplicationMgtListener {
                         "issuer: " + storedSAMLIssuer);
             }
             try {
-                IdentitySAMLSSOServiceComponentHolder.getInstance().getSaml2InboundAuthConfigHandler()
-                        .handleConfigDeletion(storedSAMLIssuer);
-            } catch (IdentityApplicationManagementException e) {
+                SAMLSSOUtil.getSAMLSSOConfigService().removeServiceProvider(storedSAMLIssuer);
+            } catch (IdentityException e) {
                 String msg = "Error removing SAML inbound data for issuer: %s associated with " +
                         "service provider with id: %s during application update.";
-                throw new IdentityApplicationManagementException(e.getErrorCode(), e.getMessage(), String.format(msg,
-                        storedSAMLIssuer, appId), e);
+                throw new IdentityApplicationManagementException(String.format(msg, storedSAMLIssuer, appId), e);
             }
         }
     }

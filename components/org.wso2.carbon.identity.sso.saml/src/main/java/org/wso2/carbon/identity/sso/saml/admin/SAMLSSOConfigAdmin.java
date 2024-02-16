@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml.admin;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +28,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -49,12 +52,12 @@ import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.TARGET_APPLICATION;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
 import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
@@ -70,17 +73,10 @@ public class SAMLSSOConfigAdmin {
     private static final Log log = LogFactory.getLog(SAMLSSOConfigAdmin.class);
     private UserRegistry registry;
     private final int tenantId;
-    private boolean enableAuditing = true;
 
     public SAMLSSOConfigAdmin(Registry userRegistry) {
         registry = (UserRegistry) userRegistry;
         tenantId = ((UserRegistry) userRegistry).getTenantId();
-    }
-    
-    public SAMLSSOConfigAdmin(Registry userRegistry, boolean enableAuditing) {
-        
-        this(userRegistry);
-        this.enableAuditing = enableAuditing;
     }
 
     /**
@@ -106,14 +102,14 @@ public class SAMLSSOConfigAdmin {
             }
             boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                     .addServiceProvider(serviceProviderDO, tenantId);
-            if (isSuccess && isEnableV2AuditLogs() && enableAuditing) {
+            if (isSuccess && ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                             initiatorId.get(), USER,
                             issuer, TARGET_APPLICATION,
                             SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
-                            .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
+                            .data(buildSPData(serviceProviderDO));
                     triggerAuditLogEvent(auditLogBuilder, true);
                 } else {
                     log.error("Error getting the logged in userId");
@@ -173,16 +169,14 @@ public class SAMLSSOConfigAdmin {
                 throw buildClientException(CONFLICTING_SAML_ISSUER, message);
             }
             SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(serviceProviderDO);
-            Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(serviceProviderDO);
-            samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-            if (isEnableV2AuditLogs() && enableAuditing) {
+            if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                             initiatorId.get(), USER,
                             issuer, TARGET_APPLICATION,
                             SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
-                            .data(spDataMap);
+                            .data(buildSPData(serviceProviderDO));
                     triggerAuditLogEvent(auditLogBuilder, true);
                 } else {
                     log.error("Error getting the logged in userId");
@@ -195,6 +189,18 @@ public class SAMLSSOConfigAdmin {
             String message = "Error obtaining a registry for adding a new service provider";
             throw new IdentityException(message, e);
         }
+    }
+
+    private static Map<String, Object> buildSPData(SAMLSSOServiceProviderDO app) {
+
+        if (app == null) {
+            return new HashMap<>();
+        }
+
+        Gson gson = new Gson();
+        String json = gson.toJson(app);
+        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 
     /**
@@ -246,26 +252,7 @@ public class SAMLSSOConfigAdmin {
             String message = "A Service Provider with the name: " + issuer + " is already loaded from the file system.";
             throw buildClientException(CONFLICTING_SAML_ISSUER, message);
         }
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(serviceProviderDO,
-                currentIssuer);
-        if (samlssoServiceProviderDTO == null) {
-            return null;
-        }
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(serviceProviderDO);
-        samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
-            Optional<String> initiatorId = getInitiatorId();
-            if (initiatorId.isPresent()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        initiatorId.get(), USER, serviceProviderDO.getIssuer(), TARGET_APPLICATION,
-                        SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
-                        .data(spDataMap);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            } else {
-                log.error("Error getting the logged in userId");
-            }
-        }
-        return samlssoServiceProviderDTO;
+        return persistSAMLServiceProvider(serviceProviderDO, currentIssuer);
     }
 
     private String getIssuerWithQualifier(SAMLSSOServiceProviderDO serviceProviderDO) {
@@ -379,16 +366,14 @@ public class SAMLSSOConfigAdmin {
             }
         }
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(samlssoServiceProviderDO);
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(samlssoServiceProviderDO);
-        samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
+        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                         initiatorId.get(), USER,
                         samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
                         SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
-                        .data(spDataMap);
+                        .data(buildSPData(samlssoServiceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
                 log.error("Error getting the logged in userId");
@@ -425,26 +410,7 @@ public class SAMLSSOConfigAdmin {
                 throw new IdentityException("Error occurred while setting certificate and alias", e);
             }
         }
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(samlssoServiceProviderDO,
-                currentIssuer);
-        if (samlssoServiceProviderDTO == null) {
-            return null;
-        }
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(samlssoServiceProviderDO);
-        samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
-            Optional<String> initiatorId = getInitiatorId();
-            if (initiatorId.isPresent()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        initiatorId.get(), USER, samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
-                        SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
-                        .data(spDataMap);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            } else {
-                log.error("Error getting the logged in userId");
-            }
-        }
-        return samlssoServiceProviderDTO;
+        return persistSAMLServiceProvider(samlssoServiceProviderDO, currentIssuer);
     }
 
     private IdentitySAML2ClientException buildClientException(Error error, String message) {
@@ -731,7 +697,7 @@ public class SAMLSSOConfigAdmin {
             boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance()
                     .getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
             if (isSuccess) {
-                if (isEnableV2AuditLogs() && enableAuditing) {
+                if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
                     Optional<String> initiatorId = getInitiatorId();
                     if (initiatorId.isPresent()) {
                         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
@@ -762,4 +728,5 @@ public class SAMLSSOConfigAdmin {
 
         return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
+
 }
