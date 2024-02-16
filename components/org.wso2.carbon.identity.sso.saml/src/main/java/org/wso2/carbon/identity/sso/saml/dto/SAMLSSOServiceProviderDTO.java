@@ -42,7 +42,6 @@ import javax.xml.bind.annotation.XmlTransient;
 @JsonTypeName("samlssoServiceProviderDTO")
 public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol implements Serializable {
 
-
     private static final long serialVersionUID = -7633935958583257097L;
 
     private String issuer;
