@@ -17,18 +17,22 @@
  */
 package org.wso2.carbon.identity.sso.saml.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.InboundConfigurationProtocol;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 import java.io.Serializable;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * This class is used to store the SAML SSO Service Provider related information.
@@ -37,7 +41,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "samlssoServiceProviderDTO")
 @JsonTypeName("samlssoServiceProviderDTO")
 public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol implements Serializable {
-
 
     private static final long serialVersionUID = -7633935958583257097L;
 
@@ -89,6 +92,11 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     private boolean doValidateSignatureInArtifactResolve;
     private boolean samlECP;
     private  String idpEntityIDAlias;
+
+    @IgnoreNullElement
+    @XmlTransient
+    @JsonIgnore
+    private Map<String, Object> auditLogData;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -510,5 +518,23 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
 
         this.idpEntityIDAlias = idpEntityIDAlias;
+    }
+    
+    /**
+     * Get audit log data.
+     * @return A map of audit log data.
+     */
+    public Map<String, Object> getAuditLogData() {
+        
+        return auditLogData;
+    }
+    
+    /**
+     * Set audit log data.
+     * @param auditLogData A map of audit log data.
+     */
+    public void setAuditLogData(Map<String, Object> auditLogData) {
+        
+        this.auditLogData = auditLogData;
     }
 }
