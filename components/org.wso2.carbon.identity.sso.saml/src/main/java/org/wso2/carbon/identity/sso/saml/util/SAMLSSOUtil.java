@@ -2659,6 +2659,19 @@ public class SAMLSSOUtil {
         }.getType());
     }
 
+    public static String  buildSPDataJSONString(SAMLSSOServiceProviderDO app) {
+
+        Gson gson = new Gson();
+        return gson.toJson(app);
+    }
+
+    public static Map<String, Object> buildSPDataFromJsonString(String appJsonString) {
+
+        Gson gson = new Gson();
+        return gson.fromJson(appJsonString, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
     private static String getSPQualifier(QueryParamDTO[] queryParamDTOs) {
 
         for (QueryParamDTO queryParamDTO : queryParamDTOs) {

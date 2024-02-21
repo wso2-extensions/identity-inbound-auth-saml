@@ -1,78 +1,14 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2358="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2360="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2361="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2364="http://exception.saml.sso.identity.carbon.wso2.org/xsd" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2378="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2380="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2381="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ax2384="http://exception.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
     <wsdl:documentation>IdentitySAMLSSOConfigService</wsdl:documentation>
     <wsdl:types>
-        <xs:schema xmlns:ax2366="http://exception.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ax2359="http://base.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2363="http://dto.saml.sso.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+        <xs:schema xmlns:ax2379="http://base.identity.carbon.wso2.org/xsd" xmlns:ax2383="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2386="http://exception.saml.sso.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://exception.saml.sso.identity.carbon.wso2.org/xsd"/>
             <xs:element name="IdentitySAMLSSOConfigServiceIdentityException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2358:IdentityException"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getServiceProvider">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getServiceProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2360:SAMLSSOServiceProviderDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="addRPServiceProvider">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="spDto" nillable="true" type="ax2360:SAMLSSOServiceProviderDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="addRPServiceProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateRPServiceProvider">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProviderDTO" nillable="true" type="ax2360:SAMLSSOServiceProviderDTO"/>
-                        <xs:element minOccurs="0" name="currentIssuer" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateRPServiceProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="IdentitySAMLSSOConfigServiceIdentitySAML2SSOException">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentitySAML2SSOException" nillable="true" type="ax2366:IdentitySAML2SSOException"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="uploadRPServiceProvider">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="metadata" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="uploadRPServiceProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2360:SAMLSSOServiceProviderDTO"/>
+                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2378:IdentityException"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -88,18 +24,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getSigningAlgorithmUris">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getSigningAlgorithmUrisResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="getSigningAlgorithmUriByConfig">
                 <xs:complexType>
                     <xs:sequence/>
@@ -109,18 +33,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getDigestAlgorithmURIs">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getDigestAlgorithmURIsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -184,6 +96,106 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getServiceProviders">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProvidersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2380:SAMLSSOServiceProviderInfoDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2380:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addRPServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="spDto" nillable="true" type="ax2380:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addRPServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRPServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serviceProviderDTO" nillable="true" type="ax2380:SAMLSSOServiceProviderDTO"/>
+                        <xs:element minOccurs="0" name="currentIssuer" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRPServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="IdentitySAMLSSOConfigServiceIdentitySAML2SSOException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentitySAML2SSOException" nillable="true" type="ax2384:IdentitySAML2SSOException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="uploadRPServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="metadata" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="uploadRPServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2380:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUris">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUrisResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="removeServiceProvider">
                 <xs:complexType>
                     <xs:sequence>
@@ -210,79 +222,67 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getServiceProviders">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getServiceProvidersResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2360:SAMLSSOServiceProviderInfoDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
             <xs:complexType abstract="true" name="InboundConfigurationProtocol">
                 <xs:sequence/>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2362="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2382="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
-            <xs:complexType name="SAMLSSOServiceProviderDTO">
-                <xs:complexContent>
-                    <xs:extension base="ax2361:InboundConfigurationProtocol">
-                        <xs:sequence>
-                            <xs:element minOccurs="0" name="assertionConsumerUrl" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="assertionConsumerUrls" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="assertionEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="auditLogData" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doFrontChannelLogout" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSignAssertions" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSignResponse" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSingleLogout" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doValidateSignatureInArtifactResolve" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="idpEntityIDAlias" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="keyEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="samlECP" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="supportedAssertionQueryRequestTypes" nillable="true" type="xs:string"/>
-                        </xs:sequence>
-                    </xs:extension>
-                </xs:complexContent>
-            </xs:complexType>
             <xs:complexType name="SAMLSSOServiceProviderInfoDTO">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="pubCertFilePath" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="serviceProviders" nillable="true" type="ax2360:SAMLSSOServiceProviderDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="serviceProviders" nillable="true" type="ax2380:SAMLSSOServiceProviderDTO"/>
                     <xs:element minOccurs="0" name="tenantZero" type="xs:boolean"/>
                 </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="SAMLSSOServiceProviderDTO">
+                <!--                <xs:complexContent>-->
+                <!--                    <xs:extension base="ax2381:InboundConfigurationProtocol">-->
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="assertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="assertionConsumerUrls" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="assertionEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="auditLogData" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doFrontChannelLogout" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignAssertions" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignResponse" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSingleLogout" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doValidateSignatureInArtifactResolve" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idpEntityIDAlias" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="keyEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="samlECP" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="supportedAssertionQueryRequestTypes" nillable="true" type="xs:string"/>
+                </xs:sequence>
+                <!--                    </xs:extension>-->
+                <!--                </xs:complexContent>-->
             </xs:complexType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
@@ -292,11 +292,11 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2365="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://exception.saml.sso.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2385="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://exception.saml.sso.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="IdentitySAML2SSOException">
                 <xs:complexContent>
-                    <xs:extension base="ax2358:IdentityException">
+                    <xs:extension base="ax2378:IdentityException">
                         <xs:sequence/>
                     </xs:extension>
                 </xs:complexContent>

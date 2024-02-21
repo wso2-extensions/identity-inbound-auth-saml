@@ -96,7 +96,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     @IgnoreNullElement
     @XmlTransient
     @JsonIgnore
-    private Map<String, Object> auditLogData;
+    private String auditLogData;
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -524,7 +524,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
      * Get audit log data.
      * @return A map of audit log data.
      */
-    public Map<String, Object> getAuditLogData() {
+    public String getAuditLogData() {
         
         return auditLogData;
     }
@@ -533,7 +533,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
      * Set audit log data.
      * @param auditLogData A map of audit log data.
      */
-    public void setAuditLogData(Map<String, Object> auditLogData) {
+    public void setAuditLogData(String auditLogData) {
         
         this.auditLogData = auditLogData;
     }

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.sso.saml;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.InjectMocks;
@@ -99,7 +101,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
         
         SAMLSSOServiceProviderDTO updatedSAMLSSOServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        updatedSAMLSSOServiceProviderDTO.setAuditLogData(getDummyMap());
+        updatedSAMLSSOServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
         
         when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
                 .thenReturn(updatedSAMLSSOServiceProviderDTO);
@@ -125,7 +127,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         mockServiceProvider(true);
         
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        samlssoServiceProviderDTO.setAuditLogData(getDummyMap());
+        samlssoServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
         samlssoServiceProviderDTO.setIssuer(ISSUER);
         
         // Mock behavior when currentClientId is not null, indicating an existing application.
@@ -149,7 +151,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         
         SAMLSSOServiceProviderDTO updatedSAMLServiceProvider = new SAMLSSOServiceProviderDTO();
         updatedSAMLServiceProvider.setIssuer(ISSUER);
-        updatedSAMLServiceProvider.setAuditLogData(getDummyMap());
+        updatedSAMLServiceProvider.setAuditLogData(getDummyAuditLogData());
         when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
                 .thenReturn(updatedSAMLServiceProvider);
         
@@ -225,5 +227,13 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         Map<String, Object> dummyMap = new HashMap<>();
         dummyMap.put("issuer", ISSUER);
         return dummyMap;
+    }
+
+    private String getDummyAuditLogData() {
+
+        Gson gson = new Gson();
+        String json = gson.toJson(getDummyMap());
+        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 }

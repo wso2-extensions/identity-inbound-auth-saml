@@ -173,7 +173,7 @@ public class SAMLSSOConfigAdmin {
                 throw buildClientException(CONFLICTING_SAML_ISSUER, message);
             }
             SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(serviceProviderDO);
-            Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(serviceProviderDO);
+            String spDataMap = SAMLSSOUtil.buildSPDataJSONString(serviceProviderDO);
             samlssoServiceProviderDTO.setAuditLogData(spDataMap);
             if (isEnableV2AuditLogs() && enableAuditing) {
                 Optional<String> initiatorId = getInitiatorId();
@@ -182,7 +182,7 @@ public class SAMLSSOConfigAdmin {
                             initiatorId.get(), USER,
                             issuer, TARGET_APPLICATION,
                             SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
-                            .data(spDataMap);
+                            .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
                     triggerAuditLogEvent(auditLogBuilder, true);
                 } else {
                     log.error("Error getting the logged in userId");
@@ -251,7 +251,7 @@ public class SAMLSSOConfigAdmin {
         if (samlssoServiceProviderDTO == null) {
             return null;
         }
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(serviceProviderDO);
+        String spDataMap = SAMLSSOUtil.buildSPDataJSONString(serviceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
         if (isEnableV2AuditLogs() && enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
@@ -259,7 +259,7 @@ public class SAMLSSOConfigAdmin {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                         initiatorId.get(), USER, serviceProviderDO.getIssuer(), TARGET_APPLICATION,
                         SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
-                        .data(spDataMap);
+                        .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
                 log.error("Error getting the logged in userId");
@@ -379,7 +379,7 @@ public class SAMLSSOConfigAdmin {
             }
         }
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(samlssoServiceProviderDO);
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(samlssoServiceProviderDO);
+        String  spDataMap = SAMLSSOUtil.buildSPDataJSONString(samlssoServiceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
         if (isEnableV2AuditLogs() && enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
@@ -388,7 +388,7 @@ public class SAMLSSOConfigAdmin {
                         initiatorId.get(), USER,
                         samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
                         SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
-                        .data(spDataMap);
+                        .data(SAMLSSOUtil.buildSPData(samlssoServiceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
                 log.error("Error getting the logged in userId");
@@ -430,7 +430,7 @@ public class SAMLSSOConfigAdmin {
         if (samlssoServiceProviderDTO == null) {
             return null;
         }
-        Map<String, Object> spDataMap = SAMLSSOUtil.buildSPData(samlssoServiceProviderDO);
+        String spDataMap = SAMLSSOUtil.buildSPDataJSONString(samlssoServiceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
         if (isEnableV2AuditLogs() && enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
@@ -438,7 +438,7 @@ public class SAMLSSOConfigAdmin {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                         initiatorId.get(), USER, samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
                         SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
-                        .data(spDataMap);
+                        .data(SAMLSSOUtil.buildSPData(samlssoServiceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
                 log.error("Error getting the logged in userId");

@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2SSOException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -325,7 +326,7 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
             properties[0] = property;
             samlInbound.setProperties(properties);
         }
-        samlInbound.setData(samlssoServiceProviderDTO.getAuditLogData());
+        samlInbound.setData(SAMLSSOUtil.buildSPDataFromJsonString(samlssoServiceProviderDTO.getAuditLogData()));
         return samlInbound;
     }
     

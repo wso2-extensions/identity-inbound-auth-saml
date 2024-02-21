@@ -154,6 +154,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         String metadata = "metadata";
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
         when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
         when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
                 .thenReturn(true);
@@ -196,6 +197,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
         String metadata = "metadata";
         mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
         when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
         when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
                 .thenReturn(true);
