@@ -238,50 +238,51 @@
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="SAMLSSOServiceProviderDTO">
-<!--                <xs:complexContent>-->
-<!--                    <xs:extension base="ax2381:InboundConfigurationProtocol">-->
-                        <xs:sequence>
-                            <xs:element minOccurs="0" name="assertionConsumerUrl" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="assertionConsumerUrls" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="assertionEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doFrontChannelLogout" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSignAssertions" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSignResponse" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doSingleLogout" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doValidateSignatureInArtifactResolve" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="idpEntityIDAlias" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="keyEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
-                            <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="samlECP" type="xs:boolean"/>
-                            <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
-                            <xs:element minOccurs="0" name="supportedAssertionQueryRequestTypes" nillable="true" type="xs:string"/>
-                        </xs:sequence>
-<!--                    </xs:extension>-->
-<!--                </xs:complexContent>-->
+                <!--                <xs:complexContent>-->
+                <!--                    <xs:extension base="ax2381:InboundConfigurationProtocol">-->
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="assertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="assertionConsumerUrls" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="assertionEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="assertionQueryRequestProfileEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="auditLogData" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doFrontChannelLogout" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignAssertions" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignResponse" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSingleLogout" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doValidateSignatureInArtifactResolve" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idpEntityIDAlias" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuerQualifier" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="keyEncryptionAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="samlECP" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="supportedAssertionQueryRequestTypes" nillable="true" type="xs:string"/>
+                </xs:sequence>
+                <!--                    </xs:extension>-->
+                <!--                </xs:complexContent>-->
             </xs:complexType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">

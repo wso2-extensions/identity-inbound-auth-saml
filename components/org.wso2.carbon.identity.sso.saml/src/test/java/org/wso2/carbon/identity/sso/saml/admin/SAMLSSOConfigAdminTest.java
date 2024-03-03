@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.saml.admin;
 
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -37,8 +36,11 @@ import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
+import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -46,11 +48,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
-        SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class})
+        SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class, SAMLSSOUtil.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
-    @InjectMocks
     private SAMLSSOConfigAdmin samlssoConfigAdmin;
 
     @Mock
@@ -61,7 +62,7 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @Mock IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
-    @Mock
+    @Mock(serializable = true)
     SAMLSSOServiceProviderDO samlssoServiceProvDO;
 
     @Mock
@@ -69,10 +70,10 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @Mock
     Parser parser;
-
+    
     @BeforeMethod
     public void setUp() throws Exception {
-
+        
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoConfigAdmin = new SAMLSSOConfigAdmin(userRegistry);
         mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
@@ -152,6 +153,9 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider() throws Exception {
 
         String metadata = "metadata";
+        mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
+        when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
         when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
@@ -192,6 +196,9 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUpdateRelyingPartyServiceProviderWithMetadata() throws Exception {
 
         String metadata = "metadata";
+        mockStatic(SAMLSSOUtil.class);
+        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
+        when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
         when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
                 .thenReturn(true);
         whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);

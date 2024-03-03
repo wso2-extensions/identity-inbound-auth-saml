@@ -32,12 +32,14 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.sso.saml.SAML2InboundAuthConfigHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLInboundSessionContextMgtListener;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
@@ -130,8 +132,14 @@ public class IdentitySAMLSSOServiceComponent {
                 SSOServiceProviderConfigManager.getInstance(), null);
 
         SAMLSSOConfigServiceImpl samlSSOConfigService = new SAMLSSOConfigServiceImpl();
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setSamlSSOConfigService(samlSSOConfigService);
         ServiceRegistration samlSsoConfigServiceRegistration =
                 ctxt.getBundleContext().registerService(SAMLSSOConfigServiceImpl.class, samlSSOConfigService, null);
+        SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler = new SAML2InboundAuthConfigHandler();
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setSaml2InboundAuthConfigHandler(
+                saml2InboundAuthConfigHandler);
+        ctxt.getBundleContext().registerService(ApplicationInboundAuthConfigHandler.class,
+                saml2InboundAuthConfigHandler, null);
         SAMLSSOUtil.setSamlssoConfigService(samlSSOConfigService);
 
         if (samlSsoConfigServiceRegistration != null) {
@@ -435,31 +443,6 @@ public class IdentitySAMLSSOServiceComponent {
         }
         SAMLSSOUtil.removeExtensionProcessors(extensionProcessor);
     }
-
-    /**
-     * Add dependency to the ApplicationManagementService.
-     */
-    @Reference(
-            name = "identity.application.management.service",
-            service = ApplicationManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetApplicationManagementService"
-    )
-    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("ApplicationManagementService is available");
-        }
-    }
-
-    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Unset the ApplicationManagementService");
-        }
-    }
-
 
     @Reference(
             name = "saml.sso.service.provider.manager",
