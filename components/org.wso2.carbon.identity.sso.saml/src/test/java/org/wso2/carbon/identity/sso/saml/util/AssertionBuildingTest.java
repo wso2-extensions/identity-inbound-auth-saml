@@ -34,10 +34,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockObjectFactory;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -81,11 +83,13 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+
 /**
  * Tests Assertion building functionality.
  */
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
-        SSOServiceProviderConfigManager.class, IdentitySAMLSSOServiceComponentHolder.class})
+        SSOServiceProviderConfigManager.class, IdentitySAMLSSOServiceComponentHolder.class, FrameworkUtils.class})
 @WithCarbonHome
 @PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
         "javax.security.*", "org.mockito.*"})
@@ -125,6 +129,13 @@ public class AssertionBuildingTest extends PowerMockTestCase {
 
     @Mock
     private X509Credential x509Credential;
+
+    @BeforeMethod
+    public void setUpBeforeMethod() throws Exception {
+
+        mockStatic(FrameworkUtils.class);
+        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
+    }
 
     @Test
     public void testBuildAssertion() throws Exception {

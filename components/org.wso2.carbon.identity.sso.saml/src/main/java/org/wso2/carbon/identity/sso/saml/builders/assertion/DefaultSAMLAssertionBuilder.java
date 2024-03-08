@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.schema.XSString;
+import org.opensaml.core.xml.schema.impl.XSStringBuilder;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml1.core.NameIdentifier;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -52,10 +54,9 @@ import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectConfirmationBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectConfirmationDataBuilder;
-import org.opensaml.core.xml.schema.XSString;
-import org.opensaml.core.xml.schema.impl.XSStringBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -76,8 +77,6 @@ import java.util.regex.Pattern;
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
     private static final Log log = LogFactory.getLog(DefaultSAMLAssertionBuilder.class);
-
-    private String userAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
 
     @Override
     public void init() throws IdentityException {
@@ -339,8 +338,15 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
     protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
 
         String claimSeparator = claims.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        String userAttributeSeparator;
         if (StringUtils.isNotBlank(claimSeparator)) {
             userAttributeSeparator = claimSeparator;
+        }  else {
+            // In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
+            // store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
+            // the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
+            // is not available in the claims.
+            userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
         }
         claims.remove(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         claims.remove(FrameworkConstants.IDP_MAPPED_USER_ROLES);
