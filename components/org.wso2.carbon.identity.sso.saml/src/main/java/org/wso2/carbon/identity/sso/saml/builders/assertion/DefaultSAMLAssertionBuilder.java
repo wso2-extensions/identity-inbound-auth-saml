@@ -341,11 +341,13 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         String userAttributeSeparator;
         if (StringUtils.isNotBlank(claimSeparator)) {
             userAttributeSeparator = claimSeparator;
-        }  else {
-            // In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
-            // store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
-            // the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
-            // is not available in the claims.
+        } else {
+            /*
+             * In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
+             * store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
+             * the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
+             * is not available in the claims.
+             */
             userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
         }
         claims.remove(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
