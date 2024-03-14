@@ -93,7 +93,7 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
         try {
             return createSAMLInbound(serviceProvider, saml2ProtocolConfigDTO);
         } catch (IdentitySAML2ClientException e) {
-            throw new IdentityApplicationManagementClientException(e.getMessage(), e);
+            throw new IdentityApplicationManagementClientException(e.getErrorCode(), e.getMessage(), e);
         } catch (IdentitySAML2SSOException e) {
             throw new IdentityApplicationManagementException(e.getErrorCode(), e.getMessage(), e);
         }
