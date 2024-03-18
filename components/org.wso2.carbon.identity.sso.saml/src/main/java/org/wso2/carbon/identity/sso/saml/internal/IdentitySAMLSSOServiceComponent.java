@@ -477,13 +477,13 @@ public class IdentitySAMLSSOServiceComponent {
     )
     protected void setApplicationAuthenticationService(
             ApplicationAuthenticationService applicationAuthenticationService) {
-        /* reference ApplicationAuthenticationService service to guarantee that this component will wait until
-        authentication framework is started */
+        /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
+        authentication framework is started. */
     }
 
     protected void unsetApplicationAuthenticationService(
             ApplicationAuthenticationService applicationAuthenticationService) {
-        /* reference ApplicationAuthenticationService service to guarantee that this component will wait until
-        authentication framework is started */
+        /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
+        authentication framework is started. */
     }
 }
