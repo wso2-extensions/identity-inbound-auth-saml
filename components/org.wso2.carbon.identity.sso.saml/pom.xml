@@ -71,10 +71,6 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
             <exclusions>
                 <exclusion>
@@ -437,7 +433,6 @@
                             org.wso2.carbon.security; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.security.keystore; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.security.keystore.service; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.claim,
                             org.wso2.carbon.user.core.service,
