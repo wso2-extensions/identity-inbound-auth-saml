@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
+import org.wso2.carbon.core.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -165,8 +165,7 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentityException("Invalid file configurations. The key alias is not found.");
         }
 
-        KeyStoreAdmin keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID,
-                SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
+        KeyStoreAdmin keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID);
         KeyStoreManager keyMan = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
         issuerPrivateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
 

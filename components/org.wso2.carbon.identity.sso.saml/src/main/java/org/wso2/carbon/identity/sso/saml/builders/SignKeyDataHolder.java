@@ -27,14 +27,12 @@ import org.opensaml.security.credential.UsageType;
 import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.keystore.KeyStoreAdmin;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -109,8 +107,6 @@ public class SignKeyDataHolder implements X509Credential {
                 tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             }
 
-            IdentityTenantUtil.initializeRegistry(tenantID, tenantDomain);
-
             if (tenantID != MultitenantConstants.SUPER_TENANT_ID) {
                 initializeKeyDataForTenant(tenantID, tenantDomain);
             } else {
@@ -127,8 +123,6 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentityException("Unable to load keystore of the tenant domain:" + tenantDomain, e);
         } catch (UserStoreException e) {
             throw new IdentityException("Unable to load user store of the tenant domain:" + tenantDomain, e);
-        } catch (RegistryException e) {
-            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
         } catch (Exception e) {
             throw new IdentityException("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
         }
@@ -179,8 +173,7 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentityException("Invalid file configurations. The key alias is not found.");
         }
 
-        KeyStoreAdmin keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID,
-                SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
+        KeyStoreAdmin keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID);
         KeyStoreManager keyMan = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
         issuerPrivateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
 

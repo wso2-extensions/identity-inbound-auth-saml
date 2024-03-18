@@ -25,10 +25,8 @@
 <%@ page import="org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderInfoDTO" %>
 <%@ page import="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.sso.saml.ui.client.SAMLSSOConfigServiceClient" %>
-<%@ page
-        import="org.wso2.carbon.security.keystore.service.CertData" %>
-<%@ page
-        import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.core.keystore.service.CertData" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collections" %>

@@ -262,6 +262,11 @@
                 <version>${axis2.wso2.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.equinox</groupId>
+                <artifactId>org.eclipse.equinox.http.helper</artifactId>
+                <version>${version.equinox.http.helper}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${com.fasterxml.jackson.version}</version>
@@ -370,6 +375,11 @@
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <scope>test</scope>
                 <version>${carbon.identity.organization.management.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.equinox</groupId>
+                <artifactId>org.eclipse.equinox.http.helper</artifactId>
+                <version>${version.equinox.http.helper}</version>
             </dependency>
         </dependencies>
 
@@ -516,6 +526,7 @@
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
+        <version.equinox.http.helper>1.1.0.wso2v1</version.equinox.http.helper>
 
         <testng.version>7.0.0</testng.version>
         <jacoco.version>0.8.4</jacoco.version>
