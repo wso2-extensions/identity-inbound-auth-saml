@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
@@ -61,6 +62,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import javax.servlet.Servlet;
 
 /**
@@ -464,5 +466,24 @@ public class IdentitySAMLSSOServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
+    }
+
+    @Reference(
+            name = "identity.application.authentication.framework",
+            service = ApplicationAuthenticationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationAuthenticationService"
+    )
+    protected void setApplicationAuthenticationService(
+            ApplicationAuthenticationService applicationAuthenticationService) {
+        /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
+        authentication framework is started. */
+    }
+
+    protected void unsetApplicationAuthenticationService(
+            ApplicationAuthenticationService applicationAuthenticationService) {
+        /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
+        authentication framework is started. */
     }
 }
