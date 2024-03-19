@@ -27,13 +27,14 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.Error;
-import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -52,8 +53,6 @@ import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.USER;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.TARGET_APPLICATION;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
@@ -110,9 +109,9 @@ public class SAMLSSOConfigAdmin {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                            initiatorId.get(), USER,
-                            issuer, TARGET_APPLICATION,
-                            SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                            initiatorId.get(), LoggerUtils.Initiator.User.name(),
+                            issuer, LoggerUtils.Target.Application.name(),
+                            LogConstants.ApplicationManagement.CREATE_SAML_APPLICATION_ACTION)
                             .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
                     triggerAuditLogEvent(auditLogBuilder, true);
                 } else {
@@ -179,9 +178,9 @@ public class SAMLSSOConfigAdmin {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                            initiatorId.get(), USER,
-                            issuer, TARGET_APPLICATION,
-                            SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                            initiatorId.get(), LoggerUtils.Initiator.User.name(),
+                            issuer, LoggerUtils.Target.Application.name(),
+                            LogConstants.ApplicationManagement.CREATE_SAML_APPLICATION_ACTION)
                             .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
                     triggerAuditLogEvent(auditLogBuilder, true);
                 } else {
@@ -257,8 +256,9 @@ public class SAMLSSOConfigAdmin {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        initiatorId.get(), USER, serviceProviderDO.getIssuer(), TARGET_APPLICATION,
-                        SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
+                        initiatorId.get(), LoggerUtils.Initiator.User.name(), serviceProviderDO.getIssuer(),
+                        LoggerUtils.Target.Application.name(),
+                        LogConstants.ApplicationManagement.UPDATE_SAML_APPLICATION_ACTION)
                         .data(SAMLSSOUtil.buildSPData(serviceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
@@ -385,9 +385,9 @@ public class SAMLSSOConfigAdmin {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        initiatorId.get(), USER,
-                        samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
-                        SAMLSSOConstants.LogConstants.CREATE_SAML_APPLICATION)
+                        initiatorId.get(), LoggerUtils.Initiator.User.name(),
+                        samlssoServiceProviderDO.getIssuer(), LoggerUtils.Target.Application.name(),
+                        LogConstants.ApplicationManagement.CREATE_SAML_APPLICATION_ACTION)
                         .data(SAMLSSOUtil.buildSPData(samlssoServiceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
@@ -436,8 +436,9 @@ public class SAMLSSOConfigAdmin {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        initiatorId.get(), USER, samlssoServiceProviderDO.getIssuer(), TARGET_APPLICATION,
-                        SAMLSSOConstants.LogConstants.UPDATE_SAML_APPLICATION)
+                        initiatorId.get(), LoggerUtils.Initiator.User.name(), samlssoServiceProviderDO.getIssuer(),
+                        LoggerUtils.Target.Application.name(),
+                        LogConstants.ApplicationManagement.UPDATE_SAML_APPLICATION_ACTION)
                         .data(SAMLSSOUtil.buildSPData(samlssoServiceProviderDO));
                 triggerAuditLogEvent(auditLogBuilder, true);
             } else {
@@ -735,8 +736,8 @@ public class SAMLSSOConfigAdmin {
                     Optional<String> initiatorId = getInitiatorId();
                     if (initiatorId.isPresent()) {
                         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
-                                USER, issuer, TARGET_APPLICATION,
-                                SAMLSSOConstants.LogConstants.DELETE_SAML_APPLICATION);
+                                LoggerUtils.Initiator.User.name(), issuer, LoggerUtils.Target.Application.name(),
+                                LogConstants.ApplicationManagement.DELETE_SAML_APPLICATION_ACTION);
                         triggerAuditLogEvent(auditLogBuilder, true);
                     } else {
                         log.error("Error getting the logged in userId");
