@@ -340,15 +340,23 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         String claimSeparator = claims.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         String userAttributeSeparator;
         if (StringUtils.isNotBlank(claimSeparator)) {
+            /*
+            If there are any sp requested claims, then the multi attribute separator claim will be available.
+             */
             userAttributeSeparator = claimSeparator;
         } else {
-            /*
-             * In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
-             * store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
-             * the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
-             * is not available in the claims.
-             */
-            userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            if (!SAMLSSOUtil.separateMultiAttributesFromIdPEnabled()) {
+                userAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+            } else {
+                /*
+                 * In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
+                 * store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
+                 * the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
+                 * is not available in the claims.
+                 */
+                userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            }
+
         }
         claims.remove(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         claims.remove(FrameworkConstants.IDP_MAPPED_USER_ROLES);

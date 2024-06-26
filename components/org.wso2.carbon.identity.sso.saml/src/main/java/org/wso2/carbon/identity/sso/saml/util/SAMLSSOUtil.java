@@ -2756,4 +2756,23 @@ public class SAMLSSOUtil {
         return Boolean.parseBoolean(IdentityUtil.getProperty(
                 SAMLSSOConstants.SAML_IDP_INIT_LOGOUT_RESPONSE_SIGNING_ENABLED));
     }
+
+    /**
+     * SeparateMultiAttributesFromIdP config is used to separate the multi-valued attributes sent from the IdPs.
+     * This config is used when the SP doesn't request any claim in IS, and all the claims from the IdP are passed
+     * to the SP.
+     *
+     * @return false if 'separateMultiAttributesFromIdP' config is disabled. By default, this config is enabled in the
+     * product.
+     */
+    public static boolean separateMultiAttributesFromIdPEnabled() {
+
+        String separateMultiAttributesFromIdPEnabledConfig = IdentityUtil.getProperty(
+                SAMLSSOConstants.SEPARATE_MULTI_ATTRS_FROM_IDPS_USING_ATTRIBUTE_SEPARATOR);
+        if (StringUtils.isNotEmpty(separateMultiAttributesFromIdPEnabledConfig)) {
+            return Boolean.parseBoolean(separateMultiAttributesFromIdPEnabledConfig);
+        } else {
+            return true;
+        }
+    }
 }
