@@ -324,9 +324,7 @@ public class FileBasedConfigManager {
 
         try {
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
-            KeyStore keyStore = keyStoreManager.getPrimaryKeyStore();
-            X509Certificate certificate = (X509Certificate)keyStore.getCertificate(alias);
-            return certificate;
+            return (X509Certificate) keyStoreManager.getCachedPrimaryKeyStore().getCertificate(alias);
         } catch (Exception e) {
             String errorMsg = String.format("Error occurred while retrieving the certificate for " +
                     "the alias '%s'." + alias);

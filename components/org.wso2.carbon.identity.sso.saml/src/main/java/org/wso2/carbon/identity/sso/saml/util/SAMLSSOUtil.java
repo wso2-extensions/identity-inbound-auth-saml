@@ -59,6 +59,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -958,19 +959,19 @@ public class SAMLSSOUtil {
         keyStoreManager = KeyStoreManager.getInstance(tenantId);
 
         X509CredentialImpl credentialImpl = null;
-        KeyStore keyStore;
+        CachedKeyStore keyStore;
 
         try {
             if (tenantId != -1234) {// for tenants, load private key from their generated key store
                 try {
                     FrameworkUtils.startTenantFlow(tenantDomain);
-                    keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                    keyStore = keyStoreManager.getCachedKeyStore(generateKSNameFromDomainName(tenantDomain));
                 } finally {
                     FrameworkUtils.endTenantFlow();
                 }
             } else { // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
-                keyStore = keyStoreManager.getPrimaryKeyStore();
+                keyStore = keyStoreManager.getCachedPrimaryKeyStore();
             }
             java.security.cert.X509Certificate cert =
                     (java.security.cert.X509Certificate) keyStore.getCertificate(alias);

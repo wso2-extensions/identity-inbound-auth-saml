@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -64,6 +65,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -403,6 +405,9 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Test
     public void testGetX509CredentialImplForSuperTenant() throws Exception {
 
+        KeyStore keyStore = TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                .getFilePath("wso2carbon.jks"), "wso2carbon", "JKS");
+        CachedKeyStore cachedKeyStore = new CachedKeyStore(keyStore);
         prepareForGetIssuer();
         mockStatic(FrameworkServiceComponent.class);
         when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
@@ -410,8 +415,8 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(-1234))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                .getFilePath("wso2carbon.jks"), "wso2carbon", "JKS"));
+        when(keyStoreManager.getCachedPrimaryKeyStore()).thenReturn(cachedKeyStore);
+        when(keyStoreManager.getCachedKeyStore(anyString())).thenReturn(cachedKeyStore);
         X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant("carbon.super", "wso2carbon");
         assertNotNull(x509Credential.getPublicKey(), "public key is missing");
     }
@@ -427,9 +432,9 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
-                (TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                        .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
+        when(keyStoreManager.getCachedKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
+                (new CachedKeyStore(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                        .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS")));
         X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
                 .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
         assertNotNull(x509Credential.getPublicKey(), "public key is missing for tenant");
@@ -443,7 +448,7 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
+        when(keyStoreManager.getCachedKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
                 (null);
         X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
                 .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);

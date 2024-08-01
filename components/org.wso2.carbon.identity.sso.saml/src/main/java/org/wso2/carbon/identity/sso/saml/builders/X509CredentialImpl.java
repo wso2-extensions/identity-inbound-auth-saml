@@ -208,7 +208,7 @@ public class X509CredentialImpl implements X509Credential {
             // Derive key store name.
             String jksName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
             privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
-            signingCert = (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);
+            signingCert = (X509Certificate) keyStoreManager.getCachedKeyStore(jksName).getCertificate(tenantDomain);
         // This Exception is thrown from the KeyStoreManager.
         } catch (Exception e) {
             throw new IdentityException("Error retrieving private key and the certificate for tenant " +

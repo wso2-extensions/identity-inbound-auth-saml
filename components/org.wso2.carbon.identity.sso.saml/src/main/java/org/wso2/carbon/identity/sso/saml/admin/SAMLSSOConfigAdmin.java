@@ -307,7 +307,7 @@ public class SAMLSSOConfigAdmin {
 
         if (MultitenantConstants.SUPER_TENANT_ID == tenantId) {
 
-            KeyStore keyStore = manager.getPrimaryKeyStore();
+            KeyStore keyStore = manager.getCachedPrimaryKeyStore().getKeyStore();
 
             // Admin should manually add the service provider signing certificate to the keystore file.
             // If the certificate is available we will set the alias of that certificate.
@@ -320,7 +320,7 @@ public class SAMLSSOConfigAdmin {
         } else {
 
             String keyStoreName = getKeyStoreName(tenantId);
-            KeyStore keyStore = manager.getKeyStore(keyStoreName);
+            KeyStore keyStore = manager.getCachedKeyStore(keyStoreName).getKeyStore();
 
             // Add new certificate
             keyStore.setCertificateEntry(serviceProviderDO.getIssuer(), serviceProviderDO.getX509Certificate());

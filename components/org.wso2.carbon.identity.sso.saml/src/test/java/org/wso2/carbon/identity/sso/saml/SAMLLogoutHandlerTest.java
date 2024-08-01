@@ -28,6 +28,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -50,6 +51,7 @@ import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import javax.net.ssl.KeyManager;
@@ -178,6 +180,7 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
         KeyStore keyStore = TestUtils.
                 loadKeyStoreFromFileSystem(TestUtils.getFilePath("wso2carbon.jks"), "wso2carbon", "JKS");
+        CachedKeyStore cachedKeyStore = new CachedKeyStore(keyStore);
 
         SAMLSSOUtil.setRegistryService(registryService);
         when(registryService.getGovernanceSystemRegistry()).thenReturn(registry);
@@ -187,7 +190,7 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID)).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(keyStore);
+        when(keyStoreManager.getCachedPrimaryKeyStore()).thenReturn(cachedKeyStore);
     }
 
     @Test

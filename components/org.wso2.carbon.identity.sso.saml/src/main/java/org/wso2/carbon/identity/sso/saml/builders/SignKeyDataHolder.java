@@ -27,6 +27,7 @@ import org.opensaml.security.credential.UsageType;
 import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -150,7 +151,7 @@ public class SignKeyDataHolder implements X509Credential {
         String keyStoreName = SAMLSSOUtil.generateKSNameFromDomainName(tenantDomain);
         String keyAlias = tenantDomain;
         KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantID);
-        KeyStore keyStore = keyMan.getKeyStore(keyStoreName);
+        CachedKeyStore keyStore = keyMan.getCachedKeyStore(keyStoreName);
         issuerPrivateKey = (PrivateKey) keyMan.getPrivateKey(keyStoreName, tenantDomain);
 
         Certificate[] certificates = keyStore.getCertificateChain(keyAlias);
@@ -184,7 +185,7 @@ public class SignKeyDataHolder implements X509Credential {
         KeyStoreManager keyMan = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
         issuerPrivateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
 
-        Certificate[] certificates = keyMan.getPrimaryKeyStore().getCertificateChain(keyAlias);
+        Certificate[] certificates = keyMan.getCachedPrimaryKeyStore().getCertificateChain(keyAlias);
         issuerCerts = Arrays.copyOf(certificates, certificates.length, X509Certificate[].class);
 
         signatureAlgorithm = XMLSignature.ALGO_ID_SIGNATURE_RSA;

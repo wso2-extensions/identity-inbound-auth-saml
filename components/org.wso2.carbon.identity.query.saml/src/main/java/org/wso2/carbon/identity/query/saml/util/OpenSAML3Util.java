@@ -42,6 +42,7 @@ import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.opensaml.xmlsec.signature.support.Signer;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -308,14 +309,14 @@ public class OpenSAML3Util {
         // get an instance of the corresponding Key Store Manager instance
         keyStoreManager = KeyStoreManager.getInstance(tenantId);
         X509CredentialImpl credentialImpl = null;
-        KeyStore keyStore;
+        CachedKeyStore keyStore;
         try {
             if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {// for tenants, load private key from their generated key store
-                keyStore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(tenantDomain));
+                keyStore = keyStoreManager.getCachedKeyStore(generateKSNameFromDomainName(tenantDomain));
             } else {
                 // for super tenant, load the default pub. cert using the
                 // config. in carbon.xml
-                keyStore = keyStoreManager.getPrimaryKeyStore();
+                keyStore = keyStoreManager.getCachedPrimaryKeyStore();
             }
             java.security.cert.X509Certificate cert =
                     (java.security.cert.X509Certificate) keyStore.getCertificate(alias);

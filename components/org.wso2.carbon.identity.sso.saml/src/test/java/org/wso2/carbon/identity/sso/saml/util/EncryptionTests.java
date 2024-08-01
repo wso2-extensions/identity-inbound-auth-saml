@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.CachedKeyStore;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -127,14 +128,16 @@ public class EncryptionTests extends PowerMockTestCase {
 
     private void prepareForAssertionEncryption() throws Exception {
 
+        KeyStore keyStore = TestUtils.loadKeyStoreFromFileSystem(
+                TestUtils.getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS");
+        CachedKeyStore cachedKeyStore = new CachedKeyStore(keyStore);
+
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(4567);
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem(
-                TestUtils.getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(
-                TestUtils.getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
+        when(keyStoreManager.getCachedKeyStore(anyString())).thenReturn(cachedKeyStore);
+        when(keyStoreManager.getCachedPrimaryKeyStore()).thenReturn(cachedKeyStore);
         SAMLSSOUtil.setRealmService(realmService);
 
         mockStatic(IdentityUtil.class);
