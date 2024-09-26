@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,6 +47,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
@@ -223,7 +225,7 @@ public class SignKeyDataHolder implements X509Credential {
                 try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
                     String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
                             SECURITY_SAML_SIGN_KEY_STORE_TYPE);
-                    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+                    KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType);
 
                     char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
                             SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
@@ -233,7 +235,7 @@ public class SignKeyDataHolder implements X509Credential {
 
                 } catch (FileNotFoundException e) {
                     throw new IdentityException("Unable to locate keystore", e);
-                } catch (IOException e) {
+                } catch (IOException | NoSuchProviderException e) {
                     throw new IdentityException("Unable to read keystore", e);
                 } catch (CertificateException e) {
                     throw new IdentityException("Unable to read certificate", e);
