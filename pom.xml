@@ -524,7 +524,7 @@
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
 
-        <testng.version>7.0.0</testng.version>
+        <testng.version>7.5.1</testng.version>
         <jacoco.version>0.8.4</jacoco.version>
         <powermock.version>2.0.2</powermock.version>
         <slf4j.api.version>1.7.21</slf4j.api.version>
