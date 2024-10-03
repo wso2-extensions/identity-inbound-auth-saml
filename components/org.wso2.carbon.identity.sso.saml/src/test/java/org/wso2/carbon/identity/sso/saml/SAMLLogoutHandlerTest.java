@@ -46,10 +46,10 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import javax.net.ssl.KeyManager;
@@ -70,7 +70,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
         SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
-        KeyStoreManager.class, Class.class, KeyStoreAdmin.class, KeyStoreUtil.class, IdentityTenantUtil.class })
+        KeyStoreManager.class, Class.class, KeyStoreUtil.class, IdentityTenantUtil.class })
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*", "javax.net.*", "javax.security.*"})
 public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
@@ -188,6 +188,7 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         mockStatic(KeyStoreManager.class);
         when(KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID)).thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(keyStore);
+        when(keyStoreManager.getDefaultPrivateKey()).thenReturn((PrivateKey) keyStore.getKey("wso2carbon", "wso2carbon".toCharArray()));
     }
 
     @Test
