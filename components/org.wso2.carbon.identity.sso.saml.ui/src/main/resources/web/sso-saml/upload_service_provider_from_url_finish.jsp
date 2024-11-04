@@ -1,7 +1,7 @@
 <!--
-~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2015-2024, WSO2 LLC. (https://www.wso2.com).
 ~
-~ WSO2 Inc. licenses this file to you under the Apache License,
+~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
 ~ in compliance with the License.
 ~ You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
+
 <%@page import="org.apache.axis2.context.ConfigurationContext"%>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSOServiceProviderDTO" %>
@@ -25,6 +26,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOUIUtil" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <jsp:useBean id="samlSsoServuceProviderConfigBean"
              type="org.wso2.carbon.identity.sso.saml.ui.SAMLSSOProviderConfigBean"
@@ -87,7 +89,7 @@ if (applicationComponentFound) { %>
     CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
 %>
 <script type="text/javascript">
-    location.href = "../sso-saml/add_service_provider.jsp?spName=<%=spName%>";
+    location.href = "../sso-saml/add_service_provider.jsp?spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>";
 </script>
 <%
         return;
