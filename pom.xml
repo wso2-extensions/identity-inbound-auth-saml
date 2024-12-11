@@ -395,6 +395,25 @@
                         </instructions>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -525,7 +544,7 @@
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
 
         <testng.version>7.0.0</testng.version>
-        <jacoco.version>0.8.4</jacoco.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <powermock.version>2.0.2</powermock.version>
         <slf4j.api.version>1.7.21</slf4j.api.version>
         <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>

@@ -460,28 +460,29 @@
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
                     <argLine>
+                        ${argLine}
                         --add-opens=java.base/java.lang=ALL-UNNAMED
                         --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
-			--add-opens=java.base/java.util.zip=ALL-UNNAMED
+			            --add-opens=java.base/java.util.zip=ALL-UNNAMED
                         --add-opens=java.base/java.util.random=ALL-UNNAMED
                         --add-opens=java.base/java.security=ALL-UNNAMED
-			--add-opens=java.base/java.io=ALL-UNNAMED
+			            --add-opens=java.base/java.io=ALL-UNNAMED
                         --add-opens=java.base/java.security.cert=ALL-UNNAMED
                         --add-opens=java.base/java.util.regex=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.util=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
                         --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
-			--add-opens=java.base/sun.nio.fs=ALL-UNNAMED
-			--add-opens=java.base/sun.security.util=ALL-UNNAMED
-			--add-opens=java.base/sun.security.jca=ALL-UNNAMED
-			--add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                        --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.util=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.jca=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.x509=ALL-UNNAMED
                         --add-opens=java.base/sun.security.validator=ALL-UNNAMED
                         --add-opens=java.base/sun.security.cert=ALL-UNNAMED
                         --add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
-			--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
+			            --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>
@@ -491,27 +492,15 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>default-prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>default-prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
+                        <id>report</id>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report-integration</id>
-                        <goals>
-                            <goal>report-integration</goal>
                         </goals>
                     </execution>
                     <execution>
