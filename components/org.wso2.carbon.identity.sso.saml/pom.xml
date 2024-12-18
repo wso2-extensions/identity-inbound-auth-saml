@@ -161,6 +161,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
 
         <!--SAML Common Util dependency-->
         <dependency>
@@ -328,11 +332,6 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
-            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -368,6 +367,8 @@
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.common;
                             version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.application.mgt.listener;
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.apache.xerces.impl; resolution:= optional,
