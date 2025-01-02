@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.exception.InvalidMetadataException;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
 import org.wso2.carbon.identity.sso.saml.Error;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderInfoDTO;
@@ -695,7 +696,11 @@ public class SAMLSSOConfigAdmin {
                 if (providerDTO.getNameIDFormat() == null) {
                     providerDTO.setNameIDFormat(NameIdentifier.UNSPECIFIED);
                 }
-                providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
+                boolean returnValidNameIDFormat = Boolean.parseBoolean(
+                        IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT));
+                if (!returnValidNameIDFormat) {
+                    providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
+                }
 
                 providerDTO.setIdPInitSSOEnabled(providerDO.isIdPInitSSOEnabled());
                 providerDTO.setIdPInitSLOEnabled(providerDO.isIdPInitSLOEnabled());

@@ -71,6 +71,7 @@ public class SAMLSSOConstants {
     public static final String SAML_IDP_INIT_LOGOUT_RESPONSE_SIGNING_ENABLED = "SSOService.SAMLIdpInitLogoutResponseSigningEnabled";
     public static final String SAML_ASSERTION_ENCRYPT_WITH_APP_CERT = "SSOService.SAMLAssertionEncyptWithAppCert";
     public static final String SEPARATE_MULTI_ATTRS_FROM_IDPS_USING_ATTRIBUTE_SEPARATOR = "SSOService.SeparateMultiAttributesFromIdP";
+    public static final String SAML_RETURN_VALID_NAME_ID_FORMAT = "SSOService.ReturnValidNameIDFormat";
     public static final String START_SOAP_BINDING = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
             "<SOAP-ENV:Body>";
     public static final String END_SOAP_BINDING = "</SOAP-ENV:Body>" +
