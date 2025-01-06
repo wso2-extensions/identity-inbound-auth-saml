@@ -30,7 +30,9 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sp.metadata.saml2.util.Parser;
+import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.SSOServiceProviderConfigManager;
 import org.wso2.carbon.identity.sso.saml.TestUtils;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
@@ -48,7 +50,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
-        SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class, SAMLSSOUtil.class})
+        SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class, SAMLSSOUtil.class,
+        IdentityUtil.class})
 @PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
@@ -56,6 +59,9 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @Mock
     UserRegistry userRegistry;
+
+    @Mock
+    IdentityUtil identityUtil;
 
     @Mock
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
@@ -261,4 +267,61 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
         Assert.assertEquals(samlssoConfigAdmin.getServiceProviders().getServiceProviders().length, 3);
     }
 
+    @Test
+    public void testGetServiceProvidersForValidNameIDFormat() throws Exception {
+
+        mockStatic(UserRegistry.class);
+        mockStatic(IdentityUtil.class);
+        SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
+        when(userRegistry.getTenantId()).thenReturn(0);
+        when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
+
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO.setIssuer("issuer");
+        samlssoServiceProviderDO.setNameIDFormat(null);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO1.setIssuer("issuer1");
+        samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+        serviceProvidersList[0] = samlssoServiceProviderDO;
+        serviceProvidersList[1] = samlssoServiceProviderDO1;
+
+        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT)).thenReturn("true");
+
+        when(userRegistry.getTenantId()).thenReturn(0);
+        SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
+        Assert.assertEquals(serviceProviders.length, 2);
+        Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
+                "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+        Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
+                "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+    }
+
+    @Test
+    public void testGetServiceProvidersForLegacyNameIDFormat() throws Exception {
+
+        mockStatic(UserRegistry.class);
+        mockStatic(IdentityUtil.class);
+        SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
+        when(userRegistry.getTenantId()).thenReturn(0);
+        when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
+
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO.setIssuer("issuer");
+        samlssoServiceProviderDO.setNameIDFormat(null);
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO1.setIssuer("issuer1");
+        samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+        serviceProvidersList[0] = samlssoServiceProviderDO;
+        serviceProvidersList[1] = samlssoServiceProviderDO1;
+
+        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT)).thenReturn("false");
+
+        when(userRegistry.getTenantId()).thenReturn(0);
+        SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
+        Assert.assertEquals(serviceProviders.length, 2);
+        Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
+                "urn/oasis/names/tc/SAML/1.1/nameid-format/unspecified");
+        Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
+                "urn/oasis/names/tc/SAML/1.1/nameid-format/emailAddress");
+    }
 }
