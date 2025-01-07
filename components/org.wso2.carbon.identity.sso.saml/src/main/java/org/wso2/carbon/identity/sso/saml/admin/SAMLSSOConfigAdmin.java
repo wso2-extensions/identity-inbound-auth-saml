@@ -710,7 +710,11 @@ public class SAMLSSOConfigAdmin {
                 if (providerDTO.getNameIDFormat() == null) {
                     providerDTO.setNameIDFormat(NameIdentifier.UNSPECIFIED);
                 }
-                providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
+                boolean returnValidNameIDFormat = Boolean.parseBoolean(
+                        IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT));
+                if (!returnValidNameIDFormat) {
+                    providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
+                }
 
                 providerDTO.setIdPInitSSOEnabled(providerDO.isIdPInitSSOEnabled());
                 providerDTO.setIdPInitSLOEnabled(providerDO.isIdPInitSLOEnabled());

@@ -33,10 +33,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.crypto.SecretKey;
 import java.io.FileInputStream;
@@ -46,6 +45,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
@@ -127,8 +127,6 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentityException("Unable to load keystore of the tenant domain:" + tenantDomain, e);
         } catch (UserStoreException e) {
             throw new IdentityException("Unable to load user store of the tenant domain:" + tenantDomain, e);
-        } catch (RegistryException e) {
-            throw new IdentityException("Unable to create new KeyStoreAdmin of the tenant domain:" + tenantDomain);
         } catch (Exception e) {
             throw new IdentityException("Unable to get primary keystore of the tenant domain:" + tenantDomain, e);
         }
@@ -179,11 +177,8 @@ public class SignKeyDataHolder implements X509Credential {
             throw new IdentityException("Invalid file configurations. The key alias is not found.");
         }
 
-        KeyStoreAdmin keyAdmin = new KeyStoreAdmin(MultitenantConstants.SUPER_TENANT_ID,
-                SAMLSSOUtil.getRegistryService().getGovernanceSystemRegistry());
         KeyStoreManager keyMan = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID);
-        issuerPrivateKey = (PrivateKey) keyAdmin.getPrivateKey(keyAlias, true);
-
+        issuerPrivateKey = keyMan.getDefaultPrivateKey();
         Certificate[] certificates = keyMan.getPrimaryKeyStore().getCertificateChain(keyAlias);
         issuerCerts = Arrays.copyOf(certificates, certificates.length, X509Certificate[].class);
 
@@ -235,7 +230,7 @@ public class SignKeyDataHolder implements X509Credential {
                 try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
                     String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
                             SECURITY_SAML_SIGN_KEY_STORE_TYPE);
-                    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+                    KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType);
 
                     char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
                             SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
@@ -245,7 +240,7 @@ public class SignKeyDataHolder implements X509Credential {
 
                 } catch (FileNotFoundException e) {
                     throw new IdentityException("Unable to locate keystore", e);
-                } catch (IOException e) {
+                } catch (IOException | NoSuchProviderException e) {
                     throw new IdentityException("Unable to read keystore", e);
                 } catch (CertificateException e) {
                     throw new IdentityException("Unable to read certificate", e);

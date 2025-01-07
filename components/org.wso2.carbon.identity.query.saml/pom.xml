@@ -21,7 +21,7 @@
 		<groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
 		<artifactId>identity-inbound-auth-saml</artifactId>
 		<relativePath>../../pom.xml</relativePath>
-		<version>5.11.43-SNAPSHOT</version>
+		<version>5.11.50-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.wso2.carbon.identity.query.saml</artifactId>
@@ -271,13 +271,14 @@
 						<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
 					</systemPropertyVariables>
 					<argLine>
-                        			--add-opens=java.base/java.lang=ALL-UNNAMED
+						${argLine}
+                        --add-opens=java.base/java.lang=ALL-UNNAMED
 						--add-opens=java.base/java.lang.invoke=ALL-UNNAMED
-                        			--add-opens=java.base/java.util=ALL-UNNAMED
-                        			--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+						--add-opens=java.base/java.util=ALL-UNNAMED
+						--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
 						--add-opens=java.base/java.util.zip=ALL-UNNAMED
 						--add-opens=java.base/java.util.random=ALL-UNNAMED
-                        			--add-opens=java.base/java.security=ALL-UNNAMED
+						--add-opens=java.base/java.security=ALL-UNNAMED
 						--add-opens=java.base/java.io=ALL-UNNAMED
 						--add-opens=java.base/java.security.cert=ALL-UNNAMED
 						--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
@@ -291,7 +292,7 @@
 						--add-opens=java.base/sun.security.validator=ALL-UNNAMED
 						--add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
 						--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
-                    			</argLine>
+					</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -300,28 +301,15 @@
 				<version>${jacoco.version}</version>
 				<executions>
 					<execution>
-						<id>default-instrument</id>
 						<goals>
-							<goal>instrument</goal>
+							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
 					<execution>
-						<id>default-restore-instrumented-classes</id>
-						<goals>
-							<goal>restore-instrumented-classes</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report</id>
-						<phase>prepare-package</phase>
+						<id>report</id>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report-integration</id>
-						<goals>
-							<goal>report-integration</goal>
 						</goals>
 					</execution>
 					<execution>

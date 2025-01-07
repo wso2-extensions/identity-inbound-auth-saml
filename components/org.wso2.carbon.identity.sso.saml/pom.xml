@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.inbound.auth.saml2</groupId>
         <artifactId>identity-inbound-auth-saml</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.11.43-SNAPSHOT</version>
+        <version>5.11.50-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -366,14 +366,19 @@
                             org.wso2.carbon.registry.api; version="${carbon.kernel.registry.imp.pkg.version}",
                             org.wso2.carbon.identity.base;version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.application.common; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.common;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.mgt.listener;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.apache.xerces.impl; resolution:= optional,
                             org.owasp.encoder,
                             org.wso2.carbon.base.api,
-                            org.wso2.carbon.identity.sp.metadata.saml2.exception; version="${identity.metadata.saml2.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.sp.metadata.saml2.util; version="${identity.metadata.saml2.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.core.model; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.sp.metadata.saml2.exception;
+                            version="${identity.metadata.saml2.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.sp.metadata.saml2.util;
+                            version="${identity.metadata.saml2.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.model;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                             org.wso2.carbon.idp.mgt.util; version="${carbon.identity.framework.imp.pkg.version.range}",
                             javax.crypto,
@@ -427,12 +432,17 @@
                             org.wso2.carbon.identity.application.common.util;
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.core.dao; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.core.persistence; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.dao;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.persistence;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.util;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.security; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.security.keystore; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.security.keystore.service; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.security.keystore;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.security.keystore.service;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.claim,
                             org.wso2.carbon.user.core.service,
@@ -440,8 +450,10 @@
                             org.wso2.carbon.utils,
                             org.wso2.carbon.utils.multitenancy,
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.event.handler; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.event;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.handler;
+                            version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.sso.saml.internal,
@@ -460,28 +472,29 @@
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
                     <argLine>
+                        ${argLine}
                         --add-opens=java.base/java.lang=ALL-UNNAMED
                         --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
-			--add-opens=java.base/java.util.zip=ALL-UNNAMED
+                        --add-opens=java.base/java.util.zip=ALL-UNNAMED
                         --add-opens=java.base/java.util.random=ALL-UNNAMED
                         --add-opens=java.base/java.security=ALL-UNNAMED
-			--add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/java.io=ALL-UNNAMED
                         --add-opens=java.base/java.security.cert=ALL-UNNAMED
                         --add-opens=java.base/java.util.regex=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.util=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
-			--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.util=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.util.random=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
                         --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
-			--add-opens=java.base/sun.nio.fs=ALL-UNNAMED
-			--add-opens=java.base/sun.security.util=ALL-UNNAMED
-			--add-opens=java.base/sun.security.jca=ALL-UNNAMED
-			--add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                        --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.util=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.jca=ALL-UNNAMED
+                        --add-opens=java.base/sun.security.x509=ALL-UNNAMED
                         --add-opens=java.base/sun.security.validator=ALL-UNNAMED
                         --add-opens=java.base/sun.security.cert=ALL-UNNAMED
                         --add-opens=java.base/sun.reflect.misc=ALL-UNNAMED
-			--add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
+                        --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>
@@ -491,27 +504,15 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>default-prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>default-prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
+                        <id>report</id>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report-integration</id>
-                        <goals>
-                            <goal>report-integration</goal>
                         </goals>
                     </execution>
                     <execution>

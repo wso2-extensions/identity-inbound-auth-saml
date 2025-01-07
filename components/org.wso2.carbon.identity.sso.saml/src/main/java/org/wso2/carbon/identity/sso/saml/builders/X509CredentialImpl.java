@@ -41,6 +41,7 @@ import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
@@ -182,14 +183,14 @@ public class X509CredentialImpl implements X509Credential {
         try (FileInputStream is = new FileInputStream(keyStoreLocation)) {
             String keyStoreType = ServerConfiguration.getInstance().getFirstProperty(
                     SECURITY_SAML_SIGN_KEY_STORE_TYPE);
-            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType);
             char[] keyStorePassword = ServerConfiguration.getInstance().getFirstProperty(
                     SECURITY_SAML_SIGN_KEY_STORE_PASSWORD).toCharArray();
             keyStore.load(is, keyStorePassword);
             superTenantSignKeyStore = keyStore;
         } catch (IOException | CertificateException | NoSuchAlgorithmException e) {
             throw new IdentityException("Unable to load keystore.", e);
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | NoSuchProviderException e) {
             throw new IdentityException("Unable to get an instance of keystore.", e);
         }
     }
