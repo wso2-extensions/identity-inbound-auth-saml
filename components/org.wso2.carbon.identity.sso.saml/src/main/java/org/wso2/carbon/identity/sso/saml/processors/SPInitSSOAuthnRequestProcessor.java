@@ -298,6 +298,7 @@ public class SPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor{
         authnReqDTO.setRequestedClaims(ssoIdpConfigs.getRequestedClaims());
         authnReqDTO.setRequestedAudiences(ssoIdpConfigs.getRequestedAudiences());
         authnReqDTO.setRequestedRecipients(ssoIdpConfigs.getRequestedRecipients());
+        authnReqDTO.setAttributeNameFormat(ssoIdpConfigs.getAttributeNameFormat());
         authnReqDTO.setDoEnableEncryptedAssertion(ssoIdpConfigs.isDoEnableEncryptedAssertion());
         authnReqDTO.setDoValidateSignatureInRequests(ssoIdpConfigs.isDoValidateSignatureInRequests());
         authnReqDTO.setIdPInitSLOEnabled(ssoIdpConfigs.isIdPInitSLOEnabled());

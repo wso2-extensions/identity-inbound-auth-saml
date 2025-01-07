@@ -260,6 +260,7 @@
                     <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="attributeNameFormat" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enableSAML2ArtifactBinding" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="frontChannelLogoutBinding" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>

@@ -56,6 +56,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String[] requestedClaims;
     private String[] requestedAudiences;
     private String[] requestedRecipients;
+    private String attributeNameFormat;
     private boolean doSingleLogout;
     private boolean doFrontChannelLogout;
     private String frontChannelLogoutBinding;
@@ -369,6 +370,16 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
         } else {
             this.requestedRecipients = requestedRecipients.clone();
         }
+    }
+
+    public String getAttributeNameFormat() {
+
+        return this.attributeNameFormat;
+    }
+
+    public void setAttributeNameFormat(String attributeNameFormat) {
+
+        this.attributeNameFormat = attributeNameFormat;
     }
 
     public boolean isStratosDeployment() {

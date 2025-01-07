@@ -311,6 +311,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
         authnReqDTO.setRequestedClaims(ssoIdpConfigs.getRequestedClaims());
         authnReqDTO.setRequestedAudiences(ssoIdpConfigs.getRequestedAudiences());
         authnReqDTO.setRequestedRecipients(ssoIdpConfigs.getRequestedRecipients());
+        authnReqDTO.setAttributeNameFormat(ssoIdpConfigs.getAttributeNameFormat());
         authnReqDTO.setDoEnableEncryptedAssertion(ssoIdpConfigs.isDoEnableEncryptedAssertion());
         authnReqDTO.setIdPInitSLOEnabled(ssoIdpConfigs.isIdPInitSLOEnabled());
         authnReqDTO.setAssertionConsumerURLs(ssoIdpConfigs.getAssertionConsumerUrls());

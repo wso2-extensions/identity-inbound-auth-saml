@@ -72,6 +72,7 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     @XmlElement(name = "requestedRecipient")
     private String[] requestedRecipients;
     private boolean enableAttributeProfile;
+    private String attributeNameFormat;
     private boolean isAssertionQueryRequestProfileEnabled;
     private String supportedAssertionQueryRequestTypes;
     private boolean enableAttributesByDefault;
@@ -536,5 +537,15 @@ public class SAMLSSOServiceProviderDTO extends InboundConfigurationProtocol impl
     public void setAuditLogData(String auditLogData) {
         
         this.auditLogData = auditLogData;
+    }
+
+    public void setAttributeNameFormat(String attributeNameFormat) {
+
+        this.attributeNameFormat = attributeNameFormat;
+    }
+
+    public String getAttributeNameFormat() {
+
+        return attributeNameFormat;
     }
 }

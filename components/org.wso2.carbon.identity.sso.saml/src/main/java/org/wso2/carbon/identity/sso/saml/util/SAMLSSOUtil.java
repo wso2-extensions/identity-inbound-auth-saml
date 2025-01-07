@@ -154,6 +154,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.NameFormat;
 import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.SAML_REQUEST;
 
 public class SAMLSSOUtil {
@@ -2774,5 +2775,22 @@ public class SAMLSSOUtil {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Validate that the given attribute name format is a valid value.
+     *
+     * @param attributeNameFormat - Attribute name format value that requires validation.
+     * @return A boolean result indicating whether the provided name format is valid.
+     */
+    public static boolean validateAttributeNameFormat(String attributeNameFormat) {
+
+        for (NameFormat nameFormat : NameFormat.values()) {
+            if (StringUtils.equals(nameFormat.toString(), attributeNameFormat)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

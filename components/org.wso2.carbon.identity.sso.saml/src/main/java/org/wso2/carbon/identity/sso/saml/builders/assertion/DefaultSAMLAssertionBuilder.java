@@ -223,11 +223,33 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             // Exception is ignored without including the IDP session key in the AttributeStatement.
         }
         if (claims != null && !claims.isEmpty()) {
-            AttributeStatement attrStmt = buildAttributeStatement(claims);
+            AttributeStatement attrStmt = buildAttributeStatement(authReqDTO, claims);
             if (attrStmt != null) {
                 samlAssertion.getAttributeStatements().add(attrStmt);
             }
         }
+    }
+
+    /**
+     * Construct the attribute statement for the SAML assertion considering configured NameFormat.
+     *
+     * @param authReqDTO - Data related to SAML SSO authentication requests and service provider configurations.
+     * @param claims     - Authenticated user claims.
+     * @return AttributeStatement related to the SAML Auth request.
+     */
+    protected AttributeStatement buildAttributeStatement(SAMLSSOAuthnReqDTO authReqDTO, Map<String, String> claims) {
+
+        AttributeStatement attributeStatement = buildAttributeStatement(claims);
+
+        if (authReqDTO.getAttributeNameFormat() != null &&
+                !StringUtils.equals(SAMLSSOConstants.NameFormat.BASIC.toString(),
+                        authReqDTO.getAttributeNameFormat())) {
+            for (Attribute attribute : attributeStatement.getAttributes()) {
+                attribute.setNameFormat(authReqDTO.getAttributeNameFormat());
+            }
+        }
+
+        return attributeStatement;
     }
 
     /**
