@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -30,7 +31,10 @@ import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfi
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ProtocolConfigDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.exception.IdentitySAML2ClientException;
@@ -60,7 +64,15 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
      */
     @Override
     public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
-        
+
+        try {
+            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                return false;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRuntimeException("Error while checking the tenant domain.", e);
+        }
         return inboundProtocolsDTO.getInboundProtocolConfigurationMap().containsKey(SAML2);
     }
     

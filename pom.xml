@@ -131,6 +131,11 @@
                 <artifactId>opensaml</artifactId>
                 <version>${opensaml3.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+                <version>${carbon.identity.organization.management.core.version}</version>
+            </dependency>
 
             <!--OpenSAML3 dependencies-->
             <dependency>
@@ -366,12 +371,6 @@
                 <version>${xercesImpl.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
-                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
-                <scope>test</scope>
-                <version>${carbon.identity.organization.management.core.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${com.google.code.gson.version}</version>
@@ -484,7 +483,9 @@
         <carbon.identity.framework.version>7.0.105</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.25.260, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
-        <carbon.identity.organization.management.core.version>1.0.0</carbon.identity.organization.management.core.version>
+        <carbon.identity.organization.management.core.version>1.1.19</carbon.identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
+        </org.wso2.carbon.identity.organization.management.core.version.range>
 
         <identity.inbound.auth.saml.version>${project.version}</identity.inbound.auth.saml.version>
         <identity.inbound.auth.saml.exp.version>${identity.inbound.auth.saml.version}
