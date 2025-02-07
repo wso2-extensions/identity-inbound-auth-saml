@@ -31,6 +31,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -38,7 +39,10 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationCo
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.sso.saml.dto.SAML2ProtocolConfigDTO;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOServiceProviderDTO;
 import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
@@ -49,6 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,7 +61,10 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, PrivilegedCarbonContext.class})
+@PrepareForTest({
+        IdentitySAMLSSOServiceComponentHolder.class,
+        PrivilegedCarbonContext.class,
+        OrganizationManagementUtil.class})
 public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
     
     @Mock
@@ -76,6 +84,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
     private static final String APPLICATION_NAME = "dummyApplication";
     private static final String APPLICATION_RESOURCE_ID = "dummyResourceId";
     private static final String META_DATA_URL = "https://localhost:9443/identity/metadata/saml2";
+    private static final String TENANT_DOMAIN = "tenantDomain";
     
     @BeforeMethod
     public void setUp() throws Exception {
@@ -86,6 +95,43 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
                         + File.separator + "resources");
         
         initConfigsAndRealm();
+    }
+
+    @DataProvider(name = "organizationDataProvider")
+    public Object[][] organizationDataProvider() {
+
+        return new Object[][]{
+                {true, false},
+                {false, true}
+        };
+    }
+
+    @Test(dataProvider = "organizationDataProvider")
+    public void testCanHandle(boolean isOrganization, boolean expected) throws Exception{
+
+        mockPrivilegeCarbonContext();
+        mockStatic(OrganizationManagementUtil.class);
+        when(OrganizationManagementUtil.isOrganization(anyString())).thenReturn(isOrganization);
+
+        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+        inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
+
+        Assert.assertEquals(saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO), expected);
+    }
+
+    @Test(expectedExceptions = IdentityRuntimeException.class)
+    public void testCanHandleWithException() throws Exception {
+
+        mockPrivilegeCarbonContext();
+        mockStatic(OrganizationManagementUtil.class);
+        when(OrganizationManagementUtil.isOrganization(anyString())).thenThrow(OrganizationManagementException.class);
+
+        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+        inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
+
+        saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO);
     }
     
     @Test
@@ -203,6 +249,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
     }
     
     private void mockServiceProvider(boolean setInboundAuthConfig) {
@@ -232,8 +279,7 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
     private String getDummyAuditLogData() {
 
         Gson gson = new Gson();
-        String json = gson.toJson(getDummyMap());
-        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
-        }.getType());
+        Map<String, Object> dummyMap = getDummyMap();
+        return gson.toJson(dummyMap);
     }
 }
