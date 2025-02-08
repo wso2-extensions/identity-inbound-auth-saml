@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010-2025, WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.saml.builders.assertion;
 
 import org.apache.commons.lang.StringUtils;
@@ -223,11 +224,33 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             // Exception is ignored without including the IDP session key in the AttributeStatement.
         }
         if (claims != null && !claims.isEmpty()) {
-            AttributeStatement attrStmt = buildAttributeStatement(claims);
+            AttributeStatement attrStmt = buildAttributeStatement(authReqDTO, claims);
             if (attrStmt != null) {
                 samlAssertion.getAttributeStatements().add(attrStmt);
             }
         }
+    }
+
+    /**
+     * Construct the attribute statement for the SAML assertion considering configured NameFormat.
+     *
+     * @param authReqDTO - Data related to SAML SSO authentication requests and service provider configurations.
+     * @param claims     - Authenticated user claims.
+     * @return AttributeStatement related to the SAML Auth request.
+     */
+    protected AttributeStatement buildAttributeStatement(SAMLSSOAuthnReqDTO authReqDTO, Map<String, String> claims) {
+
+        AttributeStatement attributeStatement = buildAttributeStatement(claims);
+
+        if (authReqDTO.getAttributeNameFormat() != null &&
+                !StringUtils.equals(SAMLSSOConstants.NameFormat.BASIC.toString(),
+                        authReqDTO.getAttributeNameFormat())) {
+            for (Attribute attribute : attributeStatement.getAttributes()) {
+                attribute.setNameFormat(authReqDTO.getAttributeNameFormat());
+            }
+        }
+
+        return attributeStatement;
     }
 
     /**

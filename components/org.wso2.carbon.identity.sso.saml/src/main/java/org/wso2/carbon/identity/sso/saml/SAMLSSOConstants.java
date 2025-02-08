@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 LLC. (http://www.wso2.org).
+ * Copyright (c) 2010-2025, WSO2 LLC. (http://www.wso2.org).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,13 @@ public class SAMLSSOConstants {
 
     public static final String NAME_ID_POLICY_ENTITY = "urn:oasis:names:tc:SAML:2.0:nameid-format:entity";
     public static final String SUBJECT_CONFIRM_BEARER = "urn:oasis:names:tc:SAML:2.0:cm:bearer";
+    /**
+     * This constant is deprecated and will be removed in future versions.
+     * Use {@link NameFormat#BASIC} instead.
+     *
+     * @deprecated Replaced by {@link NameFormat#BASIC}.
+     */
+    @Deprecated
     public static final String NAME_FORMAT_BASIC = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic";
     public static final String SAML_ASSERTION_URN = "urn:oasis:names:tc:SAML:2.0:assertion";
     public static final String NAMEID_FORMAT_PERSISTENT = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent";
@@ -121,6 +128,27 @@ public class SAMLSSOConstants {
     private SAMLSSOConstants() {
     }
 
+    /**
+     * Supported name formats for attributes in SAML assertion.
+     */
+    public enum NameFormat {
+
+        BASIC("urn:oasis:names:tc:SAML:2.0:attrname-format:basic"),
+        URI("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
+
+        private final String uri;
+
+        NameFormat(String uri) {
+
+            this.uri = uri;
+        }
+
+        @Override
+        public String toString() {
+
+            return this.uri;
+        }
+    }
 
     public enum QueryParameter {
 
@@ -287,6 +315,7 @@ public class SAMLSSOConstants {
         public static final String ERROR_RETRIEVE_SP_CONFIG = "Error occurred while loading Service Provider " +
                 "configurations";
         public static final String EXCEPTION_STATUS_ARTIFACT_RESOLVE = "Error while resolving SAML artifact";
+        public static final String INVALID_NAME_FORMAT = "The provided NameFormat '%s' is invalid";
 
         private Notification() {
         }

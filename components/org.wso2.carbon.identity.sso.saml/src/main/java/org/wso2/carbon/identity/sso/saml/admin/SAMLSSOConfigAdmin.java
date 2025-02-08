@@ -1,5 +1,5 @@
 /*
- * Copyright (c) (2007-2023), WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2007-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -510,6 +510,17 @@ public class SAMLSSOConfigAdmin {
                 serviceProviderDO.setAttributeConsumingServiceIndex(Integer.toString(IdentityUtil.getRandomInteger()));
             }
             serviceProviderDO.setEnableAttributesByDefault(serviceProviderDTO.isEnableAttributesByDefault());
+            if (StringUtils.isNotBlank(serviceProviderDTO.getAttributeNameFormat())) {
+                if (SAMLSSOUtil.validateAttributeNameFormat(serviceProviderDTO.getAttributeNameFormat())) {
+                    serviceProviderDO.setAttributeNameFormat(serviceProviderDTO.getAttributeNameFormat());
+                } else {
+                    throw new IdentitySAML2ClientException(
+                            String.format(SAMLSSOConstants.Notification.INVALID_NAME_FORMAT,
+                                    serviceProviderDTO.getAttributeNameFormat()));
+                }
+            } else {
+                serviceProviderDO.setAttributeNameFormat(SAMLSSOConstants.NameFormat.BASIC.toString());
+            }
         } else {
             serviceProviderDO.setAttributeConsumingServiceIndex("");
             if (serviceProviderDO.isEnableAttributesByDefault()) {
@@ -517,6 +528,7 @@ public class SAMLSSOConfigAdmin {
                         "EnableAttributesByDefault will be disabled.");
             }
             serviceProviderDO.setEnableAttributesByDefault(false);
+            serviceProviderDO.setAttributeNameFormat(SAMLSSOConstants.NameFormat.BASIC.toString());
         }
 
         if (serviceProviderDTO.getRequestedAudiences() != null && serviceProviderDTO.getRequestedAudiences().length != 0) {
@@ -601,6 +613,7 @@ public class SAMLSSOConfigAdmin {
         serviceProviderDTO.setSupportedAssertionQueryRequestTypes(serviceProviderDO
                 .getSupportedAssertionQueryRequestTypes());
         serviceProviderDTO.setEnableAttributesByDefault(serviceProviderDO.isEnableAttributesByDefault());
+        serviceProviderDTO.setAttributeNameFormat(serviceProviderDO.getAttributeNameFormat());
         serviceProviderDTO.setEnableSAML2ArtifactBinding(serviceProviderDO.isEnableSAML2ArtifactBinding());
         serviceProviderDTO.setDoValidateSignatureInArtifactResolve(serviceProviderDO
                 .isDoValidateSignatureInArtifactResolve());
@@ -690,6 +703,7 @@ public class SAMLSSOConfigAdmin {
                 providerDTO.setRequestedAudiences(providerDO.getRequestedAudiences());
                 providerDTO.setRequestedRecipients(providerDO.getRequestedRecipients());
                 providerDTO.setEnableAttributesByDefault(providerDO.isEnableAttributesByDefault());
+                providerDTO.setAttributeNameFormat(providerDO.getAttributeNameFormat());
                 providerDTO.setNameIdClaimUri(providerDO.getNameIdClaimUri());
                 providerDTO.setNameIDFormat(providerDO.getNameIDFormat());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) (2010-2023), WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2010-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.saml.processors;
 
 import org.apache.commons.lang.StringUtils;
@@ -311,6 +312,7 @@ public class IdPInitSSOAuthnRequestProcessor implements SSOAuthnRequestProcessor
         authnReqDTO.setRequestedClaims(ssoIdpConfigs.getRequestedClaims());
         authnReqDTO.setRequestedAudiences(ssoIdpConfigs.getRequestedAudiences());
         authnReqDTO.setRequestedRecipients(ssoIdpConfigs.getRequestedRecipients());
+        authnReqDTO.setAttributeNameFormat(ssoIdpConfigs.getAttributeNameFormat());
         authnReqDTO.setDoEnableEncryptedAssertion(ssoIdpConfigs.isDoEnableEncryptedAssertion());
         authnReqDTO.setIdPInitSLOEnabled(ssoIdpConfigs.isIdPInitSLOEnabled());
         authnReqDTO.setAssertionConsumerURLs(ssoIdpConfigs.getAssertionConsumerUrls());

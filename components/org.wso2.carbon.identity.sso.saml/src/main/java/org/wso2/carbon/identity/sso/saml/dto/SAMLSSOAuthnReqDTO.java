@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010-2025, WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.sso.saml.dto;
 
 import org.apache.commons.lang.StringUtils;
@@ -56,6 +57,7 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
     private String[] requestedClaims;
     private String[] requestedAudiences;
     private String[] requestedRecipients;
+    private String attributeNameFormat;
     private boolean doSingleLogout;
     private boolean doFrontChannelLogout;
     private String frontChannelLogoutBinding;
@@ -369,6 +371,16 @@ public class SAMLSSOAuthnReqDTO implements Serializable {
         } else {
             this.requestedRecipients = requestedRecipients.clone();
         }
+    }
+
+    public String getAttributeNameFormat() {
+
+        return this.attributeNameFormat;
+    }
+
+    public void setAttributeNameFormat(String attributeNameFormat) {
+
+        this.attributeNameFormat = attributeNameFormat;
     }
 
     public boolean isStratosDeployment() {

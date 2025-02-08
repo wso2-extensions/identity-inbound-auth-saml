@@ -480,7 +480,7 @@
     <properties>
         <carbon.kernel.version>4.10.22</carbon.kernel.version>
         <carbon.kernel.feature.version>4.10.22</carbon.kernel.feature.version>
-        <carbon.identity.framework.version>7.0.105</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.7.210</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.25.260, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
         <carbon.identity.organization.management.core.version>1.1.19</carbon.identity.organization.management.core.version>
