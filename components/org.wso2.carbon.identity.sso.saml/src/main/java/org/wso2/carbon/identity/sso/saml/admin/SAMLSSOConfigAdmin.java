@@ -316,8 +316,7 @@ public class SAMLSSOConfigAdmin {
      */
     private void saveCertificateToKeyStore(SAMLSSOServiceProviderDO serviceProviderDO) throws Exception {
 
-        KeyStoreManager manager = KeyStoreManager.getInstance(tenantId, IdentitySAMLSSOServiceComponent
-                .getServerConfigurationService(), IdentityTenantUtil.getRegistryService());
+        KeyStoreManager manager = KeyStoreManager.getInstance(tenantId);
 
         if (MultitenantConstants.SUPER_TENANT_ID == tenantId) {
 
