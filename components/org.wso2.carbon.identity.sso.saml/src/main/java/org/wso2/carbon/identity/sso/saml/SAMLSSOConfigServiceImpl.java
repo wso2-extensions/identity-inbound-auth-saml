@@ -396,7 +396,7 @@ public class SAMLSSOConfigServiceImpl {
     private KeyStoreData[] getKeyStores(int tenantId) throws IdentityException {
 
         try {
-            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId, getGovernanceRegistry());
+            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId);
             return admin.getKeyStores(isSuperTenant(tenantId));
         } catch (SecurityConfigException e) {
             throw new IdentityException("Error when loading the key stores from registry", e);
@@ -561,8 +561,7 @@ public class SAMLSSOConfigServiceImpl {
 
         KeyStoreAdmin admin;
         try {
-            admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
-                    getGovernanceRegistry());
+            admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId());
             return admin.getStoreEntries(keyStoreName);
         } catch (SecurityConfigException e) {
             String message = "Error reading entries from the key store: " + keyStoreName;
@@ -590,11 +589,6 @@ public class SAMLSSOConfigServiceImpl {
 
         return (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getRegistry(RegistryType.SYSTEM_CONFIGURATION);
-    }
-
-    private Registry getGovernanceRegistry() {
-
-        return (Registry) CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
     }
 
     private IdentitySAML2SSOException handleException(String message, IdentityException ex) {
