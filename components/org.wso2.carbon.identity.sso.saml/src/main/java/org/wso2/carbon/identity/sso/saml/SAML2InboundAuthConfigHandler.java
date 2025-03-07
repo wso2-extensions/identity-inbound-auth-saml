@@ -84,7 +84,15 @@ public class SAML2InboundAuthConfigHandler implements ApplicationInboundAuthConf
      */
     @Override
     public boolean canHandle(String protocolName) {
-        
+
+        try {
+            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                return false;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRuntimeException("Error while checking the tenant domain.", e);
+        }
         return StringUtils.containsIgnoreCase(ApplicationConstants.StandardInboundProtocols.SAML2, protocolName);
     }
     

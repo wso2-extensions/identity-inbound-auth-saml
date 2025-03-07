@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
@@ -106,6 +107,15 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         };
     }
 
+    @DataProvider(name = "canHandleWithProtoNameDataProvider")
+    public Object[][] canHandleWithProtoNameDataProvider() {
+
+        return new Object[][]{
+                {ApplicationConstants.StandardInboundProtocols.SAML2, true, false},
+                {ApplicationConstants.StandardInboundProtocols.SAML2, false, true}
+        };
+    }
+
     @Test(dataProvider = "organizationDataProvider")
     public void testCanHandle(boolean isOrganization, boolean expected) throws Exception{
 
@@ -132,6 +142,26 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
         inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
 
         saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO);
+    }
+
+    @Test(dataProvider = "canHandleWithProtoNameDataProvider")
+    public void testCanHandle(String protocolName, boolean isOrganization, boolean expected) throws Exception {
+
+        mockPrivilegeCarbonContext();
+        mockStatic(OrganizationManagementUtil.class);
+        when(OrganizationManagementUtil.isOrganization(anyString())).thenReturn(isOrganization);
+
+        Assert.assertEquals(saml2InboundAuthConfigHandler.canHandle(protocolName), expected);
+    }
+
+    @Test(expectedExceptions = IdentityRuntimeException.class)
+    public void testCanHandleWithProtocolNameWithException() throws Exception {
+
+        mockPrivilegeCarbonContext();
+        mockStatic(OrganizationManagementUtil.class);
+        when(OrganizationManagementUtil.isOrganization(anyString())).thenThrow(OrganizationManagementException.class);
+
+        saml2InboundAuthConfigHandler.canHandle(ApplicationConstants.StandardInboundProtocols.SAML2);
     }
     
     @Test
