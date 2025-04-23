@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.sso.saml.internal;
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.sso.saml.SAML2InboundAuthConfigHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
@@ -31,6 +32,7 @@ public class IdentitySAMLSSOServiceComponentHolder {
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
     private SAMLSSOConfigServiceImpl samlSSOConfigService;
     private SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler;
+    private ConfigurationManager configurationManager = null;
 
     private static final IdentitySAMLSSOServiceComponentHolder instance = new IdentitySAMLSSOServiceComponentHolder();
 
@@ -101,5 +103,15 @@ public class IdentitySAMLSSOServiceComponentHolder {
     public void setSaml2InboundAuthConfigHandler(SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler) {
         
         this.saml2InboundAuthConfigHandler = saml2InboundAuthConfigHandler;
+    }
+
+    public void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
+    }
+
+    public ConfigurationManager getConfigurationManager() {
+
+        return configurationManager;
     }
 }

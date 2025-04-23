@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -485,5 +486,28 @@ public class IdentitySAMLSSOServiceComponent {
             ApplicationAuthenticationService applicationAuthenticationService) {
         /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
         authentication framework is started. */
+    }
+
+    @Reference(
+            name = "resource.configuration.manager",
+            service = ConfigurationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unregisterConfigurationManager"
+    )
+    protected void registerConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Setting the configuration manager in SAML SSO service bundle.");
+        }
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setConfigurationManager(configurationManager);
+    }
+
+    protected void unregisterConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unsetting the configuration manager in SAML SSO service bundle.");
+        }
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setConfigurationManager(null);
     }
 }

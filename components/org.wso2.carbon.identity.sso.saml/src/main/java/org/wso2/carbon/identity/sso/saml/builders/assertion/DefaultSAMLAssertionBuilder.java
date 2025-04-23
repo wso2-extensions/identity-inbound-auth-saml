@@ -55,18 +55,21 @@ import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectConfirmationBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectConfirmationDataBuilder;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.builders.AuthenticatingAuthorityImpl;
 import org.wso2.carbon.identity.sso.saml.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOAuthnReqDTO;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
 import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.util.Iterator;
@@ -75,9 +78,20 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_TYPE;
+
 public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
     private static final Log log = LogFactory.getLog(DefaultSAMLAssertionBuilder.class);
+
+    /**
+     * A temporary configuration to enable org wise multi attribute separator for SAML.
+     */
+    private static final String SAML_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_KEY = "SAMLMultiAttributeSeparator";
 
     @Override
     public void init() throws IdentityException {
@@ -210,7 +224,9 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         audienceRestriction.getAudiences().add(audience);
     }
 
-    protected void addAttributeStatements(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion) throws IdentityException{
+    protected void addAttributeStatements(SAMLSSOAuthnReqDTO authReqDTO, Assertion samlAssertion)
+            throws IdentityException {
+
         Map<String, String> claims = SAMLSSOUtil.getAttributes(authReqDTO);
 
         // IDP session key is included in the AttributeStatement section of the SAML assertion.
@@ -360,27 +376,32 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
     protected AttributeStatement buildAttributeStatement(Map<String, String> claims) {
 
-        String claimSeparator = claims.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         String userAttributeSeparator;
-        if (StringUtils.isNotBlank(claimSeparator)) {
+        String orgWiseSAMLSeparator = getOrgWiseSAMLMultiAttributeSeparator();
+        if (StringUtils.isNotBlank(orgWiseSAMLSeparator)) {
+            userAttributeSeparator = orgWiseSAMLSeparator;
+        } else {
+            String claimSeparator = claims.get(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+            if (StringUtils.isNotBlank(claimSeparator)) {
             /*
             If there are any sp requested claims, then the multi attribute separator claim will be available.
              */
-            userAttributeSeparator = claimSeparator;
-        } else {
-            if (!SAMLSSOUtil.separateMultiAttributesFromIdPEnabled()) {
-                userAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                userAttributeSeparator = claimSeparator;
             } else {
-                /*
-                 * In the SAML outbound authenticator, multivalued attributes are concatenated using the primary user
-                 * store's attribute separator. Therefore, to ensure uniformity, the multi-attribute separator from
-                 * the primary user store is utilized for separating multivalued attributes when MultiAttributeSeparator
-                 * is not available in the claims.
-                 */
-                userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+                if (!SAMLSSOUtil.separateMultiAttributesFromIdPEnabled()) {
+                    userAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                } else {
+                    /*
+                     * In the SAML outbound authenticator, multivalued attributes are concatenated using the
+                     * primary user store's attribute separator. Therefore, to ensure uniformity, the multi-attribute
+                     * separator from the primary user store is utilized for separating multivalued attributes when
+                     * MultiAttributeSeparator is not available in the claims.
+                     */
+                    userAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+                }
             }
-
         }
+
         claims.remove(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
         claims.remove(FrameworkConstants.IDP_MAPPED_USER_ROLES);
 
@@ -427,5 +448,38 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get the org wise SAML multi attribute separator.
+     * Note: This is a temporary solution to support a org wise SAML multi attribute separator.
+     *
+     * @return SAML multi attribute separator if configured, null otherwise.
+     */
+    private static String getOrgWiseSAMLMultiAttributeSeparator() {
+
+        String multiAttributeSeparator = null;
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
+            try {
+                org.wso2.carbon.identity.configuration.mgt.core.model.Attribute configAttribute =
+                        IdentitySAMLSSOServiceComponentHolder.getInstance().getConfigurationManager()
+                                .getAttribute(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_TYPE,
+                                        ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME,
+                                        SAML_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_KEY);
+                if (configAttribute != null && StringUtils.isNotBlank(configAttribute.getValue())) {
+                    multiAttributeSeparator = configAttribute.getValue();
+                }
+            } catch (ConfigurationManagementException e) {
+                if (!ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
+                        !ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+                    log.error(String.format("Error while retrieving the custom SAML MultiAttributeSeparator " +
+                                    "for the tenant: %s. Error code: %s, Error message: %s",
+                            CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), e.getErrorCode(),
+                            e.getMessage()));
+                }
+            }
+        }
+
+        return multiAttributeSeparator;
     }
 }
