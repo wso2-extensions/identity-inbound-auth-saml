@@ -54,7 +54,6 @@ import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.sso.saml.Error.CONFLICTING_SAML_ISSUER;
 import static org.wso2.carbon.identity.sso.saml.Error.INVALID_REQUEST;
@@ -106,7 +105,7 @@ public class SAMLSSOConfigAdmin {
             }
             boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
                     .addServiceProvider(serviceProviderDO, tenantId);
-            if (isSuccess && isEnableV2AuditLogs() && enableAuditing) {
+            if (isSuccess && enableAuditing) {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -175,7 +174,7 @@ public class SAMLSSOConfigAdmin {
             SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(serviceProviderDO);
             String spDataMap = SAMLSSOUtil.buildSPDataJSONString(serviceProviderDO);
             samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-            if (isEnableV2AuditLogs() && enableAuditing) {
+            if (enableAuditing) {
                 Optional<String> initiatorId = getInitiatorId();
                 if (initiatorId.isPresent()) {
                     AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -253,7 +252,7 @@ public class SAMLSSOConfigAdmin {
         }
         String spDataMap = SAMLSSOUtil.buildSPDataJSONString(serviceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
+        if (enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -381,7 +380,7 @@ public class SAMLSSOConfigAdmin {
         SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = persistSAMLServiceProvider(samlssoServiceProviderDO);
         String  spDataMap = SAMLSSOUtil.buildSPDataJSONString(samlssoServiceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
+        if (enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -432,7 +431,7 @@ public class SAMLSSOConfigAdmin {
         }
         String spDataMap = SAMLSSOUtil.buildSPDataJSONString(samlssoServiceProviderDO);
         samlssoServiceProviderDTO.setAuditLogData(spDataMap);
-        if (isEnableV2AuditLogs() && enableAuditing) {
+        if (enableAuditing) {
             Optional<String> initiatorId = getInitiatorId();
             if (initiatorId.isPresent()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -750,7 +749,7 @@ public class SAMLSSOConfigAdmin {
             boolean isSuccess = IdentitySAMLSSOServiceComponentHolder.getInstance()
                     .getSAMLSSOServiceProviderManager().removeServiceProvider(issuer, tenantId);
             if (isSuccess) {
-                if (isEnableV2AuditLogs() && enableAuditing) {
+                if (enableAuditing) {
                     Optional<String> initiatorId = getInitiatorId();
                     if (initiatorId.isPresent()) {
                         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
