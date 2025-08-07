@@ -2042,8 +2042,22 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  SAMLSSOServiceProviderDO samlssoServiceProviderDO, LogoutRequest logoutRequest)
             throws IdentityException, IOException, ServletException {
 
-        logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
-                samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+        String tenantDomain = samlssoServiceProviderDO.getTenantDomain();
+        if (StringUtils.isEmpty(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(IdentityTenantUtil.getTenantId(
+                    tenantDomain));
+            logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                    samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
         String spName = resolveAppName();
