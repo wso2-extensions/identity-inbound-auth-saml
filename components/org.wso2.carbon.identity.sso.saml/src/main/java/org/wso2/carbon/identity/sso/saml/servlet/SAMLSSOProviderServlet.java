@@ -2042,16 +2042,14 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  SAMLSSOServiceProviderDO samlssoServiceProviderDO, LogoutRequest logoutRequest)
             throws IdentityException, IOException, ServletException {
 
-        String tenantDomain = samlssoServiceProviderDO.getTenantDomain();
-        if (StringUtils.isEmpty(tenantDomain)) {
-            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
+        String tenantDomain = resolveTenantDomain(samlssoServiceProviderDO);
 
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(IdentityTenantUtil.getTenantId(
                     tenantDomain));
+
             logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
                     samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
         } finally {
@@ -2062,6 +2060,26 @@ public class SAMLSSOProviderServlet extends HttpServlet {
         String acUrl = logoutRequest.getDestination();
         String spName = resolveAppName();
         printPostPage(request, response, acUrl, encodedRequestMessage, spName);
+    }
+
+    /**
+     * Resolves the tenant domain by checking the thread-local context, then the service provider,
+     * and defaults to the super tenant domain if none is found.
+     *
+     * @param samlssoServiceProviderDO The SAML SSO service provider configuration.
+     * @return The resolved tenant domain.
+     */
+    private String resolveTenantDomain(SAMLSSOServiceProviderDO samlssoServiceProviderDO) {
+
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = samlssoServiceProviderDO.getTenantDomain();
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return tenantDomain;
     }
 
     private void printPostPage(HttpServletRequest request, HttpServletResponse response, String acUrl,
