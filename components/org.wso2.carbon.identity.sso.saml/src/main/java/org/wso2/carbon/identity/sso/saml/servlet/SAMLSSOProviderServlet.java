@@ -2042,24 +2042,40 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  SAMLSSOServiceProviderDO samlssoServiceProviderDO, LogoutRequest logoutRequest)
             throws IdentityException, IOException, ServletException {
 
-        String tenantDomain = resolveTenantDomain(samlssoServiceProviderDO);
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(IdentityTenantUtil.getTenantId(
-                    tenantDomain));
-
+        if (!isLogoutRequestSignatureWithTenantCertEnabled()) {
+            // Use default signature (super tenant or null key).
             logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
                     samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+        } else {
+            String tenantDomain = resolveTenantDomain(samlssoServiceProviderDO);
+
+            // Start tenant flow to set tenant-specific context.
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                carbonContext.setTenantDomain(tenantDomain);
+                carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
         }
 
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
         String spName = resolveAppName();
         printPostPage(request, response, acUrl, encodedRequestMessage, spName);
+    }
+
+    /**
+     * Checks if the SAML SLO LogoutRequest should use the tenant's certificate.
+     *
+     * @return true if enabled; false if disabled or property is not set.
+     */
+    private boolean isLogoutRequestSignatureWithTenantCertEnabled() {
+
+        String propertyValue = IdentityUtil.getProperty(SAMLSSOConstants.SAML_SLO_LOGOUT_REQUEST_SIGNATURE_TENANT_CERT);
+
+        return Boolean.parseBoolean(propertyValue);
     }
 
     /**

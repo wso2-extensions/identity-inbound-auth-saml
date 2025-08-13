@@ -125,6 +125,8 @@ public class SAMLSSOConstants {
 
     public static final String IS_POST = "isPost";
 
+    public static final String SAML_SLO_LOGOUT_REQUEST_SIGNATURE_TENANT_CERT = "SSOService.SAMLSLOLogoutRequestSignatureWithTenantCert";
+
     private SAMLSSOConstants() {
     }
 
