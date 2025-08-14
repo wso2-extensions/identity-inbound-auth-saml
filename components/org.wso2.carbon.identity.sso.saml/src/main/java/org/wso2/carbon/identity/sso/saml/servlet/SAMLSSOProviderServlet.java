@@ -2042,7 +2042,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  SAMLSSOServiceProviderDO samlssoServiceProviderDO, LogoutRequest logoutRequest)
             throws IdentityException, IOException, ServletException {
 
-        if (!isLogoutRequestSignatureWithTenantCertEnabled()) {
+        if (!useTenantCertForFcPostBindingSloSignature()) {
             // Use default signature (super tenant or null key).
             logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
                     samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
@@ -2056,7 +2056,8 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 carbonContext.setTenantDomain(tenantDomain);
                 carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
 
-                logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                logoutRequest = SAMLSSOUtil.setSignature(logoutRequest,
+                        samlssoServiceProviderDO.getSigningAlgorithmUri(),
                         samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
@@ -2070,13 +2071,15 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     }
 
     /**
-     * Checks if the SAML SLO LogoutRequest should use the tenant's certificate.
+     * Determines whether the SAML SLO LogoutRequest signature for front-channel POST binding
+     * should be generated using the tenant's certificate.
      *
-     * @return true if enabled; false if disabled or property is not set.
+     * @return {@code true} if enabled; {@code false} if disabled or the property is not set.
      */
-    private boolean isLogoutRequestSignatureWithTenantCertEnabled() {
+    private boolean useTenantCertForFcPostBindingSloSignature() {
 
-        String propertyValue = IdentityUtil.getProperty(SAMLSSOConstants.SAML_SLO_LOGOUT_REQUEST_SIGNATURE_TENANT_CERT);
+        String propertyValue = IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML_SLO_FRONT_CHANNEL_POST_BINDING_LOGOUT_REQ_SIG_TENANT_CERT);
 
         return Boolean.parseBoolean(propertyValue);
     }
