@@ -2055,6 +2055,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
                 carbonContext.setTenantDomain(tenantDomain);
                 carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+
+                logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                        samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
             }
