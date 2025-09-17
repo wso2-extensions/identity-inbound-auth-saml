@@ -2042,12 +2042,66 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                  SAMLSSOServiceProviderDO samlssoServiceProviderDO, LogoutRequest logoutRequest)
             throws IdentityException, IOException, ServletException {
 
-        logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
-                samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+        if (!useTenantCertForFcPostBindingSloSignature()) {
+            // Use default signature (super tenant or null key).
+            logoutRequest = SAMLSSOUtil.setSignature(logoutRequest, samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                    samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+        } else {
+            String tenantDomain = resolveTenantDomain(samlssoServiceProviderDO);
+
+            // Start tenant flow to set tenant-specific context.
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                carbonContext.setTenantDomain(tenantDomain);
+                carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+
+                logoutRequest = SAMLSSOUtil.setSignature(logoutRequest,
+                        samlssoServiceProviderDO.getSigningAlgorithmUri(),
+                        samlssoServiceProviderDO.getDigestAlgorithmUri(), new SignKeyDataHolder(null));
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+
         String encodedRequestMessage = SAMLSSOUtil.encode(SAMLSSOUtil.marshall(logoutRequest));
         String acUrl = logoutRequest.getDestination();
         String spName = resolveAppName();
         printPostPage(request, response, acUrl, encodedRequestMessage, spName);
+    }
+
+    /**
+     * Determines whether the SAML SLO LogoutRequest signature for front-channel POST binding
+     * should be generated using the tenant's certificate.
+     *
+     * @return {@code true} if enabled; {@code false} if disabled or the property is not set.
+     */
+    private boolean useTenantCertForFcPostBindingSloSignature() {
+
+        String propertyValue = IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML_SLO_FRONT_CHANNEL_POST_BINDING_LOGOUT_REQ_SIG_TENANT_CERT);
+
+        return Boolean.parseBoolean(propertyValue);
+    }
+
+    /**
+     * Resolves the tenant domain by checking the thread-local context, then the service provider,
+     * and defaults to the super tenant domain if none is found.
+     *
+     * @param samlssoServiceProviderDO The SAML SSO service provider configuration.
+     * @return The resolved tenant domain.
+     */
+    private String resolveTenantDomain(SAMLSSOServiceProviderDO samlssoServiceProviderDO) {
+
+        String tenantDomain = SAMLSSOUtil.getTenantDomainFromThreadLocal();
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = samlssoServiceProviderDO.getTenantDomain();
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return tenantDomain;
     }
 
     private void printPostPage(HttpServletRequest request, HttpServletResponse response, String acUrl,
