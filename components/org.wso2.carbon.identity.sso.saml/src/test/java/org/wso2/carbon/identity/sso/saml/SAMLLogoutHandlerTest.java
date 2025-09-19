@@ -205,6 +205,19 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     }
 
     @Test
+    public void testHandleEventWithSessionExpire() throws Exception {
+
+        Event eventOne = setupEvent(IdentityEventConstants.EventName.SESSION_EXPIRE.name(), "issuerOne");
+        samlLogoutHandler.handleEvent(eventOne);
+        SessionInfoData sessionInfoDataOne = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_ONE,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        SessionInfoData sessionInfoDataTwo = SSOSessionPersistenceManager.getSessionInfoDataFromCache(SESSION_INDEX_TWO,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertNull(sessionInfoDataOne);
+        Assert.assertNotNull(sessionInfoDataTwo);
+    }
+
+    @Test
     public void testGetName() {
 
         Assert.assertEquals(samlLogoutHandler.getName(), "SAMLLogoutHandler");
