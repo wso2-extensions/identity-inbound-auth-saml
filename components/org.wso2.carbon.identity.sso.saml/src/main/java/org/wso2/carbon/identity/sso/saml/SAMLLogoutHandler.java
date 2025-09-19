@@ -56,7 +56,8 @@ public class SAMLLogoutHandler extends AbstractEventHandler {
         String samlssoTokenId = null;
         String issuer = null;
 
-        if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name())) {
+        if (StringUtils.equals(event.getEventName(), EventName.SESSION_TERMINATE.name()) ||
+                StringUtils.equals(event.getEventName(), EventName.SESSION_EXPIRE.name())) {
             samlssoTokenId = getSamlSSOTokenIdFromEvent(event);
             String loggedInTenantDomain = getLoggedInTenantDomainFromEvent(event);
             if (StringUtils.isNotBlank(samlssoTokenId)) {
