@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
+import org.mockito.MockedStatic;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.AssertionIDRef;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;
@@ -25,15 +26,9 @@ import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.impl.AssertionIDRefImpl;
 import org.opensaml.saml.saml2.core.impl.IssuerImpl;
 import org.opensaml.saml.saml2.core.impl.ManageNameIDRequestImpl;
-import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.CarbonBaseConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.query.saml.dto.InvalidItemDTO;
 import org.wso2.carbon.identity.query.saml.exception.IdentitySAML2QueryException;
@@ -41,14 +36,12 @@ import org.wso2.carbon.identity.query.saml.util.OpenSAML3Util;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestConstants;
 import org.wso2.carbon.identity.query.saml.util.SAMLQueryRequestUtil;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
@@ -58,9 +51,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
 /**
  * Test Class for the SAMLIDRequestValidator.
  */
-@PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"java.net.*", "org.opensaml.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
-public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
+public class SAMLIDRequestValidatorTest {
 
     SAMLIDRequestValidator testclass = new SAMLIDRequestValidator();
 
@@ -87,19 +78,21 @@ public class SAMLIDRequestValidatorTest extends PowerMockTestCase {
         request5.setIssuer(issuer5);
         List<InvalidItemDTO> invalidItems = new ArrayList<>();
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
-        mockStatic(SAMLQueryRequestUtil.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig(anyString())).thenReturn(ssoIdpConfigs);
-        mockStatic(OpenSAML3Util.class);
-        ssoIdpConfigs.setCertAlias("test");
-        ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
-                .thenReturn(true);
-        assertFalse(testclass.validate(invalidItems, request5));
-        request5.additem();
-        assertTrue(testclass.validate(invalidItems, request5));
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
-                .thenReturn(false);
-        assertFalse(testclass.validate(invalidItems, request5));
+        try (MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil = mockStatic(SAMLQueryRequestUtil.class);
+             MockedStatic<OpenSAML3Util> openSaml3Util = mockStatic(OpenSAML3Util.class)) {
+            samlQueryReqUtil.when(() -> SAMLQueryRequestUtil.getServiceProviderConfig(anyString()))
+                    .thenReturn(ssoIdpConfigs);
+            ssoIdpConfigs.setCertAlias("test");
+            ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
+            openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(),
+                    anyString())).thenReturn(true);
+            assertFalse(testclass.validate(invalidItems, request5));
+            request5.additem();
+            assertTrue(testclass.validate(invalidItems, request5));
+            openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(),
+                    anyString())).thenReturn(false);
+            assertFalse(testclass.validate(invalidItems, request5));
+        }
     }
 
     class DummyRequest extends ManageNameIDRequestImpl implements AssertionIDRequest {

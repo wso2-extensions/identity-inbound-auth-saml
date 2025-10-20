@@ -21,21 +21,19 @@ package org.wso2.carbon.identity.query.saml.processor;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.saml.saml2.core.impl.IssuerImpl;
 import org.opensaml.saml.saml2.core.impl.SubjectQueryImpl;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.annotations.Test;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Test Class for the SAMLSubjectQueryProcessor.
  */
-@PrepareForTest({MultitenantUtils.class})
-public class SAMLSubjectQueryProcessorTest extends PowerMockTestCase {
+public class SAMLSubjectQueryProcessorTest {
 
     SAMLSubjectQueryProcessor testclass = new SAMLSubjectQueryProcessor();
 
@@ -46,9 +44,10 @@ public class SAMLSubjectQueryProcessorTest extends PowerMockTestCase {
         issuer.setValue("test");
         DummySubjectQueryImpl dumRequest = new DummySubjectQueryImpl();
         dumRequest.setIssuer(issuer);
-        mockStatic(MultitenantUtils.class);
-        when(MultitenantUtils.getTenantAwareUsername(anyString())).thenReturn("test");
-        assertEquals(testclass.getIssuer(dumRequest), "test");
+        try (MockedStatic<MultitenantUtils> mt = mockStatic(MultitenantUtils.class)) {
+            mt.when(() -> MultitenantUtils.getTenantAwareUsername(anyString())).thenReturn("test");
+            assertEquals(testclass.getIssuer(dumRequest), "test");
+        }
     }
 
     @Test
@@ -58,9 +57,10 @@ public class SAMLSubjectQueryProcessorTest extends PowerMockTestCase {
         issuer.setValue("test");
         DummySubjectQueryImpl dumRequest = new DummySubjectQueryImpl();
         dumRequest.setIssuer(issuer);
-        mockStatic(MultitenantUtils.class);
-        when(MultitenantUtils.getTenantDomain(anyString())).thenReturn("test");
-        assertEquals(testclass.getTenantDomain(dumRequest), "test");
+        try (MockedStatic<MultitenantUtils> mt = mockStatic(MultitenantUtils.class)) {
+            mt.when(() -> MultitenantUtils.getTenantDomain(anyString())).thenReturn("test");
+            assertEquals(testclass.getTenantDomain(dumRequest), "test");
+        }
     }
 
     class DummySubjectQueryImpl extends SubjectQueryImpl {

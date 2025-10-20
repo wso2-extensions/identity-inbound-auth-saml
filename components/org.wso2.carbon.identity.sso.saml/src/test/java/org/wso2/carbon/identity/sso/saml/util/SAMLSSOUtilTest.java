@@ -19,16 +19,14 @@
 package org.wso2.carbon.identity.sso.saml.util;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.Status;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockObjectFactory;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -64,6 +62,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,8 +70,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -83,12 +82,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit test cases for SAMLSSOUtil.
  */
-@PrepareForTest({IdentityProviderManager.class, IdentityUtil.class, IdentityApplicationManagementUtil.class,
-        KeyStoreManager.class, IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
-        IdentityTenantUtil.class, ServiceURLBuilder.class, IdentityConstants.class, FrameworkServiceComponent.class,
-        KeystoreUtils.class})
-@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*", "org.apache.xerces.*"})
-public class SAMLSSOUtilTest extends PowerMockTestCase {
+public class SAMLSSOUtilTest {
 
     private static final String SAMPLE_TENANTED_SAML_URL = "https://localhost:9443/t/wso2.com/samlsso";
 
@@ -126,39 +120,55 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Mock
     private ServiceURLBuilder serviceURLBuilder;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new PowerMockObjectFactory();
-    }
+    AutoCloseable openMocks;
 
-    @BeforeTest
+    @BeforeMethod
     public void setUp() throws Exception {
 
+        System.setProperty("carbon.home",
+                System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+                        + File.separator + "resources");
+        System.setProperty("carbon.config.dir.path",
+                System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+                        + File.separator + "resources" + File.separator + "conf");
+        openMocks = MockitoAnnotations.openMocks(this);
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
-    private void prepareForGetKeyStorePath() throws Exception {
-        mockStatic(KeystoreUtils.class);
-        when(KeystoreUtils.getKeyStoreFileLocation(TestConstants.WSO2_TENANT_DOMAIN)).thenReturn(TestConstants
-                .WSO2_TENANT_DOMAIN.replace(".", "-") + TestUtils.getFilePath(TestConstants.KEY_STORE_NAME));
+    @AfterMethod
+    public void tearDown() throws Exception {
+        if (openMocks != null) {
+            openMocks.close();
+        }
+        // Release any inline/static mocks created during tests.
+        Mockito.framework().clearInlineMocks();
     }
 
-    private void prepareForGetIssuer() throws Exception {
+    private void prepareForGetKeyStorePath(MockedStatic<KeystoreUtils> keystoreUtilsStatic) throws Exception {
+        
+        keystoreUtilsStatic.when(() -> KeystoreUtils.getKeyStoreFileLocation(TestConstants.WSO2_TENANT_DOMAIN))
+                .thenReturn(TestConstants.WSO2_TENANT_DOMAIN.
+                        replace(".", "-") + TestUtils.getFilePath(TestConstants.KEY_STORE_NAME));
+    }
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
-                thenReturn(MultitenantConstants.SUPER_TENANT_ID);
-        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+    private void prepareForGetIssuer(MockedStatic<IdentityTenantUtil> identityTenantUtilStatic, 
+                                     MockedStatic<IdentityProviderManager> idPManagerStatic) throws Exception {
+
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil.getTenantId(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
 
         SAMLSSOUtil.setRealmService(realmService);
 
-        prepareResidentIdP();
+        prepareResidentIdP(idPManagerStatic);
     }
 
-    private void prepareForGetSPConfig() throws Exception {
+    private void prepareForGetSPConfig(MockedStatic<IdentitySAMLSSOServiceComponentHolder> sAMLSSOSCHolderStatic,
+                                       MockedStatic<SSOServiceProviderConfigManager> ssoSPConfigManagerStatic) 
+            throws Exception {
 
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setIssuer(TestConstants.ISSUER_WITH_QUALIFIER);
@@ -167,38 +177,36 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
         when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
-        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+        sAMLSSOSCHolderStatic.when(IdentitySAMLSSOServiceComponentHolder::getInstance)
                 .thenReturn(identitySAMLSSOServiceComponentHolder);
         when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
                 .thenReturn(samlSSOServiceProviderManager);
         when(samlSSOServiceProviderManager.isServiceProviderExists(anyString(), anyInt())).thenReturn(true);
 
-        mockStatic(SSOServiceProviderConfigManager.class);
-        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
-        when(ssoServiceProviderConfigManager.getServiceProvider(TestConstants.ISSUER_WITH_QUALIFIER)).thenReturn(samlssoServiceProviderDO);
+        ssoSPConfigManagerStatic.when(SSOServiceProviderConfigManager::getInstance)
+                .thenReturn(ssoServiceProviderConfigManager);
+        when(ssoServiceProviderConfigManager.getServiceProvider(TestConstants.ISSUER_WITH_QUALIFIER))
+                .thenReturn(samlssoServiceProviderDO);
     }
 
-    private void prepareServiceURLBuilder() throws URLBuilderException {
+    private void prepareServiceURLBuilder(MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic) 
+            throws URLBuilderException {
 
-        mockStatic(ServiceURLBuilder.class);
-        when(ServiceURLBuilder.create()).thenReturn(serviceURLBuilder);
+        serviceURLBuilderStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.addPath(any())).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.addParameter(any(), any())).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.build()).thenReturn(serviceURL);
     }
 
-    private void setTenantQualifiedUrlMode() {
-
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
+    private void setTenantQualifiedUrlMode(MockedStatic<IdentityTenantUtil> identityTenantUtilStatic) {
+        
+        identityTenantUtilStatic.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(true);
     }
 
-    private void prepareResidentIdP() throws IdentityProviderManagementException {
-
-        mockStatic(IdentityProviderManager.class);
-        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
+    private void prepareResidentIdP(MockedStatic<IdentityProviderManager> idPManagerStatic) throws IdentityProviderManagementException {
+        
+        idPManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
 
         Property property = new Property();
@@ -216,19 +224,25 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Test
     public void testGetIssuer() throws Exception {
 
-        prepareForGetIssuer();
-        Issuer issuer = SAMLSSOUtil.getIssuer();
-        assertEquals(issuer.getValue(), TestConstants.LOACALHOST_DOMAIN);
-        assertEquals(issuer.getFormat(), SAMLSSOConstants.NAME_ID_POLICY_ENTITY,
-                "Issuer format should always be SAML2 spec compatible.");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            Issuer issuer = SAMLSSOUtil.getIssuer();
+            assertEquals(issuer.getValue(), TestConstants.LOACALHOST_DOMAIN);
+            assertEquals(issuer.getFormat(), SAMLSSOConstants.NAME_ID_POLICY_ENTITY,
+                    "Issuer format should always be SAML2 spec compatible.");
+        }
     }
 
     @Test
     public void testGetIssuerFromTenantDomain() throws Exception {
 
-        prepareForGetIssuer();
-        Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        assertEquals(issuer.getValue(), TestConstants.LOACALHOST_DOMAIN, "Issuer for Super tenant domain.");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            assertEquals(issuer.getValue(), TestConstants.LOACALHOST_DOMAIN, "Issuer for Super tenant domain.");
+        }
     }
 
     @Test
@@ -302,151 +316,189 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
 
     @Test
     public void testGetDestinationFromServerURLBuilder() throws Exception {
+        
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareResidentIdP(idPManagerStatic);
+            prepareServiceURLBuilder(serviceURLBuilderStatic);
 
-        prepareResidentIdP();
-        prepareServiceURLBuilder();
-
-        when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
-        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
-                .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
-        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
-                "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
+            when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
+            List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                    .WSO2_TENANT_DOMAIN);
+            assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+            assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
+                    "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
+        }
     }
 
     @Test
     public void testGetDestinationFromServerURLBuilderAtTenantedURLMode() throws Exception {
 
-        prepareResidentIdP();
-        prepareServiceURLBuilder();
-        setTenantQualifiedUrlMode();
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);) {
+            prepareResidentIdP(idPManagerStatic);
+            prepareServiceURLBuilder(serviceURLBuilderStatic);
+            setTenantQualifiedUrlMode(identityTenantUtilStatic);
 
-        when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
-        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
-                .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
-        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
-                "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
+            when(serviceURL.getAbsolutePublicURL()).thenReturn(TestConstants.SAMPLE_SERVER_URL);
+            List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                    .WSO2_TENANT_DOMAIN);
+            assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+            assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected default built " +
+                    "SAML destination URL: " + TestConstants.SAMPLE_SERVER_URL);
+        }
     }
 
     @Test
     public void testGetDestinationFromFile() throws Exception {
 
-        prepareResidentIdP();
-        prepareServiceURLBuilder();
-
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityConstants.class);
-        when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL)).thenReturn(TestConstants
-                .SAMPLE_SERVER_URL);
-        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
-                .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
-        assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected " +
-                "SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityUtil> identityUtilStatic = mockStatic(IdentityUtil.class)) {
+            prepareResidentIdP(idPManagerStatic);
+            prepareServiceURLBuilder(serviceURLBuilderStatic);
+            
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL))
+                    .thenReturn(TestConstants.SAMPLE_SERVER_URL);
+            identityUtilStatic.when(IdentityUtil::getIdentityConfigDirPath).thenCallRealMethod();
+            
+            List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                    .WSO2_TENANT_DOMAIN);
+            assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one SAML destination url");
+            assertEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected " +
+                    "SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+        }
     }
 
     @Test
     public void testGetDestinationFromFileInTenantedURLMode() throws Exception {
 
-        prepareResidentIdP();
-        prepareServiceURLBuilder();
-        setTenantQualifiedUrlMode();
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityUtil> identityUtilStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareResidentIdP(idPManagerStatic);
+            prepareServiceURLBuilder(serviceURLBuilderStatic);
+            setTenantQualifiedUrlMode(identityTenantUtilStatic);
 
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityConstants.class);
-        when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL)).thenReturn(TestConstants
-                .SAMPLE_SERVER_URL);
-        when(serviceURL.getAbsolutePublicURL()).thenReturn(SAMPLE_TENANTED_SAML_URL);
-        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
-                .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one destination url");
-        assertEquals(destinationFromTenantDomain.get(0), SAMPLE_TENANTED_SAML_URL, "Expected default built " +
-                "SAML destination URL: " + SAMPLE_TENANTED_SAML_URL);
-        assertNotEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected to not to " +
-                "return SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL))
+                    .thenReturn(TestConstants.SAMPLE_SERVER_URL);
+            identityUtilStatic.when(IdentityUtil::getIdentityConfigDirPath).thenCallRealMethod();
+
+            when(serviceURL.getAbsolutePublicURL()).thenReturn(SAMPLE_TENANTED_SAML_URL);
+            List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                    .WSO2_TENANT_DOMAIN);
+            assertEquals(destinationFromTenantDomain.size(), 1, "Expected to have one destination url");
+            assertEquals(destinationFromTenantDomain.get(0), SAMPLE_TENANTED_SAML_URL, "Expected default built " +
+                    "SAML destination URL: " + SAMPLE_TENANTED_SAML_URL);
+            assertNotEquals(destinationFromTenantDomain.get(0), TestConstants.SAMPLE_SERVER_URL, "Expected to not to" +
+                    " return SAML destination URL configured in file: " + TestConstants.SAMPLE_SERVER_URL);
+        }
     }
 
     @Test
     public void testGetDestinationFromPredefinedDestinationURLs() throws Exception {
 
-        prepareResidentIdP();
-        prepareServiceURLBuilder();
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilderStatic = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityAMUtilStatic
+                     = mockStatic(IdentityApplicationManagementUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareResidentIdP(idPManagerStatic);
+            prepareServiceURLBuilder(serviceURLBuilderStatic);
 
-        List destinationUrls = new ArrayList();
-        destinationUrls.add("https://url1");
-        destinationUrls.add("https://url2");
-        mockStatic(IdentityApplicationManagementUtil.class);
-        when(IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(any(FederatedAuthenticatorConfig[]
-                .class), eq(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME), eq(IdentityApplicationConstants
-                .Authenticator.SAML2SSO.DESTINATION_URL_PREFIX))).thenReturn(destinationUrls);
-        List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
-                .WSO2_TENANT_DOMAIN);
-        assertEquals(destinationFromTenantDomain.size(), 2, "Expected to have one destination url");
-        assertTrue(destinationFromTenantDomain.contains("https://url1"), "Destination URL 1 does not contain in the " +
-                "returned list");
-        assertTrue(destinationFromTenantDomain.contains("https://url2"), "Destination URL 2 does not contain in the " +
-                "returned list");
-        assertFalse(destinationFromTenantDomain.contains(TestConstants.SAMPLE_SERVER_URL), "Server URL contains in " +
-                "the returned list");
+            List destinationUrls = new ArrayList();
+            destinationUrls.add("https://url1");
+            destinationUrls.add("https://url2");
+            identityAMUtilStatic.when(() -> IdentityApplicationManagementUtil.getPropertyValuesForNameStartsWith(
+                    any(FederatedAuthenticatorConfig[].class), 
+                    eq(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME), 
+                    eq(IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX)))
+                    .thenReturn(destinationUrls);
+            List<String> destinationFromTenantDomain = SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants
+                    .WSO2_TENANT_DOMAIN);
+            assertEquals(destinationFromTenantDomain.size(), 2, "Expected to have one destination url");
+            assertTrue(destinationFromTenantDomain.contains("https://url1"), "Destination URL 1 does not contain in " +
+                    "the returned list");
+            assertTrue(destinationFromTenantDomain.contains("https://url2"), "Destination URL 2 does not contain in " +
+                    "the returned list");
+            assertFalse(destinationFromTenantDomain.contains(TestConstants.SAMPLE_SERVER_URL), "Server URL contains" +
+                    " in the returned list");
+        }
     }
 
     @Test(expectedExceptions = IdentityException.class)
     public void testGetDestinationException() throws Exception {
 
-        prepareForGetIssuer();
-        when(identityProviderManager.getInstance().getResidentIdP(anyString())).thenThrow
-                (IdentityProviderManagementException.class);
-        SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants.WSO2_TENANT_DOMAIN);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            when(identityProviderManager.getResidentIdP(anyString())).thenThrow
+                    (IdentityProviderManagementException.class);
+            SAMLSSOUtil.getDestinationFromTenantDomain(TestConstants.WSO2_TENANT_DOMAIN);
+        }
     }
 
     @Test
     public void testGetX509CredentialImplForSuperTenant() throws Exception {
 
-        prepareForGetIssuer();
-        mockStatic(FrameworkServiceComponent.class);
-        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(eq(-1234))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                .getFilePath("wso2carbon.jks"), "wso2carbon", "JKS"));
-        X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant("carbon.super", "wso2carbon");
-        assertNotNull(x509Credential.getPublicKey(), "public key is missing");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<FrameworkServiceComponent> frameworkSCStatic = mockStatic(FrameworkServiceComponent.class);
+             MockedStatic<KeyStoreManager> keyStoreManagerStatic = mockStatic(KeyStoreManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            frameworkSCStatic.when(FrameworkServiceComponent::getRealmService).thenReturn(realmService);
+            when(realmService.getTenantManager()).thenReturn(tenantManager);
+            when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
+            keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(eq(-1234))).thenReturn(keyStoreManager);
+            when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                    .getFilePath("wso2carbon.jks"), "wso2carbon", "JKS"));
+            X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant("carbon.super", "wso2carbon");
+            assertNotNull(x509Credential.getPublicKey(), "public key is missing");
+        }
     }
 
     @Test
     public void testGetX509CredentialImplForTenant() throws Exception {
 
-        prepareForGetIssuer();
-        prepareForGetKeyStorePath();
-        mockStatic(FrameworkServiceComponent.class);
-        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
-                (TestUtils.loadKeyStoreFromFileSystem(TestUtils
-                        .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
-        X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
-                .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
-        assertNotNull(x509Credential.getPublicKey(), "public key is missing for tenant");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<KeystoreUtils> keystoreUtilsStatic = mockStatic(KeystoreUtils.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<FrameworkServiceComponent> frameworkSCStatic = mockStatic(FrameworkServiceComponent.class);
+             MockedStatic<KeyStoreManager> keyStoreManagerStatic = mockStatic(KeyStoreManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            prepareForGetKeyStorePath(keystoreUtilsStatic);
+            frameworkSCStatic.when(FrameworkServiceComponent::getRealmService).thenReturn(realmService);
+            when(realmService.getTenantManager()).thenReturn(tenantManager);
+            when(tenantManager.getTenantId(anyString())).thenReturn(1);
+            keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
+            when(keyStoreManager.getKeyStore(
+                    eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN))))
+                    .thenReturn(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                            .getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
+            X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
+                    .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
+            assertNotNull(x509Credential.getPublicKey(), "public key is missing for tenant");
+        }
     }
 
     @Test(expectedExceptions = IdentitySAML2SSOException.class)
     public void testGetX509CredentialImplException() throws Exception {
 
-        prepareForGetIssuer();
-        prepareForGetKeyStorePath();
-        when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore(eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn
-                (null);
-        X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
-                .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<KeystoreUtils> keystoreUtilsStatic = mockStatic(KeystoreUtils.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<KeyStoreManager> keyStoreManagerStatic = mockStatic(KeyStoreManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            prepareForGetKeyStorePath(keystoreUtilsStatic);
+            when(tenantManager.getTenantId(anyString())).thenReturn(1);
+
+            keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(eq(1))).thenReturn(keyStoreManager);
+            when(keyStoreManager.getKeyStore(
+                    eq(SAMLSSOUtil.generateKSNameFromDomainName(TestConstants.WSO2_TENANT_DOMAIN)))).thenReturn(null);
+            X509CredentialImpl x509Credential = SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
+                    .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
+        }
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -464,10 +516,13 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Test(expectedExceptions = IdentitySAML2SSOException.class)
     public void testGetX509CredentialImplForInvalidTenant() throws Exception {
 
-        prepareForGetIssuer();
-        when(tenantManager.getTenantId(anyString())).thenThrow(UserStoreException.class);
-        SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
-                .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            when(tenantManager.getTenantId(anyString())).thenThrow(UserStoreException.class);
+            SAMLSSOUtil.getX509CredentialImplForTenant(TestConstants
+                    .WSO2_TENANT_DOMAIN, TestConstants.WSO2_CARBON);
+        }
     }
 
     @Test
@@ -519,10 +574,12 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     public void testGetRemainingSessionParticipantsForSLO(String sessionIndex, String issuer, boolean isIdPInitSLO,
                                                           int expected) {
 
-        initializeData();
-        List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = SAMLSSOUtil.getRemainingSessionParticipantsForSLO
-                (sessionIndex, issuer, isIdPInitSLO, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        assertEquals(samlssoServiceProviderDOList.size(), expected);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class)) {
+            initializeData(identityTenantUtilStatic);
+            List<SAMLSSOServiceProviderDO> samlssoServiceProviderDOList = SAMLSSOUtil.getRemainingSessionParticipantsForSLO
+                    (sessionIndex, issuer, isIdPInitSLO, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            assertEquals(samlssoServiceProviderDOList.size(), expected);
+        }
 
     }
 
@@ -538,13 +595,13 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
         };
     }
 
-    public void initializeData() {
+    public void initializeData(MockedStatic<IdentityTenantUtil> identityTenantUtilStatic) {
 
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil
+                        .getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_ID);
-        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO1.setIssuer("issuer1");
@@ -572,33 +629,46 @@ public class SAMLSSOUtilTest extends PowerMockTestCase {
     @Test
     public void testGetSessionInfoData() {
 
-        initializeData();
-        assertEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex",
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
-        assertNotEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex1",
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class)) {
+            initializeData(identityTenantUtilStatic);
+            assertEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex",
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
+            assertNotEquals(SAMLSSOUtil.getSessionInfoData("sessionIndex1",
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), sessionInfoData);
+        }
     }
 
     @Test
     public void testGetSessionIndex() {
 
-        initializeData();
-        assertEquals(SAMLSSOUtil.getSessionIndex("samlssoTokenId",
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "sessionIndex");
-        assertNull(SAMLSSOUtil.getSessionIndex("sessionId",
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "Session Index is null.");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class)) {
+            initializeData(identityTenantUtilStatic);
+            assertEquals(SAMLSSOUtil.getSessionIndex("samlssoTokenId",
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "sessionIndex");
+            assertNull(SAMLSSOUtil.getSessionIndex("sessionId",
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME), "Session Index is null.");
+        }
     }
 
 
     @Test
     public void testGetIssuerWhenEntityIDAliasEnabled() throws Exception {
 
-        SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
-        prepareForGetIssuer();
-        prepareForGetSPConfig();
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentitySAMLSSOServiceComponentHolder> identitySAMLSSOSCHolderStatic 
+                     = mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
+             MockedStatic<SSOServiceProviderConfigManager> ssoSPConfigManagerStatic 
+                     = mockStatic(SSOServiceProviderConfigManager.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class)) {
+            SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(TestConstants.ISSUER_WITH_QUALIFIER);
+            prepareForGetIssuer(identityTenantUtilStatic, idPManagerStatic);
+            prepareForGetSPConfig(identitySAMLSSOSCHolderStatic, ssoSPConfigManagerStatic);
+            TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            Issuer issuer = SAMLSSOUtil.getIssuerFromTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            assertEquals(issuer.getValue(), TestConstants.IDP_ENTITY_ID_ALIAS, "Issuer for specific service provider.");
+        } finally {
+            SAMLSSOUtil.removeIssuerWithQualifierInThreadLocal();
+        }
     }
 
     @DataProvider(name = "issuerProvider")

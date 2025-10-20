@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.query.saml.validation;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.Assert;
 import org.mockito.Mockito;
 import org.opensaml.saml.saml2.core.AssertionIDRequest;

@@ -19,11 +19,11 @@
 package org.wso2.carbon.identity.sso.saml;
 
 import org.mockito.Mock;
-import org.opensaml.core.config.InitializationService;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -48,36 +48,31 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.util.HashMap;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests for SAMLLogoutHandler.
  */
-@PrepareForTest({HttpServletRequest.class, IdentityProviderManager.class, InitializationService.class,
-        SSLContext.class, IdentityProvider.class, IdentityUtil.class, ServerConfiguration.class,
-        KeyStoreManager.class, Class.class, KeyStoreUtil.class, IdentityTenantUtil.class })
-@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*", "javax.net.*", "javax.security.*"})
-public class SAMLLogoutHandlerTest extends PowerMockTestCase {
+public class SAMLLogoutHandlerTest {
 
     private static String SESSION_INDEX_ONE = "theSessionIndex";
     private static String SESSION_TOKEN_ID_ONE = "samlssoTokenId";
     private static String SESSION_INDEX_TWO = "theSessionIndexTwo";
     private static String SESSION_TOKEN_ID_TWO = "samlssoToeknIdTwo";
+
     @Mock
     private SSLContext sslContext;
     @Mock
@@ -106,6 +101,15 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
 
     SAMLLogoutHandler samlLogoutHandler = new SAMLLogoutHandler();
 
+    private AutoCloseable openMocks;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilStatic;
+    private MockedStatic<SSLContext> sslContextStatic;
+    private MockedStatic<IdentityProviderManager> idpManagerStatic;
+    private MockedStatic<IdentityUtil> identityUtilStatic;
+    private MockedStatic<ServerConfiguration> serverConfigStatic;
+    private MockedStatic<KeyStoreUtil> keyStoreUtilStatic;
+    private MockedStatic<KeyStoreManager> keyStoreManagerStatic;
+
     @BeforeTest
     public void startTenantFlow() {
 
@@ -115,10 +119,12 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
+        openMocks = MockitoAnnotations.openMocks(this);
+
+        identityTenantUtilStatic = Mockito.mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_ID);
-        when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
+        identityTenantUtilStatic.when(() -> IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
         SAMLSSOServiceProviderDO serviceProviderDOOne = new SAMLSSOServiceProviderDO();
@@ -149,32 +155,46 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         createMocks();
     }
 
+    @AfterMethod
+    public void tearDown() throws Exception {
+
+        if (sslContextStatic != null) sslContextStatic.close();
+        if (idpManagerStatic != null) idpManagerStatic.close();
+        if (identityUtilStatic != null) identityUtilStatic.close();
+        if (serverConfigStatic != null) serverConfigStatic.close();
+        if (keyStoreUtilStatic != null) keyStoreUtilStatic.close();
+        if (keyStoreManagerStatic != null) keyStoreManagerStatic.close();
+        if (identityTenantUtilStatic != null) identityTenantUtilStatic.close();
+        if (openMocks != null) openMocks.close();
+        Mockito.framework().clearInlineMocks();
+    }
+
     private void createMocks() throws Exception {
 
-        mockStatic(SSLContext.class);
-        when(SSLContext.getInstance(anyString())).thenReturn(sslContext);
+        sslContextStatic = Mockito.mockStatic(SSLContext.class);
+        sslContextStatic.when(() -> SSLContext.getInstance(anyString())).thenReturn(sslContext);
         doNothing().when(sslContext).init(keyManagers, trustManagers, secureRandom);
 
-        spy(IdentityProviderManager.class);
-        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
+        idpManagerStatic = Mockito.mockStatic(IdentityProviderManager.class);
+        idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
         when(identityProvider.getFederatedAuthenticatorConfigs()).thenReturn(federatedAuthenticatorConfigs);
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(IdentityConstants.ServerConfig.ENTITY_ID)).thenReturn("IDPOne");
-        when(IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME))
+        identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+        identityUtilStatic.when(() -> IdentityUtil.getProperty(IdentityConstants.ServerConfig.ENTITY_ID)).thenReturn("IDPOne");
+        identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAMLSSO_SIGNER_CLASS_NAME))
                 .thenReturn("org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner");
 
-        mockStatic(ServerConfiguration.class);
-        when(ServerConfiguration.getInstance()).thenReturn(serverConfiguration);
+        serverConfigStatic = Mockito.mockStatic(ServerConfiguration.class);
+        serverConfigStatic.when(ServerConfiguration::getInstance).thenReturn(serverConfiguration);
         when(serverConfiguration.getFirstProperty("Security.KeyStore.KeyAlias")).thenReturn("wso2carbon");
         when(serverConfiguration.getFirstProperty("Security.KeyStore.KeyPassword")).thenReturn("wso2carbon");
         when(serverConfiguration.getFirstProperty("Security.KeyStore.Location")).thenReturn("");
         when(serverConfiguration.getFirstProperty("Security.KeyStore.Type")).thenReturn("");
 
-        mockStatic(KeyStoreUtil.class);
-        when(KeyStoreUtil.getKeyStoreFileName(anyString())).thenReturn("wso2carbon");
-        when(KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(true);
+        keyStoreUtilStatic = Mockito.mockStatic(KeyStoreUtil.class);
+        keyStoreUtilStatic.when(() -> KeyStoreUtil.getKeyStoreFileName(anyString())).thenReturn("wso2carbon");
+        keyStoreUtilStatic.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(true);
 
         KeyStore keyStore = TestUtils.
                 loadKeyStoreFromFileSystem(TestUtils.getFilePath("wso2carbon.jks"), "wso2carbon", "JKS");
@@ -185,8 +205,9 @@ public class SAMLLogoutHandlerTest extends PowerMockTestCase {
         when(registry.get(anyString())).thenReturn(collection);
         when(collection.getChildren()).thenReturn(collectionString);
 
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        keyStoreManagerStatic = Mockito.mockStatic(KeyStoreManager.class);
+        keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID))
+                .thenReturn(keyStoreManager);
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(keyStore);
         when(keyStoreManager.getDefaultPrivateKey()).thenReturn((PrivateKey) keyStore.getKey("wso2carbon", "wso2carbon".toCharArray()));
     }

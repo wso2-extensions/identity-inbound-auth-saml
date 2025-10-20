@@ -22,9 +22,7 @@ import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.impl.IssuerImpl;
 import org.opensaml.saml.saml2.core.impl.ManageNameIDRequestImpl;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -41,8 +39,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -53,9 +51,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
 /**
  * Test Class for the AbstractSAMLQueryValidator.
  */
-@PrepareForTest({SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"java.net.*", "org.opensaml.*", "org.mockito.*", "javax.xml.*", "org.xml.*", "org.joda.time.*", "org.w3c.dom.*"})
-public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
+public class AbstractSAMLQueryValidatorTest {
 
     AbstractSAMLQueryValidator testclass = new AbstractSAMLQueryValidator();
 
@@ -150,41 +146,50 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
 
         List<InvalidItemDTO> invalidItems = new ArrayList<>();
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
-        mockStatic(SAMLQueryRequestUtil.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig(anyString())).thenReturn(ssoIdpConfigs);
-        mockStatic(OpenSAML3Util.class);
-        ssoIdpConfigs.setCertAlias("test");
-        ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(false);
-        if (assertEn) {
-            ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
+        try (MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil = mockStatic(SAMLQueryRequestUtil.class);
+             MockedStatic<OpenSAML3Util> openSaml3Util = mockStatic(OpenSAML3Util.class)) {
+            samlQueryReqUtil.when(() -> SAMLQueryRequestUtil.getServiceProviderConfig(anyString()))
+                    .thenReturn(ssoIdpConfigs);
+            ssoIdpConfigs.setCertAlias("test");
+            ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(false);
+            if (assertEn) {
+                ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
+            }
+            openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(),
+                            anyString())).thenReturn(false);
+            if (value) {
+                openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(),
+                                anyString()))
+                        .thenReturn(true);
+            }
+            assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request), value);
         }
-        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(false);
-        if (value) {
-            when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString()))
-                    .thenReturn(true);
-        }
-        assertEquals(testclass.validate(invalidItems, (RequestAbstractType) request), value);
     }
 
     @Test
     public void testValidateSignature() throws IdentitySAML2QueryException {
 
-        setSAMLprovider();
-        mockStatic(OpenSAML3Util.class);
-        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(true);
-        DummyRequest request = new DummyRequest();
-        assertTrue(testclass.validateSignature(request));
-        when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString())).thenReturn(false);
-        assertFalse(testclass.validateSignature(request));
+        try (MockedStatic<OpenSAML3Util> openSaml3Util = mockStatic(OpenSAML3Util.class);
+             MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil = mockStatic(SAMLQueryRequestUtil.class)) {
+            setSAMLprovider(samlQueryReqUtil);
+            when(OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(), anyString()))
+                    .thenReturn(true);
+            DummyRequest request = new DummyRequest();
+            assertTrue(testclass.validateSignature(request));
+            openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature(any(RequestAbstractType.class), anyString(),
+                            anyString())).thenReturn(false);
+            assertFalse(testclass.validateSignature(request));
+        }
     }
 
     @Test(dataProvider = "providerequest")
     public void testValidateIssuer(Object request, boolean value) throws IdentitySAML2QueryException {
 
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
-        mockStatic(SAMLQueryRequestUtil.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig("test")).thenReturn(ssoIdpConfigs);
-        assertEquals(testclass.validateIssuer((RequestAbstractType) request), value);
+        try (MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil = mockStatic(SAMLQueryRequestUtil.class)) {
+            samlQueryReqUtil.when(() -> SAMLQueryRequestUtil.getServiceProviderConfig("test")).thenReturn(ssoIdpConfigs);
+            assertEquals(testclass.validateIssuer((RequestAbstractType) request), value);
+        }
     }
 
     @Test(expectedExceptions = IdentitySAML2QueryException.class)
@@ -218,11 +223,10 @@ public class AbstractSAMLQueryValidatorTest extends PowerMockTestCase {
 
     }
 
-    private void setSAMLprovider() throws IdentitySAML2QueryException {
+    private void setSAMLprovider(MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil) throws IdentitySAML2QueryException {
 
         SAMLSSOServiceProviderDO ssoIdpConfigs = new SAMLSSOServiceProviderDO();
-        mockStatic(SAMLQueryRequestUtil.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig("test")).thenReturn(ssoIdpConfigs);
+        samlQueryReqUtil.when(() -> SAMLQueryRequestUtil.getServiceProviderConfig("test")).thenReturn(ssoIdpConfigs);
         ssoIdpConfigs.setCertAlias("test");
         ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
         DummyIssuer issuert = new DummyIssuer();

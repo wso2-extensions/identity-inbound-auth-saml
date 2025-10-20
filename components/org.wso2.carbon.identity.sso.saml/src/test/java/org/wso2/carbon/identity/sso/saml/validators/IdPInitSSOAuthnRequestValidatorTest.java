@@ -18,16 +18,12 @@
 
 package org.wso2.carbon.identity.sso.saml.validators;
 
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.core.xml.XMLObject;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockObjectFactory;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConstants;
 import org.wso2.carbon.identity.sso.saml.TestConstants;
@@ -41,31 +37,22 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
-/**
- * Unit test cases for IdPInitSSOAuthnRequestValidatorTest.
- */
-@PowerMockIgnore({"javax.net.*"})
-@PrepareForTest({SAMLSSOUtil.class})
-public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
+public class IdPInitSSOAuthnRequestValidatorTest {
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new PowerMockObjectFactory();
-    }
-
-    @Mock
     private RealmService mockRealmService;
-
-    @Mock
     private TenantManager mockTenantManager;
+    
+    @BeforeMethod
+    public void setUp() {
+        mockRealmService = mock(RealmService.class);
+        mockTenantManager = mock(TenantManager.class);
+    }
 
     @DataProvider(name = "testValidate")
     public static Object[][] testValidateData() {
@@ -104,33 +91,35 @@ public class IdPInitSSOAuthnRequestValidatorTest extends PowerMockTestCase {
 
         SAMLSSOUtil.doBootstrap();
 
-        mockStatic(SAMLSSOUtil.class);
+        try (MockedStatic<SAMLSSOUtil> ssoUtil = Mockito.mockStatic(SAMLSSOUtil.class)) {
+            ssoUtil.when(SAMLSSOUtil::getRealmService).thenReturn(mockRealmService);
+            ssoUtil.when(() -> SAMLSSOUtil.getTenantDomainFromThreadLocal())
+                    .thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            ssoUtil.when(() -> SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString()))
+                    .thenCallRealMethod();
+            ssoUtil.when(() -> SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
+                    .thenCallRealMethod();
+            ssoUtil.when(SAMLSSOUtil::getIssuer).thenReturn(new IssuerBuilder().buildObject());
+            ssoUtil.when(() -> SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), isNull()))
+                    .thenCallRealMethod();
+            ssoUtil.when(() -> SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
+            ssoUtil.when(() -> SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
+            ssoUtil.when(() -> SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(shouldMakeIssuerExist);
 
-        when(SAMLSSOUtil.getRealmService()).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(mockTenantManager.getTenantId(anyString())).thenReturn(4567);
+            Mockito.when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+            Mockito.when(mockTenantManager.getTenantId(anyString())).thenReturn(4567);
 
-        when(SAMLSSOUtil.getTenantDomainFromThreadLocal()).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        when(SAMLSSOUtil.resolveIssuerQualifier(any(QueryParamDTO[].class), anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(any(QueryParamDTO[].class), anyString()))
-                .thenCallRealMethod();
+            SSOAuthnRequestValidator authnRequestValidator =
+                    SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(queryParamDTOS, "relayString");
 
-        SSOAuthnRequestValidator authnRequestValidator =
-                SAMLSSOUtil.getIdPInitSSOAuthnRequestValidator(queryParamDTOS, "relayString");
-
-        when(SAMLSSOUtil.buildErrorResponse(anyString(), anyString(), isNull())).thenCallRealMethod();
-        when(SAMLSSOUtil.marshall(any(XMLObject.class))).thenCallRealMethod();
-        when(SAMLSSOUtil.compressResponse(anyString())).thenCallRealMethod();
-        when(SAMLSSOUtil.getIssuer()).thenReturn(new IssuerBuilder().buildObject());
-        when(SAMLSSOUtil.isSAMLIssuerExists(anyString(), anyString())).thenReturn(shouldMakeIssuerExist);
-
-        SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = authnRequestValidator.validate();
-        if (isValidRequest) {
-            assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML request.");
-            assertNull(samlssoReqValidationResponseDTO.getResponse(), "Should not contain an error response.");
-        } else {
-            assertFalse(samlssoReqValidationResponseDTO.isValid(), "Should not be a valid SAML request.");
-            assertNotNull(samlssoReqValidationResponseDTO.getResponse(), "Should contain an error response.");
+            SAMLSSOReqValidationResponseDTO samlssoReqValidationResponseDTO = authnRequestValidator.validate();
+            if (isValidRequest) {
+                assertTrue(samlssoReqValidationResponseDTO.isValid(), "Should be a valid SAML request.");
+                assertNull(samlssoReqValidationResponseDTO.getResponse(), "Should not contain an error response.");
+            } else {
+                assertFalse(samlssoReqValidationResponseDTO.isValid(), "Should not be a valid SAML request.");
+                assertNotNull(samlssoReqValidationResponseDTO.getResponse(), "Should contain an error response.");
+            }
         }
     }
 }

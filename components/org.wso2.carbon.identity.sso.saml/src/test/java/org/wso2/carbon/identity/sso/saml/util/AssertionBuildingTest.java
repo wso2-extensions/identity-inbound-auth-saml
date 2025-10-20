@@ -22,6 +22,9 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AuthnRequest;
@@ -29,14 +32,9 @@ import org.opensaml.saml.saml2.core.AuthnStatement;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.security.x509.X509Credential;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockObjectFactory;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -75,8 +73,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -84,21 +82,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+import static org.wso2.carbon.identity.sso.saml.TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC;
 
 /**
  * Tests Assertion building functionality.
  */
-@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, IdentityProviderManager.class,
-        SSOServiceProviderConfigManager.class, IdentitySAMLSSOServiceComponentHolder.class, FrameworkUtils.class})
 @WithCarbonHome
-@PowerMockIgnore({"javax.net.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
-        "javax.security.*", "org.mockito.*"})
-public class AssertionBuildingTest extends PowerMockTestCase {
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new PowerMockObjectFactory();
-    }
+public class AssertionBuildingTest {
 
     @Mock
     private RealmService realmService;
@@ -130,97 +120,139 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
+    private MockedStatic<FrameworkUtils> frameworkUtilsStatic;
+    private AutoCloseable openMocks;
+
     @BeforeMethod
     public void setUpBeforeMethod() throws Exception {
 
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
+        openMocks = MockitoAnnotations.openMocks(this);
+        frameworkUtilsStatic = Mockito.mockStatic(FrameworkUtils.class);
+        frameworkUtilsStatic.when(FrameworkUtils::getMultiAttributeSeparator)
+                .thenReturn(MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        if (frameworkUtilsStatic != null) {
+            frameworkUtilsStatic.close();
+            frameworkUtilsStatic = null;
+        }
+        if (openMocks != null) {
+            try { openMocks.close(); } catch (Exception ignore) {}
+        }
+        SAMLSSOUtil.setSPInitSSOAuthnRequestValidator(null);
+        Mockito.framework().clearInlineMocks();
     }
 
     @Test
     public void testBuildAssertion() throws Exception {
 
-        Assertion assertion = buildAssertion();
-        assertEquals(assertion.getSubject().getNameID().getValue(), TestConstants.TEST_USER_NAME, "Correct subject is" +
-                " not set to assertion");
-        assertEquals(assertion.getAttributeStatements().size(), 1, "Expected to have one attribute statement");
-        assertEquals(assertion.getAttributeStatements().get(0).getAttributes().size(), 2, "Expected to have two " +
-                "attributes");
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic
+                     = mockStatic(SSOServiceProviderConfigManager.class)) {
+            Assertion assertion = buildAssertion(identityUtilStatic, idPManagerStatic, sSOSPConfigManagerStatic);
+            assertEquals(assertion.getSubject().getNameID().getValue(), TestConstants.TEST_USER_NAME, 
+                    "Correct subject is not set to assertion");
+            assertEquals(assertion.getAttributeStatements().size(), 1, 
+                    "Expected to have one attribute statement");
+            assertEquals(assertion.getAttributeStatements().get(0).getAttributes().size(), 2, 
+                    "Expected to have two attributes");
 
-        Map map = new HashMap();
-        map.put(assertion.getAttributeStatements().get(0).getAttributes().get(0).getName(), assertion
-                .getAttributeStatements().get(0).getAttributes().get(0).getName());
-        map.put(assertion.getAttributeStatements().get(0).getAttributes().get(1).getName(), assertion
-                .getAttributeStatements().get(0).getAttributes().get(1).getName());
+            Map map = new HashMap();
+            map.put(assertion.getAttributeStatements().get(0).getAttributes().get(0).getName(), assertion
+                    .getAttributeStatements().get(0).getAttributes().get(0).getName());
+            map.put(assertion.getAttributeStatements().get(0).getAttributes().get(1).getName(), assertion
+                    .getAttributeStatements().get(0).getAttributes().get(1).getName());
 
-        assertTrue(map.containsKey(TestConstants.CLAIM_URI1));
-        assertTrue(map.containsKey(TestConstants.CLAIM_URI2));
+            assertTrue(map.containsKey(TestConstants.CLAIM_URI1));
+            assertTrue(map.containsKey(TestConstants.CLAIM_URI2));
+        }
     }
 
     @Test
     public void testSetSignature() throws Exception {
 
         TestUtils.prepareCredentials(x509Credential);
-        Assertion assertion = buildAssertion();
-        assertNull(assertion.getSignature(), "Initially a signature was present before signing");
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(anyString())).thenReturn("org.wso2.carbon.identity.sso.saml.builders" +
-                ".signature.DefaultSSOSigner");
-        Assertion resultAssertion = SAMLSSOUtil.setSignature(assertion, TestConstants.RSA_SHA1_SIG_ALGO,
-                TestConstants.SHA1_DIGEST_ALGO, x509Credential);
-        assertNotNull(resultAssertion.getSignature(), "Signature not present in assertion");
-        assertTrue(TestConstants.RSA_SHA1_SIG_ALGO.equalsIgnoreCase(resultAssertion.getSignature()
-                .getSignatureAlgorithm()), "Signature algorithm is not the one which was set");
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic
+                     = mockStatic(SSOServiceProviderConfigManager.class)) {
+            Assertion assertion = buildAssertion(identityUtilStatic, idPManagerStatic, sSOSPConfigManagerStatic);
+            assertNull(assertion.getSignature(), "Initially a signature was present before signing");
+            
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(
+                    "org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner");
+            Assertion resultAssertion = SAMLSSOUtil.setSignature(assertion, TestConstants.RSA_SHA1_SIG_ALGO,
+                    TestConstants.SHA1_DIGEST_ALGO, x509Credential);
+            assertNotNull(resultAssertion.getSignature(), "Signature not present in assertion");
+            assertTrue(TestConstants.RSA_SHA1_SIG_ALGO.equalsIgnoreCase(resultAssertion.getSignature()
+                    .getSignatureAlgorithm()), "Signature algorithm is not the one which was set");
+        }
     }
 
     @Test
     public void testGetAttributes() throws Exception {
 
-        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
-                TestConstants.LOACALHOST_DOMAIN);
-        Map<String, String> inputAttributes = new HashMap<>();
-        inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
-        inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
-        Map<String, String> attributes = SAMLSSOUtil.getAttributes(TestUtils.buildAuthnReqDTO(inputAttributes,
-                TestConstants.SAMPLE_NAME_ID_FORMAT, TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME));
-        assertTrue(attributes.containsKey(TestConstants.CLAIM_URI1), "Claim1 is not present in user attributes");
-        assertTrue(attributes.containsKey(TestConstants.CLAIM_URI2), "Claim2 is not present in user attributes");
-        assertTrue(TestConstants.CLAIM_VALUE1.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI1)), "Received " +
-                "Claim1 value is incorrect");
-        assertTrue(TestConstants.CLAIM_VALUE2.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI2)), "Received " +
-                "Claim2 value is incorrect");
+        try (MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic
+                     = mockStatic(SSOServiceProviderConfigManager.class)) {
+            prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
+                    TestConstants.LOACALHOST_DOMAIN, sSOSPConfigManagerStatic);
+            Map<String, String> inputAttributes = new HashMap<>();
+            inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
+            inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
+            Map<String, String> attributes = SAMLSSOUtil.getAttributes(TestUtils.buildAuthnReqDTO(inputAttributes,
+                    TestConstants.SAMPLE_NAME_ID_FORMAT, TestConstants.LOACALHOST_DOMAIN, TestConstants.TEST_USER_NAME));
+            assertTrue(attributes.containsKey(TestConstants.CLAIM_URI1), "Claim1 is not present in user attributes");
+            assertTrue(attributes.containsKey(TestConstants.CLAIM_URI2), "Claim2 is not present in user attributes");
+            assertTrue(TestConstants.CLAIM_VALUE1.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI1)), "Received " +
+                    "Claim1 value is incorrect");
+            assertTrue(TestConstants.CLAIM_VALUE2.equalsIgnoreCase(attributes.get(TestConstants.CLAIM_URI2)), "Received " +
+                    "Claim2 value is incorrect");
+        }
     }
 
     @Test
     public void validateACS() throws Exception {
 
-        prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
-                TestConstants.TRAVELOCITY_ISSUER);
-        TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
-                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
-        assertTrue(isACSValied, "Expected to ACS to be validated. But failed");
+        try (MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic
+                     = mockStatic(SSOServiceProviderConfigManager.class)) {
+            prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
+                    TestConstants.TRAVELOCITY_ISSUER, sSOSPConfigManagerStatic);
+            TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                    .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+            assertTrue(isACSValied, "Expected to ACS to be validated. But failed");
+        }
     }
 
     @Test
     public void validateACSWithoutIssuer() throws Exception {
 
-        prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
-                Collections.emptyList());
-        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
-                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
-        assertFalse(isACSValied, "Expected to ACS to be validated. But failed");
+        try (MockedStatic<IdentitySAMLSSOServiceComponentHolder> iSAMLSSOSCHolderStatic =
+                     mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER,
+                    Collections.emptyList(), iSAMLSSOSCHolderStatic);
+            boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                    .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+            assertFalse(isACSValied, "Expected to ACS to be validated. But failed");
+        }
     }
 
     @Test
     public void validateACSWithACSInSP() throws Exception {
 
-        List<String> acs = new ArrayList();
-        acs.add(TestConstants.ACS_URL);
-        prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER, acs);
-        boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
-                .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
-        assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
+        try (MockedStatic<IdentitySAMLSSOServiceComponentHolder> iSAMLSSOSCHolderStatic =
+                     mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            List<String> acs = new ArrayList();
+            acs.add(TestConstants.ACS_URL);
+            prepareIdentityPersistentManager(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.TRAVELOCITY_ISSUER
+                    , acs, iSAMLSSOSCHolderStatic);
+            boolean isACSValied = SAMLSSOUtil.validateACS(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, TestConstants
+                    .TRAVELOCITY_ISSUER, TestConstants.ACS_URL);
+            assertTrue(isACSValied, "No ACS configured in SAML SP. Hence expecting false");
+        }
     }
 
     @DataProvider(name = "getSPInitSSOAuthnRequestValidator")
@@ -273,19 +305,29 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void testBuildAssertionWithSessionNotOnOrAfter() throws Exception {
 
-        Assertion assertion = buildAssertionWithSessionNotOnOrAfter();
-        List<AuthnStatement> authStatements = assertion.getAuthnStatements();
-        DateTimeZone utcTimeZone = DateTimeZone.UTC;
-        DateTime sessionNotOnOrAfterTestValue = new DateTime(authStatements.get(0).getAuthnInstant().getMillis() +
-                TimeUnit.SECONDS.toMillis((long) Integer.parseInt(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC.trim()) * 60), utcTimeZone);
-        assertEquals(assertion.getAuthnStatements().get(0).getSessionNotOnOrAfter(), sessionNotOnOrAfterTestValue ,
-                "Expected value for the SessionNotOnOrAfter is different.");
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityProviderManager> idPManagerStatic = mockStatic(IdentityProviderManager.class);
+             MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic
+                     = mockStatic(SSOServiceProviderConfigManager.class)) {
+            Assertion assertion = buildAssertionWithSessionNotOnOrAfter(identityUtilStatic, idPManagerStatic, 
+                    sSOSPConfigManagerStatic);
+            List<AuthnStatement> authStatements = assertion.getAuthnStatements();
+            DateTimeZone utcTimeZone = DateTimeZone.UTC;
+            DateTime sessionNotOnOrAfterTestValue = new DateTime(authStatements.get(0).getAuthnInstant().getMillis() +
+                    TimeUnit.SECONDS.toMillis(
+                            (long) Integer.parseInt(SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC.trim()) * 60), 
+                    utcTimeZone);
+            assertEquals(assertion.getAuthnStatements().get(0).getSessionNotOnOrAfter(), sessionNotOnOrAfterTestValue,
+                    "Expected value for the SessionNotOnOrAfter is different.");
+        }
     }
 
-    private void prepareForGetIssuer() throws Exception {
+    private void prepareForGetIssuer(MockedStatic<IdentityProviderManager> idPManagerStatic) throws Exception {
 
         when(tenantManager.getTenantId(anyString())).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(tenantManager.getDomain(anyInt())).thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
+        IdentityTenantUtil.setRealmService(realmService);
 
         SAMLSSOUtil.setRealmService(realmService);
 
@@ -298,16 +340,16 @@ public class AssertionBuildingTest extends PowerMockTestCase {
                 IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         FederatedAuthenticatorConfig[] fedAuthConfs = {federatedAuthenticatorConfig};
         when(identityProvider.getFederatedAuthenticatorConfigs()).thenReturn(fedAuthConfs);
-
-        mockStatic(IdentityProviderManager.class);
-        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
+        
+        idPManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
     }
 
-    private void prepareForUserAttributes(String attrConsumerIndex, String issuer, String spName) {
-
-        mockStatic(SSOServiceProviderConfigManager.class);
-        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
+    private void prepareForUserAttributes(String attrConsumerIndex, String issuer, String spName, 
+                                          MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic) {
+        
+        sSOSPConfigManagerStatic.when(SSOServiceProviderConfigManager::getInstance)
+                .thenReturn(ssoServiceProviderConfigManager);
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setAttributeConsumingServiceIndex(attrConsumerIndex);
         samlssoServiceProviderDO.setEnableAttributesByDefault(true);
@@ -317,15 +359,16 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     }
 
 
-    private Assertion buildAssertion() throws Exception {
+    private Assertion buildAssertion(MockedStatic<IdentityUtil> identityUtilStatic, 
+                                     MockedStatic<IdentityProviderManager> idPManagerStatic,
+                                     MockedStatic<SSOServiceProviderConfigManager> sSOSPConfigManagerStatic) 
+            throws Exception {
 
-        prepareForGetIssuer();
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean()))
+        prepareForGetIssuer(idPManagerStatic);
+        identityUtilStatic.when(() -> IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean()))
                 .thenReturn(TestConstants.SAMPLE_SERVER_URL);
         prepareForUserAttributes(TestConstants.ATTRIBUTE_CONSUMER_INDEX, TestConstants.LOACALHOST_DOMAIN,
-                TestConstants.LOACALHOST_DOMAIN);
+                TestConstants.LOACALHOST_DOMAIN, sSOSPConfigManagerStatic);
         Map<String, String> inputAttributes = new HashMap<>();
         inputAttributes.put(TestConstants.CLAIM_URI1, TestConstants.CLAIM_VALUE1);
         inputAttributes.put(TestConstants.CLAIM_URI2, TestConstants.CLAIM_VALUE2);
@@ -352,14 +395,18 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         return assertion;
     }
 
-    private Assertion buildAssertionWithSessionNotOnOrAfter() throws Exception {
+    private Assertion buildAssertionWithSessionNotOnOrAfter(MockedStatic<IdentityUtil> identityUtilStatic, 
+                                                            MockedStatic<IdentityProviderManager> idPManagerStatic,
+                                                            MockedStatic<SSOServiceProviderConfigManager> 
+                                                                    sSOSPConfigManagerStatic) 
+            throws Exception {
 
-        Assertion assertion = buildAssertion();
+        Assertion assertion = buildAssertion(identityUtilStatic, idPManagerStatic, sSOSPConfigManagerStatic);
         List<AuthnStatement> authStatements = assertion.getAuthnStatements();
         if (authStatements != null && authStatements.size() > 0) {
             // There can be only one authentication stmt inside the SAML assertion of generating in the test
             AuthnStatement authStmt = authStatements.get(0);
-            String sessionNotOnOrAfterValue = TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC;
+            String sessionNotOnOrAfterValue = SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC;
             if (SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(sessionNotOnOrAfterValue)) {
                 DateTime sessionNotOnOrAfter = new DateTime(authStmt.getAuthnInstant().getMillis() +
                         TimeUnit.SECONDS.toMillis((long) SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(sessionNotOnOrAfterValue)));
@@ -369,8 +416,9 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         return assertion;
     }
 
-    private void prepareIdentityPersistentManager(String attrConsumerIndex, String issuer, List acsList) throws
-            IdentityException {
+    private void prepareIdentityPersistentManager(String attrConsumerIndex, String issuer, List acsList, 
+                                                  MockedStatic<IdentitySAMLSSOServiceComponentHolder> 
+                                                          iSAMLSSOSCHolderStatic) throws IdentityException {
 
         SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
         samlssoServiceProviderDO.setAttributeConsumingServiceIndex(attrConsumerIndex);
@@ -379,8 +427,8 @@ public class AssertionBuildingTest extends PowerMockTestCase {
         samlssoServiceProviderDO.setAssertionConsumerUrls(acsList);
         when(samlssoServiceProviderManager.getServiceProvider(eq(issuer), anyInt()))
                 .thenReturn(samlssoServiceProviderDO);
-        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
-        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+        
+        iSAMLSSOSCHolderStatic.when(IdentitySAMLSSOServiceComponentHolder::getInstance)
                 .thenReturn(identitySAMLSSOServiceComponentHolder);
         when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
                 .thenReturn(samlssoServiceProviderManager);
@@ -389,7 +437,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void testisSAMLNotOnOrAfterPeriodDefined() {
 
-        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+        assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
                 true, "Expected to return true for a numeric value.");
         assertEquals(SAMLSSOUtil.isSAMLNotOnOrAfterPeriodDefined(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_ALPHA),
                 false, "Expected to false false for a alphabetic value.");
@@ -404,7 +452,7 @@ public class AssertionBuildingTest extends PowerMockTestCase {
     @Test
     public void testGetSAMLSessionNotOnOrAfterPeriod() {
 
-        assertEquals(SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(TestConstants.SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
+        assertEquals(SAMLSSOUtil.getSAMLSessionNotOnOrAfterPeriod(SAML_SESSION_NOT_ON_OR_AFTER_PERIOD_NUMERIC),
                 15 * 60, "Expected to return the default value defined in the constants.");
     }
 }

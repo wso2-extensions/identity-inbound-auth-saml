@@ -23,7 +23,6 @@ import org.mockito.Mock;
 import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -34,8 +33,6 @@ import org.wso2.carbon.identity.sso.saml.dto.SAMLSSOReqValidationResponseDTO;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.model.RequestedAttributes;
 import org.wso2.carbon.identity.sso.saml.extension.eidas.util.EidasConstants;
 
-import static org.mockito.MockitoAnnotations.initMocks;
-@PowerMockIgnore({"org.mockito.*", "javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
 public class EidasExtensionProcessorTest {
 
     @InjectMocks
