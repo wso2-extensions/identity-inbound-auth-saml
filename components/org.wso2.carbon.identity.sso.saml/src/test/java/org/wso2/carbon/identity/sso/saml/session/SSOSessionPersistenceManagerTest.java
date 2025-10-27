@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.sso.saml.session;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -40,28 +38,25 @@ import org.wso2.carbon.identity.sso.saml.cache.SAMLSSOSessionIndexCacheKey;
 import org.wso2.carbon.identity.sso.saml.common.SAMLSSOProviderConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
-@PrepareForTest({IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
-public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
+public class SSOSessionPersistenceManagerTest {
 
     private SSOSessionPersistenceManager ssoSessionPersistenceManager;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilStatic;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
-        initMocks(this);
         ssoSessionPersistenceManager = new SSOSessionPersistenceManager();
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilStatic = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_ID);
         when(IdentityTenantUtil.getTenantDomain(MultitenantConstants.SUPER_TENANT_ID)).
                 thenReturn(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        //remove the exsisting sessionIndex from cache
+        // remove the existing sessionIndex from cache
         SSOSessionPersistenceManager.removeSessionIndexFromCache("sessionId",
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
@@ -69,6 +64,9 @@ public class SSOSessionPersistenceManagerTest extends PowerMockTestCase {
     @AfterMethod
     public void tearDown() throws Exception {
 
+        if (identityTenantUtilStatic != null) {
+            identityTenantUtilStatic.close();
+        }
     }
 
     @Test

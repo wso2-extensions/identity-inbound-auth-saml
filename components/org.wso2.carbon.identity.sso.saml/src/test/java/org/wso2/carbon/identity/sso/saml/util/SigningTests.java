@@ -22,16 +22,15 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.security.x509.X509Credential;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockObjectFactory;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -52,23 +51,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 
 /**
  * Tests request signing functionality.
  */
-@PrepareForTest({IdentityUtil.class, IdentityProviderManager.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.xml.*", "org.xml.*",
-        "org.w3c.dom.*", "org.apache.xerces.*", "org.mockito.*"})
-public class SigningTests extends PowerMockTestCase {
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new PowerMockObjectFactory();
-    }
+public class SigningTests {
 
     @Mock
     private RealmService realmService;
@@ -88,6 +78,10 @@ public class SigningTests extends PowerMockTestCase {
     @Mock
     private X509Credential x509Credential;
 
+    private AutoCloseable openMocks;
+    private MockedStatic<IdentityUtil> identityUtilStatic;
+    private MockedStatic<IdentityProviderManager> idpManagerStatic;
+
     private final String signatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
     private final String SAML2_REDIRECT_SIGNATURE_VALIDATOR =
             "org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectDeflateSignatureValidator";
@@ -99,6 +93,19 @@ public class SigningTests extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         TestUtils.startTenantFlow(org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    @BeforeMethod
+    public void initMethod() {
+        openMocks = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterMethod
+    public void tearDownMethod() throws Exception {
+        if (identityUtilStatic != null) identityUtilStatic.close();
+        if (idpManagerStatic != null) idpManagerStatic.close();
+        if (openMocks != null) openMocks.close();
+        Mockito.framework().clearInlineMocks();
     }
 
     @DataProvider
@@ -125,10 +132,10 @@ public class SigningTests extends PowerMockTestCase {
 
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(REDIRECT_SIGNATURE_VALIDATOR_PROPERTY)).thenReturn
+        identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+        identityUtilStatic.when(() -> IdentityUtil.getProperty(REDIRECT_SIGNATURE_VALIDATOR_PROPERTY)).thenReturn
                 (SAML2_REDIRECT_SIGNATURE_VALIDATOR);
-        when(IdentityUtil.getSecuredDocumentBuilderFactory()).thenCallRealMethod();
+        identityUtilStatic.when(IdentityUtil::getSecuredDocumentBuilderFactory).thenCallRealMethod();
 
         AuthnRequest authnReq = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
                 HTTPConstants.HTTP_METHOD_GET, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
@@ -178,9 +185,9 @@ public class SigningTests extends PowerMockTestCase {
         prepareForGetIssuer();
         TestUtils.prepareCredentials(x509Credential);
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("SSOService.SAMLSSOSigner")).thenReturn(ssoSigner);
-        when(IdentityUtil.getSecuredDocumentBuilderFactory()).thenCallRealMethod();
+        identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+        identityUtilStatic.when(() -> IdentityUtil.getProperty("SSOService.SAMLSSOSigner")).thenReturn(ssoSigner);
+        identityUtilStatic.when(IdentityUtil::getSecuredDocumentBuilderFactory).thenCallRealMethod();
 
         AuthnRequest authnReq = SAMLTestRequestBuilder.buildAuthnRequest(TestConstants.TRAVELOCITY_ISSUER, false, false,
                 HTTPConstants.HTTP_METHOD_POST, TestConstants.TRAVELOCITY_ISSUER, TestConstants.IDP_URL);
@@ -222,8 +229,8 @@ public class SigningTests extends PowerMockTestCase {
         FederatedAuthenticatorConfig[] fedAuthConfs = {federatedAuthenticatorConfig};
         when(identityProvider.getFederatedAuthenticatorConfigs()).thenReturn(fedAuthConfs);
 
-        mockStatic(IdentityProviderManager.class);
-        when(IdentityProviderManager.getInstance()).thenReturn(identityProviderManager);
+        idpManagerStatic = Mockito.mockStatic(IdentityProviderManager.class);
+        idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         when(identityProviderManager.getResidentIdP(anyString())).thenReturn(identityProvider);
     }
 }

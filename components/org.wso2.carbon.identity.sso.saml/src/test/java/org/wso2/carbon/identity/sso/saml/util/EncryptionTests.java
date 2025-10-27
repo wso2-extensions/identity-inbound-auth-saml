@@ -20,11 +20,13 @@ package org.wso2.carbon.identity.sso.saml.util;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -34,22 +36,17 @@ import org.wso2.carbon.identity.sso.saml.builders.X509CredentialImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import java.security.KeyStore;
 import java.security.Security;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 /**
  * Unit tests for SAML request encryption functionality.
  */
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*"})
-@PrepareForTest({IdentityUtil.class, KeyStoreManager.class, KeyStore.class, X509CredentialImpl.class,
-        FrameworkServiceComponent.class})
-public class EncryptionTests extends PowerMockTestCase {
+public class EncryptionTests {
 
     @Mock
     private RealmService realmService;
@@ -63,6 +60,25 @@ public class EncryptionTests extends PowerMockTestCase {
     @Mock
     private X509CredentialImpl x509Credential;
 
+    private AutoCloseable openMocks;
+    private MockedStatic<KeyStoreManager> keyStoreManagerStatic;
+    private MockedStatic<IdentityUtil> identityUtilStatic;
+    private MockedStatic<FrameworkServiceComponent> frameworkServiceComponentStatic;
+
+    @BeforeMethod
+    public void init() {
+        openMocks = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterMethod
+    public void cleanup() throws Exception {
+        if (frameworkServiceComponentStatic != null) frameworkServiceComponentStatic.close();
+        if (identityUtilStatic != null) identityUtilStatic.close();
+        if (keyStoreManagerStatic != null) keyStoreManagerStatic.close();
+        if (openMocks != null) openMocks.close();
+        Mockito.framework().clearInlineMocks();
+    }
+
     @Test
     public void testSetEncryptedAssertionWithKeyEncryptionAlgorithm() throws Exception {
 
@@ -71,8 +87,8 @@ public class EncryptionTests extends PowerMockTestCase {
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
-        mockStatic(FrameworkServiceComponent.class);
-        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        frameworkServiceComponentStatic = Mockito.mockStatic(FrameworkServiceComponent.class);
+        frameworkServiceComponentStatic.when(FrameworkServiceComponent::getRealmService).thenReturn(realmService);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion,
@@ -93,8 +109,8 @@ public class EncryptionTests extends PowerMockTestCase {
 
         Assertion assertion = SAMLTestAssertionBuilder.buildDefaultSAMLAssertion();
         prepareForAssertionEncryption();
-        mockStatic(FrameworkServiceComponent.class);
-        when(FrameworkServiceComponent.getRealmService()).thenReturn(realmService);
+        frameworkServiceComponentStatic = Mockito.mockStatic(FrameworkServiceComponent.class);
+        frameworkServiceComponentStatic.when(FrameworkServiceComponent::getRealmService).thenReturn(realmService);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(-1234);
         EncryptedAssertion encryptedAssertion = SAMLSSOUtil.setEncryptedAssertion(assertion, TestConstants
@@ -129,16 +145,16 @@ public class EncryptionTests extends PowerMockTestCase {
 
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(4567);
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
+        keyStoreManagerStatic = Mockito.mockStatic(KeyStoreManager.class);
+        keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
         when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem(
                 TestUtils.getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
         when(keyStoreManager.getPrimaryKeyStore()).thenReturn(TestUtils.loadKeyStoreFromFileSystem(
                 TestUtils.getFilePath(TestConstants.KEY_STORE_NAME), TestConstants.WSO2_CARBON, "JKS"));
         SAMLSSOUtil.setRealmService(realmService);
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH)).thenReturn(
+        identityUtilStatic = Mockito.mockStatic(IdentityUtil.class);
+        identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAML_SSO_ENCRYPTOR_CONFIG_PATH)).thenReturn(
                 TestConstants.DEFAULT_SSO_ENCRYPTOR);
     }
 

@@ -24,12 +24,11 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.FieldSetter;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -49,24 +48,20 @@ import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponen
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@PrepareForTest({
-        IdentitySAMLSSOServiceComponentHolder.class,
-        PrivilegedCarbonContext.class,
-        OrganizationManagementUtil.class})
-public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
-    
+public class SAML2InboundAuthConfigHandlerTest {
+
     @Mock
     private ConfigurationContext configurationContext;
     @Mock
@@ -79,22 +74,30 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
     private SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler;
     @Mock
     private ServiceProvider application;
-    
+
+    private AutoCloseable mocksHandle;
+
     private static final String ISSUER = "Issuer_01";
     private static final String APPLICATION_NAME = "dummyApplication";
     private static final String APPLICATION_RESOURCE_ID = "dummyResourceId";
     private static final String META_DATA_URL = "https://localhost:9443/identity/metadata/saml2";
     private static final String TENANT_DOMAIN = "tenantDomain";
-    
+
     @BeforeMethod
     public void setUp() throws Exception {
-        
-        MockitoAnnotations.initMocks(this);
+
+        mocksHandle = MockitoAnnotations.openMocks(this);
         System.setProperty("carbon.home",
                 System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
                         + File.separator + "resources");
-        
+
         initConfigsAndRealm();
+    }
+    
+    @AfterMethod
+    public void tearDown() throws Exception {
+
+        mocksHandle.close();
     }
 
     @DataProvider(name = "organizationDataProvider")
@@ -109,151 +112,164 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
     @Test(dataProvider = "organizationDataProvider")
     public void testCanHandle(boolean isOrganization, boolean expected) throws Exception{
 
-        mockPrivilegeCarbonContext();
-        mockStatic(OrganizationManagementUtil.class);
-        when(OrganizationManagementUtil.isOrganization(anyString())).thenReturn(isOrganization);
+        try (MockedStatic<PrivilegedCarbonContext> pcc = Mockito.mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<OrganizationManagementUtil> orgUtil = Mockito.mockStatic(OrganizationManagementUtil.class)) {
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            pcc.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            orgUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString())).thenReturn(isOrganization);
 
-        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
-        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
-        inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
+            InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+            SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+            inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
 
-        Assert.assertEquals(saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO), expected);
+            Assert.assertEquals(saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO), expected);
+        }
     }
 
     @Test(expectedExceptions = IdentityRuntimeException.class)
     public void testCanHandleWithException() throws Exception {
 
-        mockPrivilegeCarbonContext();
-        mockStatic(OrganizationManagementUtil.class);
-        when(OrganizationManagementUtil.isOrganization(anyString())).thenThrow(OrganizationManagementException.class);
+        try (MockedStatic<PrivilegedCarbonContext> pcc = Mockito.mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<OrganizationManagementUtil> orgUtil = Mockito.mockStatic(OrganizationManagementUtil.class)) {
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            pcc.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            orgUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                    .thenThrow(OrganizationManagementException.class);
 
-        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
-        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
-        inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
+            InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+            SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+            inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
 
-        saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO);
+            saml2InboundAuthConfigHandler.canHandle(inboundProtocolsDTO);
+        }
     }
-    
+
     @Test
     public void testCreateInboundSAML2Protocol() throws Exception {
-        
-        mockSAMLSSOServiceComponentHolder();
-        mockServiceProvider(false);
-        
-        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
-        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
-        
-        saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
-        inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
-        
-        SAMLSSOServiceProviderDTO updatedSAMLSSOServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        updatedSAMLSSOServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
-        
-        when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
-                .thenReturn(updatedSAMLSSOServiceProviderDTO);
-        
-        // We don't need the service provider object for OAuth protocol creation.
-        InboundAuthenticationRequestConfig result = saml2InboundAuthConfigHandler.handleConfigCreation(application,
-                inboundProtocolsDTO);
-        
-        // Verify that the OAuthAdminService is called with the correct parameters.
-        verify(samlssoConfigService, times(0)).createServiceProviderWithMetadataURL(eq(META_DATA_URL));
-        verify(samlssoConfigService, times(1)).createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false));
-        
-        // Asserting the audit log data is added to the result.
-        Assert.assertFalse(result.getData().isEmpty());
-        Assert.assertEquals(result.getInboundAuthType(), FrameworkConstants.StandardInboundProtocols.SAML2);
+
+        try (MockedStatic<IdentitySAMLSSOServiceComponentHolder> holder =
+                     Mockito.mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            holder.when(IdentitySAMLSSOServiceComponentHolder::getInstance).thenReturn(samlssoServiceComponentHolder);
+            when(samlssoServiceComponentHolder.getSamlSSOConfigService()).thenReturn(samlssoConfigService);
+
+            mockServiceProvider(false);
+
+            InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+            SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+
+            saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
+            inboundProtocolsDTO.addProtocolConfiguration(saml2ProtocolConfigDTO);
+
+            SAMLSSOServiceProviderDTO updatedSAMLSSOServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+            updatedSAMLSSOServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
+
+            when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
+                    .thenReturn(updatedSAMLSSOServiceProviderDTO);
+
+            InboundAuthenticationRequestConfig result = saml2InboundAuthConfigHandler.handleConfigCreation(application,
+                    inboundProtocolsDTO);
+
+            verify(samlssoConfigService, times(0)).createServiceProviderWithMetadataURL(eq(META_DATA_URL));
+            verify(samlssoConfigService, times(1)).createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false));
+
+            Assert.assertFalse(result.getData().isEmpty());
+            Assert.assertEquals(result.getInboundAuthType(), FrameworkConstants.StandardInboundProtocols.SAML2);
+        }
     }
-    
+
     @Test
     public void testUpdateSAML2Protocol() throws Exception {
-        
-        mockPrivilegeCarbonContext();
-        mockSAMLSSOServiceComponentHolder();
-        mockServiceProvider(true);
-        
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        samlssoServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
-        samlssoServiceProviderDTO.setIssuer(ISSUER);
-        
-        // Mock behavior when currentClientId is not null, indicating an existing application.
-        when(samlssoConfigService.updateServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(ISSUER), eq(false)))
-                .thenReturn(samlssoServiceProviderDTO);
-        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
-        saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
-        saml2InboundAuthConfigHandler.handleConfigUpdate(application, saml2ProtocolConfigDTO);
-        
-        // Verify that SAML service provider is updated without the audit logs.
-        verify(samlssoConfigService, times(1)).updateServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(ISSUER),
-                eq(false));
-        verify(samlssoConfigService, times(0)).updateServiceProviderWithMetadataURL(any(), any(), eq(true));
+
+        try (MockedStatic<PrivilegedCarbonContext> pcc = Mockito.mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<IdentitySAMLSSOServiceComponentHolder> holder =
+                     Mockito.mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            pcc.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            holder.when(IdentitySAMLSSOServiceComponentHolder::getInstance).thenReturn(samlssoServiceComponentHolder);
+            when(samlssoServiceComponentHolder.getSamlSSOConfigService()).thenReturn(samlssoConfigService);
+
+            mockServiceProvider(true);
+
+            SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+            samlssoServiceProviderDTO.setAuditLogData(getDummyAuditLogData());
+            samlssoServiceProviderDTO.setIssuer(ISSUER);
+
+            when(samlssoConfigService.updateServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(ISSUER), eq(false)))
+                    .thenReturn(samlssoServiceProviderDTO);
+            SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+            saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
+            saml2InboundAuthConfigHandler.handleConfigUpdate(application, saml2ProtocolConfigDTO);
+
+            verify(samlssoConfigService, times(1)).updateServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(ISSUER),
+                    eq(false));
+            verify(samlssoConfigService, times(0)).updateServiceProviderWithMetadataURL(any(), any(), eq(true));
+        }
     }
-    
+
     @Test
     public void testUpdateSAML2Protocol_CreateNewApplication() throws Exception {
-        
-        mockSAMLSSOServiceComponentHolder();
-        mockServiceProvider(false);
-        
-        SAMLSSOServiceProviderDTO updatedSAMLServiceProvider = new SAMLSSOServiceProviderDTO();
-        updatedSAMLServiceProvider.setIssuer(ISSUER);
-        updatedSAMLServiceProvider.setAuditLogData(getDummyAuditLogData());
-        when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
-                .thenReturn(updatedSAMLServiceProvider);
-        
-        // Mock behavior when currentClientId is null, indicating a new application
-        SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
-        saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
-        
-        InboundAuthenticationRequestConfig result = saml2InboundAuthConfigHandler.handleConfigUpdate(application,
-                saml2ProtocolConfigDTO);
-        
-        // Verify that SAML service provider is updated without the audit logs.
-        verify(samlssoConfigService, times(1)).createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false));
-        verify(samlssoConfigService, times(0)).createServiceProviderWithMetadataURL(any(), eq(true));
-        Assert.assertFalse(result.getData().isEmpty());
+
+        try (MockedStatic<IdentitySAMLSSOServiceComponentHolder> holder =
+                     Mockito.mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            holder.when(IdentitySAMLSSOServiceComponentHolder::getInstance).thenReturn(samlssoServiceComponentHolder);
+            when(samlssoServiceComponentHolder.getSamlSSOConfigService()).thenReturn(samlssoConfigService);
+
+            mockServiceProvider(false);
+
+            SAMLSSOServiceProviderDTO updatedSAMLServiceProvider = new SAMLSSOServiceProviderDTO();
+            updatedSAMLServiceProvider.setIssuer(ISSUER);
+            updatedSAMLServiceProvider.setAuditLogData(getDummyAuditLogData());
+            when(samlssoConfigService.createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false)))
+                    .thenReturn(updatedSAMLServiceProvider);
+
+            SAML2ProtocolConfigDTO saml2ProtocolConfigDTO = new SAML2ProtocolConfigDTO();
+            saml2ProtocolConfigDTO.setMetadataURL(META_DATA_URL);
+
+            InboundAuthenticationRequestConfig result = saml2InboundAuthConfigHandler.handleConfigUpdate(application,
+                    saml2ProtocolConfigDTO);
+
+            verify(samlssoConfigService, times(1)).createServiceProviderWithMetadataURL(eq(META_DATA_URL), eq(false));
+            verify(samlssoConfigService, times(0)).createServiceProviderWithMetadataURL(any(), eq(true));
+            Assert.assertFalse(result.getData().isEmpty());
+        }
     }
-    
+
     @Test
     public void testDeleteSAML2Inbound() throws Exception {
-        
-        mockPrivilegeCarbonContext();
-        mockSAMLSSOServiceComponentHolder();
-        
-        saml2InboundAuthConfigHandler.handleConfigDeletion(ISSUER);
-        
-        // Verify that SAML service provider is deleted without the audit logs.
-        verify(samlssoConfigService, times(1)).removeServiceProvider(eq(ISSUER), eq(false));
-        verify(samlssoConfigService, times(0)).removeServiceProvider(eq(ISSUER), eq(true));
+
+        try (MockedStatic<PrivilegedCarbonContext> pcc = Mockito.mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<IdentitySAMLSSOServiceComponentHolder> holder =
+                     Mockito.mockStatic(IdentitySAMLSSOServiceComponentHolder.class)) {
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            pcc.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            holder.when(IdentitySAMLSSOServiceComponentHolder::getInstance).thenReturn(samlssoServiceComponentHolder);
+            when(samlssoServiceComponentHolder.getSamlSSOConfigService()).thenReturn(samlssoConfigService);
+
+            saml2InboundAuthConfigHandler.handleConfigDeletion(ISSUER);
+
+            verify(samlssoConfigService, times(1)).removeServiceProvider(eq(ISSUER), eq(false));
+            verify(samlssoConfigService, times(0)).removeServiceProvider(eq(ISSUER), eq(true));
+        }
     }
-    
+
     private void initConfigsAndRealm() throws Exception {
-        
+
         IdentityCoreServiceComponent identityCoreServiceComponent = new IdentityCoreServiceComponent();
         ConfigurationContextService configurationContextService = new ConfigurationContextService
                 (configurationContext, null);
-        FieldSetter.setField(identityCoreServiceComponent, identityCoreServiceComponent.getClass().
-                getDeclaredField("configurationContextService"), configurationContextService);
+        // Replace Mockito internal FieldSetter with reflection to set private field
+        Field field = identityCoreServiceComponent.getClass().getDeclaredField("configurationContextService");
+        field.setAccessible(true);
+        field.set(identityCoreServiceComponent, configurationContextService);
         when(configurationContext.getAxisConfiguration()).thenReturn(axisConfiguration);
     }
-    
-    private void mockSAMLSSOServiceComponentHolder() {
-        
-        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
-        Mockito.when(IdentitySAMLSSOServiceComponentHolder.getInstance()).thenReturn(samlssoServiceComponentHolder);
-        when(samlssoServiceComponentHolder.getSamlSSOConfigService()).thenReturn(samlssoConfigService);
-    }
-    
-    private void mockPrivilegeCarbonContext() {
-        
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
-    }
-    
+
     private void mockServiceProvider(boolean setInboundAuthConfig) {
-        
+
         this.application = new ServiceProvider();
         application.setApplicationName(APPLICATION_NAME);
         application.setApplicationResourceId(APPLICATION_RESOURCE_ID);
@@ -268,9 +284,9 @@ public class SAML2InboundAuthConfigHandlerTest extends PowerMockTestCase {
             application.setInboundAuthenticationConfig(inboundAuthenticationConfig);
         }
     }
-    
+
     private Map<String, Object> getDummyMap() {
-        
+
         Map<String, Object> dummyMap = new HashMap<>();
         dummyMap.put("issuer", ISSUER);
         return dummyMap;

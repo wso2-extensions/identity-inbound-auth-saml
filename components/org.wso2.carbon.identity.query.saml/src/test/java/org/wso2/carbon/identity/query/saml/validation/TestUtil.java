@@ -48,6 +48,10 @@ public class TestUtil {
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
+
+        String configDir = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "conf").toString();
+        System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, configDir);
+        
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);

@@ -18,11 +18,10 @@
 package org.wso2.carbon.identity.query.saml.validation;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.opensaml.saml.common.SAMLVersion;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -46,8 +45,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.wso2.carbon.identity.query.saml.validation.TestUtil.initPrivilegedCarbonContext;
@@ -56,10 +55,7 @@ import static org.wso2.carbon.identity.query.saml.validation.TestUtil.stopPrivil
 /**
  * Test Class for the SAMLAuthQueryValidator.
  */
-@PrepareForTest({MultitenantUtils.class, SAMLQueryServiceComponent.class,
-        SAMLQueryRequestUtil.class, OpenSAML3Util.class})
-@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
-public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
+public class SAMLAuthQueryValidatorTest {
 
     @Mock
     RealmService testRealmService;
@@ -68,6 +64,8 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
     @Mock
     UserStoreManager testuserStoreManager;
 
+    AutoCloseable mocksHandle;
+
     SAMLAuthQueryValidator testclass = new SAMLAuthQueryValidator();
     List<InvalidItemDTO> invalidItems = new ArrayList<>();
 
@@ -75,12 +73,16 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
     public void setUp() {
 
         initPrivilegedCarbonContext("testDomain", 1, "testuser");
+        mocksHandle = MockitoAnnotations.openMocks(this);
     }
 
     @AfterClass
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
         stopPrivilegedCarbonContext();
+        if (mocksHandle != null) {
+            mocksHandle.close();
+        }
     }
 
     @DataProvider(name = "provideAuthn")
@@ -187,19 +189,21 @@ public class SAMLAuthQueryValidatorTest extends PowerMockTestCase {
         ssoIdpConfigs.setNameIDFormat("test");
         ssoIdpConfigs.setCertAlias("test");
         ssoIdpConfigs.setAssertionQueryRequestProfileEnabled(true);
-        mockStatic(SAMLQueryRequestUtil.class);
-        mockStatic(MultitenantUtils.class);
-        mockStatic(SAMLQueryServiceComponent.class);
-        mockStatic(OpenSAML3Util.class);
-        when(SAMLQueryRequestUtil.getServiceProviderConfig(anyString())).thenReturn(ssoIdpConfigs);
-        when(OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(), anyString()))
-                .thenReturn(true);
-        when(MultitenantUtils.getTenantAwareUsername(anyString())).thenReturn("test");
-        when(testRealmService.getTenantUserRealm(anyInt())).thenReturn(testUserRealm);
-        when(testUserRealm.getUserStoreManager()).thenReturn(testuserStoreManager);
-        when(SAMLQueryServiceComponent.getRealmservice()).thenReturn(testRealmService);
-        when(testuserStoreManager.isExistingUser(anyString())).thenReturn(true);
-        assertEquals(testclass.validate(invalidItems, (dummyAuthnQueryImpl) dummy), expectedValue);
+        try (MockedStatic<SAMLQueryRequestUtil> samlQueryReqUtil = mockStatic(SAMLQueryRequestUtil.class);
+             MockedStatic<MultitenantUtils> mt = mockStatic(MultitenantUtils.class);
+             MockedStatic<SAMLQueryServiceComponent> samlQuerySvc = mockStatic(SAMLQueryServiceComponent.class);
+             MockedStatic<OpenSAML3Util> openSaml3Util = mockStatic(OpenSAML3Util.class)) {
+            samlQueryReqUtil.when(() -> SAMLQueryRequestUtil.getServiceProviderConfig(anyString()))
+                    .thenReturn(ssoIdpConfigs);
+            openSaml3Util.when(() -> OpenSAML3Util.validateXMLSignature((RequestAbstractType) any(), anyString(),
+                            anyString())).thenReturn(true);
+            mt.when(() -> MultitenantUtils.getTenantAwareUsername(anyString())).thenReturn("test");
+            when(testRealmService.getTenantUserRealm(anyInt())).thenReturn(testUserRealm);
+            when(testUserRealm.getUserStoreManager()).thenReturn(testuserStoreManager);
+            samlQuerySvc.when(SAMLQueryServiceComponent::getRealmservice).thenReturn(testRealmService);
+            when(testuserStoreManager.isExistingUser(anyString())).thenReturn(true);
+            assertEquals(testclass.validate(invalidItems, (dummyAuthnQueryImpl) dummy), expectedValue);
+        }
     }
 
 }

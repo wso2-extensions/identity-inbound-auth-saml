@@ -19,9 +19,10 @@
 package org.wso2.carbon.identity.sso.saml.admin;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -47,13 +48,9 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.when;
 
-@PrepareForTest({IdentitySAMLSSOServiceComponentHolder.class, SSOServiceProviderConfigManager.class,
-        SAMLSSOServiceProviderDO.class, Parser.class, UserRegistry.class, SAMLSSOConfigAdmin.class, SAMLSSOUtil.class,
-        IdentityUtil.class})
-@PowerMockIgnore({"javax.xml.*", "org.xml.*", "org.apache.xerces.*", "org.w3c.dom.*"})
-public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
+public class SAMLSSOConfigAdminTest {
 
     private SAMLSSOConfigAdmin samlssoConfigAdmin;
 
@@ -66,7 +63,8 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     @Mock
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
 
-    @Mock IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
+    @Mock
+    IdentitySAMLSSOServiceComponentHolder identitySAMLSSOServiceComponentHolder;
 
     @Mock(serializable = true)
     SAMLSSOServiceProviderDO samlssoServiceProvDO;
@@ -76,55 +74,73 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
 
     @Mock
     Parser parser;
-    
+
+    private AutoCloseable openMocks;
+    private MockedStatic<IdentitySAMLSSOServiceComponentHolder> identitySAMLSSOServiceComponentHolderStatic;
+
     @BeforeMethod
     public void setUp() throws Exception {
-        
+
+        openMocks = MockitoAnnotations.openMocks(this);
         TestUtils.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         samlssoConfigAdmin = new SAMLSSOConfigAdmin(userRegistry);
-        mockStatic(IdentitySAMLSSOServiceComponentHolder.class);
-        when(IdentitySAMLSSOServiceComponentHolder.getInstance())
+        identitySAMLSSOServiceComponentHolderStatic = Mockito.mockStatic(
+                IdentitySAMLSSOServiceComponentHolder.class);
+        identitySAMLSSOServiceComponentHolderStatic.when(
+                        IdentitySAMLSSOServiceComponentHolder::getInstance)
                 .thenReturn(identitySAMLSSOServiceComponentHolder);
         when(identitySAMLSSOServiceComponentHolder.getSAMLSSOServiceProviderManager())
                 .thenReturn(samlSSOServiceProviderManager);
-        mockStatic(SAMLSSOServiceProviderDO.class);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        if (identitySAMLSSOServiceComponentHolderStatic != null) {
+            identitySAMLSSOServiceComponentHolderStatic.close();
+            identitySAMLSSOServiceComponentHolderStatic = null;
+        }
+        if (openMocks != null) {
+            openMocks.close();
+        }
     }
 
     @Test
     public void testAddRelyingPartyServiceProvider() throws IdentityException {
 
-        mockStatic(SSOServiceProviderConfigManager.class);
-        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
-        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
-                .thenReturn(true);
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        samlssoServiceProviderDTO.setIssuer("testUser");
+        try (MockedStatic<SSOServiceProviderConfigManager> sspCfgStatic = Mockito.mockStatic(
+                SSOServiceProviderConfigManager.class)) {
+            sspCfgStatic.when(SSOServiceProviderConfigManager::getInstance)
+                    .thenReturn(ssoServiceProviderConfigManager);
+            when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                    .thenReturn(true);
+            SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+            samlssoServiceProviderDTO.setIssuer("testUser");
 
-        Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
-        samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
-        when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
-        Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
+            Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), true);
+            samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
+            when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
+            Assert.assertEquals(samlssoConfigAdmin.addRelyingPartyServiceProvider(samlssoServiceProviderDTO), false);
+        }
     }
 
     @Test
     public void testUpdateRelyingPartyServiceProvider() throws IdentityException {
 
-        mockStatic(SSOServiceProviderConfigManager.class);
-        when(SSOServiceProviderConfigManager.getInstance()).thenReturn(ssoServiceProviderConfigManager);
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
-                .thenReturn(true);
-        SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
-        samlssoServiceProviderDTO.setIssuer("testUser");
+        try (MockedStatic<SSOServiceProviderConfigManager> sspCfgStatic = Mockito.mockStatic(
+                SSOServiceProviderConfigManager.class)) {
+            sspCfgStatic.when(SSOServiceProviderConfigManager::getInstance)
+                    .thenReturn(ssoServiceProviderConfigManager);
+            when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
+                    .thenReturn(true);
+            SAMLSSOServiceProviderDTO samlssoServiceProviderDTO = new SAMLSSOServiceProviderDTO();
+            samlssoServiceProviderDTO.setIssuer("testUser");
 
-        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), true);
-        samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
-        when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
-        Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), false);
+            Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), true);
+            samlssoServiceProvDO = new SAMLSSOServiceProviderDO();
+            when(ssoServiceProviderConfigManager.getServiceProvider("testUser")).thenReturn(samlssoServiceProvDO);
+            Assert.assertEquals(samlssoConfigAdmin.updateRelyingPartyServiceProvider(samlssoServiceProviderDTO, "testUser"), false);
+        }
     }
 
     @DataProvider(name = "dataProviders")
@@ -159,92 +175,113 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     public void testUploadRelyingPartyServiceProvider() throws Exception {
 
         String metadata = "metadata";
-        mockStatic(SAMLSSOUtil.class);
-        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
-        when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
-        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
-                .thenReturn(true);
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata));
+        try (MockedStatic<SAMLSSOUtil> utilStatic = Mockito.mockStatic(SAMLSSOUtil.class);
+             MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                     when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                         SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                         spdo.setIssuer("issuer");
+                         return spdo;
+                     }))) {
+            utilStatic.when(() -> SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
+            utilStatic.when(() -> SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
+            when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                    .thenReturn(true);
 
+            Assert.assertNotNull(samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata));
+        }
     }
 
     @Test(expectedExceptions = IdentityException.class)
     public void testUploadRelyingPartyServiceProvider1() throws Exception {
 
         String metadata = "metadata";
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        when(samlSSOServiceProviderManager.addServiceProvider(samlssoServiceProvDO, userRegistry.getTenantId()))
-                .thenReturn(false);
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata);
+        try (MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                    SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                    spdo.setIssuer("issuer");
+                    return spdo;
+                }))) {
+            when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                    .thenReturn(false);
+            samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata);
+        }
     }
 
     @Test(expectedExceptions = IdentityException.class, dataProvider = "dataProviders")
     public void testUploadRelyingPartyServiceProvider2(String issuer) throws Exception {
 
         String metadata = "metadata";
-        when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
-                .thenReturn(true);
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn(issuer);
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata));
+        try (MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                    SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                    spdo.setIssuer(issuer);
+                    return spdo;
+                }))) {
+            when(samlSSOServiceProviderManager.addServiceProvider(any(SAMLSSOServiceProviderDO.class), anyInt()))
+                    .thenReturn(true);
+            Assert.assertNotNull(samlssoConfigAdmin.uploadRelyingPartyServiceProvider(metadata));
+        }
     }
 
     @Test
     public void testUpdateRelyingPartyServiceProviderWithMetadata() throws Exception {
 
         String metadata = "metadata";
-        mockStatic(SAMLSSOUtil.class);
-        when(SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
-        when(SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
-                .thenReturn(true);
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer"));
+        try (MockedStatic<SAMLSSOUtil> utilStatic = Mockito.mockStatic(SAMLSSOUtil.class);
+             MockedStatic<SSOServiceProviderConfigManager> sspCfgStatic = Mockito.mockStatic(
+                     SSOServiceProviderConfigManager.class);
+             MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                     when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                         SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                         spdo.setIssuer("issuer");
+                         return spdo;
+                     }))) {
+            utilStatic.when(() -> SAMLSSOUtil.buildSPDataJSONString(any())).thenReturn("spDataJSONString");
+            utilStatic.when(() -> SAMLSSOUtil.buildSPData(any())).thenReturn(Collections.emptyMap());
+            when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
+                    .thenReturn(true);
+            sspCfgStatic.when(SSOServiceProviderConfigManager::getInstance)
+                    .thenReturn(ssoServiceProviderConfigManager);
 
+            Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer"));
+        }
     }
 
     @Test(expectedExceptions = IdentityException.class)
     public void testUpdateRelyingPartyServiceProviderWithMetadata1() throws Exception {
 
         String metadata = "metadata";
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn("issuer");
-        when(samlSSOServiceProviderManager.updateServiceProvider(samlssoServiceProvDO, "testUser", userRegistry.getTenantId()))
-                .thenReturn(false);
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer");
+        try (MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                    SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                    spdo.setIssuer("issuer");
+                    return spdo;
+                }))) {
+            when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
+                    .thenReturn(false);
+            samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "issuer");
+        }
     }
 
     @Test(expectedExceptions = IdentityException.class, dataProvider = "dataProviders")
     public void testUpdateRelyingPartyServiceProviderWithMetadata2(String issuer) throws Exception {
 
         String metadata = "metadata";
-        when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
-                .thenReturn(true);
-        whenNew(SAMLSSOServiceProviderDO.class).withNoArguments().thenReturn(samlssoServiceProvDO);
-        when(samlssoServiceProvDO.getIssuer()).thenReturn(issuer);
-        whenNew(Parser.class).withArguments(any(UserRegistry.class)).thenReturn(parser);
-        when(parser.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenReturn(samlssoServiceProvDO);
-        Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "testUser"));
+        try (MockedConstruction<Parser> parserConstruction = Mockito.mockConstruction(Parser.class, (mock, context) ->
+                when(mock.parse(anyString(), any(SAMLSSOServiceProviderDO.class))).thenAnswer(invocation -> {
+                    SAMLSSOServiceProviderDO spdo = invocation.getArgument(1);
+                    spdo.setIssuer(issuer);
+                    return spdo;
+                }))) {
+            when(samlSSOServiceProviderManager.updateServiceProvider(any(SAMLSSOServiceProviderDO.class), anyString(), anyInt()))
+                    .thenReturn(true);
+            Assert.assertNotNull(samlssoConfigAdmin.updateRelyingPartyServiceProviderWithMetadata(metadata, "testUser"));
+        }
     }
 
     @Test
     public void testGetServiceProviders() throws Exception {
 
-        mockStatic(UserRegistry.class);
         SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[3];
         when(userRegistry.getTenantId()).thenReturn(0);
         when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
@@ -270,58 +307,60 @@ public class SAMLSSOConfigAdminTest extends PowerMockTestCase {
     @Test
     public void testGetServiceProvidersForValidNameIDFormat() throws Exception {
 
-        mockStatic(UserRegistry.class);
-        mockStatic(IdentityUtil.class);
-        SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
-        when(userRegistry.getTenantId()).thenReturn(0);
-        when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class)) {
+            SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
+            when(userRegistry.getTenantId()).thenReturn(0);
+            when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
 
-        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
-        samlssoServiceProviderDO.setIssuer("issuer");
-        samlssoServiceProviderDO.setNameIDFormat(null);
-        SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
-        samlssoServiceProviderDO1.setIssuer("issuer1");
-        samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
-        serviceProvidersList[0] = samlssoServiceProviderDO;
-        serviceProvidersList[1] = samlssoServiceProviderDO1;
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO.setIssuer("issuer");
+            samlssoServiceProviderDO.setNameIDFormat(null);
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO1.setIssuer("issuer1");
+            samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+            serviceProvidersList[0] = samlssoServiceProviderDO;
+            serviceProvidersList[1] = samlssoServiceProviderDO1;
 
-        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT)).thenReturn("true");
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT))
+                    .thenReturn("true");
 
-        when(userRegistry.getTenantId()).thenReturn(0);
-        SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
-        Assert.assertEquals(serviceProviders.length, 2);
-        Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
-                "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
-        Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
-                "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+            when(userRegistry.getTenantId()).thenReturn(0);
+            SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
+            Assert.assertEquals(serviceProviders.length, 2);
+            Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+            Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+        }
     }
 
     @Test
     public void testGetServiceProvidersForLegacyNameIDFormat() throws Exception {
 
-        mockStatic(UserRegistry.class);
-        mockStatic(IdentityUtil.class);
-        SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
-        when(userRegistry.getTenantId()).thenReturn(0);
-        when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class)) {
+            SAMLSSOServiceProviderDO[] serviceProvidersList = new SAMLSSOServiceProviderDO[2];
+            when(userRegistry.getTenantId()).thenReturn(0);
+            when(samlSSOServiceProviderManager.getServiceProviders(anyInt())).thenReturn(serviceProvidersList);
 
-        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
-        samlssoServiceProviderDO.setIssuer("issuer");
-        samlssoServiceProviderDO.setNameIDFormat(null);
-        SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
-        samlssoServiceProviderDO1.setIssuer("issuer1");
-        samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
-        serviceProvidersList[0] = samlssoServiceProviderDO;
-        serviceProvidersList[1] = samlssoServiceProviderDO1;
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO.setIssuer("issuer");
+            samlssoServiceProviderDO.setNameIDFormat(null);
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO1.setIssuer("issuer1");
+            samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+            serviceProvidersList[0] = samlssoServiceProviderDO;
+            serviceProvidersList[1] = samlssoServiceProviderDO1;
 
-        when(IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT)).thenReturn("false");
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT))
+                    .thenReturn("false");
 
-        when(userRegistry.getTenantId()).thenReturn(0);
-        SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
-        Assert.assertEquals(serviceProviders.length, 2);
-        Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
-                "urn/oasis/names/tc/SAML/1.1/nameid-format/unspecified");
-        Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
-                "urn/oasis/names/tc/SAML/1.1/nameid-format/emailAddress");
+            when(userRegistry.getTenantId()).thenReturn(0);
+            SAMLSSOServiceProviderDTO[] serviceProviders = samlssoConfigAdmin.getServiceProviders().getServiceProviders();
+            Assert.assertEquals(serviceProviders.length, 2);
+            Assert.assertEquals(serviceProviders[0].getNameIDFormat(),
+                    "urn/oasis/names/tc/SAML/1.1/nameid-format/unspecified");
+            Assert.assertEquals(serviceProviders[1].getNameIDFormat(),
+                    "urn/oasis/names/tc/SAML/1.1/nameid-format/emailAddress");
+        }
     }
 }
