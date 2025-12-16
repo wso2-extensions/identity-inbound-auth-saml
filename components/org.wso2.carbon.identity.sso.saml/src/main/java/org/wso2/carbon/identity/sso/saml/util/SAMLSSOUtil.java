@@ -352,14 +352,6 @@ public class SAMLSSOUtil {
         SAMLSSOUtil.configCtxService = configCtxService;
     }
 
-    public static HttpService getHttpService() {
-        return httpService;
-    }
-
-    public static void setHttpService(HttpService httpService) {
-        SAMLSSOUtil.httpService = httpService;
-    }
-
     /**
      * Get extension processors.
      *

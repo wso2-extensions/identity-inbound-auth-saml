@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.sso.saml.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -109,26 +108,6 @@ public class IdentitySAMLSSOServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         SAMLSSOUtil.setBundleContext(ctxt.getBundleContext());
-        HttpService httpService = SAMLSSOUtil.getHttpService();
-        // Register SAML SSO servlet
-        Servlet samlSSOServlet = new ContextPathServletAdaptor(new SAMLSSOProviderServlet(),
-                SAMLSSOConstants.SAMLSSO_URL);
-        try {
-            httpService.registerServlet(SAMLSSOConstants.SAMLSSO_URL, samlSSOServlet, null, null);
-        } catch (Exception e) {
-            String errMsg = "Error when registering SAML SSO Servlet via the HttpService.";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
-        }
-        // Register SAML artifact resolve servlet
-        Servlet samlArtifactResolveServlet = new ContextPathServletAdaptor(new SAMLArtifactResolveServlet(),
-                SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL);
-        try {
-            httpService.registerServlet(SAMLSSOConstants.SAML_ARTIFACT_RESOLVE_URL, samlArtifactResolveServlet,
-                    null, null);
-        } catch (Exception e) {
-            throw new RuntimeException("Error when registering SAML Artifact Resolve Servlet via the HttpService.", e);
-        }
 
         // Register a SSOServiceProviderConfigManager object as an OSGi Service
         ctxt.getBundleContext().registerService(SSOServiceProviderConfigManager.class.getName(),
@@ -352,28 +331,6 @@ public class IdentitySAMLSSOServiceComponent {
             log.debug("Configuration Context Service is unset in the SAML SSO bundle");
         }
         SAMLSSOUtil.setConfigCtxService(null);
-    }
-
-    @Reference(
-            name = "osgi.httpservice",
-            service = org.osgi.service.http.HttpService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetHttpService")
-    protected void setHttpService(HttpService httpService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is set in the SAML SSO bundle");
-        }
-        SAMLSSOUtil.setHttpService(httpService);
-    }
-
-    protected void unsetHttpService(HttpService httpService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is unset in the SAML SSO bundle");
-        }
-        SAMLSSOUtil.setHttpService(null);
     }
 
     public static ServerConfigurationService getServerConfigurationService() {

@@ -523,7 +523,7 @@
         <commons-lang.version.range>[2.6.0,3.0.0)</commons-lang.version.range>
 
         <opensaml.version>3.3.1</opensaml.version>
-        <opensaml3.wso2.version>3.3.1.wso2v15</opensaml3.wso2.version>
+        <opensaml3.wso2.version>3.3.1.wso2v16</opensaml3.wso2.version>
         <shibboleth.version>7.3.0</shibboleth.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
@@ -535,7 +535,7 @@
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)
         </httpcomponents-httpclient.imp.pkg.version.range>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
-        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <imp.pkg.version.javax.servlet>[3.1.0, 4.0.0)</imp.pkg.version.javax.servlet>
         <commons-fileupload.imp.pkg.version.range>[1.2.2,2.0.0)</commons-fileupload.imp.pkg.version.range>
 
         <testng.version>7.0.0</testng.version>
