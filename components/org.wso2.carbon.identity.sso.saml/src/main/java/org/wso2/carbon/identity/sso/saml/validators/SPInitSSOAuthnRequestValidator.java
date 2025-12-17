@@ -36,6 +36,14 @@ import org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtil;
 
 import java.util.List;
 
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
+import org.wso2.carbon.identity.sso.saml.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.sso.saml.internal.IdentitySAMLSSOServiceComponentHolder;
+import java.util.Optional;
+
 public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValidator {
 
     private static final Log log = LogFactory.getLog(SPInitSSOAuthnRequestValidator.class);
@@ -118,8 +126,16 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
             }
 
             // Check whether SP is registered or not.
-            SAMLSSOServiceProviderDO serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(issuerName,
-                    tenantDomain);
+            // Try to resolve SP config from the organization hierarchy if accessing org id is present,
+            // otherwise fall back to tenant-based lookup.
+            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            SAMLSSOServiceProviderDO serviceProviderConfigs;
+            if (accessingOrgId != null) {
+                serviceProviderConfigs = resolveServiceProviderConfigFromOrgHierarchy(issuerName, accessingOrgId);
+            } else {
+                serviceProviderConfigs = SAMLSSOUtil.getServiceProviderConfig(issuerName, tenantDomain);
+            }
             if (serviceProviderConfigs == null) {
                 String msg = "A Service Provider with the Issuer '" + validationResponse.getIssuer() + "' is not " +
                         "registered. Service Provider should be registered in advance.";
@@ -299,5 +315,55 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
         }
 
         return null;
+    }
+
+    /**
+     * Resolve SP config from the organization hierarchy.
+     *
+     * @param issuer         Issuer.
+     * @param accessingOrgId Accessing organization ID.
+     * @return Resolved SAML SSO Service Provider DO.
+     * @throws IdentityException If an error occurs while resolving the SP config.
+     */
+    private SAMLSSOServiceProviderDO resolveServiceProviderConfigFromOrgHierarchy(
+            String issuer, String accessingOrgId) throws IdentityException {
+
+        try {
+            return IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getOrgResourceResolverService()
+                    .getResourcesFromOrgHierarchy(accessingOrgId,
+                            LambdaExceptionUtils.rethrowFunction(orgId ->
+                                    getServiceProviderConfig(issuer, orgId)),
+                            new FirstFoundAggregationStrategy<>());
+        } catch (OrgResourceHierarchyTraverseException e) {
+            throw new IdentityException("Error while traversing organization hierarchy for organization id: "
+                    + accessingOrgId, e);
+        }
+    }
+
+    /**
+     * Get SAML SSO Service Provider DO for the given issuer and organization ID.
+     *
+     * @param issuer         Issuer.
+     * @param organizationId Organization ID.
+     * @return Optional SAML SSO Service Provider DO.
+     * @throws IdentityException If an error occurs while loading the SP config.
+     */
+    private Optional<SAMLSSOServiceProviderDO> getServiceProviderConfig(String issuer, String organizationId)
+            throws IdentityException {
+
+        try {
+            String tenantDomain = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getOrganizationManager().resolveTenantDomain(organizationId);
+            SAMLSSOServiceProviderDO sp = SAMLSSOUtil.getServiceProviderConfig(
+                    SAMLSSOUtil.splitAppendedTenantDomain(issuer), tenantDomain);
+            return Optional.ofNullable(sp);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityException("Error while resolving tenant domain from organization id: "
+                    + organizationId, e);
+        } catch (Exception e) {
+            throw new IdentityException("Error while loading Service Provider config for issuer: " + issuer +
+                    " in org: " + organizationId, e);
+        }
     }
 }

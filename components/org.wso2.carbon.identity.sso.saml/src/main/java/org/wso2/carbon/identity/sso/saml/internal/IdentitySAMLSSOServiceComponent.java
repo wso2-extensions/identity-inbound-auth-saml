@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.sso.saml.SAML2InboundAuthConfigHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLInboundSessionContextMgtListener;
 import org.wso2.carbon.identity.sso.saml.SAMLLogoutHandler;
@@ -282,6 +284,39 @@ public class IdentitySAMLSSOServiceComponent {
             log.debug("ApplicationManagementService unset in SAML SSO bundle");
         }
         SAMLSSOUtil.setApplicationMgtService(null);
+    }
+
+    @Reference(
+            name = "org.resource.resolver.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService")
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance()
+                .setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setOrgResourceResolverService(null);
+    }
+
+    @Reference(
+            name = "organization.manager",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentitySAMLSSOServiceComponentHolder.getInstance().setOrganizationManager(null);
     }
 
     @Reference(

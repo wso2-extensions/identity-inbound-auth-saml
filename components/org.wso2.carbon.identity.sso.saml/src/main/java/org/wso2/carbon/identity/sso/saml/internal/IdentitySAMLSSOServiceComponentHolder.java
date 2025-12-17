@@ -23,6 +23,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.sso.saml.SAML2InboundAuthConfigHandler;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOConfigServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 /**
  * Identity SAML SSO Service Component Holder.
@@ -33,6 +35,8 @@ public class IdentitySAMLSSOServiceComponentHolder {
     private SAMLSSOConfigServiceImpl samlSSOConfigService;
     private SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler;
     private ConfigurationManager configurationManager = null;
+    private OrgResourceResolverService orgResourceResolverService;
+    private OrganizationManager organizationManager;
 
     private static final IdentitySAMLSSOServiceComponentHolder instance = new IdentitySAMLSSOServiceComponentHolder();
 
@@ -113,5 +117,25 @@ public class IdentitySAMLSSOServiceComponentHolder {
     public ConfigurationManager getConfigurationManager() {
 
         return configurationManager;
+    }
+
+    public OrgResourceResolverService getOrgResourceResolverService() {
+
+        return orgResourceResolverService;
+    }
+
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        this.orgResourceResolverService = orgResourceResolverService;
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }
