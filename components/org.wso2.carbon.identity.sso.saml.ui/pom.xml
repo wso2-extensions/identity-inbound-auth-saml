@@ -125,7 +125,7 @@
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.sso.saml.stub.*;
                             version="${identity.inbound.auth.saml.imp.pkg.version.range}",
-                            javax.activation;version="0.0.0",
+                            javax.activation;version="0.0.0"; resolution:=optional,
                             org.apache.commons.fileupload.*; version="${commons-fileupload.imp.pkg.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.ui.*; version="${carbon.kernel.package.import.version.range}",
