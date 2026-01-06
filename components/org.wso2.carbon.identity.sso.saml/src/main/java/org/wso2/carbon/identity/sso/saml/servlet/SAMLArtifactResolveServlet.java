@@ -32,6 +32,7 @@ import org.opensaml.soap.soap11.Body;
 import org.opensaml.soap.soap11.Envelope;
 import org.opensaml.core.xml.XMLObjectBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.sso.saml.SAMLSSOArtifactResolver;
@@ -161,8 +162,12 @@ public class SAMLArtifactResolveServlet extends HttpServlet {
 
         String id = URLDecoder.decode(artifactResolve.getID(), StandardCharsets.UTF_8.name());
         DateTime issueInstant = artifactResolve.getIssueInstant();
-        String samlArt = URLDecoder.decode(artifactResolve.getArtifact().getArtifact(),
-                StandardCharsets.UTF_8.name());
+        String samlArt;
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML2_ARTIFACT_DOUBLE_ENCODING_DISABLED))) {
+            samlArt = artifactResolve.getArtifact().getArtifact();
+        } else {
+            samlArt= URLDecoder.decode(artifactResolve.getArtifact().getArtifact(), StandardCharsets.UTF_8.name());
+        }
         String issuer = artifactResolve.getIssuer().getValue();
         artifactResolve.getArtifact().setArtifact(samlArt);
 
