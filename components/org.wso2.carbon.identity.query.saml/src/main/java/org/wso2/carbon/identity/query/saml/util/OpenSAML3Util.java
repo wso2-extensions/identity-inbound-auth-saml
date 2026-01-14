@@ -267,8 +267,11 @@ public class OpenSAML3Util {
     public static boolean validateXMLSignature(RequestAbstractType request, String alias,
                                                String domainName) throws IdentitySAML2QueryException {
         if (request.getSignature() != null) {
+            ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+            ClassLoader opensamlCL = org.opensaml.xmlsec.signature.support.Signer.class.getClassLoader();
             try {
                 X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
+                Thread.currentThread().setContextClassLoader(opensamlCL);
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
             } catch (SignatureException e) {
@@ -276,6 +279,8 @@ public class OpenSAML3Util {
                         + alias + " ,domainname: " + domainName, e);
                 throw  new IdentitySAML2QueryException("Unable to validate Signature of the request id: " + request.getID() + " with alias: "
                         + alias + " ,domainname: " + domainName, e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(oldCL);
             }
         }
         return false;
