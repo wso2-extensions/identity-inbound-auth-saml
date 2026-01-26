@@ -1016,8 +1016,12 @@ public class SAMLSSOProviderServlet extends HttpServlet {
 
         Map<String, String> queryParams = new HashMap<>();
 
-        String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
-        queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML2_ARTIFACT_DOUBLE_ENCODING_DISABLED))) {
+            queryParams.put(SAMLSSOConstants.SAML_ART, artifact);
+        } else {
+            String encodedArtifact = URLEncoder.encode(artifact, StandardCharsets.UTF_8.name());
+            queryParams.put(SAMLSSOConstants.SAML_ART, encodedArtifact);
+        }
 
         if (relayState != null) {
             String encodedRelayState = URLEncoder.encode(relayState, StandardCharsets.UTF_8.name());
