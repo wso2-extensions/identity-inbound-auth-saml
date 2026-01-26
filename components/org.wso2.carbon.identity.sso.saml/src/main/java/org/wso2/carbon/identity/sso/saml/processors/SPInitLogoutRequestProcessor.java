@@ -175,6 +175,7 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
 
             SAMLSSOUtil.setIssuerWithQualifierInThreadLocal(issuer);
 
+            validateIssuerWithSession(issuer, sessionInfoData);
             String subject = sessionInfoData.getSubject(issuer);
             Map<String, SAMLSSOServiceProviderDO> sessionsList = sessionInfoData.getServiceProviderList();
 
@@ -242,6 +243,23 @@ public class SPInitLogoutRequestProcessor implements SPInitSSOLogoutRequestProce
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw IdentityException.error("Error Processing the Logout Request", e);
+        }
+    }
+
+    /**
+     * Validates whether the issuer in the logout request exists in the session info data.
+     *
+     * @param issuer          Issuer in the logout request.
+     * @param sessionInfoData Session info data.
+     * @throws IdentityException If the issuer does not exist in the session info data.
+     */
+    private void validateIssuerWithSession(String issuer, SessionInfoData sessionInfoData)
+            throws IdentityException {
+
+        SAMLSSOServiceProviderDO serviceProvider = sessionInfoData.getServiceProviderList().get(issuer);
+        if (serviceProvider == null) {
+            throw IdentityException.error("Service provider :" + issuer + " does not exist in session " +
+                    "info data.");
         }
     }
 
