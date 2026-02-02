@@ -37,6 +37,7 @@
             <class name="org.wso2.carbon.identity.sso.saml.SAMLLogoutHandlerTest"/>
             <class name="org.wso2.carbon.identity.sso.saml.extension.eidas.EidasExtensionProcessorTest" />
             <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSOAPUtils"/>
+            <class name="org.wso2.carbon.identity.sso.saml.processors.SPInitLogoutRequestProcessorTest"/>
         </classes>
     </test>
 </suite>
