@@ -49,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.joda-time</groupId>
@@ -84,7 +84,7 @@
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml.stub</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.inbound.auth.saml2:org.wso2.carbon.identity.sso.saml.common</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</bundleDef>
-                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml-jdk21</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>
                             <importFeatures>
