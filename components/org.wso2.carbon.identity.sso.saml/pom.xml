@@ -65,7 +65,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.wso2.orbit.org.opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
+                    <artifactId>opensaml-jdk21</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -75,7 +75,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.wso2.orbit.org.opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
+                    <artifactId>opensaml-jdk21</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.joda-time</groupId>
@@ -131,7 +131,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.wso2.orbit.org.opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
+                    <artifactId>opensaml-jdk21</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -157,7 +157,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.wso2.orbit.org.opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
+                    <artifactId>opensaml-jdk21</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
