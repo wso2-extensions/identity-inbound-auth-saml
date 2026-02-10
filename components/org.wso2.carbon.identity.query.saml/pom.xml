@@ -248,6 +248,8 @@
 							org.wso2.carbon.identity.query.saml.*; version="${identity.inbound.auth.saml.exp.version}",
 						</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
+						<!-- Completely disable OSGi contract requirement generation -->
+						<_contract>!*</_contract>
 					</instructions>
 				</configuration>
 			</plugin>
