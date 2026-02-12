@@ -137,7 +137,6 @@ import static org.wso2.carbon.identity.sso.saml.SAMLSSOConstants.LogConstants.SA
  * SAML Assertion. If not, he will be prompted again for credentials.</li>
  * </ol>
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,

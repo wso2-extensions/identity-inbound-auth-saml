@@ -121,11 +121,9 @@ public class DefaultSSOSigner implements SSOSigner {
         
         ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
         ClassLoader opensamlCL = org.opensaml.xmlsec.signature.support.Signer.class.getClassLoader();
-        // or: org.opensaml.xmlsec.signature.support.SignerProvider.class.getClassLoader()
         
         try {
             Thread.currentThread().setContextClassLoader(opensamlCL);
-            // the call that eventually triggers Signer.getSignerProvider(...)
             Signer.signObjects(signatureList);
         } catch (SignatureException e) {
             throw IdentityException.error("Error occurred while signing request", e);

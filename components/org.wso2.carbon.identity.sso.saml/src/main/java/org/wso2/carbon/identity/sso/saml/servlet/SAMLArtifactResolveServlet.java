@@ -70,7 +70,6 @@ import javax.xml.transform.stream.StreamResult;
  * This is the SAML2 artifact resolve end point for authentication process in an SSO scenario.
  * This servlet is registered with the URL pattern /samlartresolve.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,
