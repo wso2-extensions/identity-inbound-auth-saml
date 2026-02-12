@@ -61,11 +61,17 @@ public class DefaultSSOSigner implements SSOSigner {
         boolean isSignatureValid = false;
 
         if (request.getSignature() != null) {
+            ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+            ClassLoader opensamlCL = org.opensaml.xmlsec.signature.support.Signer.class.getClassLoader();
+
             try {
+                Thread.currentThread().setContextClassLoader(opensamlCL);
                 SignatureValidator.validate(request.getSignature(), cred);
                 isSignatureValid = true;
             } catch (SignatureException e) {
                 throw IdentityException.error("Signature Validation Failed for the SAML Assertion.", e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(oldCL);
             }
         }
         return isSignatureValid;
@@ -112,10 +118,17 @@ public class DefaultSSOSigner implements SSOSigner {
         }
 
         org.apache.xml.security.Init.init();
+        
+        ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+        ClassLoader opensamlCL = org.opensaml.xmlsec.signature.support.Signer.class.getClassLoader();
+        
         try {
+            Thread.currentThread().setContextClassLoader(opensamlCL);
             Signer.signObjects(signatureList);
         } catch (SignatureException e) {
             throw IdentityException.error("Error occurred while signing request", e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldCL);
         }
 
         return signableXMLObject;

@@ -65,7 +65,7 @@
 				</exclusion>
 				<exclusion>
 					<groupId>org.wso2.orbit.org.opensaml</groupId>
-					<artifactId>opensaml</artifactId>
+					<artifactId>opensaml-jdk21</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -91,7 +91,7 @@
 				</exclusion>
 				<exclusion>
 					<groupId>org.wso2.orbit.org.opensaml</groupId>
-					<artifactId>opensaml</artifactId>
+					<artifactId>opensaml-jdk21</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -213,7 +213,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.orbit.org.opensaml</groupId>
-			<artifactId>opensaml</artifactId>
+			<artifactId>opensaml-jdk21</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -236,17 +236,20 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
-						<Import-Package>javax.servlet,
-							javax.servlet.http,
-							*;resolution:=optional,
+						<Import-Package>
+							javax.servlet; version="${imp.pkg.version.javax.servlet}",
+							javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
 							org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
 							org.opensaml.*; version="${opensaml3.wso2.osgi.version.range}",
 							net.shibboleth.utilities.java.support.*; version="${opensaml3.wso2.osgi.version.range}",
+							*;resolution:=optional,
 						</Import-Package>
 						<Export-Package>!org.wso2.carbon.identity.query.saml.internal,
 							org.wso2.carbon.identity.query.saml.*; version="${identity.inbound.auth.saml.exp.version}",
 						</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
+						<!-- Completely disable OSGi contract requirement generation -->
+						<_contract>!*</_contract>
 					</instructions>
 				</configuration>
 			</plugin>
