@@ -1993,7 +1993,7 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                 authResult.getProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID));
 
         SAMLSSOUtil.setIsSaaSApplication(authResult.isSaaSApp());
-        SAMLSSOUtil.setIsOrganizationLogin(authResult.isOrganizationLogin());
+        SAMLSSOUtil.setIsSharedAppLogin(authResult.isSharedAppLogin());
         SAMLSSOUtil.setUserTenantDomain(authResult.getSubject().getTenantDomain());
     }
 
