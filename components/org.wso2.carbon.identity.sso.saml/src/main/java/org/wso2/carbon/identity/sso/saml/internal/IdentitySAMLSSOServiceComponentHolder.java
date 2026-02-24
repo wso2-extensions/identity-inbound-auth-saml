@@ -32,7 +32,6 @@ public class IdentitySAMLSSOServiceComponentHolder {
     private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
     private SAMLSSOConfigServiceImpl samlSSOConfigService;
     private SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler;
-    private ConfigurationManager configurationManager = null;
 
     private static final IdentitySAMLSSOServiceComponentHolder instance = new IdentitySAMLSSOServiceComponentHolder();
 
@@ -103,15 +102,5 @@ public class IdentitySAMLSSOServiceComponentHolder {
     public void setSaml2InboundAuthConfigHandler(SAML2InboundAuthConfigHandler saml2InboundAuthConfigHandler) {
         
         this.saml2InboundAuthConfigHandler = saml2InboundAuthConfigHandler;
-    }
-
-    public void setConfigurationManager(ConfigurationManager configurationManager) {
-
-        this.configurationManager = configurationManager;
-    }
-
-    public ConfigurationManager getConfigurationManager() {
-
-        return configurationManager;
     }
 }

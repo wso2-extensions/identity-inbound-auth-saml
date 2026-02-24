@@ -440,27 +440,4 @@ public class IdentitySAMLSSOServiceComponent {
         /* Reference ApplicationAuthenticationService service to guarantee that this component will wait until
         authentication framework is started. */
     }
-
-    @Reference(
-            name = "resource.configuration.manager",
-            service = ConfigurationManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unregisterConfigurationManager"
-    )
-    protected void registerConfigurationManager(ConfigurationManager configurationManager) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Setting the configuration manager in SAML SSO service bundle.");
-        }
-        IdentitySAMLSSOServiceComponentHolder.getInstance().setConfigurationManager(configurationManager);
-    }
-
-    protected void unregisterConfigurationManager(ConfigurationManager configurationManager) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Unsetting the configuration manager in SAML SSO service bundle.");
-        }
-        IdentitySAMLSSOServiceComponentHolder.getInstance().setConfigurationManager(null);
-    }
 }
