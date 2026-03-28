@@ -72,6 +72,22 @@ public class SAMLSSOParticipantCache extends BaseCache<SAMLSSOParticipantCacheKe
     }
 
     /**
+     * Adds Session Information to the local cache only (no cluster invalidation), used during read-path cache
+     * population to avoid redundant invalidation messages in clustered deployments.
+     *
+     * @param key                Key which cache entry is indexed.
+     * @param entry              SAMLSSOParticipant Cache Entry.
+     * @param loginTenantDomain  Login Tenant Domain where cache will add.
+     */
+    @Override
+    public void addToCacheOnRead(SAMLSSOParticipantCacheKey key, SAMLSSOParticipantCacheEntry entry,
+                                 String loginTenantDomain) {
+
+        String tenantDomain = resolveCacheTenantDomain(loginTenantDomain);
+        super.addToCacheOnRead(key, entry, tenantDomain);
+    }
+
+    /**
      * @deprecated This method was deprecated to move SAMLSSOParticipantCache to the tenant space.
      * Use {@link #getValueFromCache(SAMLSSOParticipantCacheKey, String))} instead.
      */
@@ -98,6 +114,9 @@ public class SAMLSSOParticipantCache extends BaseCache<SAMLSSOParticipantCacheKe
         if (cacheEntry == null) {
             cacheEntry = (SAMLSSOParticipantCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getSessionIndex(), CACHE_NAME);
+            if (cacheEntry != null) {
+                addToCacheOnRead(key, cacheEntry, loginTenantDomain);
+            }
         }
         return cacheEntry;
     }

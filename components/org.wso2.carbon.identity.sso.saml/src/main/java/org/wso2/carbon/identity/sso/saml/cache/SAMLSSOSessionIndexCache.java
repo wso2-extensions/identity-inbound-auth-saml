@@ -71,6 +71,22 @@ public class SAMLSSOSessionIndexCache extends BaseCache<SAMLSSOSessionIndexCache
     }
 
     /**
+     * Adds Session Index to the local cache only (no cluster invalidation), used during read-path cache
+     * population to avoid redundant invalidation messages in clustered deployments.
+     *
+     * @param key               Key which cache entry is indexed.
+     * @param entry             SAMLSSOSessionIndex Cache Entry.
+     * @param loginTenantDomain Login Tenant Domain where cache will add.
+     */
+    @Override
+    public void addToCacheOnRead(SAMLSSOSessionIndexCacheKey key, SAMLSSOSessionIndexCacheEntry entry,
+                                 String loginTenantDomain) {
+
+        String tenantDomain = resolveCacheTenantDomain(loginTenantDomain);
+        super.addToCacheOnRead(key, entry, tenantDomain);
+    }
+
+    /**
      * @deprecated This method was deprecated to move SAMLSSOSessionIndexCache to the tenant space.
      * Use {@link #getValueFromCache(SAMLSSOSessionIndexCacheKey, String))} instead.
      */
@@ -97,6 +113,9 @@ public class SAMLSSOSessionIndexCache extends BaseCache<SAMLSSOSessionIndexCache
         if (cacheEntry == null) {
             cacheEntry = (SAMLSSOSessionIndexCacheEntry) SessionDataStore.getInstance().getSessionData(key.getTokenId(),
                     CACHE_NAME);
+            if (cacheEntry != null) {
+                addToCacheOnRead(key, cacheEntry, loginTenantDomain);
+            }
         }
         return cacheEntry;
     }

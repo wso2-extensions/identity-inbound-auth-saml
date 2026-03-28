@@ -58,11 +58,18 @@ public class SessionDataCache extends AuthenticationBaseCache<SessionDataCacheKe
         }
     }
 
+    public void addToCacheOnRead(SessionDataCacheKey key, SessionDataCacheEntry entry) {
+        super.addToCacheOnRead(key, entry);
+    }
+
     public SessionDataCacheEntry getValueFromCache(SessionDataCacheKey key) {
         SessionDataCacheEntry cacheEntry = super.getValueFromCache(key);
         if (cacheEntry == null && isTemporarySessionDataPersistEnabled) {
             cacheEntry = (SessionDataCacheEntry) SessionDataStore.getInstance().getSessionData(key.getSessionDataKey(),
                     SESSION_DATA_CACHE_NAME);
+            if (cacheEntry != null) {
+                addToCacheOnRead(key, cacheEntry);
+            }
         }
         return cacheEntry;
     }

@@ -69,6 +69,18 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
     }
 
     /**
+     * Adds FrontChannelSLOParticipantInfo to the local cache only (no cluster invalidation), used during read-path
+     * cache population to avoid redundant invalidation messages in clustered deployments.
+     *
+     * @param key   Logout request id of the current SLO invoked session participant.
+     * @param entry FrontChannelSLOParticipantInfo.
+     */
+    public void addToCacheOnRead(String key, FrontChannelSLOParticipantInfo entry) {
+
+        super.addToCacheOnRead(key, entry);
+    }
+
+    /**
      * Retrieve FrontChannelSLOParticipantInfo from the store using logout request id of the current SLO invoked
      * session participant.
      *
@@ -81,6 +93,9 @@ public class FrontChannelSLOParticipantStore extends BaseCache<String, FrontChan
         if (cacheEntry == null && isTemporarySessionDataPersistEnabled) {
             cacheEntry = (FrontChannelSLOParticipantInfo) SessionDataStore.getInstance().
                     getSessionData(key, CACHE_NAME);
+            if (cacheEntry != null) {
+                addToCacheOnRead(key, cacheEntry);
+            }
         }
         return cacheEntry;
     }
