@@ -1240,10 +1240,20 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                     statusCodes.add(SAMLSSOConstants.StatusCodes.AUTHN_FAILURE);
                     statusCodes.add(SAMLSSOConstants.StatusCodes.IDENTITY_PROVIDER_ERROR);
 
-                    String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId, statusCodes,
-                            "User authentication failed", assertionConsumerURL);
-                    sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS, SAMLSSOConstants
-                            .Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
+                    if (StringUtils.isNotBlank(assertionConsumerURL)) {
+                        // Build a POST-binding SAML error response and auto-submit it back to the SP's ACS
+                        // so the user returns to the application instead of landing on a dead-end page.
+                        String errorResp = SAMLSSOUtil.buildErrorResponse(authenticationRequestId, statusCodes,
+                                "User authentication failed", assertionConsumerURL);
+                        sendResponse(req, resp, sessionDTO.getRelayState(), errorResp, assertionConsumerURL,
+                                sessionDTO.getValidationRespDTO().getSubject(), null,
+                                sessionDTO.getTenantDomain());
+                    } else {
+                        String errorResp = SAMLSSOUtil.buildCompressedErrorResponse(authenticationRequestId,
+                                statusCodes, "User authentication failed", assertionConsumerURL);
+                        sendNotification(errorResp, SAMLSSOConstants.Notification.EXCEPTION_STATUS,
+                                SAMLSSOConstants.Notification.EXCEPTION_MESSAGE, assertionConsumerURL, req, resp);
+                    }
                     return;
                 } else {
                     throw IdentityException.error(IdentityException.class, "Could not find " + "session state " +
