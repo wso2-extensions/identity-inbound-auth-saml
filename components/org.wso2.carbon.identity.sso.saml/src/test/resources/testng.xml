@@ -22,6 +22,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServletTest" />
             <class name="org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServletSendPostRequestTest" />
+            <class name="org.wso2.carbon.identity.sso.saml.servlet.SAMLSSOProviderServletAuthFailureTest" />
             <class name="org.wso2.carbon.identity.sso.saml.SAML2InboundAuthConfigHandlerTest"/>
             <class name="org.wso2.carbon.identity.sso.saml.util.AssertionBuildingTest" />
             <class name="org.wso2.carbon.identity.sso.saml.util.SAMLSSOUtilTest" />
