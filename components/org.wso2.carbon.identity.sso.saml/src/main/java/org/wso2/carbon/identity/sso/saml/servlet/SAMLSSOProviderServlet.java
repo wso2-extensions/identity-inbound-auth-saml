@@ -169,13 +169,31 @@ public class SAMLSSOProviderServlet extends HttpServlet {
     private static final int DEFAULT_HTTP_PORT = 80;
 
     private static final String formPostPageTemplate = "<html>\n" +
-            "<body onload=\"javascript:document.getElementById('samlsso-response-form').submit()\">\n" +
+            "<head>\n" +
+            "<script type=\"text/javascript\">\n" +
+            "var submitted = false;\n" +
+            "function submitSamlResponse() {\n" +
+            "    if (!submitted) {\n" +
+            "        submitted = true;\n" +
+            "        document.getElementById('samlsso-response-form').submit();\n" +
+            "        setTimeout(function() {\n" +
+            "            submitted = false;\n" +
+            "            document.getElementById('fallback-submit').style.display = 'block';\n" +
+            "        }, 10000);\n" +
+            "    }\n" +
+            "}\n" +
+            "</script>\n" +
+            "</head>\n" +
+            "<body onload=\"javascript:submitSamlResponse()\">\n" +
             "<h2>Please wait while we take you back to $app</h2>\n" +
-            "<p><a href=\"javascript:document.getElementById('samlsso-response-form').submit()\">Click here</a>" +
+            "<p id=\"fallback-submit\" style=\"display:none;\"><a href=\"javascript:submitSamlResponse()\">Click here</a>" +
             " if you have been waiting for too long.</p>\n" +
             "<form id=\"samlsso-response-form\" method=\"post\" action=\"$acUrl\">\n" +
             "    <!--$params-->\n" +
             "    <!--$additionalParams-->\n" +
+            "    <noscript>\n" +
+            "        <p><input type=\"submit\" value=\"Click here\"> if you have been waiting for too long.</p>\n" +
+            "    </noscript>\n" +
             "</form>\n" +
             "</body>\n" +
             "</html>";
