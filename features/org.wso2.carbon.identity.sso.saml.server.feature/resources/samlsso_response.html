@@ -192,9 +192,23 @@ Variables $acUrl, $response, $relayState and $additionalParams will be replaced 
         }
 
     </style>
+    <script type="text/javascript">
+        var submitted = false;
+
+        function submitSamlResponse() {
+            if (!submitted) {
+                submitted = true;
+                document.getElementById('samlsso-response-form').submit();
+                setTimeout(function() {
+                    submitted = false;
+                    document.getElementById('fallback-submit').style.display = 'block';
+                }, 10000);
+            }
+        }
+    </script>
 </head>
 
-<body onload="javascript:document.getElementById('samlsso-response-form').submit()">
+<body onload="javascript:submitSamlResponse()">
 
     <div class="padding-top-20">
         <div class="ui centered grid">
@@ -205,12 +219,18 @@ Variables $acUrl, $response, $relayState and $additionalParams will be replaced 
                         Please wait while we take you back to $app.
                     </div>
                 </div>
-                <p class="padding-bottom-1 text-align-center"><a class="primary-color-btn button" href="javascript:document.getElementById('samlsso-response-form').submit()">Click here</a> if you have been waiting for
+                <p id="fallback-submit" class="padding-bottom-1 text-align-center" style="display:none;"><a class="primary-color-btn button" href="javascript:submitSamlResponse()">Click here</a> if you have been waiting for
                     too long.</p>
 
                 <form id="samlsso-response-form" method="post" action="$acUrl">
                     <!--$params-->
                     <!--$additionalParams-->
+                    <noscript>
+                        <p class="padding-bottom-1 text-align-center">
+                            <input type="submit" class="primary-color-btn button" value="Click here"> if you have been waiting for
+                            too long.
+                        </p>
+                    </noscript>
                 </form>
 
             </div>

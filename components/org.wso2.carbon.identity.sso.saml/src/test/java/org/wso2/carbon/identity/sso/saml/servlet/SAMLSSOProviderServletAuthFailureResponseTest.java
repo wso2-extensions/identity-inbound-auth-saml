@@ -57,6 +57,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -157,6 +158,7 @@ public class SAMLSSOProviderServletAuthFailureResponseTest {
                         "The POST form should target the SP's ACS URL.");
                 assertTrue(renderedPage.contains(TEST_ERROR_RESPONSE),
                         "The POST form should carry the SAML error response.");
+                assertGuardedResponsePage(renderedPage);
                 verify(response, never()).sendRedirect(anyString());
             } else {
                 // Fallback path renders the generic IdP notification page via a redirect.
@@ -259,6 +261,7 @@ public class SAMLSSOProviderServletAuthFailureResponseTest {
                         "The POST form should target the SP's ACS URL.");
                 assertTrue(renderedPage.contains(TEST_ERROR_RESPONSE),
                         "The POST form should carry the re-encoded SAML error response.");
+                assertGuardedResponsePage(renderedPage);
                 verify(response, never()).sendRedirect(anyString());
             } else {
                 // Fallback path renders the generic IdP notification page via a redirect.
@@ -266,5 +269,26 @@ public class SAMLSSOProviderServletAuthFailureResponseTest {
                 verify(response).sendRedirect(anyString());
             }
         }
+    }
+
+    private void assertGuardedResponsePage(String renderedPage) {
+
+        assertTrue(renderedPage.contains("onload=\"javascript:submitSamlResponse()\""),
+                "The rendered POST page should auto-submit through the guarded function.");
+        assertTrue(renderedPage.contains("function submitSamlResponse()"),
+                "The rendered POST page should include the guarded submit function.");
+        assertTrue(renderedPage.contains("id=\"fallback-submit\" style=\"display:none;\""),
+                "The fallback submit control should be hidden during the initial auto-submit window.");
+        assertTrue(renderedPage.contains("href=\"javascript:submitSamlResponse()\""),
+                "The fallback link should use the guarded submit function.");
+        assertTrue(renderedPage.contains("setTimeout(function()"),
+                "The guarded submit function should delay fallback availability.");
+        assertTrue(renderedPage.contains("submitted = false;"),
+                "The guarded submit function should reset after the fallback delay.");
+        assertTrue(renderedPage.contains("<noscript>") && renderedPage.contains("type=\"submit\""),
+                "A JavaScript-disabled user should have a form submit control.");
+        assertFalse(renderedPage.contains("href=\"javascript:document.getElementById('samlsso-response-form')" +
+                        ".submit()\""),
+                "The fallback link should not directly submit the form.");
     }
 }
