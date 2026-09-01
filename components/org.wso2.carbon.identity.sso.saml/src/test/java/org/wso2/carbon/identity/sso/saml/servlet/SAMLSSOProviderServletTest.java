@@ -22,9 +22,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
+import org.mockito.ArgumentCaptor;
+import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import javax.servlet.http.Cookie;
+
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -147,4 +154,121 @@ public class SAMLSSOProviderServletTest {
         assertEquals(decodedResult, TestConstants.AUTHN_FAILED_SAML_RESPONSE,
                 "Decoded response should match the original SAML response.");
     }
+
+    @Test
+    public void testRemoveTokenIdCookieAppliesProxyContextPath() {
+
+        String tenantDomain = "foo.com";
+        Cookie tokenIdCookie = new Cookie("samlssoTokenId",
+                "tokenIdValue" + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX);
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+        when(req.getCookies()).thenReturn(new Cookie[]{tokenIdCookie});
+
+        ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
+        when(serverConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn("auth");
+
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServerConfiguration> serverConfigurationStatic =
+                     Mockito.mockStatic(ServerConfiguration.class)) {
+
+            identityUtil.when(() -> IdentityUtil.getIdentityCookieConfig(anyString())).thenReturn(null);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+            identityTenantUtil.when(IdentityTenantUtil::isSuperTenantAppendInCookiePath).thenReturn(false);
+            serverConfigurationStatic.when(ServerConfiguration::getInstance).thenReturn(serverConfiguration);
+
+            samlssoProviderServlet.removeTokenIdCookie(req, resp, tenantDomain);
+        }
+
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(resp).addCookie(cookieCaptor.capture());
+        assertEquals(cookieCaptor.getValue().getPath(), "/auth/t/" + tenantDomain + "/",
+                "The proxy context path is not applied to the tenanted samlssoTokenId cookie path");
+    }
+
+
+    @DataProvider(name = "tokenIdCookiePathDataProvider")
+    public Object[][] provideTokenIdCookiePathData() {
+
+        return new Object[][]{
+                // loggedInTenantDomain, superTenantAppendInCookiePath, expectedPathPassedToHelper
+
+                // A tenanted cookie path is routed through the proxy context path helper.
+                {"foo.com", false, "/t/foo.com/"},
+
+                // When the super tenant is appended, its path is routed through the helper too.
+                {"carbon.super", true, "/t/carbon.super/"},
+        };
+    }
+
+    @Test(dataProvider = "tokenIdCookiePathDataProvider")
+    public void testStoreTokenIdCookieAppliesProxyContextPath(String loggedInTenantDomain,
+                                                             boolean superTenantAppendInCookiePath,
+                                                             String expectedPathPassedToHelper) throws Exception {
+
+        String sessionId = "sessionIdValue" + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX;
+        String prefixedPath = "/auth" + expectedPathPassedToHelper;
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = Mockito.mockStatic(FrameworkUtils.class)) {
+
+            identityUtil.when(() -> IdentityUtil.getIdentityCookieConfig(anyString())).thenReturn(null);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+            identityTenantUtil.when(IdentityTenantUtil::isSuperTenantAppendInCookiePath)
+                    .thenReturn(superTenantAppendInCookiePath);
+            frameworkUtils.when(() -> FrameworkUtils.prependProxyContextPath(expectedPathPassedToHelper))
+                    .thenReturn(prefixedPath);
+
+            Method method = SAMLSSOProviderServlet.class.getDeclaredMethod("storeTokenIdCookie",
+                    String.class, HttpServletRequest.class, HttpServletResponse.class,
+                    String.class, String.class, String.class);
+            method.setAccessible(true);
+            method.invoke(samlssoProviderServlet, sessionId, req, resp, "foo.com", loggedInTenantDomain,
+                    "sessionIdentifier");
+
+            frameworkUtils.verify(() -> FrameworkUtils.prependProxyContextPath(expectedPathPassedToHelper));
+        }
+
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(resp).addCookie(cookieCaptor.capture());
+        assertEquals(cookieCaptor.getValue().getPath(), prefixedPath,
+                "The samlssoTokenId cookie path should be the value returned by the proxy context path helper");
+    }
+
+
+    @Test
+    public void testStoreTokenIdCookieKeepsRootPathForSuperTenant() throws Exception {
+
+        String sessionId = "sessionIdValue" + SAMLSSOConstants.TENANT_QUALIFIED_TOKEN_ID_COOKIE_SUFFIX;
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = Mockito.mockStatic(FrameworkUtils.class)) {
+
+            identityUtil.when(() -> IdentityUtil.getIdentityCookieConfig(anyString())).thenReturn(null);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+            identityTenantUtil.when(IdentityTenantUtil::isSuperTenantAppendInCookiePath).thenReturn(false);
+
+            Method method = SAMLSSOProviderServlet.class.getDeclaredMethod("storeTokenIdCookie",
+                    String.class, HttpServletRequest.class, HttpServletResponse.class,
+                    String.class, String.class, String.class);
+            method.setAccessible(true);
+            method.invoke(samlssoProviderServlet, sessionId, req, resp, "foo.com", "carbon.super",
+                    "sessionIdentifier");
+
+            frameworkUtils.verify(() -> FrameworkUtils.prependProxyContextPath(anyString()), never());
+        }
+
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(resp).addCookie(cookieCaptor.capture());
+        assertEquals(cookieCaptor.getValue().getPath(), SAMLSSOConstants.COOKIE_ROOT_PATH,
+                "The super tenant cookie path should stay at the root path, which already covers any prefix");
+    }
+
 }

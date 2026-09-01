@@ -1562,16 +1562,18 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
                     samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                 } else {
-                    samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
-                            SAMLSSOConstants.COOKIE_ROOT_PATH);
+                    samlssoTokenIdCookie.setPath(FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain +
+                                    SAMLSSOConstants.COOKIE_ROOT_PATH));
                 }
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     samlssoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                 } else {
-                    samlssoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
-                            SAMLSSOConstants.COOKIE_ROOT_PATH);
+                    samlssoTokenIdCookie.setPath(FrameworkUtils.prependProxyContextPath(
+                            FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                                    SAMLSSOConstants.COOKIE_ROOT_PATH));
                 }
             }
             isTenantQualifiedCookie = true;
@@ -1630,8 +1632,9 @@ public class SAMLSSOProviderServlet extends HttpServlet {
                                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenantDomain)) {
                             samlSsoTokenIdCookie.setPath(SAMLSSOConstants.COOKIE_ROOT_PATH);
                         } else {
-                            samlSsoTokenIdCookie.setPath(FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain
-                                    + SAMLSSOConstants.COOKIE_ROOT_PATH);
+                            samlSsoTokenIdCookie.setPath(FrameworkUtils.prependProxyContextPath(
+                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + loggedInTenantDomain
+                                            + SAMLSSOConstants.COOKIE_ROOT_PATH));
                         }
                         isTenantQualifiedCookie = true;
                     } else {
