@@ -196,8 +196,13 @@ public class SPInitSSOAuthnRequestValidator extends SSOAuthnRequestAbstractValid
                     return validationResponse;
                 }
 
-            } else {
-                // Validate the assertion consumer url,  only if request is not signed.
+            }
+
+            // Validate ACS against the SP's allowlist: always for unsigned requests; for signed requests only
+            // when SSOService.SAMLValidateAssertionConsumerURLForSignedRequests is enabled.
+            boolean validateAcsUrl = !serviceProviderConfigs.isDoValidateSignatureInRequests()
+                    || SAMLSSOUtil.isValidateAcsUrlForSignedRequestsEnabled();
+            if (validateAcsUrl) {
                 String acsUrl = authnReq.getAssertionConsumerServiceURL();
                 if (StringUtils.isNotEmpty(acsUrl) && !serviceProviderConfigs.getAssertionConsumerUrlList()
                         .contains(acsUrl)) {

@@ -75,6 +75,8 @@ public class SAMLSSOConstants {
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD_ENABLED = "SSOService.SAML2AuthenticationRequestValidityPeriodEnabled";
     public static final String SAML2_AUTHENTICATION_REQUEST_VALIDITY_PERIOD = "SSOService.SAML2AuthenticationRequestValidityPeriod";
     public static final String SAML_SP_CERTIFICATE_EXPIRY_VALIDATION_ENABLED = "SSOService.SAMLSPCertificateExpiryValidationEnable";
+    public static final String SAML_VALIDATE_ACS_URL_FOR_SIGNED_REQUESTS_ENABLED =
+            "SSOService.SAMLValidateAssertionConsumerURLForSignedRequests";
     public static final String SAML_IDP_INIT_LOGOUT_RESPONSE_SIGNING_ENABLED = "SSOService.SAMLIdpInitLogoutResponseSigningEnabled";
     public static final String SEND_SAML_AUTH_FAILURE_RESPONSE_TO_SP = "SSOService.SendSAMLAuthFailureResponseToSP";
     public static final String SAML_ASSERTION_ENCRYPT_WITH_APP_CERT = "SSOService.SAMLAssertionEncyptWithAppCert";

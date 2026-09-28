@@ -21,6 +21,7 @@ import org.apache.xml.security.c14n.Canonicalizer;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.saml.common.SAMLObjectContentReference;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
+import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.XMLObjectBuilder;
 import org.opensaml.core.xml.io.Marshaller;
@@ -66,6 +67,7 @@ public class DefaultSSOSigner implements SSOSigner {
 
             try {
                 Thread.currentThread().setContextClassLoader(opensamlCL);
+                new SAMLSignatureProfileValidator().validate(request.getSignature());
                 SignatureValidator.validate(request.getSignature(), cred);
                 isSignatureValid = true;
             } catch (SignatureException e) {
