@@ -246,6 +246,17 @@ public class SAMLSSOUtil {
     }
 
     /**
+     * Whether to enforce the ACS allowlist for signed AuthnRequests too. Off by default.
+     *
+     * @return true if the ACS URL should be validated for signed requests.
+     */
+    public static boolean isValidateAcsUrlForSignedRequestsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                SAMLSSOConstants.SAML_VALIDATE_ACS_URL_FOR_SIGNED_REQUESTS_ENABLED));
+    }
+
+    /**
      * Check whether use the application certificate to encrypt the SAML assertion.
      * @return true if use the app certificate.
      */

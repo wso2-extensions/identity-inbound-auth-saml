@@ -33,6 +33,7 @@ import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.RequestAbstractType;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
 import org.opensaml.security.x509.X509Credential;
 import org.opensaml.xmlsec.signature.KeyInfo;
 import org.opensaml.xmlsec.signature.SignableXMLObject;
@@ -272,6 +273,7 @@ public class OpenSAML3Util {
             try {
                 X509Credential cred = OpenSAML3Util.getX509CredentialImplForTenant(domainName, alias);
                 Thread.currentThread().setContextClassLoader(opensamlCL);
+                new SAMLSignatureProfileValidator().validate(request.getSignature());
                 SignatureValidator.validate(request.getSignature(), cred);
                 return true;
             } catch (SignatureException e) {
