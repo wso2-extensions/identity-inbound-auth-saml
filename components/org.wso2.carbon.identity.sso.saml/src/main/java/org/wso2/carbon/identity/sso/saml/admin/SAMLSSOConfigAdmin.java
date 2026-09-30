@@ -657,70 +657,7 @@ public class SAMLSSOConfigAdmin {
             serviceProviders = new SAMLSSOServiceProviderDTO[providersSet.length];
 
             for (int i = 0; i < providersSet.length; i++) {
-                SAMLSSOServiceProviderDO providerDO = providersSet[i];
-                SAMLSSOServiceProviderDTO providerDTO = new SAMLSSOServiceProviderDTO();
-                providerDTO.setIssuer(providerDO.getIssuer());
-                providerDTO.setIssuerQualifier(providerDO.getIssuerQualifier());
-                providerDTO.setAssertionConsumerUrls(providerDO.getAssertionConsumerUrls());
-                providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
-                providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
-                providerDTO.setDigestAlgorithmURI(providerDO.getDigestAlgorithmUri());
-                providerDTO.setAssertionEncryptionAlgorithmURI(providerDO.getAssertionEncryptionAlgorithmUri());
-                providerDTO.setKeyEncryptionAlgorithmURI(providerDO.getKeyEncryptionAlgorithmUri());
-                providerDTO.setCertAlias(providerDO.getCertAlias());
-                providerDTO.setAttributeConsumingServiceIndex(providerDO.getAttributeConsumingServiceIndex());
-
-                if (StringUtils.isNotBlank(providerDO.getAttributeConsumingServiceIndex())) {
-                    providerDTO.setEnableAttributeProfile(true);
-                }
-
-                providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
-                /*
-                According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we
-                should not reply on any property to decide this behaviour. Hence the property is set to sign by default.
-                */
-                providerDTO.setDoSignAssertions(true);
-                providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
-                providerDTO.setDoFrontChannelLogout(providerDO.isDoFrontChannelLogout());
-                providerDTO.setFrontChannelLogoutBinding(providerDO.getFrontChannelLogoutBinding());
-                providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
-                providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
-                providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());
-                providerDTO.setDoValidateSignatureInArtifactResolve(
-                        providerDO.isDoValidateSignatureInArtifactResolve());
-
-                if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
-                    providerDTO.setLoginPageURL("");
-                } else {
-                    providerDTO.setLoginPageURL(providerDO.getLoginPageURL());
-                }
-
-                providerDTO.setSloResponseURL(providerDO.getSloResponseURL());
-                providerDTO.setSloRequestURL(providerDO.getSloRequestURL());
-                providerDTO.setRequestedClaims(providerDO.getRequestedClaims());
-                providerDTO.setRequestedAudiences(providerDO.getRequestedAudiences());
-                providerDTO.setRequestedRecipients(providerDO.getRequestedRecipients());
-                providerDTO.setEnableAttributesByDefault(providerDO.isEnableAttributesByDefault());
-                providerDTO.setAttributeNameFormat(providerDO.getAttributeNameFormat());
-                providerDTO.setNameIdClaimUri(providerDO.getNameIdClaimUri());
-                providerDTO.setNameIDFormat(providerDO.getNameIDFormat());
-
-                if (providerDTO.getNameIDFormat() == null) {
-                    providerDTO.setNameIDFormat(NameIdentifier.UNSPECIFIED);
-                }
-                boolean returnValidNameIDFormat = Boolean.parseBoolean(
-                        IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT));
-                if (!returnValidNameIDFormat) {
-                    providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
-                }
-
-                providerDTO.setIdPInitSSOEnabled(providerDO.isIdPInitSSOEnabled());
-                providerDTO.setIdPInitSLOEnabled(providerDO.isIdPInitSLOEnabled());
-                providerDTO.setIdpInitSLOReturnToURLs(providerDO.getIdpInitSLOReturnToURLs());
-                providerDTO.setDoEnableEncryptedAssertion(providerDO.isDoEnableEncryptedAssertion());
-                providerDTO.setDoValidateSignatureInRequests(providerDO.isDoValidateSignatureInRequests());
-                providerDTO.setIdpEntityIDAlias(providerDO.getIdpEntityIDAlias());
-                serviceProviders[i] = providerDTO;
+                serviceProviders[i] = buildServiceProviderInfoDTO(providersSet[i]);
             }
         } catch (IdentityException e) {
             String message = "Error obtaining a registry instance for reading service provider list";
@@ -735,6 +672,98 @@ public class SAMLSSOConfigAdmin {
             serviceProviderInfoDTO.setTenantZero(true);
         }
         return serviceProviderInfoDTO;
+    }
+
+    /**
+     * Retrieve a single SAML service provider by issuer using a targeted lookup.
+     *
+     * @param issuer issuer (with qualifier, if any) of the service provider.
+     * @return the matching SAMLSSOServiceProviderDTO, or null if not found.
+     * @throws IdentityException if an error occurs while reading the service provider.
+     */
+    public SAMLSSOServiceProviderDTO getServiceProvider(String issuer) throws IdentityException {
+
+        if (StringUtils.isBlank(issuer)) {
+            return null;
+        }
+        try {
+            SAMLSSOServiceProviderDO providerDO = IdentitySAMLSSOServiceComponentHolder.getInstance()
+                    .getSAMLSSOServiceProviderManager().getServiceProvider(issuer, tenantId);
+            if (providerDO == null) {
+                return null;
+            }
+            return buildServiceProviderInfoDTO(providerDO);
+        } catch (IdentityException e) {
+            throw new IdentityException("Error obtaining a registry instance for reading service provider with " +
+                    "issuer: " + issuer, e);
+        }
+    }
+
+    private SAMLSSOServiceProviderDTO buildServiceProviderInfoDTO(SAMLSSOServiceProviderDO providerDO) {
+
+        SAMLSSOServiceProviderDTO providerDTO = new SAMLSSOServiceProviderDTO();
+        providerDTO.setIssuer(providerDO.getIssuer());
+        providerDTO.setIssuerQualifier(providerDO.getIssuerQualifier());
+        providerDTO.setAssertionConsumerUrls(providerDO.getAssertionConsumerUrls());
+        providerDTO.setDefaultAssertionConsumerUrl(providerDO.getDefaultAssertionConsumerUrl());
+        providerDTO.setSigningAlgorithmURI(providerDO.getSigningAlgorithmUri());
+        providerDTO.setDigestAlgorithmURI(providerDO.getDigestAlgorithmUri());
+        providerDTO.setAssertionEncryptionAlgorithmURI(providerDO.getAssertionEncryptionAlgorithmUri());
+        providerDTO.setKeyEncryptionAlgorithmURI(providerDO.getKeyEncryptionAlgorithmUri());
+        providerDTO.setCertAlias(providerDO.getCertAlias());
+        providerDTO.setAttributeConsumingServiceIndex(providerDO.getAttributeConsumingServiceIndex());
+
+        if (StringUtils.isNotBlank(providerDO.getAttributeConsumingServiceIndex())) {
+            providerDTO.setEnableAttributeProfile(true);
+        }
+
+        providerDTO.setDoSignResponse(providerDO.isDoSignResponse());
+        /*
+        According to the spec, "The <Assertion> element(s) in the <Response> MUST be signed". Therefore we
+        should not reply on any property to decide this behaviour. Hence the property is set to sign by default.
+        */
+        providerDTO.setDoSignAssertions(true);
+        providerDTO.setDoSingleLogout(providerDO.isDoSingleLogout());
+        providerDTO.setDoFrontChannelLogout(providerDO.isDoFrontChannelLogout());
+        providerDTO.setFrontChannelLogoutBinding(providerDO.getFrontChannelLogoutBinding());
+        providerDTO.setAssertionQueryRequestProfileEnabled(providerDO.isAssertionQueryRequestProfileEnabled());
+        providerDTO.setSupportedAssertionQueryRequestTypes(providerDO.getSupportedAssertionQueryRequestTypes());
+        providerDTO.setEnableSAML2ArtifactBinding(providerDO.isEnableSAML2ArtifactBinding());
+        providerDTO.setDoValidateSignatureInArtifactResolve(
+                providerDO.isDoValidateSignatureInArtifactResolve());
+
+        if (providerDO.getLoginPageURL() == null || "null".equals(providerDO.getLoginPageURL())) {
+            providerDTO.setLoginPageURL("");
+        } else {
+            providerDTO.setLoginPageURL(providerDO.getLoginPageURL());
+        }
+
+        providerDTO.setSloResponseURL(providerDO.getSloResponseURL());
+        providerDTO.setSloRequestURL(providerDO.getSloRequestURL());
+        providerDTO.setRequestedClaims(providerDO.getRequestedClaims());
+        providerDTO.setRequestedAudiences(providerDO.getRequestedAudiences());
+        providerDTO.setRequestedRecipients(providerDO.getRequestedRecipients());
+        providerDTO.setEnableAttributesByDefault(providerDO.isEnableAttributesByDefault());
+        providerDTO.setAttributeNameFormat(providerDO.getAttributeNameFormat());
+        providerDTO.setNameIdClaimUri(providerDO.getNameIdClaimUri());
+        providerDTO.setNameIDFormat(providerDO.getNameIDFormat());
+
+        if (providerDTO.getNameIDFormat() == null) {
+            providerDTO.setNameIDFormat(NameIdentifier.UNSPECIFIED);
+        }
+        boolean returnValidNameIDFormat = Boolean.parseBoolean(
+                IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT));
+        if (!returnValidNameIDFormat) {
+            providerDTO.setNameIDFormat(providerDTO.getNameIDFormat().replace(":", "/"));
+        }
+
+        providerDTO.setIdPInitSSOEnabled(providerDO.isIdPInitSSOEnabled());
+        providerDTO.setIdPInitSLOEnabled(providerDO.isIdPInitSLOEnabled());
+        providerDTO.setIdpInitSLOReturnToURLs(providerDO.getIdpInitSLOReturnToURLs());
+        providerDTO.setDoEnableEncryptedAssertion(providerDO.isDoEnableEncryptedAssertion());
+        providerDTO.setDoValidateSignatureInRequests(providerDO.isDoValidateSignatureInRequests());
+        providerDTO.setIdpEntityIDAlias(providerDO.getIdpEntityIDAlias());
+        return providerDTO;
     }
 
     /**
