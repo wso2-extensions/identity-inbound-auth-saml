@@ -363,4 +363,86 @@ public class SAMLSSOConfigAdminTest {
                     "urn/oasis/names/tc/SAML/1.1/nameid-format/emailAddress");
         }
     }
+
+    @Test
+    public void testGetServiceProvider() throws Exception {
+
+        SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+        samlssoServiceProviderDO.setIssuer("issuer");
+        when(userRegistry.getTenantId()).thenReturn(0);
+        when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
+                .thenReturn(samlssoServiceProviderDO);
+
+        SAMLSSOServiceProviderDTO serviceProvider = samlssoConfigAdmin.getServiceProvider("issuer");
+
+        Assert.assertNotNull(serviceProvider);
+        Assert.assertEquals(serviceProvider.getIssuer(), "issuer");
+    }
+
+    @Test
+    public void testGetServiceProviderNotFound() throws Exception {
+
+        when(userRegistry.getTenantId()).thenReturn(0);
+        when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt())).thenReturn(null);
+
+        Assert.assertNull(samlssoConfigAdmin.getServiceProvider("non-existing-issuer"));
+    }
+
+    @Test
+    public void testGetServiceProviderForValidNameIDFormat() throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class)) {
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT))
+                    .thenReturn("true");
+
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO.setIssuer("issuer");
+            samlssoServiceProviderDO.setNameIDFormat(null);
+            when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
+                    .thenReturn(samlssoServiceProviderDO);
+            SAMLSSOServiceProviderDTO serviceProvider = samlssoConfigAdmin.getServiceProvider("issuer");
+            Assert.assertNotNull(serviceProvider);
+            Assert.assertEquals(serviceProvider.getNameIDFormat(),
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO1.setIssuer("issuer1");
+            samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+            when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
+                    .thenReturn(samlssoServiceProviderDO1);
+            SAMLSSOServiceProviderDTO serviceProvider1 = samlssoConfigAdmin.getServiceProvider("issuer1");
+            Assert.assertNotNull(serviceProvider1);
+            Assert.assertEquals(serviceProvider1.getNameIDFormat(),
+                    "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+        }
+    }
+
+    @Test
+    public void testGetServiceProviderForLegacyNameIDFormat() throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtilStatic = Mockito.mockStatic(IdentityUtil.class)) {
+            identityUtilStatic.when(() -> IdentityUtil.getProperty(SAMLSSOConstants.SAML_RETURN_VALID_NAME_ID_FORMAT))
+                    .thenReturn("false");
+
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO.setIssuer("issuer");
+            samlssoServiceProviderDO.setNameIDFormat(null);
+            when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
+                    .thenReturn(samlssoServiceProviderDO);
+            SAMLSSOServiceProviderDTO serviceProvider = samlssoConfigAdmin.getServiceProvider("issuer");
+            Assert.assertNotNull(serviceProvider);
+            Assert.assertEquals(serviceProvider.getNameIDFormat(),
+                    "urn/oasis/names/tc/SAML/1.1/nameid-format/unspecified");
+
+            SAMLSSOServiceProviderDO samlssoServiceProviderDO1 = new SAMLSSOServiceProviderDO();
+            samlssoServiceProviderDO1.setIssuer("issuer1");
+            samlssoServiceProviderDO1.setNameIDFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");
+            when(samlSSOServiceProviderManager.getServiceProvider(anyString(), anyInt()))
+                    .thenReturn(samlssoServiceProviderDO1);
+            SAMLSSOServiceProviderDTO serviceProvider1 = samlssoConfigAdmin.getServiceProvider("issuer1");
+            Assert.assertNotNull(serviceProvider1);
+            Assert.assertEquals(serviceProvider1.getNameIDFormat(),
+                    "urn/oasis/names/tc/SAML/1.1/nameid-format/emailAddress");
+        }
+    }
 }
